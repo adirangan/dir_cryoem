@@ -1,0 +1,36 @@
+function D = square_to_diag_0(A,b);
+% This function converts A from an l-by-l matrix ;
+% into a (column) vector of diagonal entries D, ;
+% storing band 0 up to band b. ;
+% The diagonal bands are stored in the following order: ;
+% [0 , -1 , +1 , -2 , +2 , ... , -b , +b ]. ;
+% The total length of D will be: ;
+% l + (l-1) + (l-1) + (l-2) + (l-2) + ... + (l-b) + (l-b). ;
+% Consequently, the total length of D will be : ;
+% ll = (2b+1)*l - b*(b+1) ;
+
+if (nargin<2);
+l = 5; b = 2;
+A=reshape(1:l^2,l,l);
+D=square_to_diag_0(A,b); 
+B=diag_to_square_0(D,l);
+subplot(1,2,1); imagesc(A,[1,l^2]); title('original');
+subplot(1,2,2); imagesc(B,[1,l^2]); title(sprintf('diag: b=%d',b));
+disp('returning'); return;
+end;%if (nargin<2);
+
+[m,n] = size(A);
+l = min(m,n); A = A(1:l,1:l);
+b = min(b,l-1);
+ll = (2*b+1)*l - b*(b+1) ;
+D = zeros(ll,1);
+b_val_ = [0:-1:-b ; 0:+1:+b];
+b_val_ = reshape(b_val_,2*(b+1),1);
+b_val_ = b_val_(2:end);
+l_sub = 0;
+for nb_val=1:length(b_val_);
+b_val = b_val_(nb_val);
+b_abs = abs(b_val);
+D(l_sub + (1:l-b_abs)) = diag(A,b_val);
+l_sub = l_sub + l-abs(b_val);
+end;%for nb_val=1:length(b_val_);

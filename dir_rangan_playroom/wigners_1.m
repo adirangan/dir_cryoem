@@ -1,0 +1,101 @@
+function wigners_1(n_l,kdelta_max,eps);
+% constructs approximate factorization of wigner-s matrix, defined as: ;
+% Ws = Wd(-omega) * Wt(k*delta) * Wd(+omega), where: ; 
+% Wd = wigner-d matrix for angle omega ;
+% Wt = wigner-t matrix for z-translation delta on shell-k ;
+
+verbose=1;
+
+na=1;
+if (nargin<na); n_l = 10; end; na = na+1;
+if (nargin<na); kdelta_max = 2.0; end; na = na+1;
+if (nargin<na); eps = 1e-3; end; na = na+1;
+
+k_val_max = n_l;
+n_kdelta = max(20,2*n_l);
+k_val_ = linspace(1,k_val_max,n_kdelta);
+delta_ = linspace(0,kdelta_max/k_val_max,n_kdelta+1);
+kdelta_ = reshape(k_val_,length(k_val_),1)*reshape(delta_,1,length(delta_));
+kdelta_ = reshape(kdelta_,length(k_val_)*length(delta_),1);
+omega_ = linspace(0,pi,n_kdelta+2);
+n_all = length(k_val_)*length(delta_)*length(omega_);
+
+n_sample = 0.5;
+n_lm = (1+n_l).^2;
+
+[m1_,l1_,m2_,l2_,pp_,qq_] = permute_ml_to_lm(n_l);
+
+if verbose; disp(sprintf(' %% calculating Wd_')); tic; end;
+Wdf__ = cell(length(omega_),1);
+Wdf_ = cell(length(omega_),1);
+Sdf_ = cell(length(omega_),1);
+Wdb__ = cell(length(omega_),1);
+Wdb_ = cell(length(omega_),1);
+Sdb_ = cell(length(omega_),1);
+for nomega = 1:length(omega_);
+omega = omega_(nomega);
+Wdf__{nomega} = wignerd_b(n_l,+omega);
+Wdb__{nomega} = wignerd_b(n_l,-omega);
+Wdf_{nomega} = zeros(n_lm,n_lm);
+Wdb_{nomega} = zeros(n_lm,n_lm);
+nlm=0;
+for nl=0:n_l;
+l_val = nl;
+nm = 1 + 2*l_val;
+Wdf_{nomega}(nlm + (1:nm),nlm + (1:nm)) = Wdf__{nomega}{1+nl};
+Wdb_{nomega}(nlm + (1:nm),nlm + (1:nm)) = Wdb__{nomega}{1+nl};
+nlm = nlm + nm;
+end;%for nl=0:n_l;
+assert(nlm==n_lm);
+Sdf_{nomega} = sparse(Wdf_{nomega});
+Sdb_{nomega} = sparse(Wdb_{nomega});
+end;%for nomega = 1:length(omega_);
+if verbose; disp(sprintf(' %% finished Wd_, total time %0.2f',toc)); end;
+clear Wdf__ Wdf_ Wdb__ Wdb_ ;
+
+if verbose; disp(sprintf(' %% calculating Wt_')); tic; end;
+Wz__ = wignerz_leg(n_l,kdelta_,n_sample);
+Wz_ = cell(length(k_val_),length(delta_));
+Sz_ = cell(length(k_val_),length(delta_));
+for ndelta = 1:length(delta_); for nk_val = 1:length(k_val_);
+nkd = 1 + (nk_val-1) + (ndelta-1)*length(k_val_);
+Wz_{nk_val,ndelta} = zeros(n_lm,n_lm);
+nlm=0;
+for nm=1:1+2*n_l;
+if nm==1; m_val=0; end; if nm>1; m_val = (1+floor((nm-2)/2))*((-1)^(mod(nm-1,2))); end;
+m_abs = abs(m_val);
+nl = 1+n_l-m_abs;
+Wz_{nk_val,ndelta}(nlm + (1:nl),nlm + (1:nl)) = Wz__{nm,nkd};
+nlm = nlm + nl;
+end;%for nm=1:1+2*n_l;
+assert(nlm==n_lm);
+Sz_{nk_val,ndelta} = sparse(Wz_{nk_val,ndelta});
+end;end;%for ndelta = 1:length(delta_); for nk_val = 1:length(k_val_);
+if verbose; disp(sprintf(' %% finished Wt_, total time %0.2f',toc)); end;
+clear Wz__ Wz_ ;
+
+
+if verbose; disp(sprintf(' %% calculating Ws_')); tic; end;
+%Ws___ = zeros(length(k_val_),length(delta_),length(omega_),n_lm,n_lm);
+na=0;
+for nk_val = 1:length(k_val_); for ndelta = 1:length(delta_); for nomega = 1:length(omega_);
+if (mod(na,100)==0); disp(sprintf(' %% na %d/%d',na,n_all)); end;
+Ws_ = Sdb_{nomega}*Sz_{nk_val,ndelta}(qq_,qq_)*Sdf_{nomega};
+disp_flag=1;
+if disp_flag;
+subplot(1,2,1); imagesc(log10(abs(Ws_)),[log10(eps),0]);colorbar; 
+title(sprintf('abs(Ws(%0.2f,%0.2f,%0.2f)) m,l',k_val_(nk_val),delta_(ndelta),omega_(nomega)));
+subplot(1,2,2); imagesc(log10(abs(Ws_(pp_,pp_))),[log10(eps),0]);colorbar; 
+title(sprintf('abs(Ws(%0.2f,%0.2f,%0.2f)) l,m',k_val_(nk_val),delta_(ndelta),omega_(nomega)));
+%subplot(2,2,3); imagesc((angle(Ws_)),[0,2*pi]);colorbar; 
+%title(sprintf('ang(Ws(%0.2f,%0.2f,%0.2f)) m,l',k_val_(nk_val),delta_(ndelta),omega_(nomega)));
+%subplot(2,2,4); imagesc((angle(Ws_(pp_,pp_))),[0,2*pi]);colorbar; 
+%title(sprintf('ang(Ws(%0.2f,%0.2f,%0.2f)) l,m',k_val_(nk_val),delta_(ndelta),omega_(nomega)));
+%colormap('hsv');
+disp(sprintf(' %% Ws(%d,%d,%d) of size %d-x-%d, %d/%d = %0.2f nonzeros at eps=%0.6f',nk_val,ndelta,nomega,n_lm,n_lm,nnz(abs(Ws_)>eps),n_lm*n_lm,nnz(abs(Ws_)>eps)/(n_lm*n_lm),eps));
+drawnow();
+end;%if disp_flag;
+%Ws___(nk_val,ndelta,nomega,:,:) = full(Ws_);
+na = na+1;
+end;end;end;%for nk_val = 1:length(k_val_); for ndelta = 1:length(delta_); for nomega = 1:length(omega_);
+if verbose; disp(sprintf(' %% finished Ws_, total time %0.2f',toc)); end;

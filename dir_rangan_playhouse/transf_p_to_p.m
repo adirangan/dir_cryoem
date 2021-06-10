@@ -1,0 +1,18 @@
+function M_p_ = transf_p_to_p(n_r,grid_p_,n_w_,n_w_sum,S_p_,delta_x,delta_y);
+% Assumes that M_p_ is the same size and dimensions as S_p_;
+% Multiplication performed in place;
+M_p_ = zeros(size(S_p_));
+nw_sum=0;
+for nr=0:n_r-1;
+R_c = grid_p_(1+nr);
+for nw=0:n_w_(1+nr)-1;
+W_c = 0.0 + nw*(2*pi)/(n_w_(1+nr));
+X_c = R_c*cos(W_c);
+Y_c = R_c*sin(W_c);
+L_c = (X_c * delta_x) + (Y_c * delta_y);
+C_c = +cos(2*pi*L_c) - i*sin(2*pi*L_c);
+M_p_(1+nw_sum) = C_c*S_p_(1+nw_sum);
+nw_sum = nw_sum + 1;
+end;%for;
+end;%for;
+if (nw_sum~=n_w_sum); disp(sprintf(' %% Warning: nw_sum %d vs %d',nw_sum,n_w_sum)); end;

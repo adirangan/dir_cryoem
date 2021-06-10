@@ -1,0 +1,31 @@
+function output = interp1_nufft(n_x,min_x,max_x,F_,x_loc_);
+% assumes regular grid for x;
+% periodic boundary conditions;
+
+if nargin<5;
+n_x = 10;
+min_x = 0; max_x = 7;
+x_u_ = linspace(min_x,max_x,n_x+1); x_u_ = x_u_(1:end-1);
+x_l_ = min_x + (max_x-min_x)*rand(1024,1);
+F_u_ = rand(n_x,1);
+F_l_ = real(interp1_nufft(n_x,min_x,max_x,F_u_,x_l_));
+clf;
+hold on;
+plot(x_u_,F_u_,'ko','MarkerFaceColor','k','MarkerSize',15);
+plot(x_u_ + max_x-min_x,F_u_,'ko','MarkerFaceColor','k','MarkerSize',15);
+plot(x_l_,F_l_,'ro','MarkerFaceColor','r','MarkerSize',5);
+plot(x_l_ + max_x-min_x,F_l_,'ro','MarkerFaceColor','r','MarkerSize',5);
+hold off;
+xlabel('x');
+ylabel('F');
+disp('returning'); return;
+end;%if nargin<5;
+
+x_loc_ = periodize(x_loc_,min_x,max_x); %<-- wrap x_loc_ into [x_min,x_max). ;
+x_loc_ = (x_loc_ - min_x)/(max_x-min_x); %<-- map x_loc_ to [0,1) interval. ;
+tmp_ij_ = find(x_loc_>=0.5); x_loc_(tmp_ij_) = x_loc_(tmp_ij_)-1.0; %<-- wrap x_loc_ into [-0.5,0.5) interval. ;
+x_loc_ = (2*pi/n_x) * x_loc_*n_x;
+G_ = fft(F_)/sqrt(n_x); %<-- frequency range 2*pi*[0,n_x-1]. ;
+G_ = G_([ [ceil(n_x/2)+1:n_x] , [1:ceil(n_x/2)] ]); %<-- wrap G_ to run from frequency range pi*[-n_x/2,+n_x/2-1]. ;
+H_ = nufft1d2(numel(x_loc_),x_loc_,+1,1e-12,n_x,G_);
+output = H_/sqrt(n_x);

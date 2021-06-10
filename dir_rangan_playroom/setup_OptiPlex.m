@@ -1,0 +1,15 @@
+addpath('/home/rangan/dir_chebfun/chebfun-master');
+addpath('/home/rangan/dir_bcc/dir_lakcluster_c_dev/dir_m');
+addpath('/home/rangan/dir_bcc/dir_PGC_20180304/dir_m');
+addpath('/home/rangan/dir_cryoem/dir_nufftall-1.33/');
+addpath('/home/rangan/dir_cryoem/dir_EMIODist2');
+addpath('/home/rangan/dir_cryoem/dir_rangan_playpen/');
+addpath('/home/rangan/dir_cryoem/dir_rangan_playroom/');
+addpath('/home/rangan/dir_cryoem/dir_rangan_playhouse/');
+addpath('/home/rangan/dir_cryoem/dir_rangan_playhouse/dir_freq_march/');
+addpath('/home/rangan/dir_cryoem/dir_rangan_playground/');
+addpath('/home/rangan/dir_bcc/dir_ukb/dir_m/');
+addpath('/home/rangan/dir_bcc/dir_jamison/dir_m/');
+set(groot,'defaultFigureCreateFcn',@(fig,~)addToolbarExplorationButtons(fig));
+set(groot,'defaultAxesCreateFcn',@(ax,~)set(ax.Toolbar,'Visible','off'));
+twopi = 2*pi;

@@ -1,0 +1,17 @@
+function dWtdkd__ = dwignertdkd__(l_val_max);
+% Uses dwignertdkd_ to calculate the derivative of wignert(kd;m_val,l_val_a,l_val_b) with respect to kd. ;
+% This calculation is performed across all l_val_a and l_val_b in m_val:l_val_max, for each fixed m_val. ;
+% Consequently, the result will be a cell-array of size 1+l_val_max. ;
+% More specifically, dWtdkd__{1+m_val} corresponds to dWtdkd_ for fixed m_val. ;
+% This matrix dWtdkd__{1+m_val} is itself a (sparse) square matrix of side-length 1+l_val_max-m_val. ;
+% More specifically: dWtdkd__{1+m_val}(nla,nlb) refers to: ;
+% \partial_{kd} wignert(kd;m_val,l_val_a,l_val_b), where ;
+% l_val_a = nla + m_val ;
+% l_val_b = nlb + m_val ;
+% By construction, dWtdkd__{1+m_val}(nla,nlb) is 0 unless l_val_a==l_val_b+1 or l_val_a==l_val_b-1. ;
+n_l = 1+l_val_max;
+dWtdkd__ = cell(n_l,1);
+for nl=0:n_l-1;
+m_val = nl;
+dWtdkd__{1+nl} = dwignertdkd_(m_val,l_val_max);
+end;%for nl=0:n_l-1;

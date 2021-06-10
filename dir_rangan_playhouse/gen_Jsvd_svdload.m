@@ -1,0 +1,12 @@
+function [n_svd_r,n_svd_d,n_svd_l,svd_r_,svd_d_,svd_l_,svd_U_d_,svd_s_,svd_V_r_] = gen_Jsvd_svdload(svd_fname);
+C_ = textread(svd_fname);
+na = 1;
+n_svd_r = C_(na); na=na+1;
+n_svd_d = C_(na); na=na+1;
+n_svd_l = C_(na); na=na+1;
+svd_r_ = C_(na+(0:n_svd_r-1)); na=na+n_svd_r;
+svd_d_ = C_(na+(0:n_svd_d-1)); na=na+n_svd_d;
+svd_l_ = C_(na+(0:n_svd_l-1)); na=na+n_svd_l;
+svd_U_d_ = C_(na+(0:n_svd_d*n_svd_l-1)); na=na+n_svd_d*n_svd_l;
+svd_s_ = C_(na+(0:n_svd_l-1)); na=na+n_svd_l;
+svd_V_r_ = C_(na+(0:n_svd_r*n_svd_l-1)); na=na+n_svd_r*n_svd_l;

@@ -1,0 +1,24 @@
+function output = hexgrid_0(N);
+% Returns (N-by-2) coordinates of hexgrid centered at 0. ;
+% Spacing is 1. ;
+if (nargin<1);
+N=37;
+output = hexgrid_0(N);
+plot(output(1,:),output(2,:),'.','MarkerSize',25); 
+axis square;
+disp('returning'); return;
+end;%if (nargin<1);
+
+n_node = ceil(4*sqrt(N));
+[X_,Y_] = meshgrid(0:n_node-1,sqrt(3)/2 * (0:n_node-1));
+X_(2:2:end,:) = X_(2:2:end,:) + 0.5;
+x_ = X_(:); y_ = Y_(:);
+x_med = sort(x_); x_med = x_med(floor(end/2));
+y_med = sort(y_(find(x_==x_med))); y_med = y_med(floor(end/2));
+x_ = x_ - x_med;
+y_ = y_ - y_med;
+d_ = hypot(x_,y_);
+[~,ij_] = sort(d_);
+x_ = x_(ij_);
+y_ = y_(ij_);
+output = [transpose(x_(1:N)) ; transpose(y_(1:N))];

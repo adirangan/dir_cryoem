@@ -1,0 +1,10 @@
+function J_k_p_ = test_F_J_k_p_0(n_point,max_x_c,delta_d,delta_w,l_max);
+[max_k_c,max_k_p,grid_x_c_,d_x_c,X_x_c_,Y_x_c_,R_x_c_,W_x_c_,grid_k_c_,d_k_c,X_k_c_,Y_k_c_,R_k_c_,W_k_c_,grid_x_r_,grid_x_w_,R_x_p_,W_x_p_,grid_k_r_,d_k_r,grid_k_w_,d_k_w,R_k_p_,W_k_p_,X_k_p_,Y_k_p_] = test_F_grid_0(n_point,max_x_c);
+verbose=0;
+phi_k_p_ = W_k_p_-delta_w;
+rd_k_p_ = delta_d*2*pi*R_k_p_;
+J_k_p_ = 0*phi_k_p_;
+for l=0:l_max;
+if (l==0); J_k_p_ = J_k_p_ + besselj(0,rd_k_p_); end;
+if (l>0); J_k_p_ = J_k_p_ + exp(+i*l*pi/2).*besselj(-l,rd_k_p_).*exp(-i*l*phi_k_p_) + exp(-i*l*pi/2).*besselj(+l,rd_k_p_).*exp(+i*l*phi_k_p_); end;
+end;%for l=0:l_max;

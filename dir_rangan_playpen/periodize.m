@@ -1,0 +1,12 @@
+function B = periodize(A,min,max);
+B = A;
+continue_flag=1;
+while (continue_flag);
+tmp_ij_=find(B<min);
+if (length(tmp_ij_)>0); B(tmp_ij_) = B(tmp_ij_)+(max-min); else; continue_flag=0; end;
+end; %while;
+continue_flag=1;
+while (continue_flag);
+tmp_ij_=find(B>=max);
+if (length(tmp_ij_)>0); B(tmp_ij_) = B(tmp_ij_)-(max-min); else; continue_flag=0; end;
+end; %while;

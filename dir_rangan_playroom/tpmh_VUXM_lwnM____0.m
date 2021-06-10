@@ -1,0 +1,23 @@
+function VUXM_lwnM____ = tpmh_VUXM_lwnM____0(FTK,n_k_p_r,n_w_,n_M,M_k_q__,n_UX_rank,UX__,X_weight_r_);
+n_w_max = max(n_w_);
+l_max = max(abs(FTK.svd_l_));
+V_r__ = reshape(FTK.svd_polyval_V_r_,[FTK.n_svd_l,n_k_p_r]);
+%M_k_q_rwlM____ = innerproduct_q_k_stretch_quad_stack____1(n_k_p_r,n_w_,n_M,M_k_q__,l_max);
+%%%%%%%%;
+%VUXM_lwnM____ = zeros(FTK.n_svd_l,n_w_max,n_UX_rank,n_M);
+%for nM=0:n_M-1;
+%for nUX_rank=0:n_UX_rank-1;
+%for nl=0:FTK.n_svd_l-1;
+%VUXM_lwnM____(1+nl,:,1+nUX_rank,1+nM) = V_r__(1+nl,:)*diag(UX__(:,1+nUX_rank).*X_weight_r_(:))*M_k_q_rwlM____(:,:,1+l_max+FTK.svd_l_(1+nl),1+nM) / n_w_max ;
+%end;%for nl=0:FTK.n_svd_l-1;
+%end;%for nUX_rank=0:n_UX_rank-1;
+%end;%for nM=0:n_M-1;
+
+M_k_q_rwMl____ = permute(innerproduct_q_k_stretch_quad_stack____1(n_k_p_r,n_w_,n_M,M_k_q__,l_max),[1,2,4,3]);
+for nUX_rank=0:n_UX_rank-1;
+tmp_V_r_UX_X__ = V_r__*diag(UX__(:,1+nUX_rank).*X_weight_r_(:));
+for nl=0:FTK.n_svd_l-1;
+VUXM_wMnl____(:,:,1+nUX_rank,1+nl) = reshape(tmp_V_r_UX_X__(1+nl,:)*reshape(M_k_q_rwMl____(:,:,:,1+l_max+FTK.svd_l_(1+nl)),[n_k_p_r,n_w_max*n_M]),[n_w_max,n_M]) / n_w_max;
+end;%for nl=0:FTK.n_svd_l-1;
+end;%for nUX_rank=0:n_UX_rank-1;
+VUXM_lwnM____ = permute(VUXM_wMnl____,[4,1,3,2]);

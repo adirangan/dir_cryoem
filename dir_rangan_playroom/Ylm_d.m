@@ -1,0 +1,13 @@
+function [Ylm_d_,Ylm_s_] = Ylm_d(l_val,theta_d,phi_d);
+Ylm_d_ = zeros(2*l_val+1,1); Ylm_s_ = zeros(2*l_val+1,1);
+Llm_d__=legendre(l_val,cos(1*pi-phi_d),'unnorm');
+for m_val=-l_val:+l_val;
+if (l_val>0); Llm_d_ = squeeze(Llm_d__(1+abs(m_val),:,:)); end; if (l_val==0); Llm_d_ = Llm_d__(:,:); end;
+a1=((2*l_val+1)/(4*pi));
+a2=exp(lfactorial(l_val-abs(m_val)) - lfactorial(l_val+abs(m_val)));
+c=sqrt(a1*a2);
+s=(-1)^((m_val<0)*m_val); % needed to preserve condon-shortley phase. ;
+%s=1; % original phase ;
+Ylm_d_(1+l_val+m_val) = s*c*Llm_d_(:).*exp(+i*m_val*(1*pi+theta_d)); 
+Ylm_s_(1+l_val+m_val) = s;
+end;%for m_val=-l_val:+l_val;

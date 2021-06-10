@@ -1,0 +1,18 @@
+function C_p = innerproduct_p_quad(n_r,grid_p_,weight_p_,n_w_,n_A,T_p_,M_p_);
+% assumes that M_p_ is the same size and dimensions as T_p_ ;
+% assumes quasi-uniform polar-grid;
+% Upgraded to use radial quadrature weight. ;
+C_p = 0.0 + i*0.0;
+ic = 0;
+for nr=0:n_r-1;
+dw = 2*pi/(1.0d0*max(1,n_w_(1+nr)));
+dA = weight_p_(1+nr);
+dAn = dA*dw;
+C_tmp = 0.0 + i*0.0;
+for nw=0:n_w_(1+nr)-1;
+C_tmp = C_tmp + conj(T_p_(1+ic))*M_p_(1+ic);
+ic = ic + 1;
+end;%for nw=0:n_w_(1+nr)-1;
+C_tmp = C_tmp * dAn;
+C_p = C_p + C_tmp;
+end;%for nr=0:n_r-1;

@@ -1,0 +1,17 @@
+function output = MDA_read_c16(fname);
+if (~exist(fname,'file')); disp(sprintf(' %% Warning! could not find %s',fname)); end;
+fp = fopen(fname);
+tmp = fread(fp,1,'int32');
+n_d = fread(fp,1,'int32');
+tmp = fread(fp,1,'int32');
+tmp = fread(fp,1,'int32');
+d_ = fread(fp,n_d,'int32');
+tmp = fread(fp,1,'int32');
+tmp = fread(fp,1,'int32');
+n_A = 1;
+for na=1:n_d; n_A = n_A*d_(na); end;
+A = fread(fp,2*n_A,'double');
+A_r = A(1:2:end); A_i = A(2:2:end); B = A_r + i*A_i;
+if (n_d>1); B = reshape(B,transpose(d_)); end;
+output = B;
+fclose(fp);

@@ -1,0 +1,16 @@
+function orthopoly_test_1(Lv);
+[nrows,ncols] = size(Lv);
+x_ = linspace(-1,+1,1024);
+cra = colormap('jet'); ncra = size(cra,1);
+figure; hold on;
+for nr1 = 0:nrows-1;
+nc = max(1,min(ncra,floor(ncra*nr1/(nrows-1))));
+plot(x_,2*(1+nr1)+polyval(Lv(1+nr1,:),x_),'-','LineWidth',2,'Color',cra(nc,:));
+r_tmp = roots(Lv(1+nr1,:));
+if (length(r_tmp)>0);
+plot(r_tmp,2*(1+nr1)+zeros(size(r_tmp)),':','LineWidth',1,'Color',cra(nc,:));
+plot(r_tmp,2*(1+nr1)+zeros(size(r_tmp)),'.','MarkerSize',25,'Color',cra(nc,:));
+end;%if (length(r_tmp)>0);
+end;%for nr1=1:nrows-1;
+hold off;
+ylim([-2,2*nrows+2]);

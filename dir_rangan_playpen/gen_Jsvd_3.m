@@ -1,0 +1,75 @@
+function [n_svd_r,svd_r_,svd_r_m,svd_r_c,svd_r_w_,svd_r_Lv_,n_svd_d,svd_d_,svd_d_m,svd_d_c,svd_d_w_,svd_d_Lv_,n_svd_l,svd_l_,svd_U_d_,svd_s_,svd_V_r_] = gen_Jsvd_3(K_max,N_pixel,eps_target,l_max);
+% Generating functional svd-expansion of various bessel-functions. ;
+% the maximum delta is chosen so that the expansion works from ;
+% K_max to K_max-1 ;
+
+verbose=2;
+if (nargin<4); l_max = 16; end;
+if (verbose>1); disp(sprintf(' %% [entering gen_Jsvd_3] l_max %d',l_max)); end;%if;
+
+R_target = K_max-0.5;
+z_target = N_pixel*pi*sqrt(2);
+D_target = z_target/(2*pi*R_target);
+
+r_max = 2*pi*R_target;
+d_max = D_target;
+a_m = r_max/2; a_r = a_m;
+b_m = d_max/2; b_r = b_m;
+%%%%%%%%%%%%%%%%;
+% radial weighting. ;
+%%%%%%%%%%%%%%%%;
+a_w = @(a) 1+a; a_w_ = [1 1]; % k ;
+b_w = @(b) 1+b; b_w_ = [1 1]; % delta ;
+%%%%%%%%%%%%%%%%;
+% uniform weighting. ;
+%%%%%%%%%%%%%%%%;
+a_w = @(a) 1; a_w_ = [1]; % k ;
+b_w = @(b) 1; b_w_ = [1]; % delta ;
+a_K = 18; b_K = 19;
+[a_lx,a_lw,a_Lx,a_Lv] = orthopoly_node_weight_matrix_0(a_K,a_w_);
+a_lt = a_lx*a_r + a_m;
+[b_lx,b_lw,b_Lx,b_Lv] = orthopoly_node_weight_matrix_0(b_K,b_w_);
+b_lt = b_lx*b_r + b_m;
+[A_lt_,B_lt_] = meshgrid(a_lt,b_lt);
+
+clear S_l_ S_u_ S_s_ S_v_ ;
+l=0; n_S=0; continue_flag=1;
+while (continue_flag);
+if (l==0); l_ = [0]; else l_ = [-l,+l]; end;
+for l_tmp = l_;
+F = @(a,b) besselj(l_tmp,a.*b);
+F_lt_ = F(A_lt_,B_lt_);
+F_ = zeros(b_K,a_K);
+lw = b_lw*transpose(a_lw);
+for nkA=0:a_K-1;for nkB=0:b_K-1;
+L_tmp = transpose(b_Lx(1+nkB,:))*a_Lx(1+nkA,:);
+S_tmp = F_lt_.*L_tmp.*lw;
+F_(1+nkB,1+nkA) = sum(S_tmp(:));
+end;end;%for nkA=0:a_K-1;for nkB=0:b_K-1;
+n_svds = min([b_K,a_K]);
+[U_,S_,V_] = svds(F_,n_svds); S_ = diag(S_); [ij_ret_] = find(S_>eps_target) ;
+if ~isempty(ij_ret_);
+if (verbose>1); disp(sprintf(' %% l %+.2d, found %d terms [%0.2f,..,%0.2f];',l_tmp,length(ij_ret_),S_(ij_ret_(1)),S_(ij_ret_(end)))); end;%if
+for ij = 1:length(ij_ret_);
+S_l_(1+n_S) = l_tmp;
+S_u_(:,1+n_S) = U_(:,ij_ret_(ij));
+S_s_(1,1+n_S) = S_(ij_ret_(ij),1);
+S_v_(:,1+n_S) = V_(:,ij_ret_(ij));
+n_S = n_S + 1;
+end;%for ij = 1:length(ij_ret_);
+end;%if ~isempty(ij_ret_);
+end;%for l_tmp = l_;
+l=l+1;
+if (l>l_max); continue_flag=0; else continue_flag=1; end;
+end;%while (continue_flag);
+if (verbose>1); disp(sprintf(' %% total of n_S %d terms found;',n_S)); end%if;
+
+n_svd_r = length(a_lt); svd_r_ = a_lt;
+svd_r_m = a_m; svd_r_c = a_r; svd_r_w_ = a_lw; svd_r_Lv_ = a_Lv;
+n_svd_d = length(b_lt); svd_d_ = b_lt;
+svd_d_m = b_m; svd_d_c = b_r; svd_d_w_ = b_lw; svd_d_Lv_ = b_Lv;
+n_svd_l = n_S;
+svd_l_ = S_l_;
+svd_U_d_ = S_u_;
+svd_s_ = S_s_;
+svd_V_r_ = S_v_;

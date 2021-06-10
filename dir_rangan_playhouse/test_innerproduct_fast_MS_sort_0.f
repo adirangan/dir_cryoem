@@ -1,0 +1,106 @@
+      subroutine test_innerproduct_fast_MS_sort_0(verbose,n_S,n_M
+     $     ,delta_x_MS_,delta_y_MS_,gamma_z_MS_,C_S_MS_,C_Z_MS_
+     $     ,delta_x_sort_MS_ ,delta_y_sort_MS_,gamma_z_sort_MS_
+     $     ,C_S_sort_MS_,C_Z_sort_MS_,I_permute_MS_ ,I_inverse_MS_)
+c$$$      sorts by C_Z_MS_.
+      implicit none
+      integer verbose
+      integer *4 n_S,n_M
+      real *8 delta_x_MS_(0:n_M*n_S-1)
+      real *8 delta_y_MS_(0:n_M*n_S-1)
+      real *8 gamma_z_MS_(0:n_M*n_S-1)
+      complex *16 C_S_MS_(0:n_M*n_S-1)
+      complex *16 C_Z_MS_(0:n_M*n_S-1)
+      real *8 delta_x_sort_MS_(0:n_M*n_S-1)
+      real *8 delta_y_sort_MS_(0:n_M*n_S-1)
+      real *8 gamma_z_sort_MS_(0:n_M*n_S-1)
+      complex *16 C_S_sort_MS_(0:n_M*n_S-1)
+      complex *16 C_Z_sort_MS_(0:n_M*n_S-1)
+      integer I_permute_MS_(0:n_M*n_S-1)
+      integer I_inverse_MS_(0:n_M*n_S-1)
+c$$$      temporary arrays
+      real *8, allocatable :: delta_x_max_MS_(:)
+      real *8, allocatable :: delta_y_max_MS_(:)
+      real *8, allocatable :: gamma_z_max_MS_(:)
+      complex *16, allocatable :: C_S_max_MS_(:)
+      complex *16, allocatable :: C_Z_max_MS_(:)
+      character(len=64) format_string
+      integer na
+c$$$      parameters for timing
+      real *8 timing_tic,timing_toc
+
+      if (verbose.gt.0) then
+         write(6,'(A)') '[entering test_innerproduct_fast_MS_sort_0]: '
+       end if
+       if (verbose.gt.1) then
+         write(6,'(A,I0)') 'verbose: ',verbose
+         write(6,'(A,I0)') 'n_S: ',n_S
+         write(6,'(A,I0)') 'n_M: ',n_M
+      end if
+
+      allocate(delta_x_max_MS_(0:n_M*n_S-1))
+      allocate(delta_y_max_MS_(0:n_M*n_S-1))
+      allocate(gamma_z_max_MS_(0:n_M*n_S-1))
+      allocate(C_S_max_MS_(0:n_M*n_S-1))
+      allocate(C_Z_max_MS_(0:n_M*n_S-1))
+      call cp1_r8(n_M*n_S,delta_x_MS_,delta_x_max_MS_)
+      call cp1_r8(n_M*n_S,delta_y_MS_,delta_y_max_MS_)
+      call cp1_r8(n_M*n_S,gamma_z_MS_,gamma_z_max_MS_)
+      call cp1_c16(n_M*n_S,C_S_MS_,C_S_max_MS_)
+      call cp1_c16(n_M*n_S,C_Z_MS_,C_Z_max_MS_)
+      if (verbose.gt.1) then
+         write(6,'(A)') 'delta_x_max_MS_^T: '
+         write(format_string,'(A,I0,A)') '(',n_M,'(F8.3,1X))'
+         write(6,format_string) (delta_x_max_MS_(na),na=0,n_M*n_S-1)
+         write(6,'(A)') 'delta_y_max_MS_^T: '
+         write(format_string,'(A,I0,A)') '(',n_M,'(F8.3,1X))'
+         write(6,format_string) (delta_y_max_MS_(na),na=0,n_M*n_S-1)
+         write(6,'(A)') 'gamma_z_max_MS_^T: '
+         write(format_string,'(A,I0,A)') '(',n_M,'(F8.3,1X))'
+         write(6,format_string) (gamma_z_max_MS_(na),na=0,n_M*n_S-1)
+         write(6,'(A)') 'C_S_max_MS_^T: '
+         write(format_string,'(A,I0,A)') '(',n_M*2,'(F8.3,1X))'
+         write(6,format_string) (C_S_max_MS_(na),na=0,n_M*n_S-1)
+         write(6,'(A)') 'C_Z_max_MS_^T: '
+         write(format_string,'(A,I0,A)') '(',n_M*2,'(F8.3,1X))'
+         write(6,format_string) (C_Z_max_MS_(na),na=0,n_M*n_S-1)
+      end if
+      call test_innerproduct_batch_sort_a(n_M,n_S,delta_x_max_MS_
+     $     ,delta_y_max_MS_,gamma_z_max_MS_,C_S_max_MS_,C_Z_max_MS_
+     $     ,delta_x_sort_MS_ ,delta_y_sort_MS_,gamma_z_sort_MS_
+     $     ,C_S_sort_MS_,C_Z_sort_MS_,I_permute_MS_ ,I_inverse_MS_)
+      if (verbose.gt.1) then
+         write(6,'(A)') 'delta_x_sort_MS_^T: '
+         write(format_string,'(A,I0,A)') '(',n_M,'(F8.3,1X))'
+         write(6,format_string) (delta_x_sort_MS_(na),na=0,n_M*n_S-1)
+         write(6,'(A)') 'delta_y_sort_MS_^T: '
+         write(format_string,'(A,I0,A)') '(',n_M,'(F8.3,1X))'
+         write(6,format_string) (delta_y_sort_MS_(na),na=0,n_M*n_S-1)
+         write(6,'(A)') 'gamma_z_sort_MS_^T: '
+         write(format_string,'(A,I0,A)') '(',n_M,'(F8.3,1X))'
+         write(6,format_string) (gamma_z_sort_MS_(na),na=0,n_M*n_S-1)
+         write(6,'(A)') 'C_S_sort_MS_^T: '
+         write(format_string,'(A,I0,A)') '(',n_M*2,'(F8.3,1X))'
+         write(6,format_string) (C_S_sort_MS_(na),na=0,n_M*n_S-1)
+         write(6,'(A)') 'C_Z_sort_MS_^T: '
+         write(format_string,'(A,I0,A)') '(',n_M*2,'(F8.3,1X))'
+         write(6,format_string) (C_Z_sort_MS_(na),na=0,n_M*n_S-1)
+         write(6,'(A)') 'I_permute_MS_^T: '
+         write(format_string,'(A,I0,A)') '(',n_M,'(I8,1X))'
+         write(6,format_string) (I_permute_MS_(na),na=0,n_M*n_S-1)
+         write(6,'(A)') 'I_inverse_MS_^T: '
+         write(format_string,'(A,I0,A)') '(',n_M,'(I8,1X))'
+         write(6,format_string) (I_inverse_MS_(na),na=0,n_M*n_S-1)
+      end if
+
+      if (verbose.gt.0) then
+         write(6,'(A)') '[finished test_innerproduct_fast_MS_sort_0]'
+      end if
+
+      deallocate(delta_x_max_MS_)
+      deallocate(delta_y_max_MS_)
+      deallocate(gamma_z_max_MS_)
+      deallocate(C_S_max_MS_)
+      deallocate(C_Z_max_MS_)
+
+      end

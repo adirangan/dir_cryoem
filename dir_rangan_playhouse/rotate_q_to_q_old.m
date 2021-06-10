@@ -1,0 +1,35 @@
+function M_q_ = rotate_q_to_q(n_r,n_w_,n_A,S_q_,gamma);
+% Assumes that M_q_ is the same size and dimensions as S_q_;
+% Multiplication performed in place;
+M_q_ = zeros(n_A,1);
+ic=0;
+for nr=0:n_r-1;
+nt_d = gamma*n_w_(1+nr)/(2*pi);
+nt_pre = floor(nt_d);
+nt_pos = ceil(nt_d);
+d_pre = abs(nt_d-nt_pre);
+d_pos = abs(nt_pos-nt_d);
+A = d_pre;
+B = d_pos;
+if (A+B<=0.0);
+alpha = 0.0d0;
+beta = 1.0d0;
+ else;
+alpha = A/(A+B);
+beta = B/(A+B);
+end;%if;
+theta = 2*pi/n_w_(1+nr);
+w1 = exp(-i*theta);
+wt = exp(-i*(theta*nt_pre));
+wq1 = 1.0 + i*0.0;
+wqt = 1.0 + i*0.0;
+for nw=0:n_w_(1+nr)-1;
+C_q = wqt*(beta + alpha*wq1);
+M_q_(1+ic) = S_q_(1+ic)*C_q;
+wq1 = wq1 * w1;
+wqt = wqt * wt;
+ic = ic + 1;
+end;%for;
+end;%for;
+
+

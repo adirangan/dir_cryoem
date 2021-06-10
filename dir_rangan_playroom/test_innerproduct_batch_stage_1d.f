@@ -1,0 +1,743 @@
+c$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+      subroutine test_innerproduct_batch_stage_1d(verbose
+     $     ,svd_calculation_type_in,n_r,grid_p_,n_w_,max_x_c,n_S,ld_S
+     $     ,S_p_,distance_req,S_alpha_polar_a_,S_alpha_azimu_b_,L_
+     $     ,nl_max,nm_sum ,ll_sum,T_nl_,T_vm_,T_dd_,T_ll_ ,T_lf_,T_c0_
+     $     ,T_c1_,T_c2_ ,T_c3_,T_ls_,T_LT_,n_T_root_base ,T_root_base_
+     $     ,n_M,ld_M,M_p_ ,n_CTF,ld_CTF,CTF_p_,polar_a_est_
+     $     ,azimu_b_est_,gamma_z_est_ ,delta_x_est_ ,delta_y_est_
+     $     ,l2_norm_est_,ctf_ind_est_ ,eps_target ,N_pixels_in
+     $     ,displacement_max,n_delta_x ,n_delta_y ,n_gamma_z
+     $     ,delta_x_max_,delta_y_max_,gamma_z_max_ ,C_M_ ,C_S_max_
+     $     ,C_Z_max_ ,fftw_plan_frwd_,fftw_plan_back_ ,fftw_in1_
+     $     ,fftw_out_,n_svd_r ,n_svd_d,n_svd_l,svd_r_,svd_d_ ,svd_l_
+     $     ,svd_U_d_,svd_s_ ,svd_V_r_,Z_svdd_,C_S_,S_used_all)
+c$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+      implicit none
+      include '/usr/include/fftw3.f'
+      integer verbose
+      integer svd_calculation_type_in,svd_calculation_type
+      integer *4 n_r,n_w_(0:n_r-1),n_S,ld_S,n_M,ld_M,n_CTF,ld_CTF
+      real *8 grid_p_(0:n_r-1),max_x_c
+      complex *16 S_p_(0:ld_S*n_S-1)
+c$$$      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+c$$$      begin variables for tesselation
+c$$$      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      real *8 S_alpha_polar_a_(0:0),S_alpha_azimu_b_(0:0)
+      real *8 L_(0:0)
+      real *8 diameter_min
+      integer *4 nl_max,nm_sum,ll_sum
+      integer *4 max_i4_f,sum_i4_f
+      integer *4 n_T_root_base,nT_root_base
+      logical parity_input
+c$$$      T_ structure
+      integer *4 T_nl_(0:0) !level
+      real *8    T_vm_(0:0) !vertex center
+      real *8    T_dd_(0:0) !diameter
+      integer *4 T_ll_(0:0) !number of points from L_ in T_
+      logical    T_lf_(0:0) !is leaf
+      integer *4 T_c0_(0:0) !child_0 tesselation_index
+      integer *4 T_c1_(0:0) !child_1 tesselation_index
+      integer *4 T_c2_(0:0) !child_2 tesselation_index
+      integer *4 T_c3_(0:0) !child_3 tesselation_index
+      integer *4 T_ls_(0:0) !starting index of point_index_list for T_ if leaf (leaves only)
+      integer *4 T_LT_(0:0) !full point_index_list for all of T_ (leaves only)
+c$$$      T_ roots
+      integer *4 T_root_base_(0:0) !T_ roots
+      real *8, allocatable :: vp_input_(:)
+      real *8 distance_req,distance_req_use
+      integer *4 n_LT,nLT
+      integer *4, allocatable :: LT_(:)
+      integer *4 S_used_all
+c$$$      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+c$$$      begin variables for adaptive sampling
+c$$$      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%      
+      logical, allocatable :: S_used_(:)
+      integer *4 S_used_total,n_add
+      integer *4 n_pass
+      logical continue_flag
+      integer *4 n_LT_tmp,n_LT_srt,n_LT_use
+      integer *4 n_LT_min,n_LT_hlf,ns_tmp
+      parameter (n_LT_min = 12)
+      complex *16, allocatable :: C_Z_srt_(:)
+      complex *16 C_Z_min,C_S_min
+      integer *4, allocatable :: LT_srt_(:)
+c$$$      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+c$$$      begin variables for innerproducts
+c$$$      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%      
+      complex *16 M_p_(0:ld_M*n_M-1)
+      complex *16 CTF_p_(0:0)
+      real *8 polar_a_est_(0:n_M-1),azimu_b_est_(0:n_M-1)
+     $     ,gamma_z_est_(0:n_M-1)
+      real *8 delta_x_est_(0:n_M-1),delta_y_est_(0:n_M-1)
+     $     ,l2_norm_est_(0:n_M-1)
+      real *8 ctf_ind_est_(0:n_M-1)
+      real *8 eps_target,N_pixels_in
+      real *8 displacement_max
+      integer n_delta_x,n_delta_y,n_gamma_z
+      real *8 delta_x_max_(0:n_S*n_M-1)
+      real *8 delta_y_max_(0:n_S*n_M-1)
+      real *8 gamma_z_max_(0:n_S*n_M-1)
+      complex *16 C_M_(0:n_M-1)
+      complex *16 C_S_max_(0:n_S*n_M-1)
+      complex *16 C_Z_max_(0:n_S*n_M-1)
+      integer *4 n_svd_r,n_svd_d,n_svd_l
+      real *8 svd_r_(0:n_svd_r-1)
+      real *8 svd_d_(0:n_svd_d-1)
+      integer *4 svd_l_(0:n_svd_l-1)
+      real *8 svd_U_d_(0:n_svd_d*n_svd_l-1)
+      real *8 svd_s_(0:n_svd_l-1)
+      real *8 svd_V_r_(0:n_svd_r*n_svd_l-1)
+      complex *16 Z_svdd_(0:n_svd_l*n_delta_x*n_delta_y-1)
+      complex *16 C_S_(0:n_gamma_z*n_S*n_CTF-1)
+      integer *4 nsvd_r,nsvd_d,nsvd_l
+      logical warning_flag
+      data warning_flag / .true. /
+      real *8 R_max,K_max,delta,delta_max,N_pixels
+      complex *16, allocatable :: Z_svds_(:)
+c$$$      Z_svdd_ should be passed as input
+c$$$      complex *16, allocatable :: Z_svdd_(:)
+      complex *16, allocatable :: Z_tmpC_(:)
+      integer svd_l
+c$$$      fftw plans and workspace should be passed in as input
+c$$$      integer *8, allocatable :: fftw_plan_frwd_(:)
+c$$$      integer *8, allocatable :: fftw_plan_back_(:)
+c$$$      complex *16, allocatable :: fftw_in1_(:)
+c$$$      complex *16, allocatable :: fftw_out_(:)
+      integer *8 fftw_plan_frwd_(0:0)
+      integer *8 fftw_plan_back_(0:0)
+      complex *16 fftw_in1_(0:0)
+      complex *16 fftw_out_(0:0)
+      pointer (p_fftw_plan_frwd_last,fftw_plan_frwd_last)
+      pointer (p_fftw_plan_back_last,fftw_plan_back_last)
+      pointer (p_fftw_in1_last_,fftw_in1_last_)
+      pointer (p_fftw_out_last_,fftw_out_last_)
+      integer *8 fftw_plan_frwd_last,fftw_plan_back_last
+      complex *16 fftw_in1_last_(*)
+      complex *16 fftw_out_last_(*)
+c$$$      indices
+      integer ns,ns_use,nm,nctf,nr,n_w_max,n_A,na
+      complex *16, allocatable :: T_p_(:)
+      complex *16, allocatable :: S_p(:)
+      complex *16, allocatable :: S_q(:)
+      complex *16, allocatable :: M_q_(:)
+c$$$      array of displacements and rotations to measure
+      integer ndx,ndy,ngz,ndx_max,ndy_max,ngz_max
+      real *8 delta_x,delta_y,gamma_z
+      real *8, allocatable :: delta_x_(:)
+      real *8, allocatable :: delta_y_(:)
+      real *8, allocatable :: gamma_z_(:)
+      character(len=64) format_string
+c$$$      array of innerproducts to hold measurements
+      complex *16 C_S,C_M,C_Z,C_S_max,C_Z_max,Z_q
+      complex *16, allocatable :: Z_q_(:)
+      real *8 pi
+c$$$      parameters for timing
+      real *8 timing_tic,timing_toc
+      real *8 timing_tic_1,timing_toc_1,timing_tot_1
+      real *8 timing_tic_2,timing_toc_2,timing_tot_2
+      real *8 timing_tic_3,timing_toc_3,timing_tot_3
+      real *8 timing_tic_4,timing_toc_4,timing_tot_4
+
+      if (0+verbose.gt.0) then
+         write(6,'(A)') '[entering test_innerproduct_batch_stage_1c]'
+      end if      
+      if (0+verbose.gt.0) then
+         write(6,'(A,I0,A,F5.3,A,F3.1,A,I0,A,I0,A,I0)') 'n_r: ' ,n_r
+     $        ,'; eps_target: ',eps_target,'; N_pixels_in: ',N_pixels_in
+     $        ,'; n_delta_x: ',n_delta_x ,'; n_delta_y: ',n_delta_y
+     $        ,'; n_gamma_z: ',n_gamma_z
+      end if
+
+      do na=0,n_S*n_M-1
+         delta_x_max_(na) = 0.0d0
+         delta_y_max_(na) = 0.0d0
+         gamma_z_max_(na) = 0.0d0
+         C_S_max_(na) = (1.0d0,0.0d0)
+         C_Z_max_(na) = (0.0d0,0.0d0)
+      enddo
+
+      if (0+verbose.gt.1) then
+         write(6,'(A)') 'Generating indices'
+      end if
+      pi = 4.0*atan(1.0)
+      n_A = 0
+      do nr=0,n_r-1
+         n_A = n_A + n_w_(nr)
+      enddo
+      n_w_max = n_w_(n_r-1)
+      if (0+verbose.gt.1) then
+         write(6,'(A,I0,A,I0)') 'n_A: ',n_A,'; n_w_max: ',n_w_max
+         write(format_string,'(A,I0,A)') '(A,',n_r,'(I0,1X))'
+         write(6,format_string) 'n_w_: ',(n_w_(nr),nr=0,n_r-1)
+      end if
+
+c$$$      fftw plans and workspace should be passed in as input
+c$$$      if (0+verbose.gt.1) then
+c$$$         write(6,'(A)') 'Generating fftw_plans'
+c$$$      end if
+c$$$      allocate(fftw_plan_frwd_(0:n_r-1))
+c$$$      allocate(fftw_plan_back_(0:n_r-1))
+c$$$      allocate(fftw_in1_(0:n_A-1))
+c$$$      allocate(fftw_out_(0:n_A-1))
+c$$$      na = 0
+c$$$      do nr=0,n_r-1
+c$$$         call dfftw_plan_dft_1d_(fftw_plan_frwd_(nr),n_w_(nr)
+c$$$     $        ,fftw_in1_(na),fftw_out_(na),FFTW_FORWARD,FFTW_ESTIMATE) 
+c$$$         call dfftw_plan_dft_1d_(fftw_plan_back_(nr),n_w_(nr)
+c$$$     $        ,fftw_out_(na),fftw_in1_(na),FFTW_BACKWARD,FFTW_ESTIMATE) 
+c$$$         na = na + n_w_(nr)
+c$$$      enddo
+      p_fftw_plan_frwd_last = loc(fftw_plan_frwd_(n_r-1))
+      p_fftw_plan_back_last = loc(fftw_plan_back_(n_r-1))
+      p_fftw_in1_last_ = loc(fftw_in1_(n_A-n_w_max))
+      p_fftw_out_last_ = loc(fftw_out_(n_A-n_w_max))
+
+      if (0+verbose.gt.1) then
+         write(6,'(A)') ' Setting up array of displacements to measure'
+         write(6,'(A)')
+     $        ' It is usually reasonable for n_delta_x and n_delta_y '
+         write(6,'(A)')
+     $        ' (i.e., displacement array dimension) '
+         write(6,'(A)') ' to equal 1+4*N_pixels_in or so.'
+      end if
+      allocate(delta_x_(0:n_delta_x-1))
+      allocate(delta_y_(0:n_delta_y-1))
+      do ndx=0,n_delta_x-1
+         if (n_delta_x.gt.1) then
+            delta_x = (-N_pixels_in + ndx*2*N_pixels_in/(n_delta_x-1))
+     $           /n_r*max_x_c
+         else
+            delta_x = 0.0d0
+         end if
+         delta_x_(ndx) = delta_x
+         do ndy=0,n_delta_y-1
+            if (n_delta_y.gt.1) then
+               delta_y = (-N_pixels_in + ndy*2*N_pixels_in/(n_delta_y
+     $              -1))/n_r*max_x_c
+            else
+               delta_y = 0.0d0
+            end if
+            delta_y_(ndy) = delta_y
+         enddo
+      enddo
+      if (0+verbose.gt.1) then
+         write(6,'(A)') ' Setting up array of rotations to measure'
+         write(6,'(A)')
+     $        ' It is usually reasonable for n_gamma_z (i.e,. the '
+         write(6,'(A)') ' dimensions of the rotation array) to equal '
+         write(6,'(A)')
+     $        ' ncur or so.'
+      end if
+      allocate(gamma_z_(0:n_gamma_z-1))
+      do ngz=0,n_gamma_z-1
+         if (n_gamma_z.gt.1) then
+            gamma_z = (2*pi*ngz)/n_gamma_z
+         else
+            gamma_z = 0.0d0
+         end if
+         gamma_z_(ngz) = gamma_z
+      enddo
+      if (0+verbose.gt.1) then
+         write(format_string,'(A,I0,A)') '(A,',n_delta_x,'(F5.3,1X))'
+         write (6,format_string) 'delta_x_: ',(delta_x_(ndx),ndx=0
+     $        ,n_delta_x-1)
+         write(format_string,'(A,I0,A)') '(A,',n_delta_y,'(F5.3,1X))'
+         write (6,format_string) 'delta_y_: ',(delta_y_(ndy),ndy=0
+     $        ,n_delta_y-1)
+         write(format_string,'(A,I0,A)') '(A,',n_gamma_z,'(F5.3,1X))'
+         write (6,format_string) 'gamma_z_: ',(gamma_z_(ngz),ngz=0
+     $        ,n_gamma_z-1)
+      end if
+
+      if (0+verbose.gt.1) then
+         write(6,'(A)') ' Selecting svd library to use.'
+      end if
+      R_max = 2*pi*grid_p_(n_r-1)
+      K_max = grid_p_(n_r-1)
+      delta_max = 0.0d0
+      do ndy=0,n_delta_y-1
+         do ndx=0,n_delta_x-1
+            delta = dsqrt(delta_x_(ndx)**2 + delta_y_(ndy)**2)
+            if (delta.gt.delta_max) then
+               delta_max = delta
+            end if
+         enddo
+      enddo
+      N_pixels = delta_max/dsqrt(2.0d0)*2*K_max
+      if (0+verbose.gt.0) then
+         write(6,'(A,F8.3,A,F8.3)') 'R_max: ',R_max,'; delta_max: '
+     $        ,delta_max
+         write(6,'(A,F8.3,A,F8.3)') 'K_max: ',K_max,'; N_pixels: '
+     $        ,N_pixels
+      end if
+      if (K_max.gt.96 .and. warning_flag) then
+         write(6,'(A,F8.3,A)') 'Warning, K_max ',K_max
+     $        ,' too large in test_innerproduct_batch_stage_1c'
+      end if
+      if (N_pixels.gt.3 .and. warning_flag) then
+         write(6,'(A,F8.3,A)') 'Warning, N_pixels ',N_pixels
+     $        ,' too large in test_innerproduct_batch_stage_1c'
+      end if
+      if (eps_target.lt.0.1d0 .and. warning_flag) then
+         write(6,'(A,F8.5,A)') 'Warning, eps_target ',eps_target
+     $        ,' too small in test_innerproduct_batch_stage_1c'
+      end if
+
+c$$$      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+c$$$      The svd parameters should be passed in as input
+c$$$      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+c$$$      if (.false.) then
+c$$$      include './dir_gen_Jsvd_1/gen_Jsvd_svdpick.txt'
+c$$$      end if
+c$$$      include './dir_gen_Jsvd_1/gen_Jsvd_svdload.txt'
+
+      if (0+verbose.gt.1) then
+         write(6,'(A,I0)') 'n_svd_r: ',n_svd_r
+         write(6,'(A,I0)') 'n_svd_d: ',n_svd_d
+         write(6,'(A,I0)') 'n_svd_l: ',n_svd_l
+      end if
+
+      if (0+verbose.gt.1) then
+         write(6,'(A)') ' Selecting svd_calculation_type: '
+      end if
+      if (svd_calculation_type_in.lt.0) then
+         if (.false.) then
+         else if (n_svd_l.gt.n_delta_x*n_delta_y) then
+            svd_calculation_type = 0
+         else if (n_svd_l.le.n_delta_x*n_delta_y) then
+            svd_calculation_type = 1
+         else
+            svd_calculation_type = 2
+         end if !switch
+      else if (svd_calculation_type_in.ge.0) then
+         svd_calculation_type = max(0,min(2,svd_calculation_type_in))
+         if (0+verbose.gt.0) then
+            write(6,'(A,I0)') 'forcing: svd_calculation_type = '
+     $           ,svd_calculation_type
+         end if !verbose
+      end if !choose svd_calculation_type
+      if (0+verbose.gt.0) then
+         if (.false.) then
+         else if (svd_calculation_type.eq.0) then
+            write(6,'(A)') 'svd_calculation_type 0: multiply then fft.'
+         else if (svd_calculation_type.eq.1) then
+            write(6,'(A)') 'svd_calculation_type 1: fft then multiply.'
+         else if (svd_calculation_type.eq.2) then
+            write(6,'(A)')
+     $           'svd_calculation_type 2: brute-force displacements.'
+         end if
+      end if
+
+c$$$      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+c$$$      The operator Z_svdd_ should be passed in as input
+c$$$      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+c$$$      if (0+verbose.gt.1) then
+c$$$         write(6,'(A)') ' Setting up displacement-operator Z_svdd_'
+c$$$         write(6,'(A)') ' associated with svd-expansion.'
+c$$$      end if
+c$$$      allocate(Z_svdd_(0:n_svd_l*n_delta_x*n_delta_y-1))
+c$$$      timing_tic = second()
+c$$$      call innerproduct_q__k_svdd(n_svd_d,svd_d_,n_svd_l,svd_l_,svd_U_d_
+c$$$     $     ,n_delta_x,delta_x_,n_delta_y,delta_y_,Z_svdd_)
+c$$$      timing_toc = second()
+c$$$      if (0+verbose.gt.0) then
+c$$$         write(6,'(A,F8.5)')
+c$$$     $        ' finished innerproduct_q__k_svdd: total time ',timing_toc
+c$$$     $        -timing_tic
+c$$$      end if
+
+      if (0+verbose.gt.1) then
+         write(6,'(A,A)') ' Allocating template-dependent operator'
+     $        ,' Z_svds_ used in svd-expansion.'
+      end if
+      allocate(Z_svds_(0:n_svd_l*n_w_max-1))
+      if (0+verbose.gt.1) then
+         write(6,'(A,A)') ' Allocating temporary array Z_tmpC_ '
+     $        ,'to hold innerproducts associated with '
+         write(6,'(A,A)') ' the displacements across all rotations '
+     $        ,'for any single image-template pair'
+      end if
+      allocate(Z_tmpC_(0:n_w_max*n_delta_x*n_delta_y-1))
+      if (0+verbose.gt.1) then
+         write(6,'(A)') ' Allocating array S_q to hold bessel-function'
+         write(6,'(A)') ' expansion of each template within S_p.'
+         write(6,'(A)') ' Note that S_q holds the template alone,'
+         write(6,'(A)') ' without accounting for the ctf.'
+         write(6,'(A)') ' The ctf will be accounted for in M_q.'
+      end if
+      allocate(S_p(0:n_A-1))
+      allocate(S_q(0:n_A-1))
+      if (0+verbose.gt.1) then
+         write(6,'(A,A)') ' Allocating arrays T_p_'
+     $        ,' to hold transformed templates.'
+      end if
+      allocate(T_p_(0:n_A-1))
+
+      if (0+verbose.gt.1) then
+         write(6,'(A)') ' Allocating array M_q_ to hold a single'
+         write(6,'(A)') ' bessel-function-expansion of an image.'
+      end if
+      allocate(M_q_(0:n_A-1))
+      if (0+verbose.gt.1) then
+         write(6,'(A)') ' Allocating array Z_q_ to hold the'
+         write(6,'(A)') ' innerproducts associated with displacements'
+         write(6,'(A)') ' and rotations for any single '
+         write(6,'(A)') ' image-template pair. '
+      end if
+      allocate(Z_q_(0:n_delta_x*n_delta_y*n_gamma_z-1))
+
+      if (0+verbose.gt.1) then
+         write(6,'(A)') ' Allocating array vp_input_ to hold a point,'
+         write(6,'(A)') ' and array LT_ to hold a list of'
+         write(6,'(A)') ' unique (template) indices. Both are used by '
+         write(6,'(A)') ' tesselation_neighborhood_wrapper_0. '
+      end if
+      allocate(vp_input_(0:3-1))
+      allocate(LT_(0:2*ll_sum-1))
+      allocate(LT_srt_(0:n_S-1))
+      allocate(C_Z_srt_(0:n_S-1))
+      allocate(S_used_(0:n_S-1))
+
+      if (0+verbose.gt.1) then
+         write(6,'(A)') ' Calculating innerproducts...'
+      end if
+      timing_tot_1 = 0.0d0
+      timing_tot_2 = 0.0d0
+      timing_tot_3 = 0.0d0
+      timing_tot_4 = 0.0d0
+      S_used_all = 0
+      do nm=0,n_M-1
+         timing_tic_1 = second()
+         delta_x = +delta_x_est_(nm)
+         delta_y = +delta_y_est_(nm)
+         gamma_z = +gamma_z_est_(nm)
+         nctf = nint(ctf_ind_est_(nm))
+         if (0+verbose.gt.1) then
+            write(6,'(A,I0,A,I0,A,I0,A,I0)') 'Processing image ',nm,'/'
+     $           ,n_M,' associated with ctf ',nctf,'/',n_CTF
+            write(6,'(A)') ' First we calculate l2_norm C_M.'
+         end if
+         call innerproduct_p(n_r,grid_p_,n_w_,n_A,M_p_(nm*ld_M),M_p_(nm
+     $        *ld_M),C_M)
+         C_M = zsqrt(C_M)/(n_r*n_r)
+         C_M_(nm) = C_M
+         if (verbose.gt.2) then
+            write(6,'(A,I0,A,2F16.3)') ' nm: ',nm,'; C_M: ',C_M
+            write(6,'(A)') ' Then we calculate innerproducts.'
+         end if
+         call cp1_c16(n_A,M_p_(nm*ld_M),T_p_)
+         call xc1_c16(n_A,T_p_,CTF_p_(nctf*ld_CTF),T_p_)
+c$$$         call rotate_p_to_p(n_r,n_w_,n_A,T_p_,+gamma_z,T_p_)
+c$$$         call transf_p_to_p(n_r,grid_p_,n_w_,n_A,T_p_,+delta_x,+delta_y
+c$$$     $        ,T_p_)
+         call interp_p_to_q_fftw(n_r,fftw_plan_frwd_,n_w_,n_A,fftw_in1_
+     $        ,fftw_out_,T_p_,M_q_)
+         timing_toc_1 = second()
+         timing_tot_1 = timing_tot_1 + (timing_toc_1 - timing_tic_1)
+
+         if (0+verbose.gt.1) then
+            write(6,'(A)') ' Resetting S_used_ to false.'
+         end if !if (0+verbose.gt.1) then
+         do ns=0,n_S-1
+            S_used_(ns) = .false.
+         enddo !do ns=0,n_S-1
+         S_used_total = 0
+         C_Z_min = cmplx( 1.0d0 , 0.0d0)
+         C_S_min = cmplx( 1.0d0 , 0.0d0)
+
+         if (0+verbose.gt.1) then
+            write(6,'(A,I0,A)') ' Generating initial list for image ',nm
+     $           ,' based on estimated '
+            write(6,'(A,F8.4,A,F8.4)') ' polar_a ',polar_a_est_(nm)
+     $           ,' and azimu_b ',azimu_b_est_(nm)
+         end if !if (0+verbose.gt.1) then
+         call get_angle_to_vp_(polar_a_est_(nm),azimu_b_est_(nm)
+     $        ,vp_input_)
+         n_LT = 0
+         distance_req_use = distance_req
+         do while (n_S.gt.0 .and. n_LT.lt.min(n_S,2))
+            call tesselation_neighborhood_wrapper_0(n_S,L_ ,nl_max
+     $           ,nm_sum,ll_sum,T_nl_,T_vm_,T_dd_ ,T_ll_,T_lf_,T_c0_
+     $           ,T_c1_ ,T_c2_,T_c3_,T_ls_,T_LT_,n_T_root_base
+     $           ,T_root_base_ ,vp_input_,distance_req_use,n_LT
+     $           ,LT_(0))
+            if (n_LT.lt.min(n_S,2)) then
+               if (verbose.gt.1) then
+                  write(6,'(A,F8.4)') ' increasing ' ,distance_req_use
+               end if !if (verbose.gt.1) then
+               distance_req_use = distance_req_use + 0.0125
+            end if !if (n_LT.lt.min(n_S,2)) then
+         enddo !do while (n_S.gt.0 .and. n_LT.lt.min(n_S,2))
+         if (0+verbose.gt.1) then
+            write(6,'(A,I0,A)') ' found ',n_LT,' templates.'
+         end if !if (0+verbose.gt.1) then
+         do nLT=0,n_LT-1
+            S_used_(LT_(nLT))=.true.
+            S_used_total = S_used_total+1
+         enddo !do nLT=0,n_LT-1
+         n_LT_hlf = S_used_total/2
+         n_add = max(n_LT_min,n_LT_hlf)
+         n_add = max(0,min(n_S-S_used_total,n_add))
+         if (0+verbose.gt.1) then
+            write(6,'(A,I0,A)') ' adding additional ',n_add
+     $           ,' templates.'
+         end if !if (0+verbose.gt.1) then
+         call randinclude(n_LT,LT_,n_S,S_used_,S_used_total,n_add)
+         if (0+verbose.gt.1) then
+            write(6,'(A,I0,A,I0)') ' now using S_used_total: '
+     $           ,S_used_total,' n_LT_: ' , n_LT
+         end if !if (0+verbose.gt.1) then
+
+         do nLT=0,n_LT-1
+            ns_use = LT_(nLT)            
+            if (0+verbose.gt.1) then
+               write(6,'(A,I0,A,I0)')
+     $              '  Calculating innerproduct for image ' , nm ,
+     $              ' and template ' , ns_use
+            end if !if (0+verbose.gt.1) then
+            call test_innerproduct_batch_stage_2d(
+     $           verbose
+     $           ,nm,ns_use
+     $           ,n_r,grid_p_,n_w_,n_S,ld_S,n_A,nctf,n_w_max
+     $           ,S_p_,S_p,S_q,M_q_,Z_q_
+     $           ,C_M,C_S_,C_S_max,C_S_max_,C_Z_max,C_Z_max_
+     $           ,svd_calculation_type
+     $           ,n_svd_r,svd_r_,n_svd_l,svd_l_,svd_s_,svd_V_r_
+     $           ,Z_svdd_,Z_svds_,Z_tmpC_
+     $           ,displacement_max 
+     $           ,delta_x,delta_y,gamma_z
+     $           ,n_delta_x,n_delta_y,n_gamma_z
+     $           ,delta_x_,delta_y_,gamma_z_
+     $           ,delta_x_est_,delta_y_est_,gamma_z_est_
+     $           ,ndx_max,ndy_max,ngz_max 
+     $           ,delta_x_max_,delta_y_max_,gamma_z_max_
+     $           ,fftw_plan_frwd_
+     $           ,fftw_plan_back_
+     $           ,fftw_in1_
+     $           ,fftw_out_
+     $           ,timing_tic_1,timing_toc_1,timing_tot_1
+     $           ,timing_tic_2,timing_toc_2,timing_tot_2
+     $           ,timing_tic_3,timing_toc_3,timing_tot_3
+     $           ,timing_tic_4,timing_toc_4,timing_tot_4
+     $           )
+         enddo !do nLT=0,n_LT-1
+
+
+         n_pass = 0
+         continue_flag = .true.
+
+         do while (continue_flag)
+
+            n_LT_srt = 0
+            do ns=0,n_S-1
+               if (S_used_(ns).eqv..true.) then
+                  C_Z_max = C_Z_max_(ns + nm*n_S)
+                  C_S_max = C_S_max_(ns + nm*n_S)
+                  C_Z_srt_(n_LT_srt) = C_Z_max
+                  if (real(C_Z_max).lt.real(C_Z_min)) then
+                     C_Z_min = C_Z_max
+                  end if !if (real(C_Z_max).lt.real(C_Z_min)) then
+                  if (real(C_S_max).lt.real(C_S_min)) then
+                     C_S_min = C_S_max
+                  end if !if (real(C_S_max).lt.real(C_S_min)) then
+                  LT_srt_(n_LT_srt) = ns
+                  n_LT_srt = n_LT_srt + 1
+               end if           !if (S_used_(ns).eqv..true.) then
+            enddo
+            
+            if (0+verbose.gt.1) then
+               write(6,'(A,I0)') 'n_pass: ' , n_pass
+               write(6,'(A,I0)') 'found n_LT_srt: ' , n_LT_srt
+               write(format_string,'(A,I0,A)') '(A,' , 2*n_LT_srt ,
+     $              '(F8.4,1X))'
+               write(6,format_string) 'pre: C_Z_srt_: ' , (C_Z_srt_(nLT)
+     $              ,nLT=0,n_LT_srt-1)
+               write(format_string,'(A,I0,A)') '(A,' , n_LT_srt ,
+     $              '(I0,1X))'
+               write(6,format_string) 'pre: LT_srt_: ' , (LT_srt_(nLT)
+     $              ,nLT=0,n_LT_srt-1)
+            end if              !if (0+verbose.gt.1) then
+            call quicksort_c16(0,n_LT_srt-1,C_Z_srt_,1,LT_srt_,1
+     $           ,quicksort_c16)
+            if (0+verbose.gt.1) then
+               write(format_string,'(A,I0,A)') '(A,' , 2*n_LT_srt ,
+     $              '(F8.4,1X))'
+               write(6,format_string) 'pos: C_Z_srt_: ' , (C_Z_srt_(nLT)
+     $              ,nLT=0,n_LT_srt-1)
+               write(format_string,'(A,I0,A)') '(A,' , n_LT_srt ,
+     $              '(I0,1X))'
+               write(6,format_string) 'pos: LT_srt_: ' , (LT_srt_(nLT)
+     $              ,nLT=0,n_LT_srt-1)
+            end if              !if (0+verbose.gt.1) then
+
+            n_LT = 0
+            if (0+verbose.gt.1) then
+               write(6,'(A,I0)') ' using last entries: ' , min(n_LT_srt
+     $              ,n_LT_hlf)
+            end if              ! if (0+verbose.gt.1) then
+            do nLT=0,min(n_LT_srt,n_LT_hlf)-1
+               ns_use = LT_srt_(n_LT_srt-1-nLT)
+               call get_angle_to_vp_(S_alpha_polar_a_(ns_use)
+     $              ,S_alpha_azimu_b_(ns_use),vp_input_)
+               if (0+verbose.gt.1) then
+                  write(6,'(A,I0,A,F8.4,F8.4)') ' accessing ns_use ' ,
+     $                 ns_use , ' with polar_a and azimu_b: ' ,
+     $                 S_alpha_polar_a_(ns_use) ,
+     $                 S_alpha_azimu_b_(ns_use)
+               end if           !if (0+verbose.gt.1) then
+               call tesselation_neighborhood_wrapper_0(n_S,L_ ,nl_max
+     $              ,nm_sum,ll_sum,T_nl_,T_vm_,T_dd_ ,T_ll_,T_lf_,T_c0_
+     $              ,T_c1_ ,T_c2_,T_c3_,T_ls_,T_LT_,n_T_root_base
+     $              ,T_root_base_ ,vp_input_,distance_req_use,n_LT_tmp
+     $              ,LT_(n_LT))
+               n_LT = n_LT + n_LT_tmp
+               if (0+verbose.gt.1) then
+                  write(6,'(A,I0,A,I0)') ' pre: n_LT_tmp ' , n_LT_tmp ,
+     $                 ' n_LT ', n_LT
+               end if           !if (0+verbose.gt.1) then
+               call unique_i4(n_LT,LT_,n_LT,LT_)
+               if (0+verbose.gt.1) then
+                  write(6,'(A,I0)') ' pos: n_LT ' , n_LT
+               end if           !if (0+verbose.gt.1) then
+            enddo               !do nLT=0,max(n_LT_srt-1,n_LT_hlf-1)
+
+            n_LT_use=0
+            do nLT=0,n_LT-1
+               ns_use = LT_(nLT)
+               if (S_used_(ns_use).eqv..true.) then
+                  if (0+verbose.gt.1) then
+                     write(6,'(A,I0,A,I0)') ' nLT ' , nLT ,
+     $                    ', skipping ns_use ' , ns_use
+                  end if        !if (0+verbose.gt.1) then
+               end if !if (S_used_(ns_use).eqv..true.) then
+               if (S_used_(ns_use).eqv..false.) then
+
+                  if (0+verbose.gt.1) then
+                     write(6,'(A,I0,A,I0,A,I0)') ' nLT ' , nLT ,
+     $                    ' Calculating innerproduct for image ' , nm ,
+     $                    ' and template ' , ns_use
+                  end if        !if (0+verbose.gt.1) then
+                  call test_innerproduct_batch_stage_2d(
+     $                 verbose
+     $                 ,nm,ns_use
+     $                 ,n_r,grid_p_,n_w_,n_S,ld_S,n_A,nctf,n_w_max
+     $                 ,S_p_,S_p,S_q,M_q_,Z_q_
+     $                 ,C_M,C_S_,C_S_max,C_S_max_,C_Z_max,C_Z_max_
+     $                 ,svd_calculation_type
+     $                 ,n_svd_r,svd_r_,n_svd_l,svd_l_,svd_s_,svd_V_r_
+     $                 ,Z_svdd_,Z_svds_,Z_tmpC_
+     $                 ,displacement_max 
+     $                 ,delta_x,delta_y,gamma_z
+     $                 ,n_delta_x,n_delta_y,n_gamma_z
+     $                 ,delta_x_,delta_y_,gamma_z_
+     $                 ,delta_x_est_,delta_y_est_,gamma_z_est_
+     $                 ,ndx_max,ndy_max,ngz_max 
+     $                 ,delta_x_max_,delta_y_max_,gamma_z_max_
+     $                 ,fftw_plan_frwd_
+     $                 ,fftw_plan_back_
+     $                 ,fftw_in1_
+     $                 ,fftw_out_
+     $                 ,timing_tic_1,timing_toc_1,timing_tot_1
+     $                 ,timing_tic_2,timing_toc_2,timing_tot_2
+     $                 ,timing_tic_3,timing_toc_3,timing_tot_3
+     $                 ,timing_tic_4,timing_toc_4,timing_tot_4
+     $                 )
+                  S_used_(ns_use) = .true.
+                  S_used_total = S_used_total+1
+                  n_LT_use = n_LT_use + 1
+               end if           ! if (S_used_(ns_use).eqv..true.) then
+            enddo               !do nLT=0,n_LT-1
+
+            if (0+verbose.gt.1) then
+               write(6,'(A,I0)') ' n_LT_use ' , n_LT_use
+               write(6,'(A,I0)') ' S_used_total ' , S_used_total
+            end if              !if (0+verbose.gt.1) then
+            if (n_LT_use.gt.0) then
+               continue_flag = .true.
+            else
+               continue_flag = .false.
+            end if !if (n_LT_use.gt.0) then
+
+            n_pass = n_pass + 1
+         enddo !continue_flag
+
+         if (0+verbose.gt.1) then
+            write(6,'(A,I0)') ' finished nm ' , nm
+            write(6,'(A,I0)') ' S_used_total ' , S_used_total
+            write(6,'(A,2F8.4)') ' C_Z_min ' , C_Z_min
+            write(6,'(A,2F8.4)') ' C_S_min ' , C_S_min
+         end if                 !if (0+verbose.gt.1) then
+         S_used_all = S_used_all + S_used_total
+         do ns=0,n_S-1
+            if (S_used_(ns).eqv..false.) then
+               C_Z_max_(ns + nm*n_S) = C_Z_min
+               C_S_max_(ns + nm*n_S) = C_Z_min
+               delta_x_max_(ns + nm*n_S) = 0.0d0
+               delta_y_max_(ns + nm*n_S) = 0.0d0
+               gamma_z_max_(ns + nm*n_S) = 0.0d0
+            end if ! if (S_used_(ns).eqv..false.) then
+         enddo !do ns=0,n_S-1
+
+      enddo !do nm=0,n_M-1
+
+      if (0+verbose.gt.0) then
+         write(6,'(A,I0,A,I0)')
+     $        'Total S_used_all/(n_S templates)*(n_M images): '
+     $        ,S_used_all , '/' , n_S*n_M
+         write(6,'(A,F8.5,A,F8.5)')
+     $        'transforming M_p_ to M_q_: total time ' ,timing_tot_1
+     $        ,'; time_per ',timing_tot_1/max(1,min(S_used_all,n_S*n_M))
+         write(6,'(A,F8.5,A,F8.5)')
+     $        '   innerproduct_q__k_svds: total time ' ,timing_tot_2
+     $        ,'; time_per ',timing_tot_2/max(1,min(S_used_all,n_S*n_M))
+         write(6,'(A,I0,A,F8.5,A,F8.5)') '                excerpt_'
+     $        ,svd_calculation_type,': total time ' ,timing_tot_3
+     $        ,'; time_per ',timing_tot_3/max(1,min(S_used_all,n_S*n_M))
+         write(6,'(A,F8.5,A,F8.5)')
+     $        '                excerpt_4: total time ' ,timing_tot_4
+     $        ,'; time_per ',timing_tot_4/max(1,min(S_used_all,n_S*n_M))
+      end if !verbose
+
+      if (0+verbose.gt.1) then
+         write(6,'(A)') ' Deallocating temporary arrays.'
+      end if
+      deallocate(Z_q_)
+      deallocate(M_q_)
+      deallocate(S_p)
+      deallocate(S_q)
+      deallocate(T_p_)
+      deallocate(Z_tmpC_)
+      deallocate(Z_svds_)
+c$$$      Z_svdd_ should be passed in as input
+c$$$      deallocate(Z_svdd_)
+      deallocate(gamma_z_)
+      deallocate(delta_y_)
+      deallocate(delta_x_)
+c$$$      fftw plans and workspace should be passed in as input
+c$$$      if (0+verbose.gt.1) then
+c$$$         write(6,'(A)') ' Destroying fftw_plans.'
+c$$$      end if
+c$$$      do nr=0,n_r-1
+c$$$         call dfftw_destroy_plan_(fftw_plan_back_(nr))
+c$$$         call dfftw_destroy_plan_(fftw_plan_frwd_(nr))
+c$$$      enddo
+c$$$      deallocate(fftw_out_)
+c$$$      deallocate(fftw_in1_)
+c$$$      deallocate(fftw_plan_back_)
+c$$$      deallocate(fftw_plan_frwd_)
+
+c$$$      svd arrays should be passed in as input
+c$$$      if (0+verbose.gt.1) then
+c$$$         write(6,'(A)') ' Deallocating svd arrays.'
+c$$$      end if
+c$$$      include './dir_gen_Jsvd_1/gen_Jsvd_svdfree.txt'
+
+      if (0+verbose.gt.0) then
+         write(6,'(A)') '[finished test_innerproduct_batch_stage_1c]'
+      end if
+
+ 10   continue
+      end
+
+

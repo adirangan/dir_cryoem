@@ -1,0 +1,156 @@
+% test functional svd-expansion. ;
+% testing functional lsq. ;
+% try: ;
+% clear;test_F_14;plot(1:n_d,log10(abs(E_calc_)),'k-',1:n_d,log10(abs(E_form_)),'r-');ylim([-10,+1]);
+
+verbose=1;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ;
+% generate grids. ;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ;
+n_point = 128; max_x_c = 1; 
+[max_k_c,max_k_p,grid_x_c_,d_x_c,X_x_c_,Y_x_c_,R_x_c_,W_x_c_,grid_k_c_,d_k_c,X_k_c_,Y_k_c_,R_k_c_,W_k_c_,grid_x_r_,grid_x_w_,R_x_p_,W_x_p_,grid_k_r_,d_k_r,grid_k_w_,d_k_w,R_k_p_,W_k_p_,X_k_p_,Y_k_p_] = test_F_grid_0(n_point,max_x_c);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ;
+% Determine svd expansion ;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ;
+N_pixel = 3.0; % number of wavelengths allowed in displacement grid. ;
+eps_target = 0.1; % tolerance used for svd-expansion. ;
+l_max = 16; % maximum order of bessel-functions to retain. ;
+n_r_degree = 18; % degree of orthonormal-polynomial to use for r = |k|. ;
+n_d_degree = 18; % degree of orthonormal-polynomial to use for d = |delta|. ;
+k_polycoef_ = [1,1]; % polynomial-coefficients for the weight function associated with r (k). ;
+d_polycoef_ = [1,1]; % polynomial-coefficients for the weight function associated with d (delta). ;
+R_target = max_k_p-0.5; z_target = N_pixel*pi*sqrt(2); D_target = z_target/(2*pi*R_target);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ;
+% use to generate svd-expansion. ;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ;
+%[n_svd_r,svd_r_,svd_r_m,svd_r_c,svd_r_w_,svd_r_Lv_,n_svd_d,svd_d_,svd_d_m,svd_d_c,svd_d_w_,svd_d_Lv_,n_svd_l,svd_l_,svd_U_d_,svd_s_,svd_V_r_] = gen_Jsvd_4(max_k_p,N_pixel,eps_target,l_max,n_r_degree,n_d_degree,k_polycoef_,d_polycoef_);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ;
+% calculate error for brute-force+lsq-interpolation ;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ;
+verbose=1;
+n_d = 128;
+d_ = linspace(0,D_target,n_d);
+n_node_ = [8];%n_node_ = [8,16,24,32];
+E_calc_ = zeros(length(d_),length(n_node_));
+E_form_ = zeros(length(d_),length(n_node_));
+for nnode_=1:length(n_node_);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ;
+n_node = n_node_(nnode_);
+if (verbose); disp(sprintf(' %% n_node %f',n_node)); end;
+T_k_p__ = cell(n_node,1);
+delta_d_ = zeros(n_node,1);
+for nnode=1:n_node;
+delta_d = D_target * ((nnode-1)/(n_node-1)); delta_w = 1*pi/6;
+delta_d_(nnode) = delta_d;
+T_k_p__{nnode} = test_F_T_k_p_0(n_point,max_x_c,delta_d,delta_w);
+end;%for nnode=1:n_node;
+F_ = zeros(n_node,n_node);
+G_ = zeros(n_node,n_node);
+H_ = zeros(n_node,n_node);
+for nnodeA=1:n_node; for nnodeB=1:n_node;
+tmp_ = conj(T_k_p__{nnodeA}) .* T_k_p__{nnodeB}; tmp_ = tmp_*diag(2*pi*grid_k_r_); tmp = sum(tmp_(:)).*(2*pi*d_k_r)*d_k_w; tmp = tmp/(pi*max_k_p.^2); 
+F_(nnodeA,nnodeB) = tmp;
+dj = (delta_d_(nnodeB) - delta_d_(nnodeA));
+if (dj~=0); 
+G_(nnodeA,nnodeB) = dblquad( @(r,w) cos(r*dj*cos(w)).*r , 0,2*pi*max_k_p , 0,2*pi ) / (pi*max_k_p.^2) ; 
+H_(nnodeA,nnodeB) = quad( @(w) ( cos((dj*cos(w)).*(2*pi*max_k_p)) + sin((dj*cos(w)).*(2*pi*max_k_p)).*(2*pi*max_k_p).*(dj*cos(w)) - 1 ) ./ ((dj*cos(w)).^2) , 0,2*pi ) / (pi*max_k_p.^2) ;
+end;%if (dj~=0); 
+if (dj==0); 
+G_(nnodeA,nnodeB) = (2*pi).^2; 
+H_(nnodeA,nnodeB) = (2*pi).^2; 
+end;%if (dj==0); 
+end;end;%for nnodeA=1:n_node; for nnodeB=1:n_node;
+Z_ = inv(H_);
+
+%{
+nnodeA = 2; nnodeB = 2;
+tmp_ = conj(T_k_p__{nnodeA}) .* T_k_p__{nnodeB}; 
+tmp_ = tmp_*diag(2*pi*grid_k_r_); tmp = sum(tmp_(:)).*(2*pi*d_k_r)*d_k_w; tmp = tmp/(pi*max_k_p.^2); disp(tmp);
+dj = delta_d_(nnodeB)-delta_d_(nnodeA);
+T_k_p_ = test_F_T_k_p_0(n_point,max_x_c,dj,delta_w); t_k_p_ = T_k_p_(1,:);
+tmp_ = T_k_p_*diag(2*pi*grid_k_r_); tmp = sum(tmp_(:)).*(2*pi*d_k_r)*d_k_w; tmp = tmp/(pi*max_k_p.^2); disp(tmp);
+tmp = dblquad( @(r,w) cos(r*dj*cos(w)).*r , 0,2*pi*max_k_p , 0,2*pi ); tmp = tmp/(pi*max_k_p.^2); disp(tmp);
+flag_disp=0;
+if flag_disp;
+Tlim_k = [-1,+1]; 
+cra = colormap_pm(64);
+figure(1); clf;
+subplot(1,2,1); clim = polarpatch(R_k_p_,W_k_p_,real(T_k_p_),Tlim_k,0,0,1,cra);  title(sprintf('real(T) [%0.1f,%0.1f]',Tlim_k)); axis equal;
+subplot(1,2,2); clim = polarpatch(R_k_p_,W_k_p_,imag(T_k_p_),Tlim_k,0,0,1,cra);  title(sprintf('imag(T) [%0.1f,%0.1f]',Tlim_k)); axis equal;
+end;%if flag_disp;
+ %}
+
+tic;
+for nd=1:n_d;
+%%%%%%%%%%%%%%%% ;
+delta_d = D_target * ((nd-1)/(n_d-1)); delta_w = 1*pi/6;
+[T_k_p_] = test_F_T_k_p_0(n_point,max_x_c,delta_d,delta_w);
+%%%%%%%%%%%%%%%% ;
+%f_ = zeros(n_node,1);
+%g_ = zeros(n_node,1);
+h_ = zeros(n_node,1);
+for nnodeA=1:n_node;
+%tmp_ = conj(T_k_p__{nnodeA}) .* T_k_p_; tmp_ = tmp_*diag(2*pi*grid_k_r_); tmp = sum(tmp_(:)).*(2*pi*d_k_r)*d_k_w; tmp = tmp/(pi*max_k_p.^2); 
+%f_(nnodeA) = tmp;
+dj = (delta_d - delta_d_(nnodeA));
+if (dj~=0); 
+%g_(nnodeA) = dblquad( @(r,w) cos(r*dj*cos(w)).*r , 0,2*pi*max_k_p , 0,2*pi ) / (pi*max_k_p.^2) ; 
+h_(nnodeA) = quad( @(w) ( cos((dj*cos(w)).*(2*pi*max_k_p)) + sin((dj*cos(w)).*(2*pi*max_k_p)).*(2*pi*max_k_p).*(dj*cos(w)) - 1 ) ./ ((dj*cos(w)).^2) , 0,2*pi ) / (pi*max_k_p.^2) ;
+end;%if (dj~=0); 
+if (dj==0); 
+%g_(nnodeA) = (2*pi).^2; 
+h_(nnodeA) = (2*pi).^2; 
+end;%if (dj==0); 
+end;%for nnodeA=1:n_node; 
+%E_form_(nd,nnode_) = (2*pi).^2 - ctranspose(f_)*Z_*f_;
+E_form_(nd,nnode_) = (2*pi).^2 - ctranspose(h_)*(H_\h_);
+%%%%%%%%%%%%%%%% ;
+ij_par = find(abs(delta_d_ - delta_d)<1e-7);
+if (~isempty(ij_par)); 
+if (verbose>1); disp(sprintf(' %% nd %d delta_d %f ij_par %d',nd,delta_d,ij_par)); end;
+B_k_p_ = T_k_p__{ij_par};
+end;%if (~isempty(ij_par)); 
+if (isempty(ij_par));
+ij_pre = max(find(delta_d_<delta_d));
+ij_pos = min(find(delta_d_>delta_d));
+if (verbose>2); disp(sprintf(' %% nd %d delta_d %f ij_pre %d ij_pos %d',nd,delta_d,ij_pre,ij_pos)); end;
+d_pre = delta_d - delta_d_(ij_pre); d_pos = delta_d_(ij_pos) - delta_d;
+w_pre = d_pos/(d_pos+d_pre); w_pos = d_pre/(d_pos+d_pre);
+B_k_p_ = w_pre*T_k_p__{ij_pre} + w_pos*T_k_p__{ij_pos};
+end;%if (isempty(ij_par));
+%%%%%%%%%%%%%%%% ;
+tmp_ = abs(T_k_p_-B_k_p_).^2; tmp_ = tmp_*diag(2*pi*grid_k_r_); tmp = sum(tmp_(:)).*(2*pi*d_k_r)*d_k_w; tmp = sqrt(tmp/(pi*max_k_p.^2)); 
+E_calc_(nd,nnode_) = tmp;
+%%%%%%%%%%%%%%%% ;
+end;%for nd=1:n_d;
+toc;
+
+%{
+tic;
+n_d = 128;
+dj_ = D_target*linspace(-2,+2,n_d);
+g_ = zeros(n_d,1);
+for nd=1:n_d;
+dj = dj_(nd);
+if (dj==0); g_(nd) = (2*pi).^2; end;
+if (dj~=0); g_(nd) = dblquad( @(r,w) cos(r*dj*cos(w)).*r , 0,2*pi*max_k_p , 0,2*pi ) / (pi*max_k_p.^2) ; end;
+end;%for nd=1:n_d;
+toc;
+tic;
+n_d = 128;
+dj_ = D_target*linspace(-2,+2,n_d);
+h_ = zeros(n_d,1);
+for nd=1:n_d;
+dj = dj_(nd);
+if (dj==0); h_(nd) = (2*pi).^2; end;
+if (dj~=0); h_(nd) = quad( @(w) ( cos((dj*cos(w)).*(2*pi*max_k_p)) + sin((dj*cos(w)).*(2*pi*max_k_p)).*(2*pi*max_k_p).*(dj*cos(w)) - 1 ) ./ ((dj*cos(w)).^2) , 0,2*pi ) / (pi*max_k_p.^2) ; end;
+end;%for nd=1:n_d;
+toc;
+ %}
+
+end;%for nnode_=1:length(n_node_);
+
+

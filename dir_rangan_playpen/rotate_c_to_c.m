@@ -1,0 +1,23 @@
+function M_c_ = rotate_c_to_c(n_x,max_x_c,n_y,max_y_c,S_c_,gamma);
+% Assumes that M_c_ is the same size and dimensions as S_c_;
+% Rotates around (0,0);
+% Does not periodize boundary;
+T_c_ = recenter2(S_c_);
+N_c_ = zeros(n_x,n_y);
+for ny=0:n_y-1;
+for nx=0:n_x-1;
+X_c = 0.0 + nx*max_x_c/n_x - max_x_c/2.0;
+Y_c = 0.0 + ny*max_y_c/n_y - max_y_c/2.0;
+R_c = sqrt(X_c.^2 + Y_c.^2);
+W_c = atan2(Y_c,X_c) - gamma;
+X_c = R_c*cos(W_c);
+Y_c = R_c*sin(W_c);
+X_c = max(0.0,min(max_x_c,X_c + max_x_c/2.0));
+Y_c = max(0.0,min(max_y_c,Y_c + max_y_c/2.0));
+C_c = interp2(n_x,0.0,max_x_c,n_y,0.0,max_y_c,T_c_,X_c,Y_c);
+%C_c = T_c_(min(n_x,max(1,round(n_x*X_c))),min(n_y,max(1,round(n_y*Y_c))));
+N_c_(1+nx+ny*n_x) = C_c;
+end;%for;
+end;%for;
+M_c_ = decenter2(N_c_);
+

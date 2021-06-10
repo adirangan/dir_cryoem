@@ -1,0 +1,73 @@
+T_S_q__ = MDA_read_c16('./dir_mda/T_S_q__nS0_0.mda');
+T_R_CTF_M_q__ = MDA_read_c16('./dir_mda/T_R_CTF_M_q__nS0_0_nM0_0.mda');
+S_T_T_R_CTF_M_q__ = MDA_read_c16('./dir_mda/S_T_T_R_CTF_M_q__nS0_0_nS1_0_nM0_0_nM1_0.mda');
+F_S_T_T_R_CTF_M_q__ = MDA_read_c16('./dir_mda/F_S_T_T_R_CTF_M_q__nS0_0_nS1_0_nM0_0_nM1_0.mda');
+n_r = size(T_S_q__,1);
+n_transf = size(T_S_q__,2);
+n_S = size(T_S_q__,3);
+n_w_max = size(T_S_q__,4);
+assert(size(T_R_CTF_M_q__,1)==n_r);
+n_M = size(T_R_CTF_M_q__,2);
+assert(size(T_R_CTF_M_q__,3)==n_w_max);
+assert(size(S_T_T_R_CTF_M_q__,1)==n_transf);
+assert(size(S_T_T_R_CTF_M_q__,2)==n_S);
+assert(size(S_T_T_R_CTF_M_q__,3)==n_M);
+assert(size(S_T_T_R_CTF_M_q__,4)==n_w_max);
+assert(size(F_S_T_T_R_CTF_M_q__,1)==n_transf);
+assert(size(F_S_T_T_R_CTF_M_q__,2)==n_S);
+assert(size(F_S_T_T_R_CTF_M_q__,3)==n_M);
+assert(size(F_S_T_T_R_CTF_M_q__,4)==n_w_max);
+
+E1_ = zeros(n_S*n_M,n_w_max);
+E2_ = zeros(n_S*n_M,n_w_max);
+E3_ = zeros(n_S*n_M,n_w_max);
+for nw_max=0:n_w_max-1;
+for nM=0:n_M-1;
+for nS=0:n_S-1;
+T_S_q_ = squeeze(T_S_q__(:,:,1+nS,1+nw_max));
+T_R_CTF_M_q_ = squeeze(T_R_CTF_M_q__(:,1+nM,1+nw_max));
+tmp_ = transpose(T_S_q_)*T_R_CTF_M_q_;
+E1 = norm(tmp_,'fro');
+S_T_T_R_CTF_M_q_ = squeeze(S_T_T_R_CTF_M_q__(:,1+nS,1+nM,1+nw_max));
+E2 = norm(S_T_T_R_CTF_M_q_,'fro');
+E3 = norm(S_T_T_R_CTF_M_q_ - tmp_,'fro')/E2;
+%disp(sprintf(' %% nw_max %.2d nM %.2d nS %.2d: tmp_ %0.2f vs S_T_T_R_CTF_M_q_ %0.2f error %0.16f',nw_max,nM,nS,E1,E2,E3));
+E1_(1+nS+nM*n_S,1+nw_max) = E1;
+E2_(1+nS+nM*n_S,1+nw_max) = E2;
+E3_(1+nS+nM*n_S,1+nw_max) = E3;
+end;%for nS=0:n_S-1;
+end; %for nM=0:n_M-1;
+end; %for nw_max=0:n_w_max-1;
+
+figure(1);
+subplot(1,3,1); imagesc(log10(E1_)); colorbar; 
+xlabel('nw');ylabel('nS,nM');
+title('log10(norm(T_S_q_*T_R_CTF_M_q))','Interpreter','none');
+subplot(1,3,2); imagesc(log10(E2_)); colorbar; 
+xlabel('nw');ylabel('nS,nM');
+title('log10(norm(S_T_T_R_CTF_M_q_))','Interpreter','none');
+subplot(1,3,3); imagesc(log10(E3_)); colorbar; 
+xlabel('nw');ylabel('nS,nM');
+title('log10(norm(difference))','Interpreter','none');
+set(gcf,'Position',1+[0,0,1024*1.5,512]);
+
+E4_ = zeros(n_transf,n_S*n_M);
+for nM=0:n_M-1;
+for nS=0:n_S-1;
+for ntransf=0:n_transf-1;
+tmp0_ = squeeze(S_T_T_R_CTF_M_q__(1+ntransf,1+nS,1+nM,:));
+tmp1_ = ifft(tmp0_)*n_w_max;
+tmp2_ = squeeze(F_S_T_T_R_CTF_M_q__(1+ntransf,1+nS,1+nM,:));
+E4 = norm(tmp1_ - tmp2_,'fro')./norm(tmp1_,'fro');
+E4_(1+ntransf,1+nS+nM*n_S) = E4;
+end;%for ntransf=0:n_transf-1;
+end;%for nS=0:n_S-1;
+end; %for nM=0:n_M-1;
+
+figure(2);
+subplot(1,1,1); imagesc(log10(E4_)); colorbar; 
+xlabel('nS,nM');ylabel('ntransf');
+title('log10(norm(ifft(S_T_T_R_CTF_M_q__)*n_w_max - F_S_T_T_R_CTF_M_q__))','Interpreter','none');
+set(gcf,'Position',1+[0,0,1024,1024]);
+
+

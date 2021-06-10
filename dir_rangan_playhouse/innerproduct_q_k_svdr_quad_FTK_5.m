@@ -1,0 +1,115 @@
+function [C_q_] = innerproduct_q_k_svdr_quad_FTK_5(flag_S_vs_M,FTK,n_r,grid_p_,weight_p_,n_w_,n_A,T_q_,M_q_,C_q_);
+;
+% Assumes that M_q_ is the same size and dimensions as T_q_.;
+% Assumes quasi-uniform polar-grid defined via n_r , .. , n_A.;
+% Uses svd-expansion defined via n_svd_r , .. , svd_V_r_.;
+% Assumes that C_q_ is large enough to hold all n_w_max = n_w_(n_r-1) ;
+% modes for each of the n_svd_l terms in the svd-expansion;
+% (assuming of course that n_w_(n_r-1) is the largest value within n_w_).;
+% modes in C_q_ are stored in the order: (mode 0 , mode 1 , ... , mode -1).;
+% The mode-k for term-l is stored in C_q_(l + k*n_svd_l).;
+% The logical flag_S_vs_M determines the sign of the complex exponential.;
+% flag_S_vs_M .eqv. .true. --> transformation applied to S, use +.;
+% flag_S_vs_M .eqv. .false. --> transformation applied to M, use -.;
+
+svd_r_max = FTK.svd_r_max;
+n_svd_r = FTK.n_svd_r;
+svd_r_ = FTK.svd_r_;
+n_svd_l = FTK.n_svd_l;
+svd_l_ = FTK.svd_l_;
+svd_s_ = FTK.svd_s_;
+svd_V_r_ = FTK.svd_V_r_;
+svd_polyval_V_r_ = FTK.svd_polyval_V_r_;
+
+verbose = 0;
+warning_flag = 1;
+
+if (verbose>0);
+disp(sprintf(' %% [entering innerproduct_q_k_svdr_FTK_5] n_r %d',n_r));
+end;%if;
+
+svd_r_m = svd_r_max / 2.0;
+svd_r_c = svd_r_m;
+n_w_max = n_w_(1+n_r-1);
+if (verbose>0);
+disp(sprintf(' %% n_w_max %d',n_w_max));
+end;%if;
+C_q_ = zeros(n_svd_l*n_w_max,1);
+V_r_ = svd_polyval_V_r_;
+for nl=0:n_svd_l-1;
+for nw=0:n_w_max-1;
+C_q_(1+nl+nw*n_svd_l) = 0.0;
+end;%for nw=0:n_w_max-1;
+end;%for nl=0:n_svd_l-1;
+C_q = 0.0;
+ic = 0;
+for nr=0:n_r-1;
+if (verbose>2); disp(sprintf(' %% nr %d',nr)); end;
+dw = 2*pi/(1.0d0*max(1,n_w_(1+nr)));
+dA = weight_p_(1+nr);
+%    We assume that the fourier basis is orthonormal (not merely orthogonal);
+dAn = dA*dw;
+n_w_t = floor(1.0d0*n_w_(1+nr)/2.0d0);
+ic_store = ic;
+for nl=0:n_svd_l-1;
+D_V_r = V_r_(1+nl+nr*n_svd_l);
+D_s = svd_s_(1+nl);
+I_l = svd_l_(1+nl);
+ic = ic_store;
+for nw=0:n_w_(1+nr)-1;
+nwc = nw;
+if (nwc>=n_w_t);
+nwc = nwc - n_w_(1+nr);
+end;%if
+flag_ict_overflow = 0;
+nwd = nwc + I_l;
+if (abs(nwd)<n_w_t);
+nwt = periodize(nwd,0,n_w_(1+nr));
+ else;
+nwt = 0;
+flag_ict_overflow = 1;
+end;%if
+flag_icr_overflow = 0;
+nwd = nwc - I_l;
+if (abs(nwd)<n_w_t);
+nwr = periodize(nwd,0,n_w_(1+nr));
+ else;
+nwr = 0;
+flag_icr_overflow = 1;
+end;%if
+ict = ic-nw+nwt;
+icr = ic-nw+nwr;
+if (flag_ict_overflow==0);
+if (nw>floor(n_w_(1+nr)/2));
+nw_fix = nw - n_w_(1+nr) + n_w_max;
+if (flag_S_vs_M==1) C_q = conj(D_s*D_V_r*T_q_(1+ict))*M_q_(1+ic); end;
+if (flag_S_vs_M==0) C_q = conj(D_s*D_V_r*T_q_(1+ic))*M_q_(1+ict); end;
+nw_C = nl + nw_fix*n_svd_l;
+C_q_(1+nw_C) = C_q_(1+nw_C) + C_q*dAn;
+elseif (nw==floor(n_w_(1+nr)/2));
+nw_fix = nw;
+if (flag_S_vs_M==1) C_q = 0.0*0.5*conj(D_s*D_V_r*T_q_(1+ict))*M_q_(1+ic); end;
+if (flag_S_vs_M==0) C_q = 0.0*0.5*conj(D_s*D_V_r*T_q_(1+ic))*M_q_(1+ict); end;
+nw_C = nl + nw_fix*n_svd_l;
+C_q_(1+nw_C) = C_q_(1+nw_C) + C_q*dAn;
+nw_fix = nw - n_w_(1+nr) + n_w_max;
+if (flag_S_vs_M==1) C_q = 0.0*0.5*conj(D_s*D_V_r*T_q_(1+ict))*M_q_(1+ic); end;
+if (flag_S_vs_M==0) C_q = 0.0*0.5*conj(D_s*D_V_r*T_q_(1+ic))*M_q_(1+ict); end;
+nw_C = nl + nw_fix*n_svd_l;
+C_q_(1+nw_C) = C_q_(1+nw_C) + C_q*dAn;
+ else;
+nw_fix = nw;
+if (flag_S_vs_M==1) C_q = conj(D_s*D_V_r*T_q_(1+ict))*M_q_(1+ic); end;
+if (flag_S_vs_M==0) C_q = conj(D_s*D_V_r*T_q_(1+ic))*M_q_(1+ict); end;
+nw_C = nl + nw_fix*n_svd_l;
+C_q_(1+nw_C) = C_q_(1+nw_C) + C_q*dAn;
+end;%if
+end;%if
+ic = ic + 1;
+end;%for nw=0:n_w_(1+nr)-1;
+end;%for nl=0:n_svd_l-1;
+end;%for nr=0:n_r-1;
+
+if (verbose>0);
+disp(sprintf(' %% [finished innerproduct_q_k_svdr_FTK_5]'));
+end;%if;

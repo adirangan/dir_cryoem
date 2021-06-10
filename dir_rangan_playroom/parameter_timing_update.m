@@ -1,0 +1,26 @@
+function parameter = parameter_timing_update(parameter,str_field,dt,n);
+if (nargin<3); dt=0; end;
+if (nargin<4); n=1; end;
+
+if isempty(parameter);
+parameter = struct('type','parameter');
+end;%if isempty(parameter);
+%%%%%%%%;
+if (~isfield(parameter,'timing'));
+parameter.timing = cell(1,3);
+parameter.timing{1,1} = 'label';
+parameter.timing{1,2} = 'total time';
+parameter.timing{1,3} = 'number of calls';
+end; %<-- parameter_bookmark. ;
+%%%%%%%%;
+tmp_index = min(efind(strcmp(parameter.timing(:,1),str_field)));
+if (~isempty(tmp_index));
+parameter.timing{1+tmp_index,2} = parameter.timing{1+tmp_index,2}+dt;
+parameter.timing{1+tmp_index,3} = parameter.timing{1+tmp_index,3}+n;
+end;%if ( isempty(tmp_index));
+if ( isempty(tmp_index));
+tmp_index = size(parameter.timing,1);
+parameter.timing{1+tmp_index,1} = str_field;
+parameter.timing{1+tmp_index,2} = dt;
+parameter.timing{1+tmp_index,3} = n;
+end;%if ( isempty(tmp_index));

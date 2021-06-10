@@ -1,0 +1,16 @@
+function [avg,std] = stdlim_c16(n_A,real_or_imag,S_);
+avg=0;
+var=0;
+std=0;
+for na=0:n_A-1;
+if (real_or_imag==1) then;
+avg = avg + real(S_(1+na));
+var = var + real(S_(1+na)).^2;
+ else;
+avg = avg + aimag(S_(1+na));
+var = var + aimag(S_(1+na)).^2;
+end;%if;
+end;%for;
+avg = avg / max(1,n_A);
+var = var / max(1,n_A);
+std = dsqrt(var - avg*avg);

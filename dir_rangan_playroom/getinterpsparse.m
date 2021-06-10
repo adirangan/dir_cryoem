@@ -1,0 +1,75 @@
+function [index_,weight_] = getinterpsparse(polar_a,azimu_b,n_order,n_polar_a,n_azimu_b);
+% Create one row of interpolation matrix in simple sparse storage ;
+% format. Since we are using a kxk interpolation stencil, ;
+% we only need to know the column index and interpolation ;
+% weights ;
+% ;
+% INPUT: ;
+% ;
+% polar_a,azimu_b  : coordinates of target point ;
+% n_order          : interpolation order ;
+% n_polar_a        : number of equispaced nodes in polar_a ;
+% n_azimu_b        : number of equispaced nodes in azimu_b ;
+% ;
+% OUTPUT: ;
+% ;
+% index_     : list of source points on the sphere in unrolled format. ;
+% weight_    : corresponding interpolation weights. ;
+
+%%%%%%%%;
+% get nearest grid coordinates. ;
+%%%%%%%%;
+index_nearest_azimu_b = 1 + round(n_azimu_b*azimu_b/(2*pi));
+index_nearest_polar_a = round(n_polar_a*(polar_a + pi/(2*n_polar_a))/pi);
+
+%%%%%%%%;
+% need to compute offset from base point before thinking about ;
+% wrapping interpolation points... ;
+%%%%%%%%;
+
+index_nearest_azimu_b = 1 + round(n_azimu_b*azimu_b/(2*pi));
+index_nearest_polar_a = round(n_polar_a*(polar_a + pi/(2*n_polar_a))/pi);
+spacing_polar_a = pi/n_polar_a;
+spacing_azimu_b = 2*pi/n_azimu_b;
+delta_azimu_b = azimu_b - (index_nearest_azimu_b-1)*spacing_azimu_b;
+delta_polar_a = polar_a - ((2*index_nearest_polar_a-1)*pi)/(2*n_polar_a);
+
+if (index_nearest_azimu_b > n_azimu_b) index_nearest_azimu_b = index_nearest_azimu_b - n_azimu_b;
+if (index_nearest_polar_a > n_polar_a) index_nearest_polar_a = index_nearest_polar_a - 1;
+
+if ((index_nearest_azimu_b<1)|(index_nearest_azimu_b>n_azimu_b));
+disp(sprintf(' %% Warning, index_nearest_azimu_b %d',index_nearest_azimu_b));
+end;%if;
+if ((index_nearest_polar_a<1)|(index_nearest_polar_a>n_polar_a));
+disp(sprintf(' %% Warning, index_nearest_polar_a %d',index_nearest_polar_a));
+end;%if;
+
+increment = 0;
+for index_azimu_b = -floor(k/2):floor(k/2);
+for index_polar_a = -floor(k/2):floor(k/2);
+increment = increment + 1;
+order_azimu_b = index_nearest_azimu_b + index_azimu_b;
+order_polar_a = index_nearest_polar_a + index_polar_a;
+if (order_polar_a < 1);
+order_azimu_b = order_azimu_b + floor(n_azimu_b/2);
+order_polar_a = 1 - order_polar_a;
+else if (order_polar_a > n_polar_a);
+order_azimu_b = order_azimu_b + floor(n_azimu_b/2);
+order_polar_a = 2*n_polar_a + 1 - order_polar_a;
+end;%if;
+if (order_azimu_b > n_azimu_b);
+order_azimu_b = order_azimu_b - n_azimu_b ;
+else if (order_azimu_b < 1);
+order_azimu_b = order_azimu_b + n_azimu_b ;
+end;%if;
+if ((order_azimu_b<1)|(order_azimu_b>n_azimu_b));
+disp(sprintf(' %% Warning, order_azimu_b %d',order_azimu_b));
+end;%if;
+if ( (order_polar_a<1)|(order_polar_a>n_polar_a));
+disp(sprintf(' %% Warning, order_polar_a %d',order_polar_a));
+end;%if;
+val = getlagrangewt(delta_polar_a,delta_azimu_b,k,index_polar_a,index_azimu_b,spacing_polar_a,spacing_azimu_b);
+index_(increment) = (order_polar_a-1)*n_azimu_b + order_azimu_b;
+weight_(increment) = val;
+end;%for index_polar_a = -floor(k/2):floor(k/2);
+end;%for index_azimu_b = -floor(k/2):floor(k/2);

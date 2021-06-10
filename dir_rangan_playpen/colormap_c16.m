@@ -1,0 +1,25 @@
+function output = colormap_c16(n_cra);
+
+c_ = colormap('hsv'); n_c = size(c_,1);
+c__ = zeros(1,n_cra*n_cra,3);
+x_ = linspace(-1,1,n_cra);
+x__ = zeros(5,n_cra*n_cra);
+y_ = linspace(-1,1,n_cra);
+y__ = zeros(5,n_cra*n_cra);
+dx = mean(diff(x_)); dy = mean(diff(y_));
+nt = 0;
+for ny=1:n_cra;
+y_pre = y_(ny)-dy; y_pos = y_(ny)+dy; y_mid = y_(ny);
+for nx=1:n_cra; 
+x_pre = x_(nx)-dx; x_pos = x_(nx)+dx; x_mid = x_(nx);
+r_mid = sqrt(y_mid.^2 + x_mid.^2);
+w_mid = atan2(y_mid,x_mid);
+x__(:,1+nt) = [x_pre ; x_pos ; x_pos ; x_pre ; x_pre];
+y__(:,1+nt) = [y_pre ; y_pre ; y_pos ; y_pos ; y_pre];
+nb = max(1,min(n_c,floor(n_c*(w_mid+pi)/(2*pi))));
+c__(1,1+nt,:) = (1-r_mid)*ones(1,3) + r_mid*c_(nb,:);
+nt = nt+1;
+end;%for nx=1:n_cra; 
+end;%for ny=1:n_cra;
+p=patch(x__,y__,c__); set(p,'EdgeColor','none');
+output = c__;

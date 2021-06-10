@@ -1,0 +1,18 @@
+function [Wt___,dWtdkd_out__] = expm_dwignertdkd__(dWtdkd_0in__,n_k_p_r,k_p_r_,l_max_,kd_ratio);
+% kd_ratio = kd / k_p_r_max ;
+n_lm_ = (l_max_+1).^2; n_lm_sum = sum(n_lm_);
+l_max_max = max(l_max_); dWtdkd__l_max_max = 2*l_max_max;
+%%%%%%%%;
+if (~isempty(dWtdkd_0in__)); dWtdkd_out__ = dWtdkd_0in__; end;
+if ( isempty(dWtdkd_0in__)); dWtdkd_out__ = dwignertdkd__(dWtdkd__l_max_max); end;
+%%%%%%%%;
+Wt___ = cell(n_k_p_r,1);
+for nk_p_r = 0:n_k_p_r-1;
+k_p_r = k_p_r_(1+nk_p_r);
+l_max = l_max_(1+nk_p_r);
+Wt___{1+nk_p_r} = cell(1+l_max,1);
+for nl=0:l_max;
+m_val = nl;
+Wt___{1+nk_p_r}{1+nl} = expm(-kd_ratio*k_p_r*dWtdkd_out__{1+nl}); %<-- note sign of translation. ;
+end;%for nl=0:l_max_max;
+end;%for nk_p_r = 0:n_k_p_r-1;

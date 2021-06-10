@@ -1,0 +1,25 @@
+function X_k_p_ = test_F_X_k_p_0(n_point,max_x_c,delta_d,delta_w,n_svd_r,svd_r_,n_svd_d,svd_d_,n_svd_l,svd_l_,svd_U_d_,svd_s_,svd_V_r_);
+[max_k_c,max_k_p,grid_x_c_,d_x_c,X_x_c_,Y_x_c_,R_x_c_,W_x_c_,grid_k_c_,d_k_c,X_k_c_,Y_k_c_,R_k_c_,W_k_c_,grid_x_r_,grid_x_w_,R_x_p_,W_x_p_,grid_k_r_,d_k_r,grid_k_w_,d_k_w,R_k_p_,W_k_p_,X_k_p_,Y_k_p_] = test_F_grid_0(n_point,max_x_c);
+verbose=0;
+phi_k_p_ = W_k_p_-delta_w;
+rd_k_p_ = delta_d*2*pi*R_k_p_;
+X_k_p_ = 0*phi_k_p_;
+ij_par = find(abs(svd_d_-delta_d)<1e-7);
+if (~isempty(ij_par)); svd_U_d_2_ = svd_U_d_(ij_par,:); end;
+if (isempty(ij_par));
+ij_pre = max(find(svd_d_<delta_d));
+ij_pos = min(find(svd_d_>delta_d));
+d_pre = delta_d - svd_d_(ij_pre);
+d_pos = svd_d_(ij_pos) - delta_d;
+w_pre = d_pos/(d_pos+d_pre);
+w_pos = d_pre/(d_pos+d_pre);
+svd_U_d_2_ = w_pre*svd_U_d_(ij_pre,:) + w_pos*svd_U_d_(ij_pos,:);
+end;%if (isempty(ij_par));
+for ns=1:n_svd_l;
+l = svd_l_(ns);
+S = svd_s_(ns);
+U_d = svd_U_d_2_(1,ns);
+V_r_ = svd_V_r_(:,ns);
+X_k_p_ = X_k_p_ + exp(-i*l*pi/2).*U_d.*S.*(ones(n_point,1)*transpose(V_r_)).*exp(+i*l*phi_k_p_);
+end;%for ns=1:n_svd_l;
+

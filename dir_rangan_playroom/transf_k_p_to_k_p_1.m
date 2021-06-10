@@ -1,0 +1,28 @@
+function [b_all_] = transf_k_p_to_k_p_1(verbose,n_k_all,k_p_r_all_,k_p_azimu_b_all_,k_p_polar_a_all_,a_all_,delta_);
+% Applies translation in fourier space to list of points. ;
+% ;
+% inputs: ;
+% ;
+% verbose = integer verbosity_level ;
+% n_k_all = integer total number of points ;
+% k_p_r_all_ = real array of k-values for each point ;
+% k_p_azimu_b_all_ = real array of k_p_azimu_b-values for each point ;
+% k_p_polar_a_all_ = real array of k_p_polar_a-values for each point ;
+% a_all_ = complex array of a-values for each point ;
+% delta_ = real array of real-space displacements; [delta_x,delta_y,delta_z] ;
+% ;
+% outputs: ;
+% ;
+% b_all_ = complex array of b-values for each point ;
+
+if (verbose>1); disp(sprintf(' %% translating by [%0.2f %0.2f %0.2f]',delta_)); end;
+b_all_ = a_all_ ;
+if (fnorm(delta_)>0);
+kx_all_ = k_p_r_all_ .* cos(k_p_azimu_b_all_) .* sin(k_p_polar_a_all_);
+ky_all_ = k_p_r_all_ .* sin(k_p_azimu_b_all_) .* sin(k_p_polar_a_all_);
+kz_all_ = k_p_r_all_ .* cos(k_p_polar_a_all_);
+for nk_all=1:n_k_all;
+kd = 2*pi*(kx_all_(nk_all)*delta_(1) + ky_all_(nk_all)*delta_(2) + kz_all_(nk_all)*delta_(3));
+b_all_(nk_all) = a_all_(nk_all) * exp(-i*kd);
+end;%for nk_all=1:n_k_all;
+end;%if (norm(delta_)>0);

@@ -1,0 +1,106 @@
+% trying to read some of the trpv1 data. ;
+dir_data = '/data/rangan/dir_cryoem/dir_trpv1/data_nosym';
+fname_dims = sprintf('%s/dims',dir_data);
+tmp_ = textread(fname_dims); n_x_c = tmp_(1); n_image = tmp_(2); clear tmp_;
+
+fname_density = sprintf('%s/density_clean',dir_data);
+f_x_c___ = textread(fname_density); f_x_c___ = reshape(f_x_c___,n_x_c,n_x_c,n_x_c);
+flag_plot=0; if flag_plot; figure(1); isosurface_f_x_c_0(f_x_c___,98.5); end;
+
+half_diameter_x_c = 1.0d0;
+diameter_x_c = 2.0d0*half_diameter_x_c;
+grid_x_c_ = linspace(-1,+1,n_x_c+1); grid_x_c_ = half_diameter_x_c*grid_x_c_(1:end-1);
+n_k_p_r_max = 48;
+grid_k_p_r_ = 1:n_k_p_r_max;
+n_w_ = zeros(n_k_p_r_max,1);
+for nk=0:n_k_p_r_max-1;
+n_polar_a = round(pi*grid_k_p_r_(1+nk));
+if (n_polar_a<6); n_polar_a = 6; end;
+if (mod(n_polar_a,2)~=0); n_polar_a = n_polar_a+1; end;
+n_w_(1+nk) = n_polar_a*2;
+end;%for nk=0:n_k_p_r_max-1;
+
+fname_num_ctf = sprintf('%s/num_ctf',dir_data);
+n_ctf = textread(fname_num_ctf);
+fname_ctf_idx = sprintf('%s/ctf_idx',dir_data);
+ctf_idx = textread(fname_ctf_idx);
+fname_mscope_params = sprintf('%s/mscope_params',dir_data);
+mscope_params = textread(fname_mscope_params);
+CTF_Voltage_kV_ = mscope_params(1)*ones(n_ctf,1);
+CTF_Spherical_Aberration_ = mscope_params(2)*ones(n_ctf,1);
+CTF_Detector_Pixel_Size_ = mscope_params(3)*ones(n_ctf,1);
+CTF_Amplitude_Contrast_ = mscope_params(4)*ones(n_ctf,1);
+fname_ctf_params = sprintf('%s/ctf_params',dir_data);
+ctf_params = textread(fname_ctf_params);
+CTF_Defocus_U_ = ctf_params(:,1);
+CTF_Defocus_V_ = ctf_params(:,2);
+CTF_Defocus_Angle_ = ctf_params(:,3);
+nctf=0;
+CTF_Spherical_Aberration = CTF_Spherical_Aberration_(1+nctf);% spherical aberation of the lens in mm ;
+CTF_Spherical_Aberration=CTF_Spherical_Aberration*(10.0d0^7.0d0);% convert into Angstroms ;
+CTF_Voltage_kV = CTF_Voltage_kV_(1+nctf);% voltage in kVolts ;
+CTF_Voltage_1V=CTF_Voltage_kV*1000.0 ;% convert into Volts ;
+CTF_lambda = 12.2643247/sqrt(CTF_Voltage_1V+CTF_Voltage_1V^2*0.978466d-6);% electron wavelength in Angstroms ;
+CTF_Defocus_U = CTF_Defocus_U_(1+nctf);% defocus values (in Angstroms) ;
+CTF_Defocus_V = CTF_Defocus_V_(1+nctf);% defocus values (in Angstroms) ;
+CTF_Defocus_Angle = CTF_Defocus_Angle_(1+nctf);% angle of astigmatism ;
+CTF_Defocus_Angle = CTF_Defocus_Angle*pi/180.0d0;% convert into radians ;
+CTF_Amplitude_Contrast = CTF_Amplitude_Contrast_(1+nctf);% CTF_Amplitude Contrast ;
+tmp_w1=sqrt(1.0d0-CTF_Amplitude_Contrast^2);% weights for the amplitude and phase contrasts in CTF ;
+tmp_w2=CTF_Amplitude_Contrast;% weights for the amplitude and phase contrasts in CTF ;
+%  CTF_Object_Pixel_Size = CTF_Detector_Pixel_Size/CTF_Magnification;
+CTF_Object_Pixel_Size = CTF_Detector_Pixel_Size_(1+nctf);% pixel size of the scanner in physical space (not magnified) in Angstroms ;
+CTF_lambda_per_box = CTF_lambda/(n_x_c*CTF_Object_Pixel_Size);% n_x_c_max*CTF_Object_Pixel_Size is the box size in Angstroms ;
+%  call envelope_fxn(ngridr,xnodesr/pi,D,envelope);
+na=0;
+for nk = 0:n_k_p_r_max-1;
+for nw=0:n_w_(1+nk)-1;
+tmp_theta = (2.0d0*pi*nw)/n_w_(1+nk);
+tmp_k_c_1 = (2.0d0*pi)*grid_k_p_r_(1+nk)*cos(tmp_theta);
+tmp_k_c_2 = (2.0d0*pi)*grid_k_p_r_(1+nk)*sin(tmp_theta);
+tmp_ctf_value = niko_ctf(CTF_Spherical_Aberration,CTF_lambda,tmp_w1,tmp_w2,CTF_Defocus_U,CTF_Defocus_V,CTF_Defocus_Angle,CTF_lambda_per_box,tmp_k_c_1/pi,tmp_k_c_2/pi);
+CTF_k_p__(1+na,1+nctf) = -tmp_ctf_value;
+na = na+1;
+end;%for nw=0:n_w_(1+nk)-1;
+end;%for nk = 0:n_k_p_r_max-1;
+figure(1);clf;
+subplot(1,1,1); 
+imagesc_p(n_k_p_r_max,grid_k_p_r_,n_w_,sum(n_w_),real(CTF_k_p__(:,1)),[-1,+1],colormap_beach());
+set(gca,'XTick',[],'YTick',[]); axis image; title('CTF(k)');
+
+fname_density = sprintf('%s/density',dir_data);
+f_x_c___ = textread(fname_density); f_x_c___ = reshape(f_x_c___,n_x_c,n_x_c,n_x_c);
+flag_plot=0; if flag_plot; figure(1); isosurface_f_x_c_0(f_x_c___,99.5); end;
+
+fname_image_mda = sprintf('%s/images_mda',dir_data);
+M_x_c___ = MDA_read_r8(fname_image_mda);
+n_image_sub = size(M_x_c___,3);
+
+flag_plot=1;
+if flag_plot;
+for nimage_sub=1;%for nimage_sub=1:n_image_sub;
+M_x_c_ = squeeze(M_x_c___(:,:,nimage_sub));
+M_k_p_ = interp_x_c_to_k_p_nufft(n_x_c,diameter_x_c,n_x_c,diameter_x_c,M_x_c_,n_k_p_r_max,grid_k_p_r_,n_w_) ;
+%figure(1+nimage_sub); 
+figure(1); 
+colormap(colormap_beach()); 
+subplot(2,2,1); imagesc_c(n_x_c,grid_x_c_,n_x_c,grid_x_c_,M_x_c_,[],colormap_beach()); 
+set(gca,'XTick',[],'YTick',[]); axis image; title('M(x)');
+subplot(2,2,3); imagesc_p(n_k_p_r_max,grid_k_p_r_,n_w_,sum(n_w_),real(CTF_k_p__(:,1)),[],colormap_beach());
+set(gca,'XTick',[],'YTick',[]); axis image; title('CTF(k)');
+subplot(2,2,2); imagesc_p(n_k_p_r_max,grid_k_p_r_,n_w_,sum(n_w_),real(M_k_p_),[],colormap_beach());
+set(gca,'XTick',[],'YTick',[]); axis image; title('real(M(k))');
+subplot(2,2,4); imagesc_p(n_k_p_r_max,grid_k_p_r_,n_w_,sum(n_w_),imag(M_k_p_),[],colormap_beach());
+set(gca,'XTick',[],'YTick',[]); axis image; title('imag(M(k))');
+drawnow();
+end;%for nimage_sub=1:n_image_sub;
+end;%if flag_plot;
+
+%{
+make -f test_ver18.make ; 
+./test_ver18.out 0 12 0.4 0.3 0.2 0.1 100.0d0 1 ; 
+./test_ver18.out 0 12 0.4 0.3 0.2 0.1 10.0d0 1 ; 
+./test_ver18.out 0 12 0.4 0.3 0.2 0.1 1.0d0 1 ; 
+./test_ver18.out 0 12 0.4 0.3 0.2 0.1 0.1d0 1 ; 
+./test_ver18.out 0 12 0.4 0.3 0.2 0.1 0.01d0 1 ; 
+  %}

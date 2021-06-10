@@ -1,0 +1,68 @@
+function orthopoly_test_4();
+%{
+% calculate: ;
+dj = 0.15; max_k_p = 10; C = 2*pi*max_k_p; gamma = C*dj;
+ dblquad( @(r,w) cos(r*dj*cos(w-pi/6)).*r , 0,2*pi*max_k_p , 0,2*pi ),;
+% exact integral is: ;
+ gamma*2*pi*besselj(1,gamma) ./ (dj.^2),;
+ %}
+
+verbose=1;
+dj = 0.15; max_k_p = 10; C = 2*pi*max_k_p; gamma = C*dj;
+I_exact = gamma*2*pi*besselj(1,gamma) ./ (dj.^2);
+disp(sprintf(' %% I_exact: %f',I_exact));
+
+n_quad_order_ = 2:16;
+I_quad_ = zeros(length(n_quad_order_),1);
+E_quad_ = zeros(length(n_quad_order_),1);
+for nquad_order_ = 1:length(n_quad_order_);
+n_quad_order = n_quad_order_(nquad_order_);
+quad_weight_polycoef_ = [1 1];
+trad = (C-0)/2; tmid = (C+0)/2;
+[quad_node_,quad_weight_,quad_Lx_,quad_Lv_] = orthopoly_node_weight_matrix_0(n_quad_order,quad_weight_polycoef_);
+quad_weight_ = quad_weight_ .* (C.^2/4);
+quad_node_scale_ = quad_node_*trad + tmid; 
+n_A=0; n_w_ = zeros(n_quad_order,1);
+for nq=1:n_quad_order;
+tmp = max(3,ceil(2*pi*n_quad_order*quad_node_scale_(nq)/C));
+n_w_(nq) = tmp;
+n_A = n_A + tmp;
+end;%for nq=1:n_quad_order;
+k_d_sample_ = zeros(n_A,1); k_w_sample_ = zeros(n_A,1); quad_weight_sample_ = zeros(n_A,1);
+ic=0;
+for nq=1:n_quad_order;
+tmp = max(3,ceil(2*pi*n_quad_order*quad_node_scale_(nq)/C));
+k_d_sample_(ic + (1:tmp),1) = quad_node_scale_(nq);
+tmp_ = linspace(0,2*pi,tmp+1);
+k_w_sample_(ic + (1:tmp),1) = transpose(tmp_(1:tmp));
+quad_weight_sample_(ic + (1:tmp),1) = quad_weight_(nq)*2*pi/tmp;
+ic = ic + tmp;
+end;%for nq=1:n_quad_order;
+k_sample_ = zeros(n_A,2);
+k_sample_(:,1) = cos(k_w_sample_).*k_d_sample_;
+k_sample_(:,2) = sin(k_w_sample_).*k_d_sample_;
+f_sample_ = cos(k_d_sample_.*dj.*cos(k_w_sample_ - pi/6));
+I_quad_(nquad_order_) = sum(f_sample_.*quad_weight_sample_);
+E_quad_(nquad_order_) = abs(I_exact - I_quad_(nquad_order_))/abs(I_exact);
+end;%for nquad_order_ = 1:length(n_quad_order_);
+subplot(1,3,1);hold on;
+c_ = colormap('hot'); n_c = size(c_,1); clim = [min(quad_weight_sample_),max(quad_weight_sample_)];
+for na=1:n_A;
+nc = max(1,min(n_c,floor(n_c*(quad_weight_sample_(na,1) - clim(1))/diff(clim))));
+plot(k_sample_(na,1),k_sample_(na,2),'.','Color',c_(nc,:),'MarkerSize',25);
+end;%for na=1:n_A;
+plot(C*cos(linspace(0,2*pi,256)),C*sin(linspace(0,2*pi,256)),'k-');
+set(gca,'XTick',[],'YTick',[]);axis square;
+title('quad weight');
+subplot(1,3,2);hold on;
+c_ = colormap(colormap_beach(64)); n_c = size(c_,1); clim = [-1,+1];
+for na=1:n_A;
+nc = max(1,min(n_c,floor(n_c*(f_sample_(na,1) - clim(1))/diff(clim))));
+plot(k_sample_(na,1),k_sample_(na,2),'.','Color',c_(nc,:),'MarkerSize',25);
+end;%for na=1:n_A;
+plot(C*cos(linspace(0,2*pi,256)),C*sin(linspace(0,2*pi,256)),'k-');
+set(gca,'XTick',[],'YTick',[]);axis square;
+title('function value');
+subplot(1,3,3);plot(log2(n_quad_order_),log10(E_quad_),'ro-');
+xlabel('log2(K)'); ylabel('log10(error)');
+

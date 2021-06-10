@@ -1,0 +1,15 @@
+function svd_polyval_V_r_ = get_svd_polyval_V_r_(svd_r_max,n_svd_r,svd_r_,n_svd_l,svd_l_,svd_V_r_,n_r,grid_p_);
+verbose=0; flag_warning=1;
+if (verbose); disp(sprintf(' %% [entering get_svd_polyval_V_r_]')); end;
+svd_r_m = svd_r_max / 2.0d0;
+svd_r_c = svd_r_m;
+for nr=0:n_r-1;
+if (grid_p_(1+nr)>svd_r_max & flag_warning);
+disp(sprintf(' %% Warning, grid_p_(1+nr) %0.2f > svd_r_max %0.2f',grid_p_(1+nr),svd_r_max));
+end;%if (grid_p_(1+nr)>svd_r_max & flag_warning);
+svd_r = (grid_p_(1+nr) - svd_r_m)/svd_r_c; if (~isfinite(svd_r)); svd_r=0; end;
+for nl=0:n_svd_l-1;
+svd_polyval_V_r_(1+nl+nr*n_svd_l) = polyval_r8_reverse_0(n_svd_r,svd_V_r_(1+0+nl*n_svd_r+(0:n_svd_r-1)),1,svd_r);
+end;%for nl=0:n_svd_l-1;
+end;%for nr=0:n_r-1;
+if (verbose); disp(sprintf(' %% [finished get_svd_polyval_V_r_]')); end;

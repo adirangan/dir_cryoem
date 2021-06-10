@@ -1,0 +1,40 @@
+function M_q_ = transf_besselj_q_to_q_0(l_max,n_r,grid_p_,n_w_,n_A,S_q_,delta_x,delta_y);
+
+Z_q_ = zeros(n_A,1);
+delta = sqrt(delta_x^2 + delta_y^2);
+omega = atan2(delta_y,delta_x);
+
+ic=0;
+for nr=0:n_r-1;
+for nl=-l_max:+l_max;
+theta = nl*(pi/2 - omega);
+C_w = +cos(theta) - i*sin(theta);
+C_w_(1+l_max+nl) = besselj(nl,2*pi*grid_p_(1+nr)*delta)*C_w;
+end;%for nl=-l_max:+l_max;
+for nw=0:n_w_(1+nr)-1;
+Z_q_(1+ic) = 0;
+n_w_t = floor(1.0d0*n_w_(1+nr)/2.0d0);
+for nl=-l_max:+l_max;
+C_q = C_w_(1+l_max+nl);
+nwc = nw;
+if (nwc>=n_w_t);
+nwc = nwc - n_w_(1+nr);
+end;%if;
+flag_ict_overflow = 0;
+nwd = nwc + nl;
+if (abs(nwd)<n_w_t);
+nwt = periodize(nwd,0,n_w_(1+nr));
+ else;
+nwt = 0;
+flag_ict_overflow = 1;
+end;%if;
+ict = ic-nw+nwt;
+if (flag_ict_overflow==0);
+Z_q_(1+ic) = Z_q_(1+ic) + C_q*S_q_(1+ict);
+end;%if;
+end;%for nl=-l_max:+l_max;
+ic = ic + 1;
+end;%for nw=0:n_w_(1+nr)-1;
+end;%for nr=0:n_r-1;
+M_q_ = Z_q_;
+

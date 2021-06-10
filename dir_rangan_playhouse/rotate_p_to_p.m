@@ -1,0 +1,33 @@
+function M_p_ = rotate_p_to_p(n_r,n_w_,n_A,S_p_,gamma);
+% Assumes that M_p_ is the same size and dimensions as S_p_;
+Z_p_ = zeros(size(S_p_));
+ic=0;
+icstart=0;
+for nr=0:n_r-1         ;
+for nw=0:n_w_(1+nr)-1;
+W_c = 0.0 + nw*(2*pi)/(n_w_(1+nr)) - gamma;
+W_c = periodize(W_c,0.0,2.0*pi);
+nt_pre = floor(W_c*n_w_(1+nr)/(2*pi));
+nt_pos = ceil(W_c*n_w_(1+nr)/(2*pi));
+if (nt_pos>=n_w_(1+nr));
+nt_pos = nt_pos - n_w_(1+nr);
+end;%if;
+W_pre = 0.0 + nt_pre*(2*pi)/n_w_(1+nr);
+W_pos = 0.0 + nt_pos*(2*pi)/n_w_(1+nr);
+A = abs(W_c-W_pre);
+B = abs(W_pos-W_c);
+if (A+B<=0.0);
+C_p = S_p_(1+icstart + nt_pre);
+ else;
+alpha = A/(A+B);
+beta = B/(A+B);
+C_p = beta*S_p_(1+icstart + nt_pre) + alpha*S_p_(1+icstart + nt_pos);
+end;%if;
+Z_p_(1+ic) = C_p;
+ic = ic + 1;
+end;%for;
+icstart = icstart + n_w_(1+nr);
+end;%for;
+M_p_ = Z_p_;
+
+
