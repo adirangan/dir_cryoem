@@ -1,0 +1,21 @@
+ctfw1 = load('ctfw1');
+ctf = ctfw1(:,1:end-1); % removing a column to ensure asymmetry -- helpful for debugging ;
+ctf = [ctf ; ctf(1,:) ] ; % periodizing across theta ;
+[ngridc_plus_1,ngridr] = size(ctf); ngridc = ngridc_plus_1 - 1;
+[tt,rr] = meshgrid(2*pi*([1:ngridc , ngridc+1])/ngridc,1:ngridr); % note that in ctf_test.f the values of xnodesr range from 1 to ngridr, whereas the values of xnodesc range from 2*pi/ngridc to 2*pi ;
+dx = 0.25; % this oversampling parameter can be set to 1.0 without loss ;
+[XX,YY] = meshgrid(-ngridr:dx:+ngridr,-ngridr:dx:+ngridr);
+RR = sqrt(XX.^2 + YY.^2); WW = atan2(YY,XX);
+WW2 = (WW>2*pi/ngridc).*WW + (WW<2*pi/ngridc).*(WW + 2*pi) ; % match values of WW2 to those of tt; i.e., range from 2*pi/ngridc to 2*pi(1 + 1/ngridc);
+ctf_k = interp2(tt,rr,transpose(ctf),WW2,RR,'linear',0);
+ctf_x = recenter2(ifft2(recenter2(ctf_k))); % choose appropriate origin for fft (i.e., recentering necessary to avoid high-frequency pointwise product). ;
+xx = rr.*cos(tt); yy = rr.*sin(tt); % for plotting in polar coordinates ;
+
+% plot results ;
+figure(1);clf;
+subplot(2,2,1); surf(xx,yy,0*xx,transpose(ctf)); shading interp ; view(2) ; title('CTF_k polar'); colorbar; axis square;
+subplot(2,2,2); imagesc(ctf_k); set(gca,'YDir','normal'); title('CTF_k cartesian'); colorbar; axis square;
+subplot(2,2,3); imagesc(real(ctf_x)); set(gca,'YDir','normal'); title('real(CTF_x)'); colorbar; 
+xlim(ngridr/dx + ngridr*[-1,+1]); ylim(ngridr/dx + ngridr*[-1,+1]); set(gca,'XTick',[],'YTick',[]); axis square;
+subplot(2,2,4); imagesc(imag(ctf_x)); set(gca,'YDir','normal'); title('imag(CTF_x)'); colorbar; 
+xlim(ngridr/dx + ngridr*[-1,+1]); ylim(ngridr/dx + ngridr*[-1,+1]); set(gca,'XTick',[],'YTick',[]); axis square;
