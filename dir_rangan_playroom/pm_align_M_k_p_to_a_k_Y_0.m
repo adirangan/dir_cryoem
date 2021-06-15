@@ -115,6 +115,7 @@ principled_marching_cost_matrix_3( ...
 );
 [UX__,SX__,VX__] = svds(X__,n_UX_rank); SX_ = diag(SX__);
 pm_n_UX_rank = max(find(SX_/max(SX_)> tolerance_master));
+if (verbose); disp(sprintf(' %% pm_n_UX_rank %d/%d',pm_n_UX_rank,numel(SX_))); end;
 tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% UX__: %0.3fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,'X__',tmp_t);
 
