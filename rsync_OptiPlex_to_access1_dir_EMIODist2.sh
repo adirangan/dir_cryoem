@@ -1,0 +1,1 @@
+rsync -avum  ~/dir_cryoem/dir_EMIODist2 rangan@access1.cims.nyu.edu:/data/rangan/dir_cryoem/ --include="*/" --include="*.f" --include="*.c" --include="*.make" --include="*.m" --include="*.sh" --include="*.tex" --include="*.pdf" --include="*.pptx" --include="*.ppt" --include="*.odp" --include="*.jpg" --exclude="*" ;

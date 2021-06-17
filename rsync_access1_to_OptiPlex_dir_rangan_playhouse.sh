@@ -1,0 +1,1 @@
+rsync -avum rangan@access1.cims.nyu.edu:/data/rangan/dir_cryoem/dir_rangan_playhouse/ ~/dir_cryoem/dir_rangan_playhouse  --include="*/" --include="*.f" --include="*.c" --include="*.make" --include="*.m" --include="*.sh" --include="*.tex" --include="*.pdf" --exclude="*" ;
