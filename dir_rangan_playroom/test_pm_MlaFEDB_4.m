@@ -1691,7 +1691,7 @@ disp(sprintf(' %% %s not found, creating',fname_fig));
 figure(1);clf;figbig;
 c_beach__ = colormap_beach(); n_c_beach = size(c_beach__,1); c_beach__(1,:) = [1,1,1];
 colormap(c_beach__);
-clim_ = [0.65,X_best_reco]; dc = diff(clim_)/n_c_beach; clim_min = min(clim_) + 2*dc; clim_bot = min(clim_);
+clim_ = [0.00,X_best_reco]; dc = diff(clim_)/n_c_beach; clim_min = min(clim_) + 2*dc; clim_bot = min(clim_);
 for ndat_n_UX_rank=0:n_dat_n_UX_rank-1;
 dat_n_UX_rank = dat_n_UX_rank_(1+ndat_n_UX_rank);
 subplot(3,4,1+ndat_n_UX_rank);
@@ -1751,7 +1751,7 @@ end;%for ndat_rseed=0:n_dat_rseed-1;
 %%%%%%%%;
 hold off;
 xlim([0,2*n_iteration+1]);
-ylim([0.50,0.90]);
+ylim([0.00,0.90]);
 xlabel('iteration');
 ylabel('correlation');
 grid on;
@@ -2083,4 +2083,48 @@ end;%if ( exist(sprintf('%s.jpg',fname_fig),'file'));
 %%%%%%%%;
 end;%for jname = {'job_4096','job_2048','job_0'};
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+
+%%%%%%%%;
+% test out get_loading_qbp_0 using the 'true' parameters. ;
+%%%%%%%%;
+parameter = struct('type','parameter');
+[ ...
+ parameter ...
+,SV_loading_Ml__ ...
+] = ...
+get_loading_qbp_0( ...
+ parameter ...
+,n_k_p_r ...
+,k_p_r_ ...
+,weight_3d_k_p_r_ ...
+,l_max_max*ones(n_k_p_r,1) ...
+,n_w_ ...
+,n_M ...
+,M_k_p__ ...
+,index_nCTF_from_nM_ ...
+,CTF_k_p__ ...
+,euler_polar_a_true_ ...
+,euler_azimu_b_true_ ...
+,euler_gamma_z_true_ ...
+,image_delta_x_true_ ...
+,image_delta_y_true_ ...
+);
+%%%%%%%%;
+fname_fig = sprintf('%s_jpg/loading_het_FIGA',dir_pm);
+if (flag_replot | ~exist(sprintf('%s.jpg',fname_fig),'file'));
+disp(sprintf(' %% %s not found, creating',fname_fig));
+figure(1);clf;figsml;colormap('lines');
+scatter3(SV_loading_Ml__(:,1),SV_loading_Ml__(:,2),SV_loading_Ml__(:,3),24,zeros(n_M,1),'filled');
+axis vis3d;
+title('loading via true');
+disp(sprintf(' %% writing %s',fname_fig));
+print('-djpeg',sprintf('%s.jpg',fname_fig));
+print('-depsc',sprintf('%s.eps',fname_fig));
+close(gcf);
+end;%if (~exist(sprintf('%s.jpg',fname_fig),'file'));
+if ( exist(sprintf('%s.jpg',fname_fig),'file'));
+disp(sprintf(' %% %s found, not creating',fname_fig));
+end;%if ( exist(sprintf('%s.jpg',fname_fig),'file'));
+%%%%%%%%;
 

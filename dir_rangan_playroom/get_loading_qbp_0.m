@@ -32,7 +32,7 @@ end;%if isempty(parameter);
 if (~isfield(parameter,'tolerance_master')); parameter.tolerance_master = 1e-2; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'rseed')); parameter.rseed = 0; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'n_loading')); parameter.n_loading = 3; end; %<-- parameter_bookmark. ;
-if (~isfield(parameter,'n_loading_iteration')); parameter.n_loading_iteration = 1; end; %<-- parameter_bookmark. ;
+if (~isfield(parameter,'n_loading_iteration')); parameter.n_loading_iteration = 32; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'cg_lsq_n_order')); parameter.cg_lsq_n_order = 5; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'qbp_eps')); parameter.qbp_eps = 1e-3; end; %<-- parameter_bookmark. ;
 %%%%%%%%;

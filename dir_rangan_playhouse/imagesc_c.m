@@ -1,8 +1,13 @@
 function imagesc_c(n_x,x_,n_y,y_,S_c_,clim,cra_);
 % cartesian imagesc;
 % assumes S_c_(nx,ny) = S_c_(nx + ny*n_x);
+if (nargin<6); clim = []; end;
+if (nargin<7); cra_ = []; end;
 if isempty(clim); 
 clim = mean(S_c_(:)) + std(S_c_(:))*2.5*[-1,1]; 
+end;%if isempty(clim);
+if isempty(cra_); 
+cra_ = colormap_beach();
 end;%if isempty(clim);
 dx_ = diff(x_); dy_ = diff(y_);
 x0_ = zeros(1,n_x*n_y);

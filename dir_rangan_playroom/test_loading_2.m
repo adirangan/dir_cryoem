@@ -1499,8 +1499,8 @@ if (verbose); disp(sprintf(' %% [test_loading_1.m]')); end;
 %%%%%%%%;
 % test out loading_qbp_0.m ;
 %%%%%%%%;
-n_residual_loading = 3;
-n_residual_iteration = 32;
+n_loading = 3;
+n_loading_iteration = 32;
 cg_lsq_n_order = 5;
 qbp_eps = 1e-3;
 tmp_euler_polar_a_ = +euler_polar_a_true_;
@@ -1509,7 +1509,9 @@ tmp_euler_gamma_z_ = +euler_gamma_z_true_;
 tmp_image_delta_x_ = +image_delta_x_true_;
 tmp_image_delta_y_ = +image_delta_y_true_;
 %%%%;
-parameter.n_loading = 3;
+parameter.n_loading = n_loading;
+parameter.n_loading_iteration = n_loading_iteration;
+parameter.
 [ ...
  parameter ...
 ,SV_loading_Ml__ ...
