@@ -53,12 +53,13 @@ if (~isfield(parameter,'flag_force_create_tmp')); parameter.flag_force_create_tm
 if (~isfield(parameter,'flag_alternate_MS_vs_SM')); parameter.flag_alternate_MS_vs_SM = 0; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'flag_local_exclusion')); parameter.flag_local_exclusion = 0; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'flag_qbp_vs_lsq')); parameter.flag_qbp_vs_lsq = 0; end; %<-- parameter_bookmark. ;
+if (~isfield(parameter,'str_strategy_prefix')); parameter.str_strategy_prefix = ''; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'n_complete_calculation')); parameter.n_complete_calculation = 0; end; %<-- parameter_bookmark. ;
 %%%%%%%%;
 flag_alternate_MS_vs_SM = parameter.flag_alternate_MS_vs_SM;
 flag_local_exclusion = parameter.flag_local_exclusion;
 flag_qbp_vs_lsq = parameter.flag_qbp_vs_lsq;
-str_strategy = ''; 
+str_strategy = parameter.str_strategy_prefix;
 if (flag_qbp_vs_lsq); str_strategy = sprintf('%sq1',str_strategy); end;
 if (flag_alternate_MS_vs_SM); str_strategy = sprintf('%sa1',str_strategy); end;
 if (flag_local_exclusion); str_strategy = sprintf('%se1',str_strategy); end;
@@ -181,6 +182,24 @@ tmp_XA_fname_pre = rootswitch(tmp_XA_fname_pre,string_root,'rangan');
 tmp_XA_.parameter.fname_align_a_CTF_avg_UX_Y_pre = tmp_XA_fname_pre;
 [tmp_XA_flag_skip,tmp_XA_fname_mat] = open_fname_tmp(tmp_XA_fname_pre,date_diff_threshold,flag_force_create_mat,flag_force_create_tmp);
 if ~tmp_XA_flag_skip;
+%%%%%%%%;
+% recalculate empirical principal-modes if necessary. ;
+%%%%%%%%;
+if ~exist('UX_2d_Memp_d1__','var');
+[ ...
+ X_2d_Memp_d1__ ...
+,X_2d_Memp_d1_weight_r_ ...
+] = ...
+principled_marching_empirical_cost_matrix_0( ...
+ n_k_p_r ...
+,k_p_r_ ...
+,weight_2d_k_p_r_ ...
+,n_w_ ...
+,n_M ...
+,M_k_p__ ...
+);
+[UX_2d_Memp_d1__,SX_2d_Memp_d1__,VX_2d_Memp_d1__] = svds(X_2d_Memp_d1__,n_UX_rank); SX_2d_Memp_d1_ = diag(SX_2d_Memp_d1__);
+end;%if ~exist('UX_2d_Memp_d1__','var');
 %%%%%%%%;
 % First form a_CTF_avg_UX_2d_Memp_d1_Y_quad__ ;
 %%%%%%%%;
@@ -371,6 +390,29 @@ tmp_XB_.parameter.fname_align_a_CTF_avg_UX_Y_pre = tmp_XB_fname_pre;
 [tmp_XB_flag_skip,tmp_XB_fname_mat] = open_fname_tmp(tmp_XB_fname_pre,date_diff_threshold,flag_force_create_mat,flag_force_create_tmp);
 if ~tmp_XB_flag_skip;
 try;
+%%%%%%%%;
+% recalculate updated principal-modes if necessary. ;
+%%%%%%%%;
+if ~exist('UX_2d_xcor_d0__','var');
+tmp_ = load(fname_XA_k_Y_mat); XA_a_k_Y_reco_ = tmp_.a_k_Y_reco_; clear tmp_;
+XA_a_k_Y_reco__ = zeros(n_lm_max,n_k_p_r);
+for nk_p_r=0:n_k_p_r-1;
+tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm_(1+nk_p_r)-1);
+XA_a_k_Y_reco__(1:n_lm_(1+nk_p_r),1+nk_p_r) = XA_a_k_Y_reco_(1+tmp_index_);
+end;%for nk_p_r=0:n_k_p_r-1;
+[ ...
+ X_2d_xcor_d0__ ...
+,X_2d_xcor_d0_weight_r_ ...
+] = ...
+principled_marching_cost_matrix_3( ...
+ n_k_p_r ...
+,weight_2d_k_p_r_ ...
+,l_max_max ...
+,XA_a_k_Y_reco__ ...
+,CTF_k_p_r_xcor__ ...
+);
+[UX_2d_xcor_d0__,SX_2d_xcor_d0__,VX_2d_xcor_d0__] = svds(X_2d_xcor_d0__,n_UX_rank); SX_2d_xcor_d0_ = diag(SX_2d_xcor_d0__);
+end;%if ~exist('UX_2d_xcor_d0__','var');
 %%%%%%%%;
 % First form a_CTF_avg_UX_2d_xcor_d0_Y_quad__ ;
 %%%%%%%%;

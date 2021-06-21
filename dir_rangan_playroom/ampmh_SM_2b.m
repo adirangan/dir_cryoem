@@ -23,7 +23,6 @@ ampmh_SM_2( ...
 ,gamma_z_wSM___ ...
 ,I_value_wSM___ ...
 );
-%%%%%%%%;
 if isempty(parameter);
 parameter = struct('type','parameter');
 end;%if isempty(parameter);
@@ -84,9 +83,9 @@ end;%for nS=0:n_S-1;
 %%%%%%%%;
 if flag_euler_polar_a_restrict==0; %<-- any polar_a allowed. ;
 if (f_rand> 0); 
-tmp_X_index_ = efind(tmp_image_X_value_>=prctile(tmp_image_X_value_,100-100*f_rand)); 
-tmp_X_index_index = max(0,min(numel(tmp_X_index_)-1,floor(numel(tmp_X_index_)*rand())));
-nS_best = tmp_X_index_(1+tmp_X_index_index);
+tmp_X_ij_ = find(tmp_image_X_value_>=prctile(tmp_image_X_value_,100-100*f_rand)) - 1; 
+tmp_X_ij_index = max(0,min(numel(tmp_X_ij_)-1,floor(numel(tmp_X_ij_)*rand())));
+nS_best = tmp_X_ij_(1+tmp_X_ij_index);
 end;%if (f_rand> 0); 
 if (f_rand<=0); 
 [~,nS_best] = max(tmp_image_X_value_); nS_best = nS_best - 1; 
@@ -94,16 +93,7 @@ end;%if (f_rand<=0);
 end;%if flag_euler_polar_a_restrict==0; %<-- any polar_a allowed. ;
 %%%%%%%%;
 if flag_euler_polar_a_restrict==1; %<-- only equatorial polar_a allowed. ;
-if (f_rand> 0); 
-tmp_X_index_ = efind(tmp_image_X_value_(1+index_polar_a_retain_)>=prctile(tmp_image_X_value_(1+index_polar_a_retain_),100-100*f_rand)); 
-tmp_X_index_index = max(0,min(numel(tmp_X_index_)-1,floor(numel(tmp_X_index_)*rand())));
-tmp_nS_best = tmp_X_index_(1+tmp_X_index_index);
-nS_best = index_polar_a_retain_(1+tmp_nS_best);
-end;%if (f_rand> 0); 
-if (f_rand<=0); 
-[~,tmp_nS_best] = max(tmp_image_X_value_(1+index_polar_a_retain_)); tmp_nS_best = tmp_nS_best - 1; 
-nS_best = index_polar_a_retain_(1+tmp_nS_best);
-end;%if (f_rand<=0);
+
 end;%if flag_euler_polar_a_restrict==1; %<-- only equatorial polar_a allowed. ;
 %%%%%%%%;
 euler_polar_a_(1+nM) = viewing_polar_a_all_(1+nS_best);

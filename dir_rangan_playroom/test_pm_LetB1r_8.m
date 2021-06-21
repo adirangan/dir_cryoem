@@ -11,29 +11,24 @@ flag_replot = 0;
 tolerance_master = 1e-2;
 nf=0;
 
-dir_pm = sprintf('/%s/rangan/dir_cryoem/dir_precatalytic_spliceosome/dir_pm',string_root);
+dir_pm = sprintf('/%s/rangan/dir_cryoem/dir_LetB1r/dir_pm',string_root);
 if (~exist(sprintf('%s_mat',dir_pm),'dir')); disp(sprintf(' %% mkdir %s_mat',dir_pm)); mkdir(sprintf('%s_mat',dir_pm)); end;
 if (~exist(sprintf('%s_jpg',dir_pm),'dir')); disp(sprintf(' %% mkdir %s_jpg',dir_pm)); mkdir(sprintf('%s_jpg',dir_pm)); end;
-dir_relion = sprintf('/%s/rangan/dir_cryoem/dir_precatalytic_spliceosome/dir_relion',string_root);
+dir_relion = sprintf('/%s/rangan/dir_cryoem/dir_LetB1r/dir_relion',string_root);
 if (~exist(sprintf('%s_mat',dir_relion),'dir')); disp(sprintf(' %% mkdir %s_mat',dir_relion)); mkdir(sprintf('%s_mat',dir_relion)); end;
 if (~exist(sprintf('%s_jpg',dir_relion),'dir')); disp(sprintf(' %% mkdir %s_jpg',dir_relion)); mkdir(sprintf('%s_jpg',dir_relion)); end;
 string_rusty_root = 'mnt/home';
 dir_relion_bin = sprintf('/%s/rangan/relion/build/bin',string_rusty_root);
-dir_data_star = sprintf('/%s/rangan/dir_cryoem/dir_precatalytic_spliceosome',string_root);
-Pixel_Spacing = 1.699; %<-- in angstroms, from https://www.ebi.ac.uk/pdbe/emdb/empiar/entry/10180/ ;
-fname_nopath_volume = 'consensus_half1_class001.mrc';
+dir_data_star = sprintf('/%s/rangan/dir_cryoem/dir_LetB1',string_root);
+Pixel_Spacing = 1.31; %<-- in angstroms, from https://www.ebi.ac.uk/pdbe/emdb/empiar/entry/10350/ ;
+fname_nopath_volume = 'emd_20993.map';
+fname_nopath_star = 'job_569_model_1.star';
 fname_nopath_volume_ = ...
 { ...
- 'emd_3682.map'...
- 'emd_3683.map'...
- 'emd_3684.map'...
- 'emd_3685.map'...
- 'emd_3686.map'...
- 'emd_3687.map'...
- 'emd_3688.map'...
+ 'emd_20993.map'...
 };
 n_volume = numel(fname_nopath_volume_);
-fname_nopath_star = 'consensus_data.star';
+flag_het=0; if (n_volume> 1); flag_het = 1; end;
 
 %%%%%%%%;
 % First load consensus volume. ;
@@ -436,6 +431,7 @@ disp(sprintf(' %% %s found, not creating',fname_fig));
 end;%if ( exist(sprintf('%s.jpg',fname_fig),'file'));
 %%%%%%%%;
 
+if flag_het;
 %%%%%%%%;
 % Now load different volumes. ;
 %%%%%%%%;
@@ -549,6 +545,8 @@ if ( exist(fname_mat,'file'));
 disp(sprintf(' %% %s found, not creating',fname_mat));
 load(fname_mat);
 end;%if ( exist(fname_mat,'file'));
+%%%%%%%%;
+end;%if flag_het;
 
 %%%%%%%%;
 % Now load images and CTF parameters from the star-file. ;
@@ -556,6 +554,7 @@ end;%if ( exist(fname_mat,'file'));
 fname_mat = sprintf('%s_mat/M_k_p__.mat',dir_pm);
 if (flag_recalc | ~exist(fname_mat,'file'));
 disp(sprintf(' %% %s not found, creating',fname_mat));
+disp(sprintf(' %% Warning, running rlnImageName_from_star_LetB1_0 rather than rlnImageName_from_star_0'));
 n_M = 1024;
 [ ...
  M_x_c___ ...
@@ -568,7 +567,7 @@ n_M = 1024;
 ,SphericalAberration_CTF_ ...
 ,AmplitudeContrast_CTF_ ...
 ] = ...
-rlnImageName_from_star_0( ...
+rlnImageName_from_star_LetB1_0( ...
  dir_data_star ...
 ,fname_nopath_star ...
 ,n_M ...
@@ -582,7 +581,7 @@ n_M_ext_ = zeros(n_M,1);
 for nM=0:n_M-1;
 if (mod(nM,128)==0); disp(sprintf(' %% nM %d/%d',nM,n_M)); end;
 n_pixel = 4; edge_tolerance = 0.5; n_edge_overshoot = 8; rseed = 0;
-[M_x_c___(:,:,1+nM),n_M_ext_(1+nM)] = image_replace_edge_artefact_0(M_x_c___(:,:,1+nM),4,0.5,8,0);
+[M_x_c___(:,:,1+nM),n_M_ext_(1+nM)] = image_replace_edge_artefact_0(M_x_c___(:,:,1+nM),4,0.5,2,0);
 end;%for nM=0:n_M-1;
 disp(sprintf(' %% edge-artefacts detected in %d/%d images.',numel(find(n_M_ext_>0)),n_M));
 %%%%%%%%;
@@ -590,6 +589,7 @@ disp(sprintf(' %% edge-artefacts detected in %d/%d images.',numel(find(n_M_ext_>
 %%%%%%%%;
 n_x_M_u = size(M_x_c___,1);
 assert(n_x_M_u==size(M_x_c___,2));
+disp(sprintf(' %% typical edge-artefact covers %0.6f = (%0.6f)^2 of image.',median(n_M_ext_/n_x_M_u^2),median(sqrt(n_M_ext_/n_x_M_u^2))));
 x_c_0_ = -half_diameter_x_c + transpose([0:n_x_M_u-1]/n_x_M_u)*diameter_x_c;
 x_c_1_ = -half_diameter_x_c + transpose([0:n_x_M_u-1]/n_x_M_u)*diameter_x_c;
 [x_c_0__,x_c_1__] = ndgrid(x_c_0_,x_c_1_);
@@ -650,19 +650,47 @@ end;%if ( exist(sprintf('%s.jpg',fname_fig),'file'));
 %%%%%%%%;
 dx = diameter_x_c/n_x_M_u;
 M_k_p__ = zeros(n_w_sum,n_M);
+image_center_delta_x_c_0_ = zeros(n_M,1);
+image_center_delta_x_c_1_ = zeros(n_M,1);
 for nM=0:n_M-1;
+if (mod(nM,128)==0); disp(sprintf(' %% nM %d/%d',nM,n_M)); end;
 M_x_c_ = squeeze(M_x_c___(:,:,1+nM));
-M_k_p_ = interp_x_c_to_k_p_nufft(n_x_M_u,diameter_x_c,n_x_M_u,diameter_x_c,M_x_c_,n_k_p_r,k_p_r_,n_w_);
-%next time try: M_k_p_ = interp_x_c_to_k_p_nufft(n_x_M_u,diameter_x_c,n_x_M_u,diameter_x_c,M_x_c_,n_k_p_r,k_p_r_,n_w_)*sqrt(n_x_M_u^2)*dx^2 ;
+M_k_p_ = interp_x_c_to_k_p_nufft(n_x_M_u,diameter_x_c,n_x_M_u,diameter_x_c,M_x_c_,n_k_p_r,k_p_r_,n_w_)*sqrt(n_x_M_u^2)*dx^2 ;
 % Now *DO* translate according to M_abs_x_c_0_avg_ and M_abs_x_c_1_avg_. ;
 M_k_p_ = transf_p_to_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,M_k_p_,-1*M_abs_x_c_0_avg_(1+nM),-1*M_abs_x_c_1_avg_(1+nM));
+tmp_delta_x_c_0 = 0; tmp_delta_x_c_1 = 0;
+flag_center=0;
+if flag_center;
+% if flag_center, then *ALSO* center images after filtering/masking/thresholding: ;
+tmp_parameter = struct('type','parameter');
+[ ...
+ tmp_parameter ...
+,M_k_p_ ...
+,~ ...
+,tmp_delta_x_c_0 ...
+,tmp_delta_x_c_1 ...
+] = ...
+image_center_0( ...
+ tmp_parameter ...
+,max(n_w_max,n_x_M_u/4) ...
+,diameter_x_c ...
+,n_k_p_r ...
+,k_p_r_ ...
+,n_w_ ...
+,M_k_p_ ...
+,weight_2d_k_all_ ...
+);
+end;%if flag_center;
 M_k_p__(:,1+nM) = M_k_p_;
+image_center_delta_x_c_0_(1+nM) = tmp_delta_x_c_0;
+image_center_delta_x_c_1_(1+nM) = tmp_delta_x_c_1;
 end;%for nM=0:n_M-1;
 %%%%%%%%;
 save(fname_mat ...
      ,'n_M','n_x_M_u','x_c_0_','x_c_1_','x_c_0__','x_c_1__' ...
      ,'M_abs_x_c_0_avg_','M_abs_x_c_1_avg_' ...
      ,'M_mask_abs_x_c_0_avg_','M_mask_abs_x_c_1_avg_' ...
+     ,'image_center_delta_x_c_0_','image_center_delta_x_c_1_' ...
      ,'M_k_p__','n_M_ext_' ...
      ,'index_nCTF_from_nM_' ...
      ,'index_nM_from_nCTF_' ...
@@ -983,6 +1011,7 @@ clear tmp_;
 end;%if ( exist(fname_mat,'file'));
 %%%%%%%%;
 
+if flag_het;
 %%%%%%%%;
 % Now use ideal principal-modes to align images to heterogeneous volumes. ;
 %%%%%%%%;
@@ -1065,6 +1094,7 @@ image_X_value_hM__ = tmp_.image_X_value_hMi___(:,:,end-1);
 clear tmp_;
 end;%if ( exist(fname_mat,'file'));
 %%%%%%%%;
+end;%if flag_het;
 
 %%%%%%%%;
 fname_fig = sprintf('%s_jpg/euler_angle_true_',dir_pm);
@@ -1738,6 +1768,7 @@ if flag_compute;
 %%%%%%%%;
 % check to see if translations can be estimated (and appropriately updated) using only a few principal-modes. ;
 %%%%%%%%;
+str_strategy_prefix = 'pr';
 date_diff_threshold = 0.25;
 flag_force_create_mat=0;flag_force_create_tmp=0;
 delta_sigma_use = delta_sigma;
@@ -1769,6 +1800,8 @@ parameter.delta_r_upb = delta_r_max_upb;
 parameter.dir_pm = dir_pm;
 parameter.flag_alternate_MS_vs_SM = flag_alternate_MS_vs_SM;
 parameter.flag_local_exclusion = flag_local_exclusion;
+parameter.str_strategy_prefix = str_strategy_prefix;
+parameter.flag_euler_polar_a_restrict = 1;
 if (numel(unique(CTF_index_))>=n_M/8);
 disp(sprintf(' %% Warning, setting flag_CTF_index_unused==1'));
 parameter.flag_CTF_index_unused = 1;
@@ -1824,7 +1857,7 @@ disp('returning'); return;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
 n_iteration = 32;
-str_strategy = '';
+str_strategy = str_strategy_prefix;
 delta_sigma_use = delta_sigma;
 dat_rseed_ = [0:2]; n_dat_rseed = numel(dat_rseed_);
 dat_n_UX_rank_ = [2,4,6,8,10,12,14,16,18,20];  n_dat_n_UX_rank = numel(dat_n_UX_rank_);
@@ -1833,7 +1866,7 @@ n_strategy = 4;
 str_strategy_ = cell(n_strategy,1);
 for flag_alternate_MS_vs_SM = [0:1];
 for flag_local_exclusion = [0:1];
-str_strategy = ''; 
+str_strategy = str_strategy_prefix; 
 if (flag_alternate_MS_vs_SM); str_strategy = sprintf('%sa1',str_strategy); end;
 if (flag_local_exclusion); str_strategy = sprintf('%se1',str_strategy); end;
 nstrategy = flag_local_exclusion + 2*flag_alternate_MS_vs_SM;
@@ -1859,7 +1892,7 @@ for ndat_n_UX_rank=0:n_dat_n_UX_rank-1;
 dat_n_UX_rank = dat_n_UX_rank_(1+ndat_n_UX_rank);
 for flag_alternate_MS_vs_SM = [0:1];
 for flag_local_exclusion = [0:1];
-str_strategy = ''; 
+str_strategy = str_strategy_prefix; 
 if (flag_alternate_MS_vs_SM); str_strategy = sprintf('%sa1',str_strategy); end;
 if (flag_local_exclusion); str_strategy = sprintf('%se1',str_strategy); end;
 nstrategy = flag_local_exclusion + 2*flag_alternate_MS_vs_SM;
@@ -2096,6 +2129,10 @@ end;%if ( exist(sprintf('%s.jpg',fname_fig),'file'));
 n_M_relion_ = 1024*[1,2,4,8]; n_n_M_relion = numel(n_M_relion_);
 fname_star = sprintf('%s/%s',dir_data_star,fname_nopath_star);
 [star_blockNames,star_blockData,ok]=ReadStarFile_0(fname_star,max(n_M_relion_)+1024);
+disp(sprintf(' %% Warning, replacing rlnImageName with job_569_model_1.mrcs'));
+for nimage=0:numel(star_blockData{1}.rlnImageName)-1;
+star_blockData{1}.rlnImageName{1+nimage} = sprintf('%d@Particles_Stacks_Model_1/job_569_model_1.mrcs',1+nimage);
+end;%for nimage=0:numel(star_blockData{1}.rlnImageName)-1;
 
 for nn_M_relion=0:n_n_M_relion-1;
 %%%%%%%%%%%%%%%%;
@@ -2212,15 +2249,28 @@ a_x_u_relion_pack__ = cell(n_relion_iter,1);
 for nrelion_iter=0:n_relion_iter-1;
 relion_iter = relion_iter_(1+nrelion_iter);
 fname_mrc = sprintf('%s/run_it%.3d_class001.mrc',dir_job,relion_iter);
+disp(sprintf(' %% nrelion_iter %d/%d: %s',nrelion_iter,n_relion_iter,fname_mrc));
 a_x_u_relion_ = cast(ReadMRC(fname_mrc),'double');
-a_x_u_relion_pack_ = reshape(a_x_u_relion_,[n_x_u*n_x_u,n_x_u])*x_u_pack_;
-a_x_u_relion_pack_ = reshape(permute(reshape(a_x_u_relion_pack_,[n_x_u,n_x_u,n_x_u_pack]),[3,1,2]),[n_x_u*n_x_u_pack,n_x_u])*x_u_pack_;
-a_x_u_relion_pack_ = reshape(permute(reshape(a_x_u_relion_pack_,[n_x_u_pack,n_x_u,n_x_u_pack]),[3,1,2]),[n_x_u_pack*n_x_u_pack,n_x_u])*x_u_pack_;
-a_x_u_relion_pack_ = permute(reshape(a_x_u_relion_pack_,[n_x_u_pack,n_x_u_pack,n_x_u_pack]),[3,1,2]);
+relion_n_x_u = size(a_x_u_relion_,1);
+relion_n_x_u_pack = 64;
+relion_n_pack = relion_n_x_u/relion_n_x_u_pack;
+pack_row_ij_ = zeros(relion_n_x_u_pack,1);
+pack_col_ij_ = zeros(relion_n_x_u_pack,1);
+pack_val_ij_ = zeros(relion_n_x_u_pack,1);
+na=0;
+for nx_u=0:relion_n_x_u-1;
+pack_row_ij_(1+na) = 1+nx_u;
+pack_col_ij_(1+na) = 1+floor(nx_u/relion_n_pack);
+pack_val_ij_(1+na) = 1/relion_n_pack;
+na=na+1;
+end;%for nx_u=0:relion_n_x_u-1;
+relion_x_u_pack_ = sparse(pack_row_ij_,pack_col_ij_,pack_val_ij_,relion_n_x_u,relion_n_x_u_pack);
+a_x_u_relion_pack_ = reshape(a_x_u_relion_,[relion_n_x_u*relion_n_x_u,relion_n_x_u])*relion_x_u_pack_;
+a_x_u_relion_pack_ = reshape(permute(reshape(a_x_u_relion_pack_,[relion_n_x_u,relion_n_x_u,relion_n_x_u_pack]),[3,1,2]),[relion_n_x_u*relion_n_x_u_pack,relion_n_x_u])*relion_x_u_pack_;
+a_x_u_relion_pack_ = reshape(permute(reshape(a_x_u_relion_pack_,[relion_n_x_u_pack,relion_n_x_u,relion_n_x_u_pack]),[3,1,2]),[relion_n_x_u_pack*relion_n_x_u_pack,relion_n_x_u])*relion_x_u_pack_;
+a_x_u_relion_pack_ = permute(reshape(a_x_u_relion_pack_,[relion_n_x_u_pack,relion_n_x_u_pack,relion_n_x_u_pack]),[3,1,2]);
 eta = pi/k_p_r_max; 
-%a_k_p_relion_quad_ = nufft3d3(n_X_u,X_u_0_(:)*eta,X_u_1_(:)*eta,X_u_2_(:)*eta,a_x_u_relion_pack_(:).*X_u_weight_(:),-1,1e-12,n_k_all,2*pi*k_c_0_all_/eta,2*pi*k_c_1_all_/eta,2*pi*k_c_2_all_/eta)/sqrt(2*pi)/sqrt(2*pi)/sqrt(2*pi);
 a_x_u_relion_pack__{1+nrelion_iter} = a_x_u_relion_pack_;
-%a_k_p_relion_quad__{1+nrelion_iter} = a_k_p_relion_quad_;
 end;%for nrelion_iter=0:n_relion_iter-1;
 %%%%%%%%;
 fname_fig = sprintf('%s/a_x_u_relion_pack__',dir_job);
@@ -2272,12 +2322,21 @@ tmp_t = toc(tmp_t); disp(sprintf(' %% nufft3d3: a_k_p_relion_quad_: %0.3fs',tmp_
 tmp_t = tic();
 [a_k_Y_relion_quad_] = convert_k_p_to_spharm_1(verbose,n_k_all,n_k_all_csum_,k_p_r_all_,k_p_azimu_b_all_,k_p_polar_a_all_,weight_3d_k_all_,weight_shell_k_,n_k_p_r,k_p_r_,weight_3d_k_p_r_,l_max_,a_k_p_relion_quad_);
 tmp_t = toc(tmp_t); disp(sprintf(' %% convert_k_p_to_spharm_1: a_k_Y_relion_quad_: %0.3fs',tmp_t));
-[tmp_X_relion_orig,~,~,~,~,~,~] = register_spharm_to_spharm_wigner_0(n_k_p_r,k_p_r_,k_p_r_max,weight_3d_k_p_r_,0,l_max_,a_k_Y_quad_,a_k_Y_relion_quad_);
-[tmp_X_relion_flip,~,~,~,~,~,~] = register_spharm_to_spharm_wigner_0(n_k_p_r,k_p_r_,k_p_r_max,weight_3d_k_p_r_,0,l_max_,a_k_Y_quad_,flipY(n_k_p_r,l_max_,a_k_Y_relion_quad_));
-if (tmp_X_relion_orig>=tmp_X_relion_flip); flag_flip = 0; end;
-if (tmp_X_relion_orig< tmp_X_relion_flip); flag_flip = 1; end;
-tmp_X_relion_reco = max(tmp_X_relion_orig,tmp_X_relion_flip);
-if (verbose); disp(sprintf(' %% nrelion_iter %.2d/%.2d: tmp_X_relion_reco %0.3f <-- flag_flip %d',nrelion_iter,n_relion_iter,tmp_X_relion_reco,flag_flip)); end;
+[ ...
+ tmp_X_relion_reco ...
+,tmp_X_relion_flag_flip ...
+] = ...
+register_spharm_to_spharm_wigner_wrap_1( ...
+ n_k_p_r ...
+,k_p_r_ ...
+,k_p_r_max ...
+,weight_3d_k_p_r_ ...
+,0 ...
+,l_max_ ...
+,a_k_Y_quad_ ...
+,a_k_Y_relion_quad_ ...
+);
+if (verbose); disp(sprintf(' %% nrelion_iter %.2d/%.2d: tmp_X_relion_reco %0.3f <-- flag_flip %d',nrelion_iter,n_relion_iter,tmp_X_relion_reco,tmp_X_relion_flag_flip)); end;
 X_relion_(1+nrelion_iter) = tmp_X_relion_reco;
 end;%for nrelion_iter=0:n_relion_iter-1;
 save(fname_mat,'relion_iter_','X_relion_');
@@ -2352,7 +2411,7 @@ end;%if ( exist(sprintf('%s.jpg',fname_fig),'file'));
 %%%%%%%%;
 % test out get_loading_qbp_0 using one of the estimated volumes. ;
 %%%%%%%%;
-tmp_fname_pos = sprintf('X_2d_xcor_d0_a1t0038n16r0');
+tmp_fname_pos = sprintf('X_2d_xcor_d0_a1t0033n20r0');
 tmp_fname_mat = sprintf('%s_mat/%s.mat',dir_pm,tmp_fname_pos);
 tmp_ = load(tmp_fname_mat);
 tmp_euler_polar_a_true_ = tmp_.euler_polar_a__(:,end);
@@ -2389,7 +2448,7 @@ disp(sprintf(' %% %s not found, creating',fname_fig));
 figure(1);clf;figsml;colormap('lines');
 scatter3(SV_loading_Ml__(:,1),SV_loading_Ml__(:,2),SV_loading_Ml__(:,3),24,index_nvolume_from_nM_,'filled');
 axis vis3d;
-title('loading %s',tmp_fname_pos);
+title(sprintf('loading %s',tmp_fname_pos),'Interpreter','none');
 disp(sprintf(' %% writing %s',fname_fig));
 print('-djpeg',sprintf('%s.jpg',fname_fig));
 print('-depsc',sprintf('%s.eps',fname_fig));

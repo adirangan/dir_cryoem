@@ -14,7 +14,7 @@ ampmh_UX_M_k_p_wnM___0( ...
 );
 n_w_max = max(n_w_);
 if (nargin< 6); image_delta_x_ = []; end;
-if (nargin< 7); image_delta_7_ = []; end;
+if (nargin< 7); image_delta_y_ = []; end;
 if isempty(image_delta_x_); image_delta_x_ = zeros(n_M,1); end;
 if isempty(image_delta_y_); image_delta_y_ = zeros(n_M,1); end;
 %%%%%%%%;
