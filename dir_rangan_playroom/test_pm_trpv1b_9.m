@@ -1,3 +1,4 @@
+% uses image_center_0.m ;
 clear;
 
 platform = 'rusty';%platform = 'access1';
@@ -657,7 +658,10 @@ M_x_c_ = squeeze(M_x_c___(:,:,1+nM));
 M_k_p_ = interp_x_c_to_k_p_nufft(n_x_M_u,diameter_x_c,n_x_M_u,diameter_x_c,M_x_c_,n_k_p_r,k_p_r_,n_w_)*sqrt(n_x_M_u^2)*dx^2 ;
 % Now *DO* translate according to M_abs_x_c_0_avg_ and M_abs_x_c_1_avg_. ;
 M_k_p_ = transf_p_to_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,M_k_p_,-1*M_abs_x_c_0_avg_(1+nM),-1*M_abs_x_c_1_avg_(1+nM));
-% Now *ALSO* center images after filtering/masking/thresholding: ;
+tmp_delta_x_c_0 = 0; tmp_delta_x_c_1 = 0;
+flag_center = 1;
+if flag_center;
+% if flag_center, then *ALSO* center images after filtering/masking/thresholding: ;
 tmp_parameter = struct('type','parameter');
 [ ...
  tmp_parameter ...
@@ -676,6 +680,7 @@ image_center_0( ...
 ,M_k_p_ ...
 ,weight_2d_k_all_ ...
 );
+end;%if flag_center;
 M_k_p__(:,1+nM) = M_k_p_;
 image_center_delta_x_c_0_(1+nM) = tmp_delta_x_c_0;
 image_center_delta_x_c_1_(1+nM) = tmp_delta_x_c_1;
@@ -1763,7 +1768,7 @@ if flag_compute;
 %%%%%%%%;
 % check to see if translations can be estimated (and appropriately updated) using only a few principal-modes. ;
 %%%%%%%%;
-str_strategy_prefix = 'pr';
+str_strategy_prefix = '';
 date_diff_threshold = 0.25;
 flag_force_create_mat=0;flag_force_create_tmp=0;
 delta_sigma_use = delta_sigma;
@@ -1796,7 +1801,7 @@ parameter.dir_pm = dir_pm;
 parameter.flag_alternate_MS_vs_SM = flag_alternate_MS_vs_SM;
 parameter.flag_local_exclusion = flag_local_exclusion;
 parameter.str_strategy_prefix = str_strategy_prefix;
-parameter.flag_euler_polar_a_restrict = 1;
+parameter.flag_euler_polar_a_restrict = 0;
 if (numel(unique(CTF_index_))>=n_M/8);
 disp(sprintf(' %% Warning, setting flag_CTF_index_unused==1'));
 parameter.flag_CTF_index_unused = 1;
