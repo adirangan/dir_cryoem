@@ -44,6 +44,9 @@ end;%if isempty(parameter);
 if (~isfield(parameter,'dir_pm')); parameter.dir_pm = pwd; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'rseed')); parameter.rseed = 0; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'k_p_r_max')); parameter.k_p_r_max = k_p_r_max; end; %<-- parameter_bookmark. ;
+if (~isfield(parameter,'sample_sphere_k_eq_d')); parameter.sample_sphere_k_eq_d = 1/(2*pi); end; %<-- parameter_bookmark. ;
+if (~isfield(parameter,'half_diameter_x_c')); parameter.half_diameter_x_c = 1.0; end; %<-- parameter_bookmark. ;
+if (~isfield(parameter,'n_x_u_pack')); parameter.n_x_u_pack = 64; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'delta_r_max')); parameter.delta_r_max = 0.1; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'delta_r_upb')); parameter.delta_r_upb = 0.2; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'cg_lsq_n_order')); parameter.cg_lsq_n_order = 5; end; %<-- parameter_bookmark. ;
@@ -67,6 +70,9 @@ dir_pm = parameter.dir_pm;
 string_root = dir_pm(2:strfind(dir_pm,'rangan')-2);
 
 rseed = parameter.rseed;
+sample_sphere_k_eq_d = parameter.sample_sphere_k_eq_d;
+half_diameter_x_c = parameter.half_diameter_x_c;
+n_x_u_pack = parameter.n_x_u_pack;
 delta_r_max = parameter.delta_r_max;
 delta_r_upb = parameter.delta_r_upb;
 cg_lsq_n_order = parameter.cg_lsq_n_order;
@@ -75,8 +81,16 @@ flag_force_create_mat = parameter.flag_force_create_mat;
 flag_force_create_tmp = parameter.flag_force_create_tmp;
 
 XA_fname_mat = sprintf('%s_mat/X_2d_Memp_d1_%st%.4dn%.2dr%d.mat',dir_pm,str_strategy,floor(1000*delta_r_max),dat_n_UX_rank,rseed);
+XA_fname_snapshot_jpg = sprintf('%s_mat/X_2d_Memp_d1_%st%.4dn%.2dr%d_snapshot.jpg',dir_pm,str_strategy,floor(1000*delta_r_max),dat_n_UX_rank,rseed);
 XB_fname_mat = sprintf('%s_mat/X_2d_xcor_d0_%st%.4dn%.2dr%d.mat',dir_pm,str_strategy,floor(1000*delta_r_max),dat_n_UX_rank,rseed);
-flag_skip_all = 0; if ( exist(XA_fname_mat,'file') &  exist(XB_fname_mat,'file') ); flag_skip_all = 1; end;
+XB_fname_snapshot_jpg = sprintf('%s_mat/X_2d_xcor_d0_%st%.4dn%.2dr%d_snapshot.jpg',dir_pm,str_strategy,floor(1000*delta_r_max),dat_n_UX_rank,rseed);
+flag_skip_all = 0;
+if ( ...
+        exist(XA_fname_mat,'file') ...
+     &  exist(XB_fname_snapshot_jpg,'file') ...
+     &  exist(XB_fname_mat,'file') ...
+     &  exist(XB_fname_snapshot_jpg,'file') ...
+   ); flag_skip_all = 1; end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 if ~flag_skip_all;
@@ -173,7 +187,7 @@ if ( exist(XA_fname_mat,'file'));
 %%%%%%%%;
 % First collect statistics. ;
 %%%%%%%%;
-disp(sprintf(' %% %s found, aligning',XA_fname_mat));
+if (verbose); disp(sprintf(' %% %s found, aligning',XA_fname_mat)); end;
 tmp_XA_ = load(XA_fname_mat);
 if (~isfield(tmp_XA_.parameter,'fname_pre')); tmp_XA_.parameter.fname_pre = XA_fname_pre; end; %<-- parameter_bookmark. ;
 %%%%%%%%;
@@ -380,7 +394,7 @@ if ( exist(XB_fname_mat,'file'));
 %%%%%%%%;
 % First collect statistics. ;
 %%%%%%%%;
-disp(sprintf(' %% %s found, aligning',XB_fname_mat));
+if (verbose); disp(sprintf(' %% %s found, aligning',XB_fname_mat)); end;
 tmp_XB_ = load(XB_fname_mat);
 if (~isfield(tmp_XB_.parameter,'fname_pre')); tmp_XB_.parameter.fname_pre = XB_fname_pre; end; %<-- parameter_bookmark. ;
 %%%%%%%%;
@@ -525,6 +539,196 @@ end;%if ( exist(fname_XA_k_Y_mat,'file'));
 %%%%%%%%;
 %%%%%%%%;
 end;%if ( exist(XA_fname_mat,'file'));
+%%%%%%%%;
+
+%%%%%%%%;
+if ( exist(XA_fname_mat,'file') & ~exist(XA_fname_snapshot_jpg) );
+%%%%%%%%;
+if (verbose) disp(sprintf(' %% %s not found, creating',XA_fname_snapshot_jpg)); end;
+tmp_XA_ = load(XA_fname_mat);
+flag_found = 1; tmp_XA_align_a_k_Y_ = []; tmp_XA_a_k_Y_ = [];
+%%%%;
+tmp_XA_fname_pre = sprintf('%s_align_a_k_Y_',tmp_XA_.parameter.fname_pre);
+tmp_XA_fname_pre = rootswitch(tmp_XA_fname_pre,string_root,'rangan');
+tmp_XA_.parameter.fname_align_a_k_Y_pre = tmp_XA_fname_pre;
+tmp_XA_fname_mat = sprintf('%s.mat',tmp_XA_fname_pre);
+if (~exist(tmp_XA_fname_mat,'file'));
+disp(sprintf(' %% Warning, %s not found in ampmut_wrap_wrap_4',tmp_XA_fname_mat));
+flag_found = 0;
+end;%if (~exist(tmp_XA_fname_mat,'file'));
+if ( exist(tmp_XA_fname_mat,'file'));
+tmp_XA_align_a_k_Y_ = load(tmp_XA_fname_mat);
+end;%if ( exist(tmp_XA_fname_mat,'file'));
+%%%%;
+tmp_XA_fname_pre = sprintf('%s_a_k_Y_',tmp_XA_.parameter.fname_pre);
+tmp_XA_fname_pre = rootswitch(tmp_XA_fname_pre,string_root,'rangan');
+tmp_XA_.parameter.fname_a_k_Y_pre = tmp_XA_fname_pre;
+tmp_XA_fname_mat = sprintf('%s.mat',tmp_XA_fname_pre);
+if (~exist(tmp_XA_fname_mat,'file'));
+disp(sprintf(' %% Warning, %s not found in ampmut_wrap_wrap_4',tmp_XA_fname_mat));
+flag_found = 0;
+end;%if (~exist(tmp_XA_fname_mat,'file'));
+if ( exist(tmp_XA_fname_mat,'file'));
+tmp_XA_a_k_Y_ = load(tmp_XA_fname_mat);
+end;%if ( exist(tmp_XA_fname_mat,'file'));
+%%%%;
+if ( flag_found & ~isempty(tmp_XA_align_a_k_Y_) & ~isempty(tmp_XA_a_k_Y_) );
+%%%%;
+tmp_X_best = tmp_XA_align_a_k_Y_.X_best_(end);
+tmp_flag_flip = tmp_XA_align_a_k_Y_.X_best_flag_flip_(end);
+tmp_polar_a_best = tmp_XA_align_a_k_Y_.polar_a_best_(end);
+tmp_azimu_b_best = tmp_XA_align_a_k_Y_.azimu_b_best_(end);
+tmp_gamma_z_best = tmp_XA_align_a_k_Y_.gamma_z_best_(end);
+tmp_delta_x_best = tmp_XA_align_a_k_Y_.delta_best__(1+0,end);
+tmp_delta_y_best = tmp_XA_align_a_k_Y_.delta_best__(1+1,end);
+tmp_a_k_Y_reco_ = tmp_XA_a_k_Y_.a_k_Y_reco_;
+%%%%;
+[ ... 
+ tmp_b_k_Y_reco_ ...
+] = ...
+spharm_register_and_rotate_2( ...
+ n_k_p_r ...
+,k_p_r_ ...
+,k_p_r_max ...
+,weight_3d_k_p_r_ ...
+,l_max_ ...
+,a_k_Y_true_ ...
+,tmp_a_k_Y_reco_ ...
+,0 ...
+,tmp_X_best ...
+,tmp_flag_flip ...
+,tmp_polar_a_best ...
+,tmp_azimu_b_best ...
+,tmp_gamma_z_best ...
+,tmp_delta_x_best ...
+,tmp_delta_y_best ...
+);
+%%%%;
+[ ... 
+  tmp_b_x_u_reco_ ...
+] = ...
+convert_spharm_to_x_c_3( ...
+ sample_sphere_k_eq_d ...
+,n_k_p_r ...
+,k_p_r_ ...
+,k_p_r_max ...
+,weight_3d_k_p_r_ ...
+,l_max_ ...
+,tmp_b_k_Y_reco_ ...
+,half_diameter_x_c ...
+,n_x_u_pack ...
+);
+%%%%;
+figure(5);clf;figbig;
+subplot(1,2,1);
+isosurface_f_x_u_0(reshape(real(tmp_b_x_u_reco_),n_x_u_pack,n_x_u_pack,n_x_u_pack),[90,95,99]);
+title(sprintf('tmp_b_x_u_: corr %0.4f',tmp_X_best),'Interpreter','none');
+subplot(1,2,2);
+isosurface_f_x_u_0(reshape(real(tmp_b_x_u_reco_),n_x_u_pack,n_x_u_pack,n_x_u_pack),[98.5]);
+title(sprintf('tmp_b_x_u_: corr %0.4f',tmp_X_best),'Interpreter','none');
+sgtitle(XA_fname_snapshot_jpg,'Interpreter','none');
+disp(sprintf(' %% writing %s',XA_fname_snapshot_jpg));
+print('-djpeg',XA_fname_snapshot_jpg);
+close(gcf);
+%%%%%%%%;
+end;%if ( flag_found & ~isempty(tmp_XA_align_a_k_Y_) & ~isempty(tmp_XA_a_k_Y_) );
+%%%%%%%%;
+end;%if ( exist(XA_fname_mat,'file') & ~exist(XA_fname_snapshot_jpg) );
+%%%%%%%%;
+
+%%%%%%%%;
+if ( exist(XB_fname_mat,'file') & ~exist(XB_fname_snapshot_jpg) );
+%%%%%%%%;
+if (verbose) disp(sprintf(' %% %s not found, creating',XB_fname_snapshot_jpg)); end;
+tmp_XB_ = load(XB_fname_mat);
+flag_found = 1; tmp_XB_align_a_k_Y_ = []; tmp_XB_a_k_Y_ = [];
+%%%%;
+tmp_XB_fname_pre = sprintf('%s_align_a_k_Y_',tmp_XB_.parameter.fname_pre);
+tmp_XB_fname_pre = rootswitch(tmp_XB_fname_pre,string_root,'rangan');
+tmp_XB_.parameter.fname_align_a_k_Y_pre = tmp_XB_fname_pre;
+tmp_XB_fname_mat = sprintf('%s.mat',tmp_XB_fname_pre);
+if (~exist(tmp_XB_fname_mat,'file'));
+disp(sprintf(' %% Warning, %s not found in ampmut_wrap_wrap_4',tmp_XB_fname_mat));
+flag_found = 0;
+end;%if (~exist(tmp_XB_fname_mat,'file'));
+if ( exist(tmp_XB_fname_mat,'file'));
+tmp_XB_align_a_k_Y_ = load(tmp_XB_fname_mat);
+end;%if ( exist(tmp_XB_fname_mat,'file'));
+%%%%;
+tmp_XB_fname_pre = sprintf('%s_a_k_Y_',tmp_XB_.parameter.fname_pre);
+tmp_XB_fname_pre = rootswitch(tmp_XB_fname_pre,string_root,'rangan');
+tmp_XB_.parameter.fname_a_k_Y_pre = tmp_XB_fname_pre;
+tmp_XB_fname_mat = sprintf('%s.mat',tmp_XB_fname_pre);
+if (~exist(tmp_XB_fname_mat,'file'));
+disp(sprintf(' %% Warning, %s not found in ampmut_wrap_wrap_4',tmp_XB_fname_mat));
+flag_found = 0;
+end;%if (~exist(tmp_XB_fname_mat,'file'));
+if ( exist(tmp_XB_fname_mat,'file'));
+tmp_XB_a_k_Y_ = load(tmp_XB_fname_mat);
+end;%if ( exist(tmp_XB_fname_mat,'file'));
+%%%%;
+if ( flag_found & ~isempty(tmp_XB_align_a_k_Y_) & ~isempty(tmp_XB_a_k_Y_) );
+%%%%;
+tmp_X_best = tmp_XB_align_a_k_Y_.X_best_(end);
+tmp_flag_flip = tmp_XB_align_a_k_Y_.X_best_flag_flip_(end);
+tmp_polar_a_best = tmp_XB_align_a_k_Y_.polar_a_best_(end);
+tmp_azimu_b_best = tmp_XB_align_a_k_Y_.azimu_b_best_(end);
+tmp_gamma_z_best = tmp_XB_align_a_k_Y_.gamma_z_best_(end);
+tmp_delta_x_best = tmp_XB_align_a_k_Y_.delta_best__(1+0,end);
+tmp_delta_y_best = tmp_XB_align_a_k_Y_.delta_best__(1+1,end);
+tmp_a_k_Y_reco_ = tmp_XB_a_k_Y_.a_k_Y_reco_;
+%%%%;
+[ ... 
+ tmp_b_k_Y_reco_ ...
+] = ...
+spharm_register_and_rotate_2( ...
+ n_k_p_r ...
+,k_p_r_ ...
+,k_p_r_max ...
+,weight_3d_k_p_r_ ...
+,l_max_ ...
+,a_k_Y_true_ ...
+,tmp_a_k_Y_reco_ ...
+,0 ...
+,tmp_X_best ...
+,tmp_flag_flip ...
+,tmp_polar_a_best ...
+,tmp_azimu_b_best ...
+,tmp_gamma_z_best ...
+,tmp_delta_x_best ...
+,tmp_delta_y_best ...
+);
+%%%%;
+[ ... 
+  tmp_b_x_u_reco_ ...
+] = ...
+convert_spharm_to_x_c_3( ...
+ sample_sphere_k_eq_d ...
+,n_k_p_r ...
+,k_p_r_ ...
+,k_p_r_max ...
+,weight_3d_k_p_r_ ...
+,l_max_ ...
+,tmp_b_k_Y_reco_ ...
+,half_diameter_x_c ...
+,n_x_u_pack ...
+);
+%%%%;
+figure(5);clf;figbig;
+subplot(1,2,1);
+isosurface_f_x_u_0(reshape(real(tmp_b_x_u_reco_),n_x_u_pack,n_x_u_pack,n_x_u_pack),[90,95,99]);
+title(sprintf('tmp_b_x_u_: corr %0.4f',tmp_X_best),'Interpreter','none');
+subplot(1,2,2);
+isosurface_f_x_u_0(reshape(real(tmp_b_x_u_reco_),n_x_u_pack,n_x_u_pack,n_x_u_pack),[98.5]);
+title(sprintf('tmp_b_x_u_: corr %0.4f',tmp_X_best),'Interpreter','none');
+sgtitle(XB_fname_snapshot_jpg,'Interpreter','none');
+disp(sprintf(' %% writing %s',XB_fname_snapshot_jpg));
+print('-djpeg',XB_fname_snapshot_jpg);
+close(gcf);
+%%%%%%%%;
+end;%if ( flag_found & ~isempty(tmp_XB_align_a_k_Y_) & ~isempty(tmp_XB_a_k_Y_) );
+%%%%%%%%;
+end;%if ( exist(XB_fname_mat,'file') & ~exist(XB_fname_snapshot_jpg) );
 %%%%%%%%;
 
 if (verbose); disp(sprintf(' %% [finished ampmut_wrap_wrap_4]')); end;

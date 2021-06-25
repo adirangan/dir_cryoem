@@ -133,7 +133,7 @@ ampmut_4( ...
 ,image_I_value_ ...
 );
 tmp_t = toc(tmp_t); disp(sprintf(' %% ampmut_4: time %0.2fs',tmp_t));
-parameter = parameter_timing_update(tmp_parameter,'ampmut_4',tmp_t);
+parameter = parameter_timing_update(parameter,'ampmut_4',tmp_t);
 end;%if (flag_local_exclusion==0);
 %%%%;
 if (flag_local_exclusion==1);
@@ -189,7 +189,7 @@ ampmleut_4( ...
 ,image_I_value_ ...
 );
 tmp_t = toc(tmp_t); disp(sprintf(' %% ampmleut_4: time %0.2fs',tmp_t));
-parameter = parameter_timing_update(tmp_parameter,'ampmleut_4',tmp_t);
+parameter = parameter_timing_update(parameter,'ampmleut_4',tmp_t);
 end;%if (flag_local_exclusion==1);
 %%%%;
 

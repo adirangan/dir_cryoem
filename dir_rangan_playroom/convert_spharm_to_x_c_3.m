@@ -14,7 +14,7 @@ convert_spharm_to_x_c_3( ...
 ,n_x_u_pack ...
 );
 
-verbose=1;
+verbose=0;
 if (verbose); disp(sprintf(' %% [entering convert_spharm_to_x_c_3]')); end;
 
 na=0;
