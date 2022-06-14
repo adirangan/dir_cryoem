@@ -1,0 +1,13 @@
+function W_k_q_ = image_q_flip_0(n_k_p_r,n_w_,M_k_q_);
+W_k_q_ = M_k_q_;
+if (numel(n_w_)==1); n_w_ = n_w_*ones(n_k_p_r,1); end;
+n_w_ = n_w_(:);
+n_w_max = max(n_w_);
+n_w_sum = sum(n_w_);
+n_w_csum_ = cumsum([0;n_w_]);
+for nk_p_r=0:n_k_p_r-1;
+n_w = n_w_(1+nk_p_r);
+index_q_same_ = [0 , [1:+1:n_w-1]];
+index_q_flip_ = [0 , [n_w-1:-1:1]];
+W_k_q_(1+n_w_csum_(1+nk_p_r)+index_q_flip_) = M_k_q_(1+n_w_csum_(1+nk_p_r)+index_q_same_);
+end;%for nk_p_r=0:n_k_p_r-1;

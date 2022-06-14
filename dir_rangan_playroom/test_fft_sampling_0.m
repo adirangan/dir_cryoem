@@ -1,3 +1,42 @@
+N=16;
+% set up imaginary part to obey constraint. ;
+f_=0.5*randn(N,N) + i*0.5*randn(N,N);
+kA0_=zeros(N,N); kA1_=zeros(N,N);
+kB0_=zeros(N,N); kB1_=zeros(N,N);
+kC0_=zeros(N,N); kC1_=zeros(N,N);
+kD0_=zeros(N,N); kD1_=zeros(N,N);
+flag_conj_=zeros(N,N);
+flag_real_=zeros(N,N);
+for kA0=0:N-1; for kA1=0:N-1;
+kB0=kA0; if kB0>=N/2; kB0=kB0-N; end;
+kB1=kA1; if kB1>=N/2; kB1=kB1-N; end;
+kC0=-kB0;
+kC1=-kB1;
+kD0=kC0; if kD0< 0; kD0=kD0+N; end;
+kD1=kC1; if kD1< 0; kD1=kD1+N; end;
+kA0_(1+kA0,1+kA1) = kA0;
+kA1_(1+kA0,1+kA1) = kA1;
+kB0_(1+kA0,1+kA1) = kB0;
+kB1_(1+kA0,1+kA1) = kB1;
+kC0_(1+kA0,1+kA1) = kC0;
+kC1_(1+kA0,1+kA1) = kC1;
+kD0_(1+kA0,1+kA1) = kD0;
+kD1_(1+kA0,1+kA1) = kD1;
+if kB0<=0; %<-- lower half-plane. ;
+flag_conj_(1+kD0,1+kD1) = -1;
+flag_conj_(1+kA0,1+kA1) = +1;
+f_(1+kD0,1+kD1) = conj(f_(1+kA0,1+kA1));
+end;%if kB0<=0;
+if ( (kD0==kA0) & (kD1==kA1) );
+flag_real_(1+kD0,1+kD1) = 1;
+f_(1+kD0,1+kD1) = 1.0*randn(1,1);
+end;%if ( (kD0==kA0) & (kD1==kA1) );
+end;end;%for kA0=0:N-1; for kA1=0:N-1;
+% now take fourier-transform. ;
+x_=fft2(f_)/N;
+disp(sprintf(' %% fnorm(imag(x_)): %0.16f',fnorm(imag(x_))));
+
+%{
 d1 = 5; d2 =7;
 rng(1);
 C = reshape(ceil(8*rand(d1*d2,1)) + i*ceil(8*rand(d1*d2,1)),d1,d2);
@@ -7,6 +46,7 @@ k2_ = linspace(0,2*pi,d2+1); k2_ = k2_(1:end-1);
 [K2_,K1_] = meshgrid(k2_,k1_);
 A = nufft2d2(d1*d2,K1_(:),K2_(:),-1,1e-12,d1,d2,decenter2(C));
 A = reshape(A,d1,d2);
+%}
 
 %{
 res = 64; x_ = 0:res-1; k_ = 0:res-1;

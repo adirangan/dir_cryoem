@@ -19,7 +19,7 @@ qbp_5( ...
 ,image_I_value_...
 );
 %%%%%%%%;
-% simply applies conjugate-gradient to the least-squares problem to solve for a_k_Y_. ;
+% Applies quadrature-back-propagation to solve for a_k_Y_. ;
 % Associates CTF_k_p__(:,1+CTF_index_(1+nM)) with image M_k_p__(:,1+nM);
 % ;
 % Input: ;

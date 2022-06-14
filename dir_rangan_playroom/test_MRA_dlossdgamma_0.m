@@ -1,0 +1,27 @@
+function [gamma,loss] = test_MRA_dlossdgamma_0(q_,r_true_q_,w_true_q_,r_samp_q_,w_samp_q_);
+gamma_0 = fzero(@(gamma) dlossdgamma(gamma,q_,r_true_q_,w_true_q_,r_samp_q_,w_samp_q_),0);
+gamma_1 = gamma_0 + pi;
+loss_0 = lossofgamma(gamma_0,q_,r_true_q_,w_true_q_,r_samp_q_,w_samp_q_);
+loss_1 = lossofgamma(gamma_1,q_,r_true_q_,w_true_q_,r_samp_q_,w_samp_q_);
+gamma = gamma_0; loss = loss_0;
+if (loss_1<loss_0); gamma = gamma_1; loss = loss_1; end;
+gamma = periodize(gamma,0,2*pi);
+flag_plot=0;
+if flag_plot;
+n_gamma = 1024; gamma_ = linspace(0,2*pi,n_gamma+1); gamma_ = transpose(gamma_(1:end-1));
+figure(2);clf;figsml;
+hold on;
+plot(gamma_,lossofgamma(gamma_,q_,r_true_q_,w_true_q_,r_samp_q_,w_samp_q_),'r-');
+plot(gamma_,dlossdgamma(gamma_,q_,r_true_q_,w_true_q_,r_samp_q_,w_samp_q_),'g-');
+plot(gamma,lossofgamma(gamma,q_,r_true_q_,w_true_q_,r_samp_q_,w_samp_q_),'ro');
+plot(gamma,dlossdgamma(gamma,q_,r_true_q_,w_true_q_,r_samp_q_,w_samp_q_),'go');
+plot(gamma_,0*gamma_,'k-');
+hold off;
+xlim([0,2*pi]); xlabel('gamma');
+legend({'a','dadg'});
+end;%if flag_plot;
+
+function output = dlossdgamma(gamma,q_,r_true_q_,w_true_q_,r_samp_q_,w_samp_q_) ;
+output = sum( r_samp_q_.*r_true_q_.*q_.*sin(w_samp_q_ + q_.*reshape(gamma,[1,numel(gamma)]) - w_true_q_) , 1 );
+function output = lossofgamma(gamma,q_,r_true_q_,w_true_q_,r_samp_q_,w_samp_q_) ;
+output = sum( (r_true_q_.*cos(w_true_q_) - r_samp_q_.*cos(w_samp_q_ + q_.*reshape(gamma,[1,numel(gamma)]))).^2 + (r_true_q_.*sin(w_true_q_) - r_samp_q_.*sin(w_samp_q_ + q_.*reshape(gamma,[1,numel(gamma)]))).^2 , 1);

@@ -1,0 +1,13 @@
+function x_out_ = quadratic_1d_interpolation_0(y_3n__);
+% assumes x_0in_ is [-1,0,+1]. ;
+% assumes middle point of y_ (i.e., y0) is a maximum. ;
+% returns maximum of quadratic interpolant. ;
+if size(y_3n__,1)==1; y_3n__ = reshape(y_3n__,[numel(y_3n__),1]); end;
+yn_ = y_3n__(1+0,:);
+y0_ = y_3n__(1+1,:);
+yp_ = y_3n__(1+2,:);
+ym_ = (yn_+yp_)/2;
+yd_ = (yp_-yn_)/2;
+x_out_= yd_./(2*(y0_-ym_));
+tmp_index_ = efind(ym_>=y0_);
+x_out_(1+tmp_index_) = 0;

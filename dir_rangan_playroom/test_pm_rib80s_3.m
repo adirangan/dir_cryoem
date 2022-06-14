@@ -4,6 +4,7 @@ platform = 'access1';
 if (exist('platform.type','file')); fp=fopen('platform.type'); platform = fscanf(fp,'%s'); fclose(fp); end;
 if (strcmp(platform,'access1')); setup_access1; string_root = 'data'; end;
 if (strcmp(platform,'OptiPlex')); setup_OptiPlex; string_root = 'home'; end;
+if (strcmp(platform,'eval1')); setup_eval1; string_root = 'home'; end;
 if (strcmp(platform,'rusty')); setup_rusty; string_root = 'mnt/home'; end;
 
 flag_recalc = 0;
@@ -96,8 +97,10 @@ fname_fig = sprintf('%s_jpg/a_x_u_pack_',dir_pm);
 if (flag_replot | ~exist(sprintf('%s.jpg',fname_fig),'file'));
 disp(sprintf(' %% %s not found, creating',fname_fig));
 figure(1+nf);nf=nf+1;clf;figbig;
-subplot(1,2,1); isosurface_f_x_c_0(a_x_u_pack_,98.5); title('a packed');
-subplot(1,2,2); isosurface_f_x_c_0(a_x_u_pack_,[97.5,98.5,99.5]); title('a packed');
+subplot(2,2,1); isosurface_f_x_c_0(a_x_u_pack_,98.5); title('a packed');
+subplot(2,2,2); isosurface_f_x_c_0(a_x_u_pack_,[97.5,98.5,99.5]); title('a packed');
+subplot(2,2,3); isosurface_f_x_c_0(b_rho_x_u_pack_,98.5); title('b packed');
+subplot(2,2,4); isosurface_f_x_c_0(b_rho_x_u_pack_,[97.5,98.5,99.5]); title('b packed');
 disp(sprintf(' %% writing %s',fname_fig));
 print('-djpeg',sprintf('%s.jpg',fname_fig));
 print('-depsc',sprintf('%s.eps',fname_fig));
@@ -444,6 +447,7 @@ rlnImageName_from_star_0( ...
 ,fname_nopath_star ...
 ,n_M ...
 );
+n_x_M_u = size(M_x_c___,1);
 %%%%%%%%;
 % Now examine image-centroids. ;
 %%%%%%%%;
@@ -515,7 +519,7 @@ M_k_p__(:,1+nM) = M_k_p_;
 end;%for nM=0:n_M-1;
 %%%%%%%%;
 save(fname_mat ...
-     ,'n_M','x_c_0_','x_c_1_','x_c_0__','x_c_1__' ...
+     ,'n_M','n_x_M_u','x_c_0_','x_c_1_','x_c_0__','x_c_1__' ...
      ,'M_abs_x_c_0_avg_','M_abs_x_c_1_avg_' ...
      ,'M_mask_abs_x_c_0_avg_','M_mask_abs_x_c_1_avg_' ...
      ,'M_k_p__' ...

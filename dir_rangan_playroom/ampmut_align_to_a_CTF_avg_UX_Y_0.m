@@ -39,6 +39,24 @@ pm_weight_2d_k_p_r_ = ones(pm_n_k_p_r,1);
 if ( isempty(n_iteration)); n_iteration=0; end;
 if (n_iteration<=0); n_iteration = size(euler_polar_a_calc__,2); end;
 
+flag_found=0;
+if (~isempty(parameter.fname_align_a_CTF_avg_UX_Y_pre));
+tmp_fname_mat = sprintf('%s.mat',parameter.fname_align_a_CTF_avg_UX_Y_pre);
+if  exist(tmp_fname_mat,'file');
+disp(sprintf(' %% %s found, loading',tmp_fname_mat));
+load(tmp_fname_mat ...
+     ,'X_best_','X_best_flag_flip_' ...
+     ,'polar_a_best_' ...
+     ,'azimu_b_best_' ...
+     ,'gamma_z_best_' ...
+     ,'delta_best__' ...
+    );
+flag_found=1;
+end;%if  exist(tmp_fname_mat,'file');
+end;%if (~isempty(parameter.fname_align_a_CTF_avg_UX_Y_pre));
+
+if ~flag_found;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 X_best_ = zeros(n_iteration,1);
 X_best_flag_flip_ = zeros(n_iteration,1);
 polar_a_best_ = zeros(n_iteration,1);
@@ -77,9 +95,14 @@ gamma_z_best_(1+niteration) = gamma_z_best;
 delta_best__(:,1+niteration) = delta_best_;
 if (verbose); disp(sprintf(' %% niteration %d/%d: X_best %0.4f X_best_flag_flip %d',niteration,n_iteration,X_best,flag_flip)); end;
 end;%for niteration=0:n_iteration-1;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+end;%if ~flag_found;
 
+flag_found=0;
 if (~isempty(parameter.fname_align_a_CTF_avg_UX_Y_pre));
 tmp_fname_mat = sprintf('%s.mat',parameter.fname_align_a_CTF_avg_UX_Y_pre);
+if (~exist(tmp_fname_mat,'file'));
+disp(sprintf(' %% %s not found, creating',tmp_fname_mat));
 save(tmp_fname_mat ...
      ,'X_best_','X_best_flag_flip_' ...
      ,'polar_a_best_' ...
@@ -87,10 +110,16 @@ save(tmp_fname_mat ...
      ,'gamma_z_best_' ...
      ,'delta_best__' ...
     );
+end;%if (~exist(tmp_fname_mat,'file'));
+flag_found=1;
 end;%if (~isempty(parameter.fname_align_a_CTF_avg_UX_Y_pre));
 
+if flag_found;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 if (~isempty(parameter.fname_align_a_CTF_avg_UX_Y_pre));
 tmp_fname_fig_jpg = sprintf('%s.jpg',parameter.fname_align_a_CTF_avg_UX_Y_pre);
+if (~exist(tmp_fname_fig_jpg,'file'));
+if (verbose); disp(sprintf(' %% %s not found, creating',tmp_fname_fig_jpg)); end;
 delta_sigma = 1.0 * std([image_delta_x_true_(1:n_M);image_delta_y_true_(1:n_M)],1); %<-- no reduction. ;
 dscale = 2.5;
 c2d_euler__ = colormap_polar_a_azimu_b_2d(+euler_polar_a_true_(1:n_M),+euler_azimu_b_true_(1:n_M),0.35);
@@ -163,9 +192,9 @@ end;%for niteration=0:n_iteration-1;
 sgtitle(sprintf('%s',tmp_fname_fig_jpg),'Interpreter','none');
 print('-djpeg',tmp_fname_fig_jpg);
 close(gcf);
-if (~exist(tmp_fname_fig_jpg,'file'));
-if (verbose); disp(sprintf(' %% %s not found, creating',tmp_fname_fig_jpg)); end;
 end;%if (~exist(tmp_fname_fig_jpg,'file'));
 end;%if (~isempty(parameter.fname_align_a_CTF_avg_UX_Y_pre));
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+end;%if flag_found;
 
 if (verbose); disp(sprintf(' %% [finished ampmut_align_to_a_CTF_avg_UX_Y_0]')); end;

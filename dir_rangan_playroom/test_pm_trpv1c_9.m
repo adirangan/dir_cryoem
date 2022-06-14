@@ -4,6 +4,7 @@ clear;
 platform = 'rusty';%platform = 'access1';
 if (exist('platform.type','file')); fp=fopen('platform.type'); platform = fscanf(fp,'%s'); fclose(fp); end;
 if (strcmp(platform,'access1')); setup_access1; string_root = 'data'; end;
+if (strcmp(platform,'eval1')); setup_eval1; string_root = 'home'; end;
 if (strcmp(platform,'OptiPlex')); setup_OptiPlex; string_root = 'home'; end;
 if (strcmp(platform,'rusty')); setup_rusty; string_root = 'mnt/home'; end;
 

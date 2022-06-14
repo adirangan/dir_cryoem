@@ -1,5 +1,18 @@
-function [b_,W_beta_out__] = rotate_spharm_to_spharm_2(verbose,W_beta_0in__,n_k,k_,l_max_,a_,alpha_);
-% Rotates spherical harmonic expansion a_ by alpha_, producing b_ ;
+function ...
+[ ...
+ b_ ...
+,W_beta_out__ ...
+] = ...
+rotate_spharm_to_spharm_2( ...
+ verbose ...
+,W_beta_0in__ ...
+,n_k ...
+,k_ ...
+,l_max_ ...
+,a_ ...
+,euler_ ...
+);
+% Rotates spherical harmonic expansion a_ by euler_, producing b_ ;
 % Note that there needs to be a sign-flip for the interior angle. ;
 % ;
 % verbose = integer verbosity_level ;
@@ -8,7 +21,7 @@ function [b_,W_beta_out__] = rotate_spharm_to_spharm_2(verbose,W_beta_0in__,n_k,
 % k_ = real array of length n_k; k_(nk) = k_value for shell nk ;
 % l_max_ = integer array of length n_k; l_max_(nk) = spherical harmonic order on shell nk; l_max_(nk) corresponds to n_lm_(nk) = (l_max_(nk)+1)^2 coefficients ;
 % a_ = complex array of length \sum_{nk} (n_lm_(nk)+1)^2 ; coefficients are ordered in a row, with m varying quickly and l varying slowly ;
-% alpha_ equals array of euler angles; [alpha, beta, gamma]. Note that this corresponds to rotation k_ by the inverse [-gamma, -beta, -alpha]. ;
+% euler_ equals array of euler angles; [alpha, beta, gamma]. Note that this corresponds to rotating k_ by the inverse [-gamma, -beta, -alpha]. ;
 % ;
 % b_ = complex array of length \sum_{nk} (n_lm_(nk)+1)^2 ; coefficients are ordered in a row, with m varying quickly and l varying slowly ;
 % b_ corresponds to rotated molecule ;
@@ -82,7 +95,7 @@ end;%for nk_p_r=0:n_k_p_r-1;
 %%%%%%%%;
 if (verbose); disp(sprintf(' %% n_k_all %d, l_max_max %d',n_k_all,l_max_max)); end;
 %%%%%%%%;
-a_k_Y_true_ = crandn(n_lm_sum,1).*exp(-(Y_l_val_+abs(Y_m_val_)).^2/(2*(l_max_max/4)^2));
+a_k_Y_true_ = ( randn(n_lm_sum,1) + i*randn(n_lm_sum,1) ).*exp(-(Y_l_val_+abs(Y_m_val_)).^2/(2*(l_max_max/4)^2));
 tmp_t = tic;
 [a_k_p_quad_] = real(convert_spharm_to_k_p_1(verbose,n_k_all,n_k_all_csum_,k_p_r_all_,k_p_azimu_b_all_,k_p_polar_a_all_,weight_3d_k_all_,weight_shell_k_,n_k_p_r,k_p_r_,weight_3d_k_p_r_,l_max_,a_k_Y_true_));
 tmp_t = toc(tmp_t); disp(sprintf(' %% a_k_Y_true_ --> a_k_p_quad_ time %0.2fs',tmp_t));
@@ -198,14 +211,14 @@ l_max = l_max_(end);
 m_max_ = -l_max : +l_max;
 n_m_max = length(m_max_);
 
-if (verbose>1); disp(sprintf(' %% rotating molecule by: [%0.2f %0.2f %0.2f]',+alpha_)); end;
-if (verbose>1); disp(sprintf(' %% rotating coordinate_frame by: [%0.2f %0.2f %0.2f]',-alpha_(3),-alpha_(2),-alpha_(1))); end;
+if (verbose>1); disp(sprintf(' %% rotating molecule by: [%0.2f %0.2f %0.2f]',+euler_)); end;
+if (verbose>1); disp(sprintf(' %% rotating coordinate_frame by: [%0.2f %0.2f %0.2f]',-euler_(3),-euler_(2),-euler_(1))); end;
 b_ = zeros(size(a_));
 l_max_max = max(l_max_);
-W_alpha_ = exp(+i*[-l_max_max:+l_max_max]*-alpha_(3));
-W_gamma_ = exp(+i*[-l_max_max:+l_max_max]*-alpha_(1));
+W_alpha_ = exp(+i*[-l_max_max:+l_max_max]*-euler_(3));
+W_gamma_ = exp(+i*[-l_max_max:+l_max_max]*-euler_(1));
 if (~isempty(W_beta_0in__)); W_beta_out__ = W_beta_0in__; end;
-if ( isempty(W_beta_0in__)); W_beta_out__ = wignerd_b(l_max_max,+alpha_(2)); end;
+if ( isempty(W_beta_0in__)); W_beta_out__ = wignerd_b(l_max_max,+euler_(2)); end;
 for nk=1:n_k;
 l_max = l_max_(nk); n_lm = n_lm_(nk); ix_base = sum(n_lm_(1:nk-1));
 a_k_ = a_(ix_base + (1:n_lm)); b_k_ = zeros(size(a_k_));

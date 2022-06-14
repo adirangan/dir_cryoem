@@ -1,5 +1,15 @@
 function isosurface_f_x_u_0(f_x_u___,percent_threshold,v_);
 
+if (ndims(f_x_u___)~=3);
+n_d = round(numel(f_x_u___).^(1/3));
+f_x_u___ = reshape(f_x_u___,[n_d,n_d,n_d]);
+end;%if (ndims(f_x_u___)~=3);
+assert(ndims(f_x_u___)==3);
+
+if (~isreal(f_x_u___));
+f_x_u___ = real(f_x_u___);
+end;%if (~isreal(f_x_u___));
+
 [n_x_c,n_y_c,n_z_c] = size(f_x_u___);
 [X___,Y___,Z___] = meshgrid(1:n_x_c,1:n_y_c,1:n_z_c);
 

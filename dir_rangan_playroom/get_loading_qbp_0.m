@@ -2,6 +2,11 @@ function ...
 [ ...
  parameter ...
 ,SV_loading_Ml__ ...
+,a_k_Y_0qbp_yn_ ...
+,T_k_p_wnM__ ...
+,CTF_k_p_rwM__ ...
+,S_k_p_wnM__ ...
+,R_k_p_wnM__ ...
 ] = ...
 get_loading_qbp_0( ...
  parameter ...
@@ -32,7 +37,7 @@ end;%if isempty(parameter);
 if (~isfield(parameter,'tolerance_master')); parameter.tolerance_master = 1e-2; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'rseed')); parameter.rseed = 0; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'n_loading')); parameter.n_loading = 3; end; %<-- parameter_bookmark. ;
-if (~isfield(parameter,'n_loading_iteration')); parameter.n_loading_iteration = 32; end; %<-- parameter_bookmark. ;
+if (~isfield(parameter,'n_loading_iteration')); parameter.n_loading_iteration = 64; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'cg_lsq_n_order')); parameter.cg_lsq_n_order = 5; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'qbp_eps')); parameter.qbp_eps = 1e-3; end; %<-- parameter_bookmark. ;
 %%%%%%%%;
@@ -93,6 +98,7 @@ tmp_t = toc(tmp_t); if (verbose); disp(sprintf(' %% a_k_Y_0qbp_yn_: %0.3fs',tmp_
 
 %%%%%%%%;
 % Center and scale images. ;
+% T_k_p_wnM__ hold the centered and scaled images. ;
 %%%%%%%%;
 T_k_p_wnM__ = M_k_p_wnM__;
 if ( (fnorm(image_delta_x_)>0) | (fnorm(image_delta_y_)>0) | (fnorm(image_I_value_-ones(n_M,1))>0) );
@@ -104,17 +110,24 @@ end;%if ( (fnorm(image_delta_x_)>0) | (fnorm(image_delta_y_)>0) | (fnorm(image_I
 quad_k_eq_d_ = sqrt(4*pi./n_lm_);
 if (verbose>1); for nk_p_r=0:n_k_p_r-1; disp(sprintf(' %% nk_p_r %d/%d: quad_k_eq_d %0.6f',nk_p_r,n_k_p_r,quad_k_eq_d_(1+nk_p_r))); end; end;
 
-CTF_k_p_wM__ = cell(n_k_p_r,1);
+%%%%%%%%;
+% CTF_k_p_rwM__ hold the CTF_k_p_wr__ for each image. ;
+% Specifically: ;
+% CTF_k_p_rwM__{1+nk_p_r}(1+nw+nM*n_w_(1+nk_p_r)) holds CTF_k_p_wr__ for image nM. ;
+%%%%%%%%;
+CTF_k_p_rwM__ = cell(n_k_p_r,1);
 for nk_p_r=0:n_k_p_r-1;
 n_lm = n_lm_(1+nk_p_r);
 n_w = n_w_(1+nk_p_r);
 index_Y_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
 index_nw_ = n_w_csum_(1+nk_p_r) + (0:n_w-1);
-CTF_k_p_wM__{1+nk_p_r} = reshape(CTF_k_p_wnc__(1+index_nw_,1+index_nCTF_from_nM_),[n_w*n_M,1]);
+CTF_k_p_rwM__{1+nk_p_r} = reshape(CTF_k_p_wnc__(1+index_nw_,1+index_nCTF_from_nM_),[n_w*n_M,1]);
 end;%for nk_p_r=0:n_k_p_r-1;
 
 %%%%%%%%;
 % precomputation. ;
+% We use sample_shell_5 to construct a quadrature grid on the shell, ;
+% referenced by quad_n_all through quad_k_c_2_all_. ;
 %%%%%%%%;
 flag_unique_n = 0;
 if (numel(unique(l_max_))==1 & numel(unique(n_lm_))==1 & numel(unique(n_w_))==1);
@@ -144,6 +157,9 @@ sample_shell_5( ...
 ) ;
 quad_k_c_qd__ = [ quad_k_c_0_all_ , quad_k_c_1_all_ , quad_k_c_2_all_ ];
 %%%%;
+% The spherical-harmonics on the shell are referenced by Ylm__ through Ylm_yq__. ;
+% The quadrature-weighted spherical-harmonics (for integration) are referenced by Ylm_w_yq__. ;
+%%%%;
 Ylm__ = get_Ylm__(1+l_max,0:l_max,quad_n_all,quad_azimu_b_all_,quad_polar_a_all_);
 Ylm_yq__ = zeros(n_lm,quad_n_all);
 nml=0;
@@ -154,6 +170,9 @@ nml=nml+1;
 end;%for m_val=-l_val:+l_val;
 end;%for l_val=0:l_max;
 Ylm_w_yq__ = Ylm_yq__ * sparse(1:quad_n_all,1:quad_n_all,quad_weight_all_,quad_n_all,quad_n_all);
+%%%%;
+% The point-locations of the images (oriented according to their euler-angles) on the shell ;
+% are referenced by data_k_p_polar_a__ through data_k_c_wMd__. ;
 %%%%;
 [ ...
  data_k_p_polar_a__ ...
@@ -171,6 +190,9 @@ cg_rhs_1( ...
 );
 data_k_c_wMd__ = [ data_k_c_0__(:) , data_k_c_1__(:) , data_k_c_2__(:) ];
 %%%%;
+% We construct a sparse matrix linking the point-locations on the shell to the quadrature-nodes. ;
+% This is referenced by quad_from_data_qwM__ and quad_from_data_Mqw___. ;
+%%%%;
 index_quad_from_data_ = knnsearch(quad_k_c_qd__,data_k_c_wMd__,'K',1); index_quad_from_data_ = index_quad_from_data_ - 1;
 quad_from_data_qwM__ = sparse(1+index_quad_from_data_,1:n_w*n_M,1,quad_n_all,n_w*n_M);
 quad_from_data_Mqw___ = cell(n_M,1);
@@ -180,12 +202,31 @@ index_nw_ = n_w*nM + (0:n_w-1);
 quad_from_data_Mqw___{1+nM} = quad_from_data_qwM__(:,1+index_nw_);
 end;%for nM=0:n_M-1;
 tmp_t = toc(tmp_t); if (verbose); disp(sprintf(' %% quad_from_data_Mqw___: %0.3fs',tmp_t)); end;
+%%%%;
+% We then calculate the number of data-points sent to each quadrature-node, ;
+% (i.e., the row-sums of quad_from_data_qwM__). ;
+% and use these values to normalize the transpose of the matrix above. ;
+% This creates a matrix which links the quadrature-nodes to the point-locations on the shell, ;
+% and has column-sums equal to one. ;
+% This matrix is denoted by data_from_quad_wMq__, but is unused below. ;
+%%%%;
 n_quad_from_data_q_ = quad_from_data_qwM__*ones(n_w*n_M,1); %<-- number of data-points per quadrature-point. ;
 data_from_quad_wMq__ = bsxfun(@rdivide,transpose(quad_from_data_qwM__),max(1,transpose(n_quad_from_data_q_)));
+%%%%;
+% The sum of the squares of the CTF-coefficients mapped to each quadrature-node ;
+% is referenced by CTF2_qn__. ;
+% We will use this below to solve a local-least-squares problem for each quadrature-node. ;
+%%%%;
 CTF_wMn__ = reshape(permute(reshape(CTF_k_p_wnc__(:,1+index_nCTF_from_nM_),[n_w,n_k_p_r,n_M]),[1,3,2]),[n_w*n_M,n_k_p_r]);
 CTF2_qn__ = quad_from_data_qwM__*abs(CTF_wMn__).^2;
 %%%%;
-[k_p_polar_a__,k_p_azimu_b__] = cg_rhs_1(n_M,n_w,euler_polar_a_,euler_azimu_b_,+euler_gamma_z_);
+% We set up the operators An___ and At___ for each of the nk_p_r, ;
+% representing the Y-to-data evaluation-operator (composed with CTF-multiplication) ;
+% along with its transpose. ;
+% These will not be used below. ;
+%%%%;
+%[k_p_polar_a__,k_p_azimu_b__] = cg_rhs_1(n_M,n_w,euler_polar_a_,euler_azimu_b_,+euler_gamma_z_);
+k_p_polar_a__ = data_k_p_polar_a__; k_p_azimu_b__ = data_k_p_azimu_b__;
 n_polar_a = ceil(n_w/2);
 n_azimu_b = max(1+2*l_max,2*n_polar_a);
 [legendre_evaluate_ljm___,legendre_evaluate_mlj___,expil__,expi__] = legendre_evaluate_ljm___0(l_max,cos(linspace(0,pi,n_polar_a)),n_azimu_b);
@@ -196,8 +237,8 @@ An___ = cell(n_k_p_r,1);
 At___ = cell(n_k_p_r,1);
 AtAn___ = cell(n_k_p_r,1);
 for nk_p_r=0:n_k_p_r-1;
-An___{1+nk_p_r} = @(a_k_Y_) CTF_k_p_wM__{1+nk_p_r}.*(tensor_to_scatter__*reshape(cg_evaluate_n_1(l_max,convert_spharm_to_spharm__0(l_max,a_k_Y_),n_polar_a,n_azimu_b,legendre_evaluate_ljm___),[n_polar_a*n_azimu_b,1]));
-At___{1+nk_p_r} = @(M_k_p_) convert_spharm__to_spharm_0(l_max,cg_evaluate_t_1(n_polar_a,n_azimu_b,reshape(scatter_to_tensor__*(conj(CTF_k_p_wM__{1+nk_p_r}).*M_k_p_),[n_polar_a,n_azimu_b]),l_max,legendre_evaluate_mlj___,expil__,expi__));
+An___{1+nk_p_r} = @(a_k_Y_) CTF_k_p_rwM__{1+nk_p_r}.*(tensor_to_scatter__*reshape(cg_evaluate_n_1(l_max,convert_spharm_to_spharm__0(l_max,a_k_Y_),n_polar_a,n_azimu_b,legendre_evaluate_ljm___),[n_polar_a*n_azimu_b,1]));
+At___{1+nk_p_r} = @(M_k_p_) convert_spharm__to_spharm_0(l_max,cg_evaluate_t_1(n_polar_a,n_azimu_b,reshape(scatter_to_tensor__*(conj(CTF_k_p_rwM__{1+nk_p_r}).*M_k_p_),[n_polar_a,n_azimu_b]),l_max,legendre_evaluate_mlj___,expil__,expi__));
 AtAn___{1+nk_p_r} = @(a_k_Y_) At___{1+nk_p_r}(An___{1+nk_p_r}(a_k_Y_));
 end;%for nk_p_r=0:n_k_p_r-1;
 end;%if (numel(unique(l_max_))==1 & numel(unique(n_lm_))==1 & numel(unique(n_w_))==1);
@@ -208,6 +249,7 @@ end;%if (flag_unique_n==0);
 
 %%%%%%%%;
 % calculate residual from qbp. ;
+% The S_k_p_wnM__ represent the templates, and R_k_p_wnM__ the residuals. ;
 %%%%%%%%;
 tmp_t = tic();
 S_k_p_wnM__ = zeros(n_w_sum,n_M);
@@ -226,6 +268,12 @@ if (verbose); disp(sprintf(' %% fnorm(R_k_p_wnM__)/fnorm(T_k_p_wnM__): %0.6f/%0.
 
 %%%%%%%%;
 % Initialize residual clustering. ;
+% For each nk_p_r, we load the residual R_wM__ for that shell, ;
+% and weight it by CTF_wM_ to form R_CTF_wM__. ;
+% We then map the residuals for each image (individually) onto the quadrature-nodes, ;
+% assuming the ohter images are all zero (hence normalizing by CTF2_q_). ;
+% Finally, we integrate to obtain an (image- and residual-specific) volume H_ynM__(:,1+nM). ;
+% (Note that we account for quadrature-weights in Ylm_w_yq__ below). ;
 %%%%%%%%;
 tmp_t = tic();
 H_ynM__ = zeros(n_lm_sum,n_M);
@@ -246,12 +294,32 @@ end;%for nM=0:n_M-1;
 H_ynM__(1+index_Y_,:) = conj(Ylm_w_yq__)*quad_from_data_R_CTF_normalized_qM__;
 end;%for nk_p_r=0:n_k_p_r-1;
 tmp_t = toc(tmp_t); if (verbose); disp(sprintf(' %% H_ynM__: %0.3fs',tmp_t)); end;
-%%%%%%%%;
+%%%%;
+% The norm-squared of each of the image-specific H-volumes is denoted by HH_M_(1+nM). ;
+%%%%;
 HH_M_ = sum(bsxfun(@times,abs(H_ynM__).^2,reshape(weight_3d_yn_,[n_lm_sum,1])),1);
 %%%%%%%%;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 % Iterate to cluster residuals. ;
+% Our model is: ;
+% R_k_p_wnM__(:,1+nM) = ... ;
+% An_ ( \sum_{nloading} U_ynl__(:,1+nloading) * SV_loading_Ml__(1+nM,1+nloading) ), ;
+% Or equivalently that: ;
+% H_ynM__(:,1+nM) \approx ... ;
+% \sum_{nloading} U_ynl__(:,1+nloading) * SV_loading_Ml__(1+nM,1+nloading). ;
+%%%%%%%%;
+% Our iteration proceeds in three steps: ;
+% Step 1: ;
+% We define: ;
+% U_ynl__(:,1+nloading) = \sum_{nM} H_ynM__(:,1+nM) * SV_loading_Ml__(1+nM,1+nloading). ;
+% Step 2: ;
+% We ensure that each of the U_ynl__(:,1+nloading) are of unit-norm ;
+% and orthonormal to one another. ;
+% Step 3 (crude): ;
+% We approximate SV_loading_Ml__(1+nM,1+nloading) by taking the dot-product: ;
+% SV_loading_Ml__(1+nM,1+nloading) \approx ... ;
+% dot( H_ynM__(:,1+nM) , U_ynl__(:,1+nloading) ). ;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 tmp_t = tic();
 rng(rseed);
@@ -262,7 +330,8 @@ for nloading=0:n_loading-1;
 U_l2_l_(1+nloading) = sqrt(ctranspose(U_ynl__(:,1+nloading))*(weight_3d_yn_.*U_ynl__(:,1+nloading))); 
 U_ynl__(:,1+nloading) = U_ynl__(:,1+nloading)/U_l2_l_(1+nloading);
 end;%for nloading=0:n_loading-1; 
-for niteration=0:n_loading_iteration-1;
+niteration=0; flag_continue=1;
+while flag_continue;
 %%%%;
 if (niteration==0);
 % do nothing;
@@ -278,15 +347,22 @@ end;%for nloading_1=nloading_0+1:n_loading-1;
 end;%for nloading_0=0:n_loading-1;
 end;%if (niteration>0);
 %%%%;
+SV_loading_new_Ml__ = zeros(n_M,n_loading);
 for nM=0:n_M-1;
 HH = HH_M_(1+nM);
 for nloading=0:n_loading-1;
 HU = ctranspose(H_ynM__(:,1+nM))*(weight_3d_yn_.*U_ynl__(:,1+nloading));
-SV_loading_Ml__(1+nM,1+nloading) = real(HU)/max(1e-12,real(HH));
+SV_loading_new_Ml__(1+nM,1+nloading) = real(HU)/max(1e-12,real(HH));
 end;%for nloading=0:n_loading-1;
 end;%for nM=0:n_M-1;
+SV_loading_upd_Ml__ = SV_loading_new_Ml__ - SV_loading_Ml__;
+SV_loading_upd_rn = fnorm(SV_loading_upd_Ml__)/fnorm(SV_loading_new_Ml__);
+if (verbose); disp(sprintf(' %% niteration %d/%d, SV_loading_upd_rn: %0.2f',niteration,n_loading_iteration,SV_loading_upd_rn)); end;
+SV_loading_Ml__ = SV_loading_new_Ml__;
+niteration = niteration+1;
+flag_continue = (niteration< n_loading_iteration) & (SV_loading_upd_rn> tolerance_master);
 %%%%;
-end;%for niteration=0:n_loading_iteration-1;
+end;%while flag_continue;
 tmp_t = toc(tmp_t); if (verbose); disp(sprintf(' %% SV_loading_Ml__: %0.3fs',tmp_t)); end;
 %%%%;
 

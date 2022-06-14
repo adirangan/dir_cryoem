@@ -3,6 +3,7 @@ clear;
 platform = 'access1';
 if (exist('platform.type','file')); fp=fopen('platform.type'); platform = fscanf(fp,'%s'); fclose(fp); end;
 if (strcmp(platform,'access1')); setup_access1; string_root = 'data'; end;
+if (strcmp(platform,'eval1')); setup_eval1; string_root = 'home'; end;
 if (strcmp(platform,'OptiPlex')); setup_OptiPlex; string_root = 'home'; end;
 
 flag_recalc = 0;
@@ -1296,6 +1297,7 @@ end;%if flag_sup;
 % Verdict: Msup is basically identical to Memp. ;
 %%%%%%%%;
 
+%{
 %%%%%%%%;
 % Now visualize principal-volumes. ;
 %%%%%%%%;
@@ -1479,6 +1481,7 @@ if ( exist(sprintf('%s.jpg',fname_fig),'file'));
 disp(sprintf(' %% %s found, not creating',fname_fig));
 end;%if ( exist(sprintf('%s.jpg',fname_fig),'file'));
 %%%%%%%%;
+%}
 
 %%%%%%%%;
 % Decide which score to use. ;

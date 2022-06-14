@@ -5,6 +5,7 @@ function ...
 ,n_viewing_all ...
 ,viewing_azimu_b_all_ ...
 ,viewing_polar_a_all_ ...
+,viewing_weight_all_ ...
 ] = ...
 pm_template_2( ...
  verbose ...
@@ -16,7 +17,7 @@ pm_template_2( ...
 ,n_w_0in ...
 );
 % uses spherical-harmonic-expansions a_k_Y_ya__ to evaluate templates on a collection of points on spherical shells. ;
-% each spherical-shell has the same resolution, determiend by viewing_k_eq_d and template_k_eq_d and/or n_w_max. ;
+% each spherical-shell has the same resolution, determined by viewing_k_eq_d and template_k_eq_d and/or n_w_max. ;
 % ;
 % inputs: ;
 % ;
@@ -37,19 +38,21 @@ pm_template_2( ...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
 if nargin<7;
-verbose=0;
-n_k_p_r = 18;
+verbose = 2;
+n_k_p_r = 49;
 k_p_r_max = 1;
 k_p_r_ = ones(n_k_p_r,1);
 weight_k_p_r_ = ones(n_k_p_r,1);
-l_max = 9;
+l_max = 80;
 n_lm = (l_max+1)^2;
 l_max_ = l_max*ones(n_k_p_r,1);
 n_lm_sum = sum((1+l_max_).^2);
-a_k_Y_ = crandn(n_lm_sum,1);
-viewing_k_eq_d = 1/pi;
+a_k_Y_ = (mod(transpose([0:n_lm_sum-1]),89)-44)/89 + i*(mod(transpose([0:n_lm_sum-1]),97)-48)/97;
+if (verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(real(a_k_Y_),n_lm,n_k_p_r,' %% a_k_Y_ya_real___: '); end;
+if (verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(imag(a_k_Y_),n_lm,n_k_p_r,' %% a_k_Y_ya_imag___: '); end;
+viewing_k_eq_d = 1/(4*pi);
 template_k_eq_d = -1;
-n_w_max = 32;
+n_w_max = 98;
 %%%%%%%%;
 tmp_t = tic();
 [ ...
@@ -69,6 +72,7 @@ pm_template_2( ...
 ,n_w_max ...
 );
 tmp_t = toc(tmp_t); disp(sprintf(' %% pm_template_2: %0.2fs',tmp_t));
+disp(sprintf(' %% n_S %d',n_S));
 template_waS__ = reshape(template_waS___,[n_w_max*n_k_p_r,n_S]);
 %%%%%%%%;
 tmp_t = tic();
@@ -76,7 +80,7 @@ tmp_t = tic();
  template_wkS__ ...
 ] = ...
 get_template_1( ...
- verbose ...
+ 0*verbose ...
 ,n_k_p_r ...
 ,k_p_r_ ...
 ,k_p_r_max ...
@@ -100,6 +104,8 @@ m_max_ = -l_max : +l_max;
 n_m_max = length(m_max_); %<-- 2*l_max+1;
 if (verbose); disp(sprintf(' %% l_max %d n_lm %d',l_max,n_lm)); end;
 if (isempty(a_k_Y_ya__)); a_k_Y_ya__ = zeros(n_lm,1); end;
+if (verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(real(a_k_Y_ya__),n_lm,n_a,' %% a_k_Y_ya_real___: '); end;
+if (verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(imag(a_k_Y_ya__),n_lm,n_a,' %% a_k_Y_ya_imag___: '); end;
 
 %%%%%%%%;
 if (verbose); disp(sprintf(' %% First determine the viewing angles.')); end;
@@ -125,7 +131,11 @@ sample_shell_5( ...
 n_viewing_azimu_b_sum = sum(n_viewing_azimu_b_);
 n_viewing_azimu_b_csum_ = cumsum([0;n_viewing_azimu_b_]);
 if (verbose); disp(sprintf(' %% n_viewing_all %d n_viewing_polar_a %d n_viewing_azimu_b_sum %d',n_viewing_all,n_viewing_polar_a,n_viewing_azimu_b_sum)); end;
-
+if (verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(viewing_azimu_b_all_,1,n_viewing_all,' %% viewing_azimu_b_all_: '); end;
+if (verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(viewing_polar_a_all_,1,n_viewing_all,' %% viewing_polar_a_all_: '); end;
+if (verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(viewing_weight_all_,1,n_viewing_all,' %% viewing_weight_all_: '); end;
+if (verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(viewing_polar_a_,1,n_viewing_polar_a,' %% viewing_polar_a_: '); end;
+if (verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(n_viewing_azimu_b_,1,n_viewing_polar_a,' %% n_viewing_azimu_b_: '); end;
 %%%%%%%%;
 if (verbose); disp(sprintf(' %% Now determine the points along each equatorial plane (i.e., the points for each template).')); end;
 %%%%%%%%;
@@ -145,6 +155,13 @@ if (verbose); disp(sprintf(' %% n_w %d',n_w)); end;
 %%%%%%%%;
 gamma_z_ = zeros(n_w,1); gamma_z_ = transpose(linspace(0,2*pi,n_w+1)); gamma_z_ = gamma_z_(1:n_w);
 cc_ = cos(gamma_z_); sc_ = sin(gamma_z_);
+if (verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(gamma_z_,1,n_w,' %% gamma_z_: '); end;
+if (verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(cc_,1,n_w,' %% cc_: '); end;
+if (verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(sc_,1,n_w,' %% sc_: '); end;
+%%%%%%%%;
+% initialize template_waS___. ;
+%%%%%%%%;
+template_waS___ = zeros(n_w,n_a,n_viewing_all);
 
 %%%%%%%%;
 % The general formula used here is as follows. ;
@@ -198,6 +215,8 @@ template_azimu_b__ = atan2(template_k_c_1__,template_k_c_0__);
 expi_template_azimu_b__ = exp(i*template_azimu_b__);
 clear template_azimu_b__;
 clear template_k_c_0__ template_k_c_1__ template_k_c_2__ ;
+if (verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(real(expi_template_azimu_b__),n_w,n_viewing_all,' %% expi_template_azimu_b_real___: '); end;
+if (verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(imag(expi_template_azimu_b__),n_w,n_viewing_all,' %% expi_template_azimu_b_imag___: '); end;
 %%%%%%%%;
 % We also use a condensed array, called condense_k_c_2__, which only depends on the polar_a, and not on azimu_b. ;
 %%%%%%%%;
@@ -207,7 +226,7 @@ for nviewing_polar_a=0:n_viewing_polar_a-1;
 viewing_polar_a = viewing_polar_a_(1+nviewing_polar_a); ca = cos(viewing_polar_a); sa = sin(viewing_polar_a);
 condense_k_c_2__(:,1+nviewing_polar_a) = -sa*cc_ ;
 end;%for nviewing_polar_a=0:n_viewing_all-1;
-
+if (verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(condense_k_c_2__,n_w,n_viewing_polar_a,' %% condense_k_c_2__: '); end;
 %%%%%%%%;
 if (verbose); disp(sprintf(' %% Now evaluate associated legendre polynomials at the varous k_c_2 values.')); end;
 % Here legendre_evaluate_lmwS____{1+l_val}(1+l_val+m_val,1+nw,1+nviewing_polar_a) contains ;
@@ -230,7 +249,7 @@ tmp_P__ = legendre(l_val,condense_k_c_2__,'unnorm');
 tmp_t = tic;
 legendre_evaluate_lmwS____{1+l_val} = reshape(tmp_P__,[1+1*l_val,n_w,n_viewing_polar_a]);
 tmp_t = toc(tmp_t);
-if (verbose>1); disp(sprintf(' %% l_val %d/%d legendre_evaluate(%d,%d) %0.2fs',l_val,l_max,n_w,n_viewing_polar_a,tmp_t)); end;
+if (verbose>3); disp(sprintf(' %% l_val %d/%d legendre_evaluate(%d,%d) %0.2fs',l_val,l_max,n_w,n_viewing_polar_a,tmp_t)); end;
 legendre_normalization_{1+l_val} = tmp_a3_;
 end;%for l_val=0:l_max;
 %%%%%%%%;
@@ -244,6 +263,12 @@ end;%for l_val=0:l_max;
 %%%%%%%%;
 legendre_evaluate_normalized_lwpm___ = reshape(permute(legendre_evaluate_normalized_lmwp____,[1,3,4,2]),[1+l_max,n_w*n_viewing_polar_a,n_m_max]);
 if (verbose); disp(sprintf(' %% legendre_evaluate_normalized_lwpm____: (%d,%d,%d,%d)=%d (%0.2f GB)',(1+l_max),n_w,n_viewing_polar_a,n_m_max,(1+l_max)*n_w*n_viewing_polar_a*n_m_max,(1+l_max)*n_w*n_viewing_polar_a*n_m_max*8/1e9)); end;
+if (verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(legendre_evaluate_normalized_lwpm___,(1+l_max)*n_w,n_viewing_polar_a*n_m_max,' %% legendre_evaluate_normalized_lwpm___: '); end;
+
+%disp(sprintf(' %% l_max %d n_w %d n_viewing_polar_a %d',l_max,n_w,n_viewing_polar_a));
+%disp(sprintf(' %% fnorm(condense_k_c_2__): %0.16f',fnorm(condense_k_c_2__)));
+%disp(sprintf(' %% fnorm(legendre_evaluate_normalized_lwpm___): %0.16f',fnorm(legendre_evaluate_normalized_lwpm___)));
+%error('stopping');
 
 %%%%%%%%;
 % unroll a_k_Y_ya__. ;
@@ -257,6 +282,8 @@ a_k_Y_lma___(1+l_val,1+index_m_out_,:) = a_k_Y_ya__(1+index_m_0in_,:);
 end;%for l_val=0:l_max;
 a_k_Y_lam___ = permute(a_k_Y_lma___,[1,3,2]);
 if (verbose); disp(sprintf(' %% a_k_Y_lam___: (%d,%d,%d)=%d (%0.2f GB)',(1+l_max),n_a,n_m_max,(1+l_max)*n_a*n_m_max,(1+l_max)*n_a*n_m_max*16/1e9)); end;
+if (verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(real(a_k_Y_lam___),(1+l_max)*n_a,n_m_max,' %% a_k_Y_lam_real___: '); end;
+if (verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(imag(a_k_Y_lam___),(1+l_max)*n_a,n_m_max,' %% a_k_Y_lam_imag___: '); end;
 
 %%%%%%%%;
 if (verbose); disp(sprintf(' %% Now accumulate the legendre_evaluates over l_val, for each m_val.')); end;
@@ -287,7 +314,8 @@ end;%for m_val=-l_max:l_max;
 %}
 %%%%%%%%;
 
-n_a_per_a_batch = max(1,ceil( 0.5e9 / (n_w*n_viewing_polar_a*(1+2*l_max)*8) )); %<-- 0.5GB limit. ;
+n_a_per_a_batch = min(n_a,max(1,ceil( 0.5e9 / (n_w*n_viewing_polar_a*(1+2*l_max)*8) ))); %<-- 0.5GB limit. ;
+if (verbose>2); n_a_per_a_batch=min(8,n_a_per_a_batch); end;
 n_a_batch = ceil(n_a/n_a_per_a_batch);
 if (verbose); disp(sprintf(' %% n_a_per_a_batch %d, n_a_batch %d',n_a_per_a_batch,n_a_batch)); end;
 for na_batch=0:n_a_batch-1;
@@ -314,6 +342,8 @@ disp(sprintf(' %% spherical_harmonic_unphased_mawp____: (%d,%d,%d,%d)=%d (%0.2f 
 ,(1+2*l_max)*tmp_n_a*n_w*n_viewing_polar_a ...
 ,(1+2*l_max)*tmp_n_a*n_w*n_viewing_polar_a*8/1e9 ...
 )); end;
+if (verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(real(spherical_harmonic_unphased_mawp____),n_m_max,tmp_n_a*n_w*n_viewing_polar_a,' %% spherical_harmonic_unphased_mawp_real____: '); end;
+if (verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(imag(spherical_harmonic_unphased_mawp____),n_m_max,tmp_n_a*n_w*n_viewing_polar_a,' %% spherical_harmonic_unphased_mawp_imag____: '); end;
 
 %%%%%%%%;
 if (verbose); disp(sprintf(' %% now perform the final sum over m_val.')); end;
@@ -362,6 +392,13 @@ tmp_sum_wa__ = zeros(n_w,tmp_n_a);
 for nw=0:n_w-1;
 tmp_sum_wa__(1+nw,:) = tmp_expi_wm__(1+nw,:)*spherical_harmonic_unphased_mawp____(:,:,1+nw,1+nviewing_polar_a);
 end;%for nw=0:n_w-1;
+if (verbose>3); fprintf(1,' %% \t\n'); fprintf(1,' %% nviewing_all %d/%d\n',nviewing_all,n_viewing_all); end;
+if (verbose>2 & nviewing_all==0);
+fprintf(1,' %% \t\n'); darray_printf_margin(real(transpose(tmp_expi_wm__)),n_m_max,n_w,' %% tmp_expi_mw_real__: ');
+fprintf(1,' %% \t\n'); darray_printf_margin(imag(transpose(tmp_expi_wm__)),n_m_max,n_w,' %% tmp_expi_mw_imag__: ');
+fprintf(1,' %% \t\n'); darray_printf_margin(real(transpose(tmp_sum_wa__)),tmp_n_a,n_w,' %% spherical_harmonic_evaluate_aw_real__: ');
+fprintf(1,' %% \t\n'); darray_printf_margin(imag(transpose(tmp_sum_wa__)),tmp_n_a,n_w,' %% spherical_harmonic_evaluate_aw_imag__: ');
+end;%if (verbose>2 & nviewing_all==0);
 spherical_harmonic_evaluate_waS___(:,:,1+nviewing_all) = tmp_sum_wa__;
 %%%%;
 %tmp_expi_mw__ = transpose(tmp_expi_wm__);
@@ -372,6 +409,8 @@ end;%for nviewing_azimu_b=0:n_viewing_azimu_b-1;
 end;%for nviewing_polar_a=0:n_viewing_polar_a-1;
 
 template_waS___(:,1+index_a_,:) = spherical_harmonic_evaluate_waS___;
+if (verbose>1); fprintf(1,' %% \t\n'); darray_printf_margin(real(template_waS___),n_w*n_a,n_viewing_all,' %% template_waS_real___: '); end;
+if (verbose>1); fprintf(1,' %% \t\n'); darray_printf_margin(imag(template_waS___),n_w*n_a,n_viewing_all,' %% template_waS_imag___: '); end;
 
 end;%if (tmp_n_a>0);
 end;%for na_batch=0:n_a_batch-1;

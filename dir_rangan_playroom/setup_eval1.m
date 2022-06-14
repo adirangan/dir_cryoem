@@ -1,0 +1,15 @@
+addpath('/home/rangan/dir_chebfun');
+addpath('/home/rangan/dir_nufftall-1.33');
+addpath('/home/rangan/dir_finufft/matlab');
+addpath('/home/rangan/dir_cryoem/dir_EMIODist2');
+addpath('/home/rangan/dir_cryoem/dir_rangan_playpen');
+addpath('/home/rangan/dir_cryoem/dir_rangan_playroom');
+addpath('/home/rangan/dir_cryoem/dir_rangan_playhouse');
+addpath('/home/rangan/dir_cryoem/dir_rangan_playground');
+addpath('/home/rangan/dir_bcc/dir_ukb/dir_m');
+addpath('/home/rangan/dir_bcc/dir_jamison/dir_m');
+addpath('/home/rangan/dir_bcc/dir_dolphin/dir_m');
+addpath('/home/rangan/dir_multiprod');
+set(groot,'defaultFigureCreateFcn',@(fig,~)addToolbarExplorationButtons(fig));
+set(groot,'defaultAxesCreateFcn',@(ax,~)set(ax.Toolbar,'Visible','off'));
+twopi = 2*pi;

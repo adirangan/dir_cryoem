@@ -78,7 +78,7 @@ dh2d_ = @(kd) 4*pi^3*(besselj(-1,kd) - besselj(+3,kd));
 h3d_ = @(kd) 4*pi*( sin(kd) - (kd).*cos(kd) ) ./ kd.^3 ; % calculates <f_j,f_k>, normalized so that <f,f> = 4*pi/3;
 dh3d_ = @(kd) 12*pi*( (kd.^2/3 - 1) .* sin(kd) + (kd).*cos(kd) ) ./ kd.^4 ;
 %%%%%%%%;
-verbose=1;
+verbose=2;
 k_p_r_max = 48/(2*pi); k_eq_d = 1.0/max(1e-12,k_p_r_max); TorL = 'L';
 if (verbose); disp(sprintf(' %% [testing ampmh_X_wSM___8.m]')); end;
 %%%%%%%%;
@@ -178,6 +178,42 @@ get_template_1( ...
 tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% get_template_1: %0.2fs',tmp_t)); end;
 if (verbose); disp(sprintf(' %% n_viewing_all %d n_viewing_polar_a %d n_w_max %d',n_viewing_all,n_viewing_polar_a,max(n_w_))); end;
 n_S = n_viewing_all; n_w_max = max(n_w_); n_w_sum = sum(n_w_); n_w_csum_ = cumsum([0;n_w_]);
+%%%%%%%%;
+a_k_Y_quad__ = zeros(n_lm_max,n_k_p_r);
+for nk_p_r=0:n_k_p_r-1;
+tmp_index_0in_ = n_lm_csum_(1+nk_p_r) + [0:n_lm_(1+nk_p_r)-1];
+tmp_index_out_ = [0:n_lm_(1+nk_p_r)-1];
+a_k_Y_quad__(1+tmp_index_out_,1+nk_p_r) = a_k_Y_quad_(1+tmp_index_0in_);
+end;%for nk_p_r=0:n_k_p_r-1;
+[ ...
+ tmp_template_waS___ ...
+,~ ...
+,tmp_n_viewing_all ...
+,~ ...
+,~ ...
+] = ...
+pm_template_2( ...
+ verbose ...
+,l_max_max ...
+,n_k_p_r ...
+,a_k_Y_quad__ ...
+,viewing_k_eq_d/k_p_r_max ...
+,-1 ...
+,n_w_max ...
+);
+flag_plot=0;
+if flag_plot;
+figure(1);clf;figbig;
+p_row = 8; p_col = ceil(n_S*2/p_row); p_col = p_col + mod(p_col,2); np=0;
+for nS=0:n_S-1;
+subplot(p_row,p_col,1+np);np=np+1;
+imagesc_p(n_k_p_r,k_p_r_,n_w_max*ones(n_k_p_r,1),n_w_max*n_k_p_r,reshape(real(tmp_template_waS___(:,:,1+nS)),[n_w_max*n_k_p_r,1]));
+axis image; axisnotick; title(sprintf('%d',nS));
+subplot(p_row,p_col,1+np);np=np+1;
+imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(S_k_p__(:,1+nS)));
+axis image; axisnotick; title(sprintf('%d',nS));
+end;%for nS=0:n_S-1;
+end;%if flag_plot;
 %%%%%%%%;
 pole_k_c_0_ = zeros(n_w_sum,1);
 pole_k_c_1_ = zeros(n_w_sum,1);
@@ -1081,6 +1117,7 @@ flag_compute_I_value = parameter.flag_compute_I_value;
 flag_compress_S = parameter.flag_compress_S;
 tolerance_master = parameter.tolerance_master;
 
+tmp_t = tic(); nop=0;
 [ ...
  parameter ...
 ,FTK ...
@@ -1103,6 +1140,40 @@ ampmh_X_wSM_reduce_1( ...
 ,svd_VUXM_lwnM____ ...
 ,UX_M_l2_dM__ ...
 );
+nop = nop + numel(svd_VUXM_lwnM____);
+tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% reduce: %0.6f',tmp_t)); end;
+parameter = parameter_timing_update(parameter,'ampmh_X_wSM___8: reduce',tmp_t,1,nop);
+
+%{
+[ ...
+ X_wSM___ ...
+,delta_x_wSM___...
+,delta_y_wSM___...
+,gamma_z_wSM___...
+,I_value_wSM___...
+] = ...
+mex_ampmh_X_wSM___9( ...
+ n_M_per_Mbatch ...
+,n_S_per_Sbatch ...
+,flag_optimize_over_gamma_z ...
+,flag_compute_I_value ...
+,tolerance_master ...
+,FTK.n_svd_l ...
+,FTK.n_delta_v ...
+,FTK.svd_U_d_expiw_s__ ...
+,FTK.delta_x_ ...
+,FTK.delta_y_ ...
+,n_w_max ...
+,pm_n_UX_rank ...
+,n_S ...
+,CTF_UX_S_k_q_wnS__ ...
+,CTF_UX_S_l2_ ...
+,n_M ...
+,svd_VUXM_lwnM____ ...
+,UX_M_l2_dM__ ...
+);
+error('stop');
+ %}
 
 I_value_wSM___ = [];
 if (flag_optimize_over_gamma_z == 0);
@@ -1121,7 +1192,6 @@ gamma_z_SM__ = zeros(n_S,n_M);
 I_value_SM__ = [];
 if (flag_compute_I_value); I_value_SM__ = zeros(n_S,n_M); end;
 end;%if (flag_optimize_over_gamma_z == 1);
-
 
 if (flag_compress_S==0);
 CTF_UX_S_k_q_wnS___ = reshape(CTF_UX_S_k_q_wnS__(:,1:n_S),[n_w_max,pm_n_UX_rank,n_S]); %<-- used later. ;
@@ -1164,34 +1234,47 @@ index_M_in_Mbatch_ = index_M_in_Mbatch_(find(index_M_in_Mbatch_<n_M)); n_M_sub =
 if (verbose>1); disp(sprintf(' %% nMbatch %d/%d index_M_in_Mbatch_ %d-->%d',nMbatch,n_Mbatch,index_M_in_Mbatch_(1+0),index_M_in_Mbatch_(1+n_M_sub-1))); end;
 if (verbose>0 & mod(nMbatch,1)==0); disp(sprintf(' %% nMbatch %d/%d index_M_in_Mbatch_ %d-->%d',nMbatch,n_Mbatch,index_M_in_Mbatch_(1+0),index_M_in_Mbatch_(1+n_M_sub-1))); end;
 if (n_M_sub>0);
-tmp_t = tic();
+tmp_t = tic(); nop=0;
 svd_VUXM_nMwl____ = zeros(pm_n_UX_rank,n_M_sub,n_w_max,FTK.n_svd_l);
 svd_VUXM_nMwl____ = permute(svd_VUXM_lwnM____(:,:,:,1+index_M_in_Mbatch_),[3,4,2,1]);
+nop = nop + numel(svd_VUXM_nMwl____);
+tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% svd_VUXM_nMwl____: %0.6f',tmp_t)); end;
+parameter = parameter_timing_update(parameter,'ampmh_X_wSM___8: svd_VUXM_nMwl____',tmp_t,1,nop);
 %%%%%%%%;
 if (flag_compress_S==0);
+tmp_t = tic(); nop=0;
 svd_SVUXM_SMwl____ = zeros(n_S,n_M_sub,n_w_max,FTK.n_svd_l);
 for nl=0:FTK.n_svd_l-1;
 for nw=0:n_w_max-1;
 svd_SVUXM_SMwl____(:,:,1+nw,1+nl) = ctranspose(CTF_UX_S_k_q_nSw___(:,:,1+nw))*svd_VUXM_nMwl____(:,:,1+nw,1+nl);
 end;%for nw=0:n_w_max-1;
 end;%for nl=0:FTK.n_svd_l-1;
+nop = nop + FTK.n_svd_l*n_w_max*n_S*pm_n_UX_rank*n_M_sub;
 tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% svd_SVUXM_SMwl____: %0.6f',tmp_t)); end;
-tmp_t = tic();
+parameter = parameter_timing_update(parameter,'ampmh_X_wSM___8: svd_VUXM_SMwl____',tmp_t,1,nop);
+tmp_t = tic(); nop=0;
 svd_SVUXM_lwSM____ = permute(ifft(permute(svd_SVUXM_SMwl____,[3,4,1,2]),[],1)*n_w_max,[2,1,3,4]);
+nop = nop + numel(svd_SVUXM_lwSM____);
 tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% svd_SVUXM_lwSM____: %0.6f',tmp_t)); end;
+parameter = parameter_timing_update(parameter,'ampmh_X_wSM___8: svd_VUXM_lwSM____',tmp_t,1,nop);
 end;%if (flag_compress_S==0);
 %%%%%%%%;
 if (flag_compress_S==1);
+tmp_t = tic(); nop=0;
 svd_USVUXM_SMwl____ = zeros(n_S_rank,n_M_sub,n_w_max,FTK.n_svd_l);
 for nl=0:FTK.n_svd_l-1;
 for nw=0:n_w_max-1;
 svd_USVUXM_SMwl____(:,:,1+nw,1+nl) = ctranspose(US_CTF_UX_S_k_q_nSw___(:,:,1+nw))*svd_VUXM_nMwl____(:,:,1+nw,1+nl);
 end;%for nw=0:n_w_max-1;
 end;%for nl=0:FTK.n_svd_l-1;
+nop = nop + FTK.n_svd_l*n_w_max*n_S_rank*pm_n_UX_rank*n_M_sub;
 tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% svd_USVUXM_SMwl____: %0.6f',tmp_t)); end;
-tmp_t = tic();
+parameter = parameter_timing_update(parameter,'ampmh_X_wSM___8: svd_USVUXM_SMwl____',tmp_t,1,nop);
+tmp_t = tic(); nop=0;
 svd_USVUXM_SMwl____ = permute(ifft(permute(svd_USVUXM_SMwl____,[3,4,1,2]),[],1)*n_w_max,[3,4,1,2]);
+nop = nop + numel(svd_USVUXM_SMwl____);
 tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% svd_USVUXM_lwSM____: %0.6f',tmp_t)); end;
+parameter = parameter_timing_update(parameter,'ampmh_X_wSM___8: svd_USVUXM_SMwl____ (permute)',tmp_t,1,nop);
 end;%if (flag_compress_S==1);
 %%%%%%%%;
 for nSbatch=0:n_Sbatch-1;
@@ -1200,22 +1283,28 @@ index_S_in_Sbatch_ = index_S_in_Sbatch_(find(index_S_in_Sbatch_<n_S)); n_S_sub =
 if (verbose>1); disp(sprintf(' %% nSbatch %d/%d index_S_in_Sbatch_ %d-->%d',nSbatch,n_Sbatch,index_S_in_Sbatch_(1+0),index_S_in_Sbatch_(1+n_S_sub-1))); end;
 if (verbose>0 & mod(nSbatch,32)==0); disp(sprintf(' %% nSbatch %d/%d index_S_in_Sbatch_ %d-->%d',nSbatch,n_Sbatch,index_S_in_Sbatch_(1+0),index_S_in_Sbatch_(1+n_S_sub-1))); end;
 if (n_S_sub>0);
-tmp_t = tic();
 %%%%%%%%;
 if (flag_compress_S==0);
 svd_SVUXM_lwsM____ = svd_SVUXM_lwSM____(:,:,1+index_S_in_Sbatch_,:);
 end;%if (flag_compress_S==0);
 if (flag_compress_S==1);
+tmp_t = tic(); nop=0;
 svd_SVUXM_lwsM____ = permute(reshape(VS_k_q__(1+index_S_in_Sbatch_,:)*SS_k_q__*reshape(svd_USVUXM_SMwl____,[n_S_rank,n_M_sub*n_w_max*FTK.n_svd_l]),[n_S_sub,n_M_sub,n_w_max,FTK.n_svd_l]),[4,3,1,2]);
+nop = nop + n_S_sub*n_S_rank*n_S_rank + n_S_sub*n_S_rank*n_M_sub*n_w_max*FTK.n_svd_l;
+tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% svd_SVUXM_lwsM____: %0.6f',tmp_t)); end;
+parameter = parameter_timing_update(parameter,'ampmh_X_wSM___8: svd_SVUXM_lwsM____',tmp_t,1,nop);
 end;%if (flag_compress_S==1);
 %%%%%%%%;
+tmp_t = tic(); nop=0;
 svd_USESVUXM_dwSM____ = real(reshape(FTK.svd_U_d_expiw_s__*reshape(svd_SVUXM_lwsM____,[FTK.n_svd_l,n_w_max*n_S_sub*n_M_sub]),[FTK.n_delta_v,n_w_max,n_S_sub,n_M_sub]));
 %%%%%%%%;
 l2_dSM___ = permute(reshape(reshape(sqrt(CTF_UX_S_l2_use_(1+index_S_in_Sbatch_)),[n_S_sub,1])*reshape(sqrt(UX_M_l2_dM_use__(:,1+index_M_in_Mbatch_)),[1,FTK.n_delta_v*n_M_sub]),[n_S_sub,FTK.n_delta_v,n_M_sub]),[2,1,3]);
 n2_dSM___ = 1./max(1e-14,l2_dSM___);
 f2_dSM___ = permute(reshape(reshape(sqrt(CTF_UX_S_l2_use_(1+index_S_in_Sbatch_)),[n_S_sub,1])*reshape(1./max(1e-14,sqrt(UX_M_l2_dM_use__(:,1+index_M_in_Mbatch_))),[1,FTK.n_delta_v*n_M_sub]),[n_S_sub,FTK.n_delta_v,n_M_sub]),[2,1,3]);
 ss_S_ = reshape(CTF_UX_S_l2_use_(1+index_S_in_Sbatch_),[n_S_sub,1]);
+nop = nop + FTK.n_delta_v*FTK.n_svd_l*n_w_max*n_S_sub*n_M_sub + n_S_sub*FTK.n_delta_v*n_M_sub + n_S_sub*FTK.n_delta_v*n_M_sub;
 tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% svd_USESVUXM_dwSM____: %0.6f',tmp_t)); end;
+parameter = parameter_timing_update(parameter,'ampmh_X_wSM___8: svd_USESVUXM_dwSM____',tmp_t,1,nop);
 if (nMbatch==0 && nSbatch==0 && verbose>0); 
 tmp_str = 'svd_VUXM_nMwl____'; disp(sprintf(' %% memory: %s --> %0.6f GB',tmp_str,whos(tmp_str).bytes/1e9));
 tmp_str = 'svd_SVUXM_SMwl____'; disp(sprintf(' %% memory: %s --> %0.6f GB',tmp_str,whos(tmp_str).bytes/1e9));
@@ -1225,14 +1314,16 @@ tmp_str = 'l2_dSM___'; disp(sprintf(' %% memory: %s --> %0.6f GB',tmp_str,whos(t
 tmp_str = 'n2_dSM___'; disp(sprintf(' %% memory: %s --> %0.6f GB',tmp_str,whos(tmp_str).bytes/1e9));
 tmp_str = 'f2_dSM___'; disp(sprintf(' %% memory: %s --> %0.6f GB',tmp_str,whos(tmp_str).bytes/1e9));
 end;%if (verbose>1); 
-tmp_t = tic();
+tmp_t = tic(); nop=0;
 X_sub_dwSM____ = repmat(reshape(n2_dSM___,[FTK.n_delta_v,1,n_S_sub,n_M_sub]),[1,n_w_max,1,1]) .* svd_USESVUXM_dwSM____; %<-- correlation. ;
 %X_sub_dwSM____ = bsxfun(@times,reshape(real(n2_dSM___),[FTK.n_delta_v,1,n_S_sub,n_M_sub]),real(svd_USESVUXM_dwSM____)); %<-- correlation. ;
 if (flag_compute_I_value);
 I_value_sub_dwSM____ = repmat(reshape(f2_dSM___,[FTK.n_delta_v,1,n_S_sub,n_M_sub]),[1,n_w_max,1,1]) .* X_sub_dwSM____; %<-- I_value. ;
 I_value_use_dwSM____ = max(0,real(I_value_sub_dwSM____));
 end;%if (flag_compute_I_value);
+nop = nop + numel(X_sub_dwSM____);
 tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% X_sub_dwSM____: %0.6f',tmp_t)); end;
+parameter = parameter_timing_update(parameter,'ampmh_X_wSM___8: X_sub_dwSM____',tmp_t,1,nop);
 %%%%%%%%;
 flag_check=0;
 if flag_check;
@@ -1255,7 +1346,7 @@ end;%for nS=0:n_S_sub-1;
 end;%if flag_check;
 %%%%%%%%;
 if (flag_optimize_over_gamma_z == 0);
-tmp_t = tic();
+tmp_t = tic(); nop=0;
 [tmp_X_wSM___,tmp_delta_ij___] = max(reshape(X_sub_dwSM____,[FTK.n_delta_v,n_w_max*n_S_sub*n_M_sub]),[],1); %<-- maximize correlation. ;
 assert(min(tmp_delta_ij___)>=1); assert(max(tmp_delta_ij___)<=FTK.n_delta_v);
 tmp_X_wSM___ = reshape(tmp_X_wSM___,[n_w_max,n_S_sub,n_M_sub]);
@@ -1278,10 +1369,11 @@ I_value_wSM___(:,1+index_S_in_Sbatch_,1+index_M_in_Mbatch_) = reshape(tmp_I_valu
 tmp_t2 = toc(tmp_t2); if (verbose>1); disp(sprintf(' %% I_value_wSM___ %0.6fs',tmp_t2)); end;
 end;%if (flag_compute_I_value);
 tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% X_wSM___: %0.6f',tmp_t)); end;
+parameter = parameter_timing_update(parameter,'ampmh_X_wSM___8: X_wSM___',tmp_t,1,nop);
 end;%if (flag_optimize_over_gamma_z == 0);
 %%%%%%%%;
 if (flag_optimize_over_gamma_z == 1);
-tmp_t = tic();
+tmp_t = tic(); nop=0;
 [tmp_X_SM__,tmp_dw_ij__] = max(reshape(X_sub_dwSM____,[FTK.n_delta_v*n_w_max,n_S_sub*n_M_sub]),[],1); %<-- maximize correlation. ;
 [tmp_delta_ij__,tmp_gamma_ij__] = ind2sub([FTK.n_delta_v,n_w_max],tmp_dw_ij__);
 assert(min(tmp_delta_ij__)>=1); assert(max(tmp_delta_ij__)<=FTK.n_delta_v);
@@ -1307,6 +1399,7 @@ I_value_SM__(1+index_S_in_Sbatch_,1+index_M_in_Mbatch_) = reshape(tmp_I_value_us
 tmp_t2 = toc(tmp_t2); if (verbose>1); disp(sprintf(' %% I_value_SM__ %0.6fs',tmp_t2)); end;
 end;%if (flag_compute_I_value);
 tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% X_wSM___: %0.6f',tmp_t)); end;
+parameter = parameter_timing_update(parameter,'ampmh_X_wSM___8: X_wSM___',tmp_t,1,nop);
 end;%if (flag_optimize_over_gamma_z == 1);
 %%%%%%%%;
 end;%if (n_S_sub>0);

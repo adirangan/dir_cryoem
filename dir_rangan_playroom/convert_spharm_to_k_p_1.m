@@ -37,11 +37,14 @@ convert_spharm_to_k_p_1( ...
 % ;
 % a_k_all_ = complex array of a-values for each point. ;
 
+n_lm_ = (l_max_+1).^2;
+if (verbose); disp(sprintf(' %% [entering convert_spharm_to_k_p_1] n_k_all %d, n_lm_sum %d',n_k_all,sum(n_lm_))); end;
 a_k_all_ = zeros(n_k_all,1);
 ix=0;
 for nk_p_r=0:n_k_p_r-1;
 k_p_r = k_p_r_(1+nk_p_r);
 n_k_all_csum = n_k_all_csum_(1+nk_p_r);
+if (verbose>1); disp(sprintf(' %% nk_p_r %d/%d k_p_r %0.2f, n_k_all_csum %d --> %0.2f%%',nk_p_r,n_k_p_r,k_p_r,n_k_all_csum,n_k_all_csum/n_k_all)); end;
 if (nk_p_r<n_k_p_r-1); n_sub = n_k_all_csum_(1+nk_p_r+1) - n_k_all_csum_(1+nk_p_r); else n_sub = n_k_all - n_k_all_csum ; end;
 index_sub_ = n_k_all_csum + (0:n_sub-1);
 k_p_r_sub_ = k_p_r_all_(1+index_sub_); 
@@ -49,20 +52,21 @@ assert(sum(k_p_r_sub_==k_p_r)==n_sub);
 k_p_azimu_b_sub_ = k_p_azimu_b_all_(1+index_sub_);
 k_p_polar_a_sub_ = k_p_polar_a_all_(1+index_sub_);
 weight_k_sub_ = weight_shell_k_(1+index_sub_)/k_p_r^2;
-l_max_max = l_max_(1+nk_p_r);
-n_l_max = l_max_max+1; flag_flip=0;
+l_max = l_max_(1+nk_p_r);
+n_l_max = l_max+1; flag_flip=0;
 [Ylm_sub__] = get_Ylm__(n_l_max,0:n_l_max,n_sub,k_p_azimu_b_sub_,k_p_polar_a_sub_,flag_flip);
 a_k_sub_ = zeros(1,n_sub);
-for l_val=0:l_max_max;
+for l_val=0:l_max;
 n_m = 2*l_val+1;
 for nm=0:n_m-1;
 m_val = nm - l_val;
 a_k_sub_ = a_k_sub_ + a_k_Y_(1+ix)*Ylm_sub__{1+l_val}(1+nm,:);
 ix = ix+1;
 end;%for nm=0:n_m-1;
-end;%for l_val=0:l_max_max;
+end;%for l_val=0:l_max;
 a_k_all_(1+index_sub_) = a_k_sub_;
 end;%for nk_p_r=0:n_k_p_r-1;
+if (verbose); disp(sprintf(' %% [finished convert_spharm_to_k_p_1] n_k_all %d, n_lm_sum %d',n_k_all,sum(n_lm_))); end;
 
 
 

@@ -7,6 +7,7 @@ function ...
 ,delta_best_ ...
 ,a_k_Y_best_ ...
 ,b_k_Y_best_ ...
+,X_base_mmb___ ...
 ] = ...
 register_spharm_to_spharm_wigner_1( ...
  n_k_p_r ...
@@ -60,6 +61,7 @@ sub_verbose = 0;
 delta_bake_ = [0;0;0];
 euler_bake_ = [0;0;0];
 R_bake_ = euler_to_R(euler_bake_);
+flag_X_base_mmb___ = (nargout>=8);
 
 if nargin<8;
 %%%%%%%%;
@@ -377,7 +379,7 @@ if flag_refine;
 if (verbose); disp(sprintf(' %% Warning, later on we assume no refinement')); end;
 % Then define finer samples for quadrature: ;
 n_iteration = 8; dt = 0.01;
-for niteration=1:n_iteration;
+for niteration=0:n_iteration-1;
 [ ...
  tmp_gradient_ ...
 ,E3_quad ...
@@ -397,7 +399,7 @@ transf_3d_gradient( ...
 tmp_gradient_ = reshape(tmp_gradient_(1:3*n_delta_node),3,n_delta_node);
 if (verbose>1); disp(sprintf(' %% niteration %d/%d E3_quad: %0.16f',niteration,n_iteration,E3_quad)); end;
 delta_node_ = delta_node_ + dt*tmp_gradient_;
-end;%for niteration=1:n_iteration;
+end;%for niteration=0:n_iteration-1;
 end;%if flag_refine;
 if (verbose>1); disp(sprintf(' %% using n_delta_node %d with E3_quad: %0.16f',n_delta_node,E3_quad)); end;
 % Then define moderate sampling for displacement-grid: ;
@@ -458,14 +460,14 @@ weight_Y_col_ = zeros(n_lm_sum,1);
 weight_Y_val_ = zeros(n_lm_sum,1);
 e_k_Y_ = zeros(n_lm_sum,1);
 na=0;
-for nk_p_r=1:n_k_p_r;
-tmp_ij_ = na + (1:n_lm_(nk_p_r));
+for nk_p_r=0:n_k_p_r-1;
+tmp_ij_ = na + (1:n_lm_(1+nk_p_r));
 weight_Y_row_(tmp_ij_) = tmp_ij_;
 weight_Y_col_(tmp_ij_) = tmp_ij_;
-weight_Y_val_(tmp_ij_) = weight_3d_k_p_r_(nk_p_r);
+weight_Y_val_(tmp_ij_) = weight_3d_k_p_r_(1+nk_p_r);
 e_k_Y_(1+na) = 1;
-na=na+n_lm_(nk_p_r);
-end;%for nk_p_r=1:n_k_p_r;
+na=na+n_lm_(1+nk_p_r);
+end;%for nk_p_r=0:n_k_p_r-1;
 weight_Y_ = sparse(weight_Y_row_,weight_Y_col_,weight_Y_val_,n_lm_sum,n_lm_sum);
 e_avg = ctranspose(e_k_Y_)*(weight_Y_*e_k_Y_);
 u_k_Y_ = e_k_Y_./max(sqrt(e_avg),1e-12);
@@ -515,6 +517,7 @@ register_spharm_to_spharm_single_beta_2( ...
 ,[] ...
 ,[] ...
 );
+if flag_X_base_mmb___; X_base_mmb___(:,:,1+0) = X_base__; end;
 if (verbose>2); figure(1); clf; imagesc(real(X_base__)); colormap(colormap_beach()); axis image; title('X_base__','Interpreter','none'); end;
 [tmp_X_best,tmp_ij] = max(real(X_base__),[],'all','linear');
 [tmp_azimu_b_ij,tmp_gamma_z_ij] = ind2sub([n_m_max,n_m_max],tmp_ij);
@@ -528,8 +531,8 @@ delta_best_ = [0;0;0];
 end;%if (tmp_X_best>X_best);
 %%%%%%%%;
 if (verbose>1); disp(sprintf(' %% Now step through the polar_a_, translating b_k_Y_ by each of the delta_node_ if necessary')); end;
-for npolar_a=1:n_polar_a;
-polar_a = polar_a_(npolar_a);
+for npolar_a=0:n_polar_a-1;
+polar_a = polar_a_(1+npolar_a);
 if (mod(npolar_a,8)==0); if (verbose); disp(sprintf(' %% npolar_a %.3d/%.3d polar_a %+0.6f',npolar_a,n_polar_a,polar_a)); end; end;
 if (verbose>1); disp(sprintf(' %% first estimate X_base__ for delta_ = 0.')); end;
 [X_base__] = ...
@@ -551,6 +554,7 @@ register_spharm_to_spharm_single_beta_2( ...
 ,[] ...
 ,[] ...
 );
+if flag_X_base_mmb___; X_base_mmb___(:,:,1+npolar_a) = X_base__; end;
 [tmp_X_best,tmp_ij] = max(real(X_base__),[],'all','linear');
 [tmp_azimu_b_ij,tmp_gamma_z_ij] = ind2sub([n_m_max,n_m_max],tmp_ij);
 if (tmp_X_best>X_best);
@@ -565,16 +569,16 @@ if (delta_p_r_max>0);
 if (verbose>1); disp(sprintf(' %% now estimate X_lsqi___ across translations.')); end;
 b_k_Y_node__ = zeros(n_lm_sum,n_delta_node);
 %%%%%%%%;
-for ndelta_node_p_r=1:n_delta_node_p_r;
-delta_node_p_r = delta_node_p_r_(ndelta_node_p_r);
+for ndelta_node_p_r=0:n_delta_node_p_r-1;
+delta_node_p_r = delta_node_p_r_(1+ndelta_node_p_r);
 if (verbose>1); disp(sprintf(' %% ndelta_node_p_r %d/%d delta_node_p_r %0.6f',ndelta_node_p_r,n_delta_node_p_r,delta_node_p_r)); end;
 tmp_t = tic; Wt___ = expm_dwignertdkd__(dWtdkd__,n_k_p_r,k_p_r_,l_max_,delta_node_p_r);
 tmp_t = toc(tmp_t); sum_t2 = sum_t2 + tmp_t;
 tmp_t = tic; Wt_ = wignert_ODE_0(dWtdkd__,Wt___,n_k_p_r,k_p_r_,l_max_,delta_node_p_r);
 tmp_t = toc(tmp_t); sum_t3 = sum_t3 + tmp_t;
-for ndelta_node=1+n_delta_node_csum_(ndelta_node_p_r):n_delta_node_csum_(1+ndelta_node_p_r);
-if (mod(ndelta_node,1024)==0); if (verbose); disp(sprintf(' %% ndelta_node %d/%d (%0.6f)',ndelta_node,n_delta_node,fnorm(delta_node_(:,ndelta_node)))); end; end;
-delta_z_c_ = transpose(delta_node_(:,ndelta_node));
+for ndelta_node=n_delta_node_csum_(1+ndelta_node_p_r):n_delta_node_csum_(1+1+ndelta_node_p_r)-1;
+if (mod(ndelta_node,1024)==0); if (verbose); disp(sprintf(' %% ndelta_node %d/%d (%0.6f)',ndelta_node,n_delta_node,fnorm(delta_node_(:,1+ndelta_node)))); end; end;
+delta_z_c_ = transpose(delta_node_(:,1+ndelta_node));
 delta_z_p_r = sqrt(delta_z_c_(1+0).^2 + delta_z_c_(1+1).^2 + delta_z_c_(1+2).^2);
 delta_z_p_01 = sqrt(delta_z_c_(1+0).^2 + delta_z_c_(1+1).^2);
 delta_z_p_azimu_b = atan2(delta_z_c_(1+1),delta_z_c_(1+0));
@@ -594,14 +598,14 @@ tmp_Y_form_ = Wt_*tmp_Y_form_;
 tmp_Y_form_ = rotate_spharm_to_spharm_2(0,W_beta_pos__,n_k_p_r,k_p_r_,l_max_,tmp_Y_form_,delta_z_p_euler_pos_);
 b_k_Y_form_ = tmp_Y_form_;
 tmp_t = toc(tmp_t); sum_t5 = sum_t5 + tmp_t; 
-b_k_Y_node__(:,ndelta_node) = b_k_Y_form_;
-end;%for ndelta_node=1+n_delta_node_csum_(ndelta_node_p_r):n_delta_node_csum_(1+ndelta_node_p_r);
-end;%for ndelta_node_p_r=1:n_delta_node_p_r;
+b_k_Y_node__(:,1+ndelta_node) = b_k_Y_form_;
+end;%for ndelta_node=n_delta_node_csum_(1+ndelta_node_p_r):n_delta_node_csum_(1+1+ndelta_node_p_r)-1;
+end;%for ndelta_node_p_r=0:n_delta_node_p_r-1;
 %%%%%%%%;
 if (verbose>1); disp(sprintf(' %% timing: sum_t1 %0.2fs sum_t2 %0.2fs sum_t3 %0.2fs sum_t4 %0.2fs sum_t5 %0.2fs',sum_t1,sum_t2,sum_t3,sum_t4,sum_t5)); end;
 %%%%%%%%;
 X_node___ = zeros(n_m_max,n_m_max,n_delta_node);
-for ndelta_node=1:n_delta_node;
+for ndelta_node=0:n_delta_node-1;
 if (mod(ndelta_node,1024)==0); if (verbose); disp(sprintf(' %% ndelta_node %d/%d',ndelta_node,n_delta_node)); end; end;
 [X_node__] = ...
 register_spharm_to_spharm_single_beta_2( ...
@@ -611,7 +615,7 @@ register_spharm_to_spharm_single_beta_2( ...
 ,weight_3d_k_p_r_ ...
 ,l_max_ ...
 ,a_k_Y_norm_ ...
-,b_k_Y_node__(:,ndelta_node) ...
+,b_k_Y_node__(:,1+ndelta_node) ...
 ,polar_a ...
 ,0 ...
 ,[] ...
@@ -622,8 +626,8 @@ register_spharm_to_spharm_single_beta_2( ...
 ,[] ...
 ,[] ...
 );
-X_node___(:,:,ndelta_node) = X_node__;
-end;%for ndelta_node=1:n_delta_node;
+X_node___(:,:,1+ndelta_node) = X_node__;
+end;%for ndelta_node=0:n_delta_node-1;
 [tmp_X_best,tmp_ij] = max(real(X_node___),[],'all','linear');
 [tmp_azimu_b_ij,tmp_gamma_z_ij,tmp_ndelta_node_ij] = ind2sub([n_m_max,n_m_max,n_delta_node],tmp_ij);
 if (tmp_X_best>X_best);
@@ -646,7 +650,7 @@ delta_best_ = delta_all_(:,tmp_ndelta_all_ij);
 end;%if (tmp_X_best>X_best);
 end;%if (delta_p_r_max>0);
 %%%%%%%%;
-end;%for npolar_a=1:n_polar_a;
+end;%for npolar_a=0:n_polar_a-1;
 %%%%%%%%;
 if (verbose>1); disp(sprintf(' %% timing: sum_t1 %0.2fs sum_t2 %0.2fs sum_t3 %0.2fs sum_t4 %0.2fs sum_t5 %0.2fs',sum_t1,sum_t2,sum_t3,sum_t4,sum_t5)); end;
 
@@ -692,4 +696,6 @@ X_calc = ctranspose(a_k_Y_best_)*(weight_Y_*b_k_Y_best_);
 if (verbose); disp(sprintf(' %% X_calc %0.6f vs X_best %0.6f, error %0.16f',real(X_calc),real(X_best),fnorm(X_calc-X_best)/fnorm(X_calc))); end;
 R_best_ = euler_to_R(euler_best_);
 R_comb_ = R_best_*R_bake_;
+if (verbose); disp(sprintf(' %% R_bake_: ')); disp(sprintf(' %% %+0.6f %+0.6f %+0.6f\n',R_bake_)); end;
+if (verbose); disp(sprintf(' %% R_best_: ')); disp(sprintf(' %% %+0.6f %+0.6f %+0.6f\n',R_best_)); end;
 if (verbose); disp(sprintf(' %% R_comb_: ')); disp(sprintf(' %% %+0.6f %+0.6f %+0.6f\n',R_comb_)); end;

@@ -12,9 +12,17 @@ ampmh_UX_M_k_p_wnM___0( ...
 ,image_delta_x_ ...
 ,image_delta_y_ ...
 );
+
+na=0;
+if (nargin<1+na); FTK=[]; end; na=na+1;
+if (nargin<1+na); n_w_=[]; end; na=na+1;
+if (nargin<1+na); pm_n_UX_rank=[]; end; na=na+1;
+if (nargin<1+na); n_M=[]; end; na=na+1;
+if (nargin<1+na); svd_VUXM_lwnM____=[]; end; na=na+1;
+if (nargin<1+na); image_delta_x_=[]; end; na=na+1;
+if (nargin<1+na); image_delta_y_=[]; end; na=na+1;
+
 n_w_max = max(n_w_);
-if (nargin< 6); image_delta_x_ = []; end;
-if (nargin< 7); image_delta_y_ = []; end;
 if isempty(image_delta_x_); image_delta_x_ = zeros(n_M,1); end;
 if isempty(image_delta_y_); image_delta_y_ = zeros(n_M,1); end;
 %%%%%%%%;
