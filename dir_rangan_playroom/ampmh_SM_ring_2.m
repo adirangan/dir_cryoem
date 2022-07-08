@@ -65,6 +65,8 @@ end;%if flag_euler_polar_a_restrict==0; %<-- any equatorial polar_a allowed. ;
 %%%%%%%%;
 if flag_euler_polar_a_restrict==1; %<-- only equatorial polar_a allowed. ;
 
+if ~isfield(parameter,'sample_sphere_k_eq_d'); parameter.sample_sphere_k_eq_d = 1/(2*pi); end; %<-- parameter_bookmark. ;
+sample_sphere_k_eq_d = parameter.sample_sphere_k_eq_d;
 viewing_k_c_0_ = cos(viewing_azimu_b_all_).*sin(viewing_polar_a_all_);
 viewing_k_c_1_ = sin(viewing_azimu_b_all_).*sin(viewing_polar_a_all_);
 viewing_k_c_2_ = cos(viewing_polar_a_all_);

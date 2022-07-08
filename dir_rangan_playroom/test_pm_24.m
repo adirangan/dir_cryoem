@@ -99,7 +99,7 @@ test_pm_24( ...
 	    );
 %%%%%%%%;
 %%%%%%%%;
-for nx=0:8-1;
+for nx=1:8-1;
 global_parameter=struct('type','parameter');
 global_parameter.flag_center_image = 1;
 global_parameter.nM_start = 1024*nx;

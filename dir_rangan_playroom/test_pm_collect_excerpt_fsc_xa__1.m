@@ -120,7 +120,57 @@ corr_full_base_vs_crop_ampm_oxa___{1+noctile} = corr_full_base_vs_crop_ampm_xa__
 corr_crop_reco_vs_crop_ampm_oxa___{1+noctile} = corr_crop_reco_vs_crop_ampm_xa__;
 corr_full_reco_vs_crop_ampm_oxa___{1+noctile} = corr_full_reco_vs_crop_ampm_xa__;
 end;%for noctile=0:n_octile-1;
+%%%%%%%%;
+str_fname_align_a_k_Y_mat_ua__ = cell(n_octile,1);
+fsc_ampm_uka___ = cell(n_octile,1);
+corr_base_vs_ampm_ua__ = cell(n_octile,1);
+corr_reco_vs_ampm_ua__ = cell(n_octile,1);
+fsc_crop_ampm_ukxa____ = cell(n_octile,1);
+corr_crop_base_vs_crop_ampm_uxa___ = cell(n_octile,1);
+corr_full_base_vs_crop_ampm_uxa___ = cell(n_octile,1);
+corr_crop_reco_vs_crop_ampm_uxa___ = cell(n_octile,1);
+corr_full_reco_vs_crop_ampm_uxa___ = cell(n_octile,1);
+for noctile=0:n_octile-1;
+parameter = struct('type','parameter','Pixel_Spacing',Pixel_Spacing,'flag_recalc',0,'flag_verbose',1);
+dir_base = '/data/rangan/dir_cryoem';
+dir_pm = sprintf('%s/dir_ps1_x0to7_combine/dir_pmox%d',dir_base,noctile);
+dir_pm_bkp = sprintf('%s/dir_ps1_x0/dir_pm',dir_base);
+[ ...
+ parameter ...
+,str_fname_align_a_k_Y_mat_a_ ...
+,fsc_ampm_ka__ ...
+,corr_base_vs_ampm_a_ ...
+,corr_reco_vs_ampm_a_ ...
+,fsc_crop_ampm_kxa___ ...
+,corr_crop_base_vs_crop_ampm_xa__ ...
+,corr_full_base_vs_crop_ampm_xa__ ...
+,corr_crop_reco_vs_crop_ampm_xa__ ...
+,corr_full_reco_vs_crop_ampm_xa__ ...
+,~ ...
+,~ ...
+,~ ...
+] = ...
+test_pm_collect_excerpt_fsc_xa__1( ...
+ parameter ...
+,dir_pm ...
+,dir_pm_bkp ...
+);
+str_fname_align_a_k_Y_mat_ua__{1+noctile} = str_fname_align_a_k_Y_mat_a_;
+fsc_ampm_uka___{1+noctile} = fsc_ampm_ka__;
+corr_base_vs_ampm_ua__{1+noctile} = corr_base_vs_ampm_a_;
+corr_reco_vs_ampm_ua__{1+noctile} = corr_reco_vs_ampm_a_;
+fsc_crop_ampm_ukxa____{1+noctile} = fsc_crop_ampm_kxa___;
+corr_crop_base_vs_crop_ampm_uxa___{1+noctile} = corr_crop_base_vs_crop_ampm_xa__;
+corr_full_base_vs_crop_ampm_uxa___{1+noctile} = corr_full_base_vs_crop_ampm_xa__;
+corr_crop_reco_vs_crop_ampm_uxa___{1+noctile} = corr_crop_reco_vs_crop_ampm_xa__;
+corr_full_reco_vs_crop_ampm_uxa___{1+noctile} = corr_full_reco_vs_crop_ampm_xa__;
+end;%for noctile=0:n_octile-1;
+%%%%%%%%;
 
+%{
+  %%%%%%%%;
+  % does not work anymore because dir_ps1_x0to7/dir_pm_mat seems stale. ;
+  %%%%%%%%;
 flag_replot = 1;
 fname_fig = sprintf('%s/dir_ps1_x0to7_combine/dir_pm_jpg/test_pm_collect_excerpt_fsc_xa__1',dir_base);
 if ( flag_replot | ~exist(sprintf('%s.jpg',fname_fig),'file') );
@@ -233,6 +283,90 @@ end;%if ( flag_replot | ~exist(sprintf('%s.jpg',fname_fig),'file') );
 if ( exist(sprintf('%s.jpg',fname_fig),'file') );
 disp(sprintf(' %% %s found, not creating',fname_fig));
 end;%if ( exist(sprintf('%s.jpg',fname_fig),'file') );
+ %}
+
+flag_replot = 1;
+fname_fig_pre = sprintf('%s/dir_ps1_x0to7_combine/dir_pm_jpg/test_pm_collect_excerpt_fsc_xa__1_FIGB',dir_base);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig);
+fname_fig_eps = sprintf('%s.eps',fname_fig);
+if ( flag_replot | ~exist(fname_fig_jpg,'file') );
+disp(sprintf(' %% %s not found, creating',fname_fig));
+figure(1);clf;figsml;
+c_80s__ = colormap_80s; n_c_80s = size(c_80s__,1);
+linewidth_use = 3;
+markersize_use = 12;
+fontsize_use = 12;
+ncrop = 40;
+%tmp_g = @(s) 0 ...
+%  | ~isempty(strfind(s,'X_2d_xcor_d0_a1t0122p20r')) ...
+%  | ~isempty(strfind(s,'X_2d_xcor_d0_a1t0122p25r')) ...
+%  | ~isempty(strfind(s,'X_2d_xcor_d0_a1t0122p30r')) ...
+%  ;
+tmp_g = @(s) 0 ...
+  | ~isempty(strfind(s,'X_2d_xcor_d0_a1t0122p20r0')) ...
+  | ~isempty(strfind(s,'X_2d_xcor_d0_a1t0122p20r1')) ...
+  ;
+%%%%%%%%%%%%%%%%;
+subplot(1,1,1);
+set(gca,'FontSize',fontsize_use);
+hold on;
+%%%%%%%%;
+tmp_n = 0; tmp_c_avg = 0;
+tmp_c__ = [];
+for noctile=0:n_octile-1;
+if (noctile>0);
+tmp_index_ = efind(cellfun(tmp_g,str_fname_align_a_k_Y_mat_ya__{1+noctile})); n_l = numel(tmp_index_);
+tmp_c_ = zeros(n_l,1);
+for nl=0:n_l-1;
+na = tmp_index_(1+nl);
+tmp_c_(1+nl) = corr_full_reco_vs_crop_ampm_yxa___{1+noctile}(1+ncrop,1+na);
+end;%for nl=0:n_l-1;
+tmp_c = median(tmp_c_);
+for nl=0:n_l-1;
+plot(0*n_octile,tmp_c,'ok','MarkerFaceColor','m','MarkerSize',markersize_use);
+end;%for nl=0:n_l-1;
+tmp_c__ = [tmp_c__;tmp_c_];
+end;%if (noctile>0);
+end;% for noctile=0:n_octile-1;
+tmp_c_avg = mean(tmp_c__);
+plot(0:n_octile+0,tmp_c_avg*ones(1+n_octile,1),'m-','LineWidth',linewidth_use);
+%%%%%%%%;
+for noctile=0:n_octile-1;
+%%%%%%%%;
+tmp_index_ = efind(cellfun(tmp_g,str_fname_align_a_k_Y_mat_oa__{1+noctile})); n_l = numel(tmp_index_);
+tmp_c_ = zeros(n_l,1);
+for nl=0:n_l-1;
+na = tmp_index_(1+nl);
+tmp_c_(1+nl) = corr_full_reco_vs_crop_ampm_oxa___{1+noctile}(1+ncrop,1+na);
+end;%for nl=0:n_l-1;
+tmp_c = max(tmp_c_); if (noctile==n_octile-1); tmp_c = min(tmp_c_); end;
+plot(1+noctile-0.0625,tmp_c,'ok','MarkerFaceColor',0.95*[1.0,0.65,1.0],'MarkerSize',markersize_use);
+%%%%;
+tmp_index_ = efind(cellfun(tmp_g,str_fname_align_a_k_Y_mat_ua__{1+noctile})); n_l = numel(tmp_index_);
+tmp_c_ = zeros(n_l,1);
+for nl=0:n_l-1;
+na = tmp_index_(1+nl);
+tmp_c_(1+nl) = corr_full_reco_vs_crop_ampm_uxa___{1+noctile}(1+ncrop,1+na);
+end;%for nl=0:n_l-1;
+tmp_c = max(tmp_c_); if (noctile==n_octile-1); tmp_c = min(tmp_c_); end;
+plot(1+noctile+0.0625,tmp_c,'ok','MarkerFaceColor',0.65*[1.0,0.05,1.0],'MarkerSize',markersize_use);
+%%%%%%%%;
+end;%for noctile=0:n_octile-1;
+hold off;
+%xlim([-1,n_octile+2]); set(gca,'XTick',0:n_octile+1,'XTickLabel',{'1K','1st','2nd','3rd','4th','5th','6th','7th','8th','8K'});
+xlim([-1,n_octile+1]); set(gca,'XTick',0:n_octile+0,'XTickLabel',{'1K','1st','2nd','3rd','4th','5th','6th','7th','8th'});
+ylim([0.55,0.75]); ylabel('correlation (masked)'); grid on;
+title(sprintf('corr_full_reco_vs_crop_ampm_?xa___ ncrop %d',ncrop),'Interpreter','none');
+%%%%%%%%%%%%%%%%;
+sgtitle(fname_fig_pre,'Interpreter','none');
+disp(sprintf(' %% writing %s',fname_fig));
+print('-djpeg',fname_fig_jpg);
+print('-depsc',fname_fig_eps);
+%close(gcf);
+end;%if ( flag_replot | ~exist(fname_fig_jpg,'file') );
+if ( exist(fname_fig_jpg,'file') );
+disp(sprintf(' %% %s found, not creating',fname_fig));
+end;%if ( exist(fname_fig_jpg,'file') );
 
 disp('returning');return;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;

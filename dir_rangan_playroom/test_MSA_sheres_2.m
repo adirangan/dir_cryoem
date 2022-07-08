@@ -2,6 +2,7 @@
 % setting up simple multi-slice-alignment for testing sheres-style qbp. ;
 % assume a 2d-volume x, comprising a single ring. ;
 % Assume that x is restricted to just 2*Q+1 bessel-coefficients. ;
+% Allowing for a nonuniform viewing-angle distribution. ;
 %%%%%%%%;
 
 %clear;
@@ -14,6 +15,7 @@ if (strcmp(platform,'eval1')); string_root = 'home'; end;
 if (strcmp(platform,'rusty')); string_root = 'mnt/home'; end;
 %%%%%%%%;
 
+flag_recalc = 0;
 flag_verbose = 1;
 flag_disp = 0*flag_verbose;
 flag_replot = 1;
@@ -23,17 +25,21 @@ q_max = 8; str_q_max = sprintf('q%d',q_max);
 n_M_factor = 1/32; n_gamma = 1024; n_M = ceil(n_gamma*n_M_factor);
 str_n_M = sprintf('M%.4d',round(n_M));
 n_sigma = 11; str_n_sigma = sprintf('s%.2d',n_sigma);
-n_lambda = 4+1; str_n_lambda = sprintf('l%.2d',n_lambda);
+%n_lambda = 4+1; str_n_lambda = sprintf('l%.2d',n_lambda);
+n_lambda = 1; str_n_lambda = sprintf('');
+n_beta = 6+1; str_n_beta = sprintf('b%.2d',n_beta);
 n_iteration = 128*1; str_n_iteration = sprintf('i%.3d',n_iteration);
 n_rseed = 512; str_n_rseed = sprintf('r%.2d',n_rseed);
-str_xfix = sprintf('%s%s%s%s%s%s',str_q_max,str_n_M,str_n_sigma,str_n_lambda,str_n_iteration,str_n_rseed);
+str_xfix = sprintf('%s%s%s%s%s%s',str_q_max,str_n_M,str_n_sigma,str_n_beta,str_n_iteration,str_n_rseed);
 %%%%%%%%;
 q_ = transpose(-q_max:1:+q_max);
 n_q = numel(q_);
 gamma_ = linspace(0,2*pi,1+n_gamma);
 gamma_ = reshape(gamma_(1:n_gamma),[n_gamma,1]);
+dgamma = mean(diff(gamma_));
 sigma_ = transpose(linspace(0,1,n_sigma));
-lambda_ = transpose(linspace(0,1,n_lambda));
+lambda_ = transpose(linspace(0,1,n_lambda)); if n_lambda==1; lambda_ = [0]; end;
+beta_ = transpose(linspace(0,3,n_beta)); if n_beta==1; beta_ = [0]; end;
 n_w = n_gamma;
 F_wq__ = exp(+i*gamma_*transpose(q_));
 F_inv_qw__ = ctranspose(F_wq__)/n_gamma;
@@ -43,20 +49,25 @@ fname_pre = sprintf('./dir_pm_mat/test_MSA_sheres_%s',str_xfix);
 [flag_skip,fname_mat] = open_fname_tmp(fname_pre);
 fname_tmp_mat = sprintf('%s_tmp.mat',fname_pre);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
-if ~flag_skip;
+if flag_recalc | ~flag_skip;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 rseed_ = 0:n_rseed-1;
-Error_sher_l2_ilsr____ = zeros(n_iteration,n_lambda,n_sigma,n_rseed);
-Error_zero_l2_ilsr____ = zeros(n_iteration,n_lambda,n_sigma,n_rseed);
-Error_emax_l2_ilsr____ = zeros(n_iteration,n_lambda,n_sigma,n_rseed);
-Error_alte_l2_ilsr____ = zeros(n_iteration,n_lambda,n_sigma,n_rseed);
-Error_sher_k1_ilsr____ = zeros(n_iteration,n_lambda,n_sigma,n_rseed);
-Error_zero_k1_ilsr____ = zeros(n_iteration,n_lambda,n_sigma,n_rseed);
-Error_emax_k1_ilsr____ = zeros(n_iteration,n_lambda,n_sigma,n_rseed);
-Error_alte_k1_ilsr____ = zeros(n_iteration,n_lambda,n_sigma,n_rseed);
+Error_sher_l2_ilbsr_____ = zeros(n_iteration,n_lambda,n_beta,n_sigma,n_rseed);
+Error_zero_l2_ilbsr_____ = zeros(n_iteration,n_lambda,n_beta,n_sigma,n_rseed);
+Error_emax_l2_ilbsr_____ = zeros(n_iteration,n_lambda,n_beta,n_sigma,n_rseed);
+Error_alte_l2_ilbsr_____ = zeros(n_iteration,n_lambda,n_beta,n_sigma,n_rseed);
+Error_sher_k1_ilbsr_____ = zeros(n_iteration,n_lambda,n_beta,n_sigma,n_rseed);
+Error_zero_k1_ilbsr_____ = zeros(n_iteration,n_lambda,n_beta,n_sigma,n_rseed);
+Error_emax_k1_ilbsr_____ = zeros(n_iteration,n_lambda,n_beta,n_sigma,n_rseed);
+Error_alte_k1_ilbsr_____ = zeros(n_iteration,n_lambda,n_beta,n_sigma,n_rseed);
 A_qr__ = zeros(n_q,n_rseed);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 for nrseed=0:n_rseed-1;
+for nbeta=0:n_beta-1;
+beta = beta_(1+nbeta);
+I0_val = besseli(0,beta);
+p_den_ = @(gamma) exp(beta*cos(gamma))/I0_val/(2*pi);
+p_cdf_ = cumsum(p_den_(gamma_)*dgamma);
 for nlambda=0:n_lambda-1;
 for nsigma=0:n_sigma-1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
@@ -70,7 +81,8 @@ A_qr__(:,1+nrseed) = A_q_;
 A_w_ = F_wq__*A_q_;
 %%%%;
 rng(rseed);rseed=rseed+1;
-gamma_true_M_ = 2*pi*rand(n_M,1);
+%gamma_true_M_ = 2*pi*rand(n_M,1); %<-- uniform distribution. ;
+gamma_true_M_ = interp1(p_cdf_,gamma_,rand(n_M,1)); %<-- distribution exp(beta*cos(theta))/I0(beta)/(2*pi). ;
 tmp_index_ = knnsearch(gamma_,gamma_true_M_,'K',1)-1;
 rng(rseed);rseed=rseed+1;
 M_M_ = A_w_(1+tmp_index_) + sigma_true*(randn(n_M,1) + i*randn(n_M,1));
@@ -246,20 +258,20 @@ title('log10(Error_k1)','Interpreter','none');
 xlim([1,n_iteration]);
 grid on;
 %%%%;
-sgtitle(sprintf('rseed %d lambda %0.2f sigma %0.2f',rseed,lambda,sigma),'Interpreter','none');
+sgtitle(sprintf('rseed %d lambda %0.2f beta %0.2f sigma %0.2f',rseed,lambda,beta,sigma),'Interpreter','none');
 drawnow();
 end;%if flag_disp>0;
 end;%if (niteration==n_iteration-1) | (mod(niteration,32)==0);
 end;%for niteration=0:n_iteration-1;
 %%%%;
-Error_sher_l2_ilsr____(:,1+nlambda,1+nsigma,1+nrseed) = Error_sher_l2_i_;
-Error_zero_l2_ilsr____(:,1+nlambda,1+nsigma,1+nrseed) = Error_zero_l2_i_;
-Error_emax_l2_ilsr____(:,1+nlambda,1+nsigma,1+nrseed) = Error_emax_l2_i_;
-Error_alte_l2_ilsr____(:,1+nlambda,1+nsigma,1+nrseed) = Error_alte_l2_i_;
-Error_sher_k1_ilsr____(:,1+nlambda,1+nsigma,1+nrseed) = Error_sher_k1_i_;
-Error_zero_k1_ilsr____(:,1+nlambda,1+nsigma,1+nrseed) = Error_zero_k1_i_;
-Error_emax_k1_ilsr____(:,1+nlambda,1+nsigma,1+nrseed) = Error_emax_k1_i_;
-Error_alte_k1_ilsr____(:,1+nlambda,1+nsigma,1+nrseed) = Error_alte_k1_i_;
+Error_sher_l2_ilbsr_____(:,1+nlambda,1+nbeta,1+nsigma,1+nrseed) = Error_sher_l2_i_;
+Error_zero_l2_ilbsr_____(:,1+nlambda,1+nbeta,1+nsigma,1+nrseed) = Error_zero_l2_i_;
+Error_emax_l2_ilbsr_____(:,1+nlambda,1+nbeta,1+nsigma,1+nrseed) = Error_emax_l2_i_;
+Error_alte_l2_ilbsr_____(:,1+nlambda,1+nbeta,1+nsigma,1+nrseed) = Error_alte_l2_i_;
+Error_sher_k1_ilbsr_____(:,1+nlambda,1+nbeta,1+nsigma,1+nrseed) = Error_sher_k1_i_;
+Error_zero_k1_ilbsr_____(:,1+nlambda,1+nbeta,1+nsigma,1+nrseed) = Error_zero_k1_i_;
+Error_emax_k1_ilbsr_____(:,1+nlambda,1+nbeta,1+nsigma,1+nrseed) = Error_emax_k1_i_;
+Error_alte_k1_ilbsr_____(:,1+nlambda,1+nbeta,1+nsigma,1+nrseed) = Error_alte_k1_i_;
 %%%%;
 if flag_disp>0;
 close(gcf);
@@ -267,6 +279,7 @@ end;%if flag_disp>0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 end;%for nsigma=0:n_sigma-1;
 end;%for nlambda=0:n_lambda-1;
+end;%for nbeta=0:n_beta-1;
 %%%%%%%%;
 % temporary save. ;
 %%%%%%%%;
@@ -276,18 +289,19 @@ save(fname_tmp_mat ...
      ,'n_M' ...
      ,'n_sigma' ...
      ,'n_lambda' ...
+     ,'n_beta' ...
      ,'n_iteration' ...
      ,'n_rseed' ...
      ,'str_xfix' ...
      ,'A_qr__' ...
-     ,'Error_sher_l2_ilsr____' ...
-     ,'Error_zero_l2_ilsr____' ...
-     ,'Error_emax_l2_ilsr____' ...
-     ,'Error_alte_l2_ilsr____' ...
-     ,'Error_sher_k1_ilsr____' ...
-     ,'Error_zero_k1_ilsr____' ...
-     ,'Error_emax_k1_ilsr____' ...
-     ,'Error_alte_k1_ilsr____' ...
+     ,'Error_sher_l2_ilbsr_____' ...
+     ,'Error_zero_l2_ilbsr_____' ...
+     ,'Error_emax_l2_ilbsr_____' ...
+     ,'Error_alte_l2_ilbsr_____' ...
+     ,'Error_sher_k1_ilbsr_____' ...
+     ,'Error_zero_k1_ilbsr_____' ...
+     ,'Error_emax_k1_ilbsr_____' ...
+     ,'Error_alte_k1_ilbsr_____' ...
      );
 end;%for nrseed=0:n_rseed-1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
@@ -296,22 +310,23 @@ save(fname_mat ...
      ,'n_M' ...
      ,'n_sigma' ...
      ,'n_lambda' ...
+     ,'n_beta' ...
      ,'n_iteration' ...
      ,'n_rseed' ...
      ,'str_xfix' ...
      ,'A_qr__' ...
-     ,'Error_sher_l2_ilsr____' ...
-     ,'Error_zero_l2_ilsr____' ...
-     ,'Error_emax_l2_ilsr____' ...
-     ,'Error_alte_l2_ilsr____' ...
-     ,'Error_sher_k1_ilsr____' ...
-     ,'Error_zero_k1_ilsr____' ...
-     ,'Error_emax_k1_ilsr____' ...
-     ,'Error_alte_k1_ilsr____' ...
+     ,'Error_sher_l2_ilbsr_____' ...
+     ,'Error_zero_l2_ilbsr_____' ...
+     ,'Error_emax_l2_ilbsr_____' ...
+     ,'Error_alte_l2_ilbsr_____' ...
+     ,'Error_sher_k1_ilbsr_____' ...
+     ,'Error_zero_k1_ilbsr_____' ...
+     ,'Error_emax_k1_ilbsr_____' ...
+     ,'Error_alte_k1_ilbsr_____' ...
      );
 close_fname_tmp(fname_pre);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
-end;%if ~flag_skip;
+end;%if flag_recalc | ~flag_skip;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
@@ -319,156 +334,49 @@ if  exist(fname_mat,'file');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 load(fname_mat);
 
-%{
-fname_fig = sprintf('./dir_pm_jpg/test_MSA_sheres_%s_FIGA',str_xfix);
-if ( flag_replot | ~exist(sprintf('%s.jpg',fname_fig)) );
-figure(1+nf);nf=nf+1;clf;figbig;
-p_row = 2; p_col = 3;
-c_80s__ = colormap_80s; n_c_80s = size(c_80s__,1);
-%%%%%%%%;
-for nlambda=0:n_lambda-1;
-for nsigma=0:n_sigma-1;
-np=0;
-nc_80s = max(0,min(n_c_80s-1,floor(n_c_80s*nlambda/n_lambda)));
-%%%%%%%%;
-Error_sher_l2_r_ = squeeze(Error_sher_l2_ilsr____(end,1+nlambda,1+nsigma,:));
-Error_zero_l2_r_ = squeeze(Error_zero_l2_ilsr____(end,1+nlambda,1+nsigma,:));
-Error_emax_l2_r_ = squeeze(Error_emax_l2_ilsr____(end,1+nlambda,1+nsigma,:));
-Error_alte_l2_r_ = squeeze(Error_alte_l2_ilsr____(end,1+nlambda,1+nsigma,:));
-Error_sher_k1_r_ = squeeze(Error_sher_k1_ilsr____(end,1+nlambda,1+nsigma,:));
-Error_zero_k1_r_ = squeeze(Error_zero_k1_ilsr____(end,1+nlambda,1+nsigma,:));
-Error_emax_k1_r_ = squeeze(Error_emax_k1_ilsr____(end,1+nlambda,1+nsigma,:));
-Error_alte_k1_r_ = squeeze(Error_alte_k1_ilsr____(end,1+nlambda,1+nsigma,:));
-emax_l2 = max(max(Error_sher_l2_r_),max(Error_alte_l2_r_));
-emax_k1 = max(max(Error_sher_k1_r_),max(Error_alte_k1_r_));
-Error_zero_l2_r_ = min(emax_l2-1e-12,Error_zero_l2_r_);
-Error_emax_l2_r_ = min(emax_l2-1e-12,Error_emax_l2_r_);
-Error_alte_l2_r_ = min(emax_l2-1e-12,Error_alte_l2_r_);
-Error_zero_k1_r_ = min(emax_k1-1e-12,Error_zero_k1_r_);
-Error_emax_k1_r_ = min(emax_k1-1e-12,Error_emax_k1_r_);
-Error_alte_k1_r_ = min(emax_k1-1e-12,Error_alte_k1_r_);
-%%%%;
-subplot(p_row,p_col,1+np);np=np+1; hold on;
-plot([0,emax_l2],[0,emax_l2],'k-',Error_sher_l2_r_,Error_zero_l2_r_,'ko','MarkerFaceColor',c_80s__(1+nc_80s,:));
-xlim([0,emax_l2]);ylim([0,emax_l2]);
-axis square; grid on;
-xlabel('Error_sher','Interpreter','none');
-ylabel('Error_zero','Interpreter','none');
-title('sher vs zero l2');
-%%%%;
-subplot(p_row,p_col,1+np);np=np+1; hold on;
-plot([0,emax_l2],[0,emax_l2],'k-',Error_sher_l2_r_,Error_emax_l2_r_,'ko','MarkerFaceColor',c_80s__(1+nc_80s,:));
-xlim([0,emax_l2]);ylim([0,emax_l2]);
-axis square; grid on;
-xlabel('Error_sher','Interpreter','none');
-ylabel('Error_emax','Interpreter','none');
-title('sher vs emax l2');
-%%%%;
-subplot(p_row,p_col,1+np);np=np+1; hold on;
-plot([0,emax_l2],[0,emax_l2],'k-',Error_sher_l2_r_,Error_alte_l2_r_,'ko','MarkerFaceColor',c_80s__(1+nc_80s,:));
-xlim([0,emax_l2]);ylim([0,emax_l2]);
-axis square; grid on;
-xlabel('Error_sher','Interpreter','none');
-ylabel('Error_alte','Interpreter','none');
-title('sher vs alte l2');
-%%%%;
-subplot(p_row,p_col,1+np);np=np+1; hold on;
-plot([0,emax_k1],[0,emax_k1],'k-',Error_sher_k1_r_,Error_zero_k1_r_,'ko','MarkerFaceColor',c_80s__(1+nc_80s,:));
-xlim([0,emax_k1]);ylim([0,emax_k1]);
-axis square; grid on;
-xlabel('Error_sher','Interpreter','none');
-ylabel('Error_zero','Interpreter','none');
-title('sher vs zero k1');
-%%%%;
-subplot(p_row,p_col,1+np);np=np+1; hold on;
-plot([0,emax_k1],[0,emax_k1],'k-',Error_sher_k1_r_,Error_emax_k1_r_,'ko','MarkerFaceColor',c_80s__(1+nc_80s,:));
-xlim([0,emax_k1]);ylim([0,emax_k1]);
-axis square; grid on;
-xlabel('Error_sher','Interpreter','none');
-ylabel('Error_emax','Interpreter','none');
-title('sher vs emax k1');
-%%%%;
-subplot(p_row,p_col,1+np);np=np+1; hold on;
-plot([0,emax_k1],[0,emax_k1],'k-',Error_sher_k1_r_,Error_alte_k1_r_,'ko','MarkerFaceColor',c_80s__(1+nc_80s,:));
-xlim([0,emax_k1]);ylim([0,emax_k1]);
-axis square; grid on;
-xlabel('Error_sher','Interpreter','none');
-ylabel('Error_alte','Interpreter','none');
-title('sher vs alte k1');
-%%%%%%%%;
-end;%for nsigma=0:n_sigma-1;
-end;%for nlambda=0:n_lambda-1;
-%%%%%%%%;
-sgtitle(fname_fig,'Interpreter','none');
-disp(sprintf(' %% writing %s',fname_fig));
-print('-depsc',sprintf('%s.eps',fname_fig));
-print('-djpeg',sprintf('%s.jpg',fname_fig));
-end;%if ( flag_replot | ~exist(sprintf('%s.jpg',fname_fig)) );
- %}
-
-%{ 
-fname_fig = sprintf('../dir_jpg/test_MSA_sheres_%s_FIGB',str_xfix);
-if ( flag_replot | ~exist(sprintf('%s.jpg',fname_fig)) );
-Error_sher_k1_ls__ = abs(squeeze(mean(Error_sher_k1_ilsr____(end,:,:,:),4)));
-Error_zero_k1_ls__ = abs(squeeze(mean(Error_zero_k1_ilsr____(end,:,:,:),4)));
-Error_emax_k1_ls__ = abs(squeeze(mean(Error_emax_k1_ilsr____(end,:,:,:),4)));
-Error_alte_k1_ls__ = abs(squeeze(mean(Error_alte_k1_ilsr____(end,:,:,:),4)));
-Elim_ = prctile(Error_emax_k1_ls__(:),[  0,100]);
-Elim_ = mean(Elim_) + 1.125*0.5*diff(Elim_)*[-1,+1];
-figure(1+nf);nf=nf+1;clf;set(gcf,'Position',1+[0,0,2*1024,512]);fig80s;
-p_row = 1; p_col = 3; np=0;
-for np=0:p_row*p_col-1;
-if np==0; tmp_Error_k1_ls__ = min(Error_sher_k1_ls__,Error_zero_k1_ls__); tmp_str = 'min(sher,zero)'; end;
-if np==1; tmp_Error_k1_ls__ = Error_emax_k1_ls__; tmp_str = 'emax'; end;
-if np==2; tmp_Error_k1_ls__ = Error_alte_k1_ls__; tmp_str = 'alte'; end;
-subplot(p_row,p_col,1+np);
-imagesc(tmp_Error_k1_ls__,Elim_);
-set(gca,'Ydir','normal');
-set(gca,'XTick',1:n_sigma,'XTickLabel',num2str(sigma_,2)); xtickangle(90);
-set(gca,'YTick',1:n_lambda,'YTickLabel',num2str(lambda_,3));
-set(gca,'TickLength',[0,0]);
-xlabel('sigma');
-ylabel('lambda');
-title(sprintf('Error_%s_k1_ls__',tmp_str),'Interpreter','none');
-colorbar;
-set(gca,'FontSize',16);
-end;%for np=0:p_row*p_col-1;
-%%%%;
-sgtitle(fname_fig,'Interpreter','none');
-disp(sprintf(' %% writing %s',fname_fig));
-print('-depsc',sprintf('%s.eps',fname_fig));
-print('-djpeg',sprintf('%s.jpg',fname_fig));
-end;%if ( flag_replot | ~exist(sprintf('%s.jpg',fname_fig)) );
- %}
-
 fname_fig = sprintf('../dir_jpg/test_MSA_sheres_%s_FIGC',str_xfix);
 if ( flag_replot | ~exist(sprintf('%s.jpg',fname_fig)) );
-Error_sher_k1_ls__ = abs(squeeze( test_MSA_sheres_error_mean_0(Error_sher_k1_ilsr____(end,:,:,:),4) )).^2 / (n_gamma);
-Error_zero_k1_ls__ = abs(squeeze( test_MSA_sheres_error_mean_0(Error_zero_k1_ilsr____(end,:,:,:),4) )).^2 / (n_gamma);
-Error_emax_k1_ls__ = abs(squeeze( test_MSA_sheres_error_mean_0(Error_emax_k1_ilsr____(end,:,:,:),4) )).^2 / (n_gamma);
-Error_alte_k1_ls__ = abs(squeeze( test_MSA_sheres_error_mean_0(Error_alte_k1_ilsr____(end,:,:,:),4) )).^2 / (n_gamma);
-%Elim_ = prctile(Error_emax_k1_ls__(:),[  0,100]);
+Error_sher_k1_bs__ = abs(squeeze( test_MSA_sheres_error_mean_0(Error_sher_k1_ilbsr_____(end,:,:,:,:),5) )).^2 / (n_gamma);
+Error_zero_k1_bs__ = abs(squeeze( test_MSA_sheres_error_mean_0(Error_zero_k1_ilbsr_____(end,:,:,:,:),5) )).^2 / (n_gamma);
+Error_emax_k1_bs__ = abs(squeeze( test_MSA_sheres_error_mean_0(Error_emax_k1_ilbsr_____(end,:,:,:,:),5) )).^2 / (n_gamma);
+Error_alte_k1_bs__ = abs(squeeze( test_MSA_sheres_error_mean_0(Error_alte_k1_ilbsr_____(end,:,:,:,:),5) )).^2 / (n_gamma);
+%Elim_ = prctile(Error_emax_k1_bs__(:),[  0,100]);
 %Elim_ = mean(Elim_) + 1.125*0.5*diff(Elim_)*[-1,+1];
 Elim_ = 1.0 + 1.0*[-1,+1];
 %Elim_ = 2.0 + 2.0*[-1,+1];
-figure(1+nf);nf=nf+1;clf;set(gcf,'Position',1+[0,0,2*1024,512]);figbeach;
-p_row = 1; p_col = 3; np=0;
-for np=0:p_row*p_col-1;
-if np==0; tmp_Error_k1_ls__ = min(Error_sher_k1_ls__,Error_zero_k1_ls__); tmp_str = 'min(sher,zero)'; end;
-if np==1; tmp_Error_k1_ls__ = Error_emax_k1_ls__; tmp_str = 'emax'; end;
-if np==2; tmp_Error_k1_ls__ = Error_alte_k1_ls__; tmp_str = 'alte'; end;
+figure(1+nf);nf=nf+1;clf;set(gcf,'Position',1+[0,0,3*768,512]);figbeach;
+p_row = 1; p_col = 4; np=0;
+for np=0:3-1;
+if np==0; tmp_Error_k1_bs__ = min(Error_sher_k1_bs__,Error_zero_k1_bs__); tmp_str = 'min(sher,zero)'; end;
+if np==1; tmp_Error_k1_bs__ = Error_emax_k1_bs__; tmp_str = 'emax'; end;
+if np==2; tmp_Error_k1_bs__ = Error_alte_k1_bs__; tmp_str = 'alte'; end;
 subplot(p_row,p_col,1+np);
-imagesc(tmp_Error_k1_ls__,Elim_);
+imagesc(tmp_Error_k1_bs__,Elim_);
 set(gca,'Ydir','normal');
 set(gca,'XTick',1:n_sigma,'XTickLabel',num2str(sigma_,2)); xtickangle(90);
-set(gca,'YTick',1:n_lambda,'YTickLabel',num2str(lambda_,3));
+%set(gca,'YTick',1:n_lambda,'YTickLabel',num2str(lambda_,3));
+set(gca,'YTick',1:n_beta,'YTickLabel',num2str(beta_,3));
 set(gca,'TickLength',[0,0]);
 xlabel('sigma');
-ylabel('lambda');
-title(sprintf('Error_%s_k1_ls__',tmp_str),'Interpreter','none');
+ylabel('beta');%ylabel('lambda');
+title(sprintf('Error_%s_k1_bs__',tmp_str),'Interpreter','none');
 colorbar;
 set(gca,'FontSize',16);
 end;%for np=0:p_row*p_col-1;
+subplot(p_row,p_col,p_row*p_col);
+set(gca,'FontSize',16);
+psi_ = linspace(-pi,+pi,1024+1);
+c_80s__ = colormap_80s; n_c_80s = size(c_80s__,1);
+linewidth_use = 3;
+hold on;
+for nbeta=0:n_beta-1;
+beta = beta_(1+nbeta);
+nc_80s = max(0,min(n_c_80s-1,floor(n_c_80s*nbeta/n_beta)));
+plot(psi_,exp(beta*cos(psi_))/besseli(0,beta),'-','LineWidth',linewidth_use,'Color',c_80s__(1+nc_80s,:));
+end;%for nbeta=0:n_beta-1;
+xlim([-pi,+pi]); xlabel('$\psi$','Interpreter','latex');
+ylim([-0.25,5.00]);
+title('Distribution');
 %%%%;
 sgtitle(fname_fig,'Interpreter','none');
 disp(sprintf(' %% writing %s',fname_fig));

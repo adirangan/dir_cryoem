@@ -3,14 +3,14 @@ function ...
  parameter ...
 ,ampm_ ...
 ] = ...
-ampm_fromdisk_2( ...
+ampm_fromdisk_3( ...
  parameter ...
 ,dir_pm ...
 ,str_filter ...
 ,dir_relion ...
 );
 
-str_thisfunction = 'ampm_fromdisk_2';
+str_thisfunction = 'ampm_fromdisk_3';
 
 na=0;
 if (nargin<1+na); parameter=[]; end; na=na+1;
@@ -22,10 +22,12 @@ if ~isfield(parameter,'flag_verbose'); parameter.flag_verbose=0; end;
 if ~isfield(parameter,'flag_center_image'); parameter.flag_center_image= ~isempty(strfind(dir_pm,'ps')) | ~isempty(strfind(dir_pm,'LSUbl17dep')); end;
 if ~isfield(parameter,'flag_store_S_k_p__'); parameter.flag_store_S_k_p__=1; end;
 if ~isfield(parameter,'flag_store_M_k_p__'); parameter.flag_store_M_k_p__=1; end;
+if ~isfield(parameter,'flag_exclude_ampm'); parameter.flag_exclude_ampm=0; end;
 flag_verbose = parameter.flag_verbose;
 flag_center_image = parameter.flag_center_image;
 flag_store_S_k_p__ = parameter.flag_store_S_k_p__;
 flag_store_M_k_p__ = parameter.flag_store_M_k_p__;
+flag_exclude_ampm = parameter.flag_exclude_ampm;
 if isempty(dir_pm); dir_pm = pwd; end;
 if isempty(str_filter); str_filter = 'X_2d_xcor_d0_a1t*'; end;
 if isempty(dir_relion); 
@@ -140,8 +142,64 @@ if isfield(ampm_,'N_k_p__'); ampm_.N_k_p__ = []; end;
 end;%if ~flag_store_M_k_p__;
 
 %%%%%%%%;
-% load final iterations of the various ampm runs. ;
+% load the various ampm_from_quad runs. ;
 %%%%%%%%;
+sher_from_quad_ = struct('type','sher_from_quad');
+nls_ = 0:5:50; n_nls = numel(nls_);
+sher_from_quad_.X_best_sher_alig_ = zeros(n_nls,1);
+sher_from_quad_.a_k_Y_sher_alig_yks__ = zeros(ampm_.n_lm_sum,n_nls);
+for nnls=0:n_nls-1;
+nls = nls_(1+nnls);
+tmp_fname_from_quad_mat = sprintf('%s/X_2d_Memp_d1_a_k_Y_nls%.2dt0100p20_from_quad.mat',dir_pm_mat,nls);
+if  exist(tmp_fname_from_quad_mat,'file');
+tmp_ = load(tmp_fname_from_quad_mat,'X_best_sher_alig','a_k_Y_sher_alig_yk_');
+sher_from_quad_.X_best_sher_alig_(1+nnls) = tmp_.X_best_sher_alig;
+sher_from_quad_.a_k_Y_sher_alig_yks__(:,1+nnls) = tmp_.a_k_Y_sher_alig_yk_;
+clear tmp_;
+end;%if  exist(tmp_fname_from_quad_mat,'file');
+end;%for nnls=0:n_nls-1;
+sher_from_quad_.nls_sher_ = nls_;
+%%%%%%%%;
+sher_from_quad_.X_best_sher_stab_alig_i_ = zeros(16,1);
+sher_from_quad_.X_best_0qbp_stab_alig_i_ = zeros(16,1);
+sher_from_quad_.X_best_zero_stab_alig_i_ = zeros(16,1);
+sher_from_quad_.a_k_Y_sher_stab_yk_ = [];
+sher_from_quad_.a_k_Y_zero_stab_yk_ = [];
+sher_from_quad_.a_k_Y_0qbp_stab_yk_ = [];
+tmp_fname_from_quad_stab = sprintf('%s/X_2d_Memp_d1_nls25t0100p20r0_from_quad_stab.mat',dir_pm_mat);
+if  exist(tmp_fname_from_quad_stab,'file');
+tmp_ = load(tmp_fname_from_quad_stab);
+sher_from_quad_.X_best_sher_stab_alig_i_ = tmp_.X_best_sher_alig_i_; 
+sher_from_quad_.X_best_zero_stab_alig_i_ = tmp_.X_best_zero_alig_i_; 
+sher_from_quad_.X_best_0qbp_stab_alig_i_ = tmp_.X_best_0qbp_alig_i_;
+sher_from_quad_.a_k_Y_sher_stab_yk_ = tmp_.a_k_Y_sher_yki__(:,end);
+sher_from_quad_.a_k_Y_zero_stab_yk_ = tmp_.a_k_Y_zero_yki__(:,end);
+sher_from_quad_.a_k_Y_0qbp_stab_yk_ = tmp_.a_k_Y_0qbp_yki__(:,end);
+clear tmp_;
+end;%if  exist(tmp_fname_from_quad_stab,'file');
+%%%%%%%%;
+tmp_fname_from_quad_stab_fsc = sprintf('%s/X_2d_Memp_d1_nls25t0100p20r0_from_quad_stab_fsc.mat',dir_pm_mat);
+sher_from_quad_.fsc_reco_stab_k_ = [];
+sher_from_quad_.corr_base_vs_reco_stab = [];
+sher_from_quad_.corr_reco_vs_reco_stab = [];
+sher_from_quad_.fsc_crop_reco_stab_kx__ = [];
+sher_from_quad_.corr_full_reco_vs_crop_reco_stab_x_ = [];
+if  exist(tmp_fname_from_quad_stab_fsc,'file');
+tmp_ = load(tmp_fname_from_quad_stab_fsc);
+sher_from_quad_.fsc_reco_stab_k_ = tmp_.fsc_reco_stab_k_;
+sher_from_quad_.corr_base_vs_reco_stab = tmp_.corr_base_vs_reco_stab;
+sher_from_quad_.corr_reco_vs_reco_stab = tmp_.corr_reco_vs_reco_stab;
+sher_from_quad_.fsc_crop_reco_stab_kx__ = tmp_.fsc_crop_reco_stab_kx__;
+sher_from_quad_.corr_full_reco_vs_crop_reco_stab_x_ = tmp_.corr_full_reco_vs_crop_reco_stab_x_;
+clear tmp_;
+end;%if  exist(tmp_fname_from_quad_stab_fsc,'file');
+%%%%%%%%;
+ampm_.sher_from_quad_ = sher_from_quad_;
+
+if ~flag_exclude_ampm;
+%%%%%%%%%%%%%%%%;
+% load final iterations of the various ampm runs. ;
+%%%%%%%%%%%%%%%%;
 tmp_str_filter_ = ls(sprintf('%s/%s.mat',dir_pm_mat,str_filter));
 tmp_index_start_ = strfind(tmp_str_filter_,sprintf('/%s',string_root))-1;
 tmp_index_final_ = strfind(tmp_str_filter_,'.mat')+4-1;
@@ -259,21 +317,21 @@ tmp_fname_fsc_crop_ampm_kx__mat = sprintf('%s_fsc_crop_ampm_kx__.mat',tmp_fname_
 ampm_.str_fname_mat_fsc_crop_ampm_kx__a_{1+na} = tmp_fname_fsc_crop_ampm_kx__mat;
 if ( exist(tmp_fname_fsc_crop_ampm_kx__mat,'file'));
 tmp_ = load(tmp_fname_fsc_crop_ampm_kx__mat);
-
+%%%%;
 if ( isfield(tmp_,'corr_base_vs_ampm')); ampm_.corr_base_vs_ampm_a_(1+na) = tmp_.corr_base_vs_ampm; end;
 if ( isfield(tmp_,'corr_reco_vs_ampm')); ampm_.corr_reco_vs_ampm_a_(1+na) = tmp_.corr_reco_vs_ampm; end;
 if ( isfield(tmp_,'corr_full_base_vs_crop_ampm_x_')); ampm_.corr_full_base_vs_crop_ampm_xa__(:,1+na) = tmp_.corr_full_base_vs_crop_ampm_x_; end;
 if ( isfield(tmp_,'corr_crop_base_vs_crop_ampm_x_')); ampm_.corr_crop_base_vs_crop_ampm_xa__(:,1+na) = tmp_.corr_crop_base_vs_crop_ampm_x_; end;
 if ( isfield(tmp_,'corr_full_reco_vs_crop_ampm_x_')); ampm_.corr_full_reco_vs_crop_ampm_xa__(:,1+na) = tmp_.corr_full_reco_vs_crop_ampm_x_; end;
 if ( isfield(tmp_,'corr_crop_reco_vs_crop_ampm_x_')); ampm_.corr_crop_reco_vs_crop_ampm_xa__(:,1+na) = tmp_.corr_crop_reco_vs_crop_ampm_x_; end;
-
+%%%%;
 if ( isfield(tmp_,'fsc_crop_ampm_kx__')); ampm_.fsc_crop_ampm_kxa___(:,:,1+na) = tmp_.fsc_crop_ampm_kx__; end;
 if ( isfield(tmp_,'fsc_ampm_k_')); ampm_.fsc_ampm_ka__(:,1+na) = tmp_.fsc_ampm_k_; end;
 clear tmp_;
 end;%if ( exist(tmp_fname_fsc_crop_ampm_kx__mat,'file'));
 %%%%%%%%;
 end;%for na=0:n_str_filter-1;
-
+%%%%%%%%;
 ampm_.t_sval_a_ = zeros(ampm_.n_str_filter,1);
 ampm_.p_vs_n_a_ = zeros(ampm_.n_str_filter,1);
 ampm_.n_sval_a_ = zeros(ampm_.n_str_filter,1);
@@ -296,3 +354,5 @@ ampm_.n_sval_a_(1+nstr_filter) = n_sval;
 ampm_.p_sval_a_(1+nstr_filter) = p_sval;
 ampm_.r_sval_a_(1+nstr_filter) = r_sval;
 end;%for nstr_filter=0:ampm_.n_str_filter-1;
+%%%%%%%%%%%%%%%%;
+end;%if ~flag_exclude_ampm;
