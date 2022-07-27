@@ -71,7 +71,7 @@ t_sumz = t_out;
 t_0in = tic;
 m_ij_ = [floor(n_m_max/2)+1:n_m_max , 1:floor(n_m_max/2)];
 X0_mmb___ = X0_mmb___(m_ij_,m_ij_,:);
-X1_mmb____ = zeros(n_m_max,n_m_max,n_beta);
+X1_mmb___ = zeros(n_m_max,n_m_max,n_beta);
 %{
 for nbeta=0:n_beta-1;
  %tmp_X0_mm__ = recenter2(squeeze(X0_mmb___(:,:,1+nbeta))); %<-- recentering no longer necessary if done above. ;
