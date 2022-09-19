@@ -117,6 +117,24 @@ end;%if (nargin<1);
 
 str_thisfunction = 'qbp_sheres_0';
 
+a_k_Y_zero_yk_ = [];
+a_k_Y_zero_yk__ = [];
+a_k_Y_0qbp_yk_ = [];
+a_k_Y_0qbp_yk__ = [];
+a_k_Y_sher_yk_ = [];
+a_k_Y_sher_yk__ = [];
+X_base_wSM___ = [];
+delta_x_base_wSM___ = [];
+delta_y_base_wSM___ = [];
+gamma_z_base_wSM___ = [];
+I_value_base_wSM___ = [];
+frac_qk__ = [];
+quad_from_data_T_CTF_normalized_qk__ = [];
+expR2_sum_M_ = [];
+numerator_qkM___ = [];
+denomator_qkM___ = [];
+Ylm_w_yq__ = [];
+
 na=0;
 if (nargin<1+na); parameter=[]; end; na=na+1;
 if (nargin<1+na); n_k_p_r=[]; end; na=na+1;
@@ -153,6 +171,7 @@ if isempty(parameter); parameter = struct('type','parameter'); end;%if isempty(p
 if (~isfield(parameter,'tolerance_master')); parameter.tolerance_master = 1e-2; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'flag_verbose')); parameter.flag_verbose = 0; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'flag_rank_vs_tolerance')); parameter.flag_rank_vs_tolerance = 0; end; %<-- parameter_bookmark. ;
+if (~isfield(parameter,'qbp_sheres_stop')); parameter.qbp_sheres_stop = 0; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'tolerance_pm')); parameter.tolerance_pm = parameter.tolerance_master; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'rank_pm')); parameter.rank_pm = 10; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'k_p_r_max')); parameter.k_p_r_max = k_p_r_max; end; %<-- parameter_bookmark. ;
@@ -168,6 +187,7 @@ if (~isfield(parameter,'sigma_sheres')); parameter.sigma_sheres = 0.1; end; %<--
 tolerance_master = parameter.tolerance_master;
 flag_verbose = parameter.flag_verbose;
 flag_rank_vs_tolerance = parameter.flag_rank_vs_tolerance;
+qbp_sheres_stop = parameter.qbp_sheres_stop; %<-- 0 = no stop ; 1 = stop after innerproduct calculation. ; 2 = stop after standard qbp. ;
 tolerance_pm = parameter.tolerance_pm;
 rank_pm = parameter.rank_pm;
 k_p_r_max = parameter.k_p_r_max;
@@ -181,7 +201,7 @@ flag_compute_I_value = parameter.flag_compute_I_value;
 sigma_sheres = parameter.sigma_sheres;
 
 if (flag_verbose); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
-flag_disp = flag_verbose; nf=0;
+flag_disp = flag_verbose>1; nf=0;
 
 l_max_max = n_w_max/2 - 1;
 if (l_max_max~=max(l_max_));
@@ -360,7 +380,12 @@ pm_n_UX_rank_c_ = zeros(n_cluster,1);
 for ncluster=0:n_cluster-1;
 X_kk__ = X_kkc___(:,:,1+ncluster);
 [tmp_UX__,tmp_SX__,tmp_VX__] = svds(X_kk__,n_UX_rank); tmp_SX_ = diag(tmp_SX__);
+if flag_rank_vs_tolerance==0;
 pm_n_UX_rank = max(find(tmp_SX_/max(tmp_SX_)> tolerance_pm));
+end;%if flag_rank_vs_tolerance==0;
+if flag_rank_vs_tolerance==1;
+pm_n_UX_rank = max(0,min(n_UX_rank,rank_pm));
+end;%if flag_rank_vs_tolerance==1;
 UX_knc___(:,:,1+ncluster) = tmp_UX__(:,1+[0:n_UX_rank-1]);
 SX_kc__(:,1+ncluster) = tmp_SX_(1+[0:n_UX_rank-1]);
 pm_n_UX_rank_c_(1+ncluster) = pm_n_UX_rank;
@@ -567,6 +592,11 @@ tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% X_base_wSM___: %0.3fs
 parameter = parameter_timing_update(parameter,'ampmh_X_cluster_wrap_SM__11',tmp_t);
 %%%%%%%%;
 end;%if tmp_flag_isempty;
+
+if (qbp_sheres_stop>=1);
+if (flag_verbose); disp(sprintf(' %% %s: qbp_sheres_stop %d, returning',str_thisfunction,qbp_sheres_stop)); end;
+return;
+end;%if (qbp_sheres_stop>=1);
 
 %%%%%%%%;
 if numel(X_base_wSM___)==n_S*n_M;
@@ -844,6 +874,11 @@ expR2_sum_M_ = [];
 a_k_Y_sher_yk__ = a_k_Y_zero_yk__;
 a_k_Y_sher_yk_ = a_k_Y_zero_yk_;
 end;%if sigma_sheres<=0;
+
+if (qbp_sheres_stop>=2);
+if (flag_verbose); disp(sprintf(' %% %s: qbp_sheres_stop %d, returning',str_thisfunction,qbp_sheres_stop)); end;
+return;
+end;%if (qbp_sheres_stop>=2);
 
 if sigma_sheres> 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;

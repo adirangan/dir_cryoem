@@ -270,6 +270,13 @@ sgtitle(fname_fig_pre,'Interpreter','none');
 disp(sprintf(' %% writing %s',fname_fig_pre));
 print('-depsc',fname_fig_eps);
 print('-djpeg',fname_fig_jpg);
+sgtitle('');
+subplot(2,2,4);title('Error','Interpreter','none');
+tmp_dir = sprintf('/%s/rangan/dir_cryoem/dir_ampm_manuscript/dir_ampm_fig_misc',string_root);
+fname_fig_jpg_strip = sprintf('%s/test_MSA_sheres_illustration_%s_FIGA_strip.jpg',tmp_dir,str_xfix);
+disp(sprintf(' %% writing %s',fname_fig_jpg_strip));
+print('-djpeg',fname_fig_jpg_strip);
+%close(gcf);
 end;%if ( flag_replot | ~exist(sprintf('%s.jpg',fname_fig_pre)) );
 
 disp('returning'); return;

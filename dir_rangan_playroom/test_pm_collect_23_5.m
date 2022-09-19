@@ -791,6 +791,11 @@ grid on; grid minor;
 disp(sprintf(' %% writing %s',fname_fig_jpg));
 print('-djpeg',fname_fig_jpg);
 print('-depsc',fname_fig_eps);
+sgtitle('');
+tmp_dir = sprintf('/%s/rangan/dir_cryoem/dir_ampm_manuscript/dir_ampm_fig_collect',string_root);
+fname_fig_jpg_strip = sprintf('%s/test_pm_collect_%s_FIGJ_strip.jpg',tmp_dir,u_dir_nopath_data_star);
+disp(sprintf(' %% writing %s',fname_fig_jpg_strip));
+print('-djpeg',sprintf('%s',fname_fig_jpg_strip));
 %close(gcf);
 end;%if (flag_replot | ~exist(fname_fig_jpg,'file'));
 
@@ -1002,7 +1007,7 @@ load(fname_mat);
 fname_fig_pre = sprintf('%s/test_pm_collect_%s_ampm_alig_crosscorrelation_FIGK',dir_jpg,u_dir_nopath_data_star);
 fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
 fname_fig_eps = sprintf('%s.eps',fname_fig_pre);
-if (flag_replot | ~exist(fname_fig_jpg,'file'));
+if (flag_replot>1 | ~exist(fname_fig_jpg,'file'));
 figure(1+nf);nf=nf+1;clf;figsml;figbeach();
 fontsize_use = 12;
 %tmp_YY_use__ = tmp_YY__(1+tmp_index_use_,1+tmp_index_use_);
@@ -1018,26 +1023,35 @@ disp(sprintf(' %% writing %s',fname_fig_jpg));
 print('-djpeg',fname_fig_jpg);
 print('-depsc',fname_fig_eps);
 close(gcf);
-end;%if (flag_replot | ~exist(fname_fig_jpg,'file'));
+end;%if (flag_replot>1 | ~exist(fname_fig_jpg,'file'));
 %%%%%%%%;
 fname_fig_pre = sprintf('%s/test_pm_collect_%s_ampm_alig_crosscorrelation_FIGL',dir_jpg,u_dir_nopath_data_star);
 fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
 fname_fig_eps = sprintf('%s.eps',fname_fig_pre);
 if (flag_replot | ~exist(fname_fig_jpg,'file'));
 figure(1+nf);nf=nf+1;clf;figsml;figbeach();
-fontsize_use = 12;
+fontsize_use = 24;
 %tmp_XX_use__ = tmp_XX__(1+tmp_index_use_,1+tmp_index_use_);
+tmp_index_0ondiagonal_ = efind(0+eye(numel(tmp_index_use_)));
+tmp_XX_use__(1+tmp_index_0ondiagonal_) = 1;
 tmp_index_offdiagonal_ = efind(1-eye(numel(tmp_index_use_)));
 tmp_XX_med = median(tmp_XX_use__(1+tmp_index_offdiagonal_));
 tmp_XX_avg = mean(tmp_XX_use__(1+tmp_index_offdiagonal_));
 imagesc(tmp_XX_use__,[0,1]);
-axisnotick; axis image; tmp_c_ = colorbar; set(tmp_c_,'Ticks',[0,0.5,1]);
+axisnotick; axis image; tmp_c_ = colorbar; set(tmp_c_,'Ticks',[0,0.5,1],'TickLength',[0]);
 title(sprintf('%s (%0.2f) [%0.2f]',u_dir_nopath_data_star,tmp_XX_avg,tmp_XX_med),'Interpreter','none');
 sgtitle(fname_fig_pre,'Interpreter','none');
 set(gca,'FontSize',fontsize_use);
 disp(sprintf(' %% writing %s',fname_fig_jpg));
 print('-djpeg',fname_fig_jpg);
 print('-depsc',fname_fig_eps);
+sgtitle('');
+tmp_str = u_dir_nopath_data_star; if strcmp(tmp_str,'precatalytic_spliceosome'); tmp_str = 'ps1'; end;
+title(sprintf('%s (%0.2f) [%0.2f]',tmp_str,tmp_XX_avg,tmp_XX_med),'Interpreter','none');
+tmp_dir = sprintf('/%s/rangan/dir_cryoem/dir_ampm_manuscript/dir_ampm_fig_bootstrap',string_root);
+fname_fig_jpg_strip = sprintf('%s/test_pm_collect_%s_ampm_alig_crosscorrelation_FIGL_strip.jpg',tmp_dir,u_dir_nopath_data_star);
+disp(sprintf(' %% writing %s',fname_fig_jpg_strip));
+print('-djpeg',sprintf('%s',fname_fig_jpg_strip));
 close(gcf);
 end;%if (flag_replot | ~exist(fname_fig_jpg,'file'));
 %%%%%%%%%%%%;
@@ -1050,8 +1064,66 @@ end;%for nu_experiment=0:n_u_experiment-1-1;%for nu_experiment=0:n_u_experiment-
 
 %%%%%%%%;
 % Now cluster the LSUbl17dep results. ;
-% assume nu_experiment==2. ;
+% assume nu_experiment==1. ;
 %%%%%%%%;
+nu_experiment = 1
+index_nexperiment_from_nu_ = index_nexperiment_from_nu__{1+nu_experiment};
+%%%%%%%%%%%%%%%%;
+u_dir_nopath_data_star = u_dir_nopath_data_star_{1+nu_experiment};
+fname_mat_pre = sprintf('%s/test_pm_collect_%s_ampm_alig_crosscorrelation',dir_mat,u_dir_nopath_data_star);
+fname_mat = sprintf('%s.mat',fname_mat_pre);
+flag_rank_vs_tolerance_use = 1-strcmp(u_dir_nopath_data_star,'p28hRPT1');
+n_experiment_local = numel(index_nexperiment_from_nu_);
+disp(sprintf(' %% nu_experiment %d/%d u_dir_nopath_data_star %s flag_rank_vs_tolerance_use %d n_experiment_local %d',nu_experiment,n_u_experiment,u_dir_nopath_data_star,flag_rank_vs_tolerance_use,n_experiment_local));
+%%%%;
+na_ampm_tot=0;
+tmp_X_ampm_a_ = [];
+tmp_tolerance_pm_a_ = [];
+tmp_delta_sigma_use_a_ = [];
+tmp_flag_rank_vs_tolerance_a_ = [];
+ampm_local__ = cell(n_experiment_local,1);
+%%%%;
+for nl=0:n_experiment_local-1;
+nexperiment = index_nexperiment_from_nu_(1+nl);
+%%%%;
+collect_ = collect__{1+nexperiment};
+tmp_X_ = collect_.X_best_a_;
+if (~isempty(collect_.corr_crop_xa__));
+tmp_X_ = collect_.corr_crop_xa__;
+[~,tmp_index_crop] = max(mean(tmp_X_,2)); tmp_index_crop = tmp_index_crop-1;
+if (verbose); disp(sprintf(' %% %s: crop at index %d',collect_.dir_nopath_data_star,tmp_index_crop)); end;
+tmp_X_ = tmp_X_(1+tmp_index_crop,:);
+end;%if (~isempty(collect_.corr_crop_xa__));
+%%%%;
+n_a = numel(collect_.tolerance_pm_a_);
+tmp_index_ = na_ampm_tot + [0:n_a-1];
+tmp_X_ampm_a_(1 + tmp_index_) = tmp_X_;
+tmp_tolerance_pm_a_(1 + tmp_index_) = collect_.tolerance_pm_a_;
+tmp_delta_sigma_use_a_(1 + tmp_index_) = collect_.delta_sigma_use_a_;
+tmp_flag_rank_vs_tolerance_a_(1 + tmp_index_) = collect_.flag_rank_vs_tolerance_a_;
+%%%%;
+na_ampm_tot = na_ampm_tot + n_a;
+%%%%;
+[~,ampm_local__{1+nl}] = ampm_fromdisk_3(struct('type','parameter','flag_store_S_k_p__',0,'flag_store_M_k_p__',0),collect_.dir_pm);
+%%%%;
+end;%for nl=0:n_experiment_local-1;
+n_a_ampm_tot = na_ampm_tot;
+%%%%%%%%;
+tmp_index_ampm_ = efind( ...
+ tmp_X_ampm_a_~=0 ...
+& tmp_tolerance_pm_a_<=10^-1.75 ...
+& tmp_delta_sigma_use_a_> 0.00 ...
+& tmp_flag_rank_vs_tolerance_a_==flag_rank_vs_tolerance_use ...
+);
+n_a_ampm_use = numel(tmp_index_ampm_);
+%%%%%%%%;
+if (verbose);
+disp(sprintf(' %% nu_experiment %d/%d: %s',nu_experiment,n_u_experiment,u_dir_nopath_data_star));
+disp(sprintf(' %% %% n_a_ampm_tot %d <-- use %d',n_a_ampm_tot,n_a_ampm_use));
+end;%if (verbose);
+%%%%%%%%;
+load(fname_mat);
+%%%%;
 tmp_ampm_local_ = ampm_local__{1+0};
 dir_pm = tmp_ampm_local_.dir_pm;
 n_k_p_r = tmp_ampm_local_.n_k_p_r;
@@ -1092,6 +1164,43 @@ get_Ylm_wrap_0( ...
 ,l_max_ ...
 );
 end;%if ~exist('Ylm_klma___','var');
+%%%%%%%%;
+tmp_a_k_Y_ampm_alig_yka__ = zeros(ampm_local__{1}.n_lm_sum,0);
+na=0;
+for nl=0:n_experiment_local-1;
+nexperiment = index_nexperiment_from_nu_(1+nl);
+tmp_ampm_local_ = ampm_local__{1+nl};
+tmp_n_a = numel(tmp_ampm_local_.str_fname_mat_a_);
+for tmp_na=0:tmp_n_a-1;
+if (mod(tmp_na,8)==0); disp(sprintf(' %% tmp_na %d/%d',tmp_na,tmp_n_a)); end;
+[ ... 
+tmp_a_k_Y_ampm_alig_yka__(:,1+na) ...
+] = ...
+spharm_register_and_rotate_2( ...
+ tmp_ampm_local_.n_k_p_r ...
+,tmp_ampm_local_.k_p_r_ ...
+,tmp_ampm_local_.k_p_r_max ...
+,tmp_ampm_local_.weight_3d_k_p_r_ ...
+,tmp_ampm_local_.l_max_ ...
+,tmp_ampm_local_.a_k_Y_quad_ ...
+,tmp_ampm_local_.a_k_Y_ampm_yka__(:,1+tmp_na) ...
+,0 ...
+,tmp_ampm_local_.X_best_ampm_ia__(end,1+tmp_na) ...
+,tmp_ampm_local_.X_best_flag_flip_ampm_ia__(end,1+tmp_na) ...
+,tmp_ampm_local_.polar_a_best_ampm_ia__(end,1+tmp_na) ...
+,tmp_ampm_local_.azimu_b_best_ampm_ia__(end,1+tmp_na) ...
+,tmp_ampm_local_.gamma_z_best_ampm_ia__(end,1+tmp_na) ...
+,tmp_ampm_local_.delta_best_ampm_dia__(1+0,end,1+tmp_na) ...
+,tmp_ampm_local_.delta_best_ampm_dia__(1+1,end,1+tmp_na) ...
+,tmp_ampm_local_.delta_best_ampm_dia__(1+2,end,1+tmp_na) ...
+);
+na=na+1;
+end;%for tmp_na=0:n_a-1;
+end;%for nl=0:n_experiment_local-1;
+%%%%%%%%;
+[tmp_X_ampm_use_srt_,tmp_ij_X_ampm_use_srt_] = sort(tmp_X_ampm_a_(1+tmp_index_ampm_),'ascend');
+tmp_index_use_ = tmp_index_ampm_(tmp_ij_X_ampm_use_srt_); n_index_use = numel(tmp_index_use_);
+tmp_a_k_Y_ampm_alig_use_yka__ = tmp_a_k_Y_ampm_alig_yka__(:,1+tmp_index_use_);
 %%%%%%%%;
 [tmp_U__,tmp_S__,tmp_V__] = svds(tmp_XX_use__,2);
 [~,tmp_ij_] = sort(tmp_U__(:,2),'ascend');
@@ -1197,13 +1306,18 @@ tmp_index_ = tmp_nx:n_x_u_pack-1-tmp_nx;
 tmp_window_(1+tmp_index_,1+tmp_index_,1+tmp_index_)=1;
 tmp_index_ = efind(tmp_window_);
 figure(1+nf);nf=nf+1;clf;figmed;
-fontsize_use = 12;
-subplot(1,2,1); isosurface_f_x_u_0(tmp_a_x_c_ampm_alig_0_(1+tmp_index_),percent_threshold_(1+0)); axis off; title('Class  ''Low'''); set(gca,'FontSize',fontsize_use); view([-150,-38]);
+fontsize_use = 24;
+subplot(1,2,1); isosurface_f_x_u_0(tmp_a_x_c_ampm_alig_0_(1+tmp_index_),percent_threshold_(1+0)); axis off; title('Class  ''Low'''); set(gca,'FontSize',fontsize_use); view([-150,-50]);
 subplot(1,2,2); isosurface_f_x_u_0(tmp_a_x_c_ampm_alig_1_(1+tmp_index_),percent_threshold_(1+0)); axis off; title('Class ''High'''); set(gca,'FontSize',fontsize_use); view([-150,-22]);
 set(gcf,'Position',1+[0,0,512+256,512]);
 sgtitle(fname_fig_jpg,'Interpreter','none');
 disp(sprintf(' %% writing %s',fname_fig_jpg));
 print('-djpeg',fname_fig_jpg);
+sgtitle('');
+tmp_dir = sprintf('/%s/rangan/dir_cryoem/dir_ampm_manuscript/dir_ampm_fig_bootstrap',string_root);
+fname_fig_jpg_strip = sprintf('%s/LSUbl17dep_ampm_vol_cluster_FIGM_strip.jpg',tmp_dir);
+disp(sprintf(' %% writing %s',fname_fig_jpg_strip));
+print('-djpeg',sprintf('%s',fname_fig_jpg_strip));
 end;%if (flag_replot | ~exist(fname_fig_jpg,'file'));
 
 

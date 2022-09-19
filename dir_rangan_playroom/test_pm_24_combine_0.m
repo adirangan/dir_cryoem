@@ -1089,6 +1089,7 @@ convert_spharm_to_x_c_3( ...
 );
 tmp_t = toc(tmp_t); if (flag_verbose); disp(sprintf(' %% tmp_a_x_u_1_ from a_k_Y_reco_: %0.6fs',tmp_t)); end;
 %%%%%%%%;
+
 fname_fig_pre = sprintf('/%s/rangan/dir_cryoem/dir_ps1_x0to7_combine/dir_pm_jpg/a_x_u_reco_vs_a_x_u_best_alig_',string_root);
 fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
 fname_fig_eps = sprintf('%s.eps',fname_fig_pre);
@@ -1107,8 +1108,13 @@ tmp_window_(1+tmp_index_,1+tmp_index_,1+tmp_index_)=1;
 tmp_index_ = efind(tmp_window_);
 figure(1+nf);nf=nf+1;clf;figmed;
 fontsize_use = 12;
-subplot(2,2,1); isosurface_f_x_u_0(a_x_u_reco_(1+tmp_index_),percent_threshold_(1+0)); axis off; title('True'); set(gca,'FontSize',fontsize_use);
-subplot(2,2,3); isosurface_f_x_u_0(a_x_u_best_alig_(1+tmp_index_),percent_threshold_(1+0)); axis off; title('Avg'); set(gca,'FontSize',fontsize_use);
+%subplot(1,15,[1:7]); 
+subplot(2,2,1); 
+isosurface_f_x_u_0(a_x_u_reco_(1+tmp_index_),percent_threshold_(1+0)); axis off; title('True'); set(gca,'FontSize',fontsize_use);
+%subplot(1,15,[8:14]);
+subplot(2,2,3); 
+isosurface_f_x_u_0(a_x_u_best_alig_(1+tmp_index_),percent_threshold_(1+0)); axis off; title('Avg'); set(gca,'FontSize',fontsize_use);
+%subplot(1,15,15);
 subplot(2,2,[2,4]);
 plot(1:n_a_sum,X_best_a_,'mo',1:n_a_sum,X_best_alig*ones(n_a_sum,1),'k-','LineWidth',3);
 xlim([0,n_a_sum+1]); ylim([0,1]); xlabel('trial number'); ylabel('correlation'); grid on; set(gca,'FontSize',fontsize_use); title('correlation');
@@ -1116,7 +1122,13 @@ set(gcf,'Position',1+[0,0,512+256,512]);
 sgtitle(fname_fig_jpg,'Interpreter','none');
 disp(sprintf(' %% writing %s',fname_fig_jpg));
 print('-djpeg',fname_fig_jpg);
+sgtitle('');
+tmp_dir = sprintf('/%s/rangan/dir_cryoem/dir_ampm_manuscript/dir_ampm_fig_bootstrap',string_root);
+fname_fig_jpg_strip = sprintf('%s/ps1_x0to7_combine_a_x_u_reco_vs_a_x_u_best_alig_strip.jpg',tmp_dir);
+disp(sprintf(' %% writing %s',fname_fig_jpg_strip));
+print('-djpeg',sprintf('%s',fname_fig_jpg_strip));
 end;%if (flag_replot | ~exist(fname_fig_jpg,'file'));
+
 %%%%%%%%;
 [ ...
  tmp_n_all ...

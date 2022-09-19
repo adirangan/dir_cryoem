@@ -1,67 +1,18 @@
 %%%%%%%%;
 % set up to compare: ;
-% '/data/rangan/dir_cryoem/dir_relion_tutorial_3.1/tv1_job_A2_gpu_run_class001.mrc' <-- run from trpv1_x0_X_2d_xcor_d0_a1t0152n20r2.mrc ;
+% '/data/rangan/dir_cryoem/dir_relion_tutorial_3.1/rib80s_job_A3_8192_gpu_run_class001.mrc'
 % to: ;
-% '/data/rangan/dir_cryoem/dir_relion_tutorial_3.1/tv1_job_B2_gpu_run_class001.mrc' <-- run from job_1024/run_it300_class001.mrc ;
-% using something like: ;
-%%%%%%%%;
-% #!/bin/bash -l
-% #SBATCH -p gpu  
-% #SBATCH -t 4:00:00
-% #SBATCH -N 1      
-% #SBATCH --gpus=1  
-% #SBATCH --tasks-per-node=3
-% #SBATCH --cpus-per-task=4
-% 
-% module purge
-% module load openmpi/4
-% module load cuda/11
-% module load relion/mpi-3.1.3
-% 
-% export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
-% 
-% mpirun -n 3 \ 
-% --map-by socket:pe=$OMP_NUM_THREADS relion_refine_mpi \ 
-% --i tv1_relion_job_8192.star \ 
-% --o job_B2_gpu/run \ 
-% --auto_refine \ 
-% --split_random_halves \ 
-% --ref job_1024/run_it300_class001.mrc \ 
-% --firstiter_cc \ 
-% --ini_high 60 \ 
-% --dont_combine_weights_via_disc \ 
-% --preread_images  \ 
-% --pool 3 \ 
-% --pad 1  \ 
-% --ctf \ 
-% --particle_diameter 250 \ 
-% --flatten_solvent \ 
-% --zero_mask \ 
-% --oversampling 1 \ 
-% --healpix_order 2 \ 
-% --auto_local_healpix_order 4 \ 
-% --offset_range 8 \ 
-% --offset_step 1 \ 
-% --K 1 \ 
-% --tau2_fudge 4 \ 
-% --sym C4 \ 
-% --low_resol_join_halves 40 \ 
-% --norm \ 
-% --scale \ 
-% --j $OMP_NUM_THREADS \ 
-% --gpu \ 
-% --pipeline_control job_B2_gpu/ ;
+% '/data/rangan/dir_cryoem/dir_relion_tutorial_3.1/rib80s_job_B3_8192_gpu_run_class001.mrc'
 %%%%%%%%;
 
 global_parameter=[];
-fname_prefix='trpv1_x0';
-dir_nopath_data_star='trpv1';
-Pixel_Spacing=1.2156;
-fname_nopath_volume='emd_5778.mrc';
-fname_nopath_star='tv1_relion_data.star';
+fname_prefix='rib80s_x0';
+dir_nopath_data_star='rib80s';
+Pixel_Spacing=1.34;
+fname_nopath_volume='emd_2660.mrc';
+fname_nopath_star='siny_2sets.star';
 %global_parameter=struct('type','parameter');
 global_parameter.n_M = 8192;
-global_parameter.flag_replot = 1;
 
 verbose=1;
 if (verbose); disp(sprintf(' %% [entering test_pm_medres_0]')); end;
@@ -189,11 +140,6 @@ a_x_u_base_ = b_rho_x_u_pack_;
 end;%if flag_center_volume;
 %%%%%%%%;
 
-flag_recalc=0;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
-if flag_recalc;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
-o
 %%%%%%%%;
 % Now convert to a_k_p_ ;
 %%%%%%%%;
@@ -529,21 +475,19 @@ n_w_csum_ = cumsum([0;n_w_]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
-end;%if flag_recalc;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
-
 %%%%%%%%;
 % Now load outputs from relion. ;
 %%%%%%%%;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 for tmp_str_ = {'A','B'};
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 tmp_str = tmp_str_{1};
-fname_reli_mat = sprintf('/%s/rangan/dir_cryoem/dir_relion_tutorial_3.1/tv1_job_%s2_gpu_run_class001.mat',string_root,tmp_str);
+fname_reli_infix = sprintf('rib80s_job_%s3_8192_gpu_run_class001',tmp_str);
+fname_reli_mat = sprintf('/%s/rangan/dir_cryoem/dir_relion_tutorial_3.1/%s.mat',string_root,fname_reli_infix);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 if ~exist(fname_reli_mat,'file');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
-fname_reli_mrc = sprintf('/%s/rangan/dir_cryoem/dir_relion_tutorial_3.1/tv1_job_%s2_gpu_run_class001.mrc',string_root,tmp_str);
+fname_reli_mrc = sprintf('/%s/rangan/dir_cryoem/dir_relion_tutorial_3.1/%s.mrc',string_root,fname_reli_infix);
 c_x_u_reli_ = cast(ReadMRC(fname_reli_mrc),'double');
 c_x_u_reli_pack_ = reshape(c_x_u_reli_,[n_x_u*n_x_u,n_x_u])*x_u_pack_;
 c_x_u_reli_pack_ = reshape(permute(reshape(c_x_u_reli_pack_,[n_x_u,n_x_u,n_x_u_pack]),[3,1,2]),[n_x_u*n_x_u_pack,n_x_u])*x_u_pack_;
@@ -759,28 +703,27 @@ save(fname_reli_mat ...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 end;%if ~exist(fname_reli_mat,'file');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
-
+%;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 if  exist(fname_reli_mat,'file');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 tmp_ = load(fname_reli_mat);
-
-fname_reli_fig_pre = sprintf('/%s/rangan/dir_cryoem/dir_relion_tutorial_3.1/tv1_job_%s2_gpu_run_class001_FIGA',string_root,tmp_str);
+%%%%;
+fname_reli_fig_pre = sprintf('/%s/rangan/dir_cryoem/dir_relion_tutorial_3.1/%s_FIGA',string_root,fname_reli_infix);
 fname_reli_fig_jpg = sprintf('%s.jpg',fname_reli_fig_pre);
 fname_reli_fig_eps = sprintf('%s.eps',fname_reli_fig_pre);
 if (flag_replot | ~exist(fname_reli_fig_jpg,'file'));
 %%%%%%%%;
-figure(1);clf;figsml;
+figure(1);clf;figmed;
 linewidth_use = 2;
-fontsize_use = 24;
+fontsize_use = 12;
 c_80s__ = colormap_80s; n_c_80s = size(c_80s__,1);
-p_row = 1; p_col = 1; np=0;
+p_row = 1; p_col = 2; np=0;
 %%%%;
 tmp_fsc_crop_kx__ = tmp_.fsc_crop_reli_alig_kx__;
 n_x = size(tmp_fsc_crop_kx__,2);
 n_x_sub = max(1,min(n_x,ceil(n_x/(n_x_u*Pixel_Spacing)*250))) ; %<-- assume a 250 angstrom diameter. ;
 %%%%;
-%{
 subplot(p_row,p_col,1+np); np=np+1;
 hold on;
 for nx=n_x_sub:n_x-1;
@@ -794,7 +737,6 @@ grid on;
 xlabel('k'); ylabel('fsc','Interpreter','none');
 title(sprintf('reli_alig'),'Interpreter','none');
 set(gca,'FontSize',fontsize_use);
- %}
 %%%%;
 subplot(p_row,p_col,1+np); np=np+1;
 hold on;
@@ -803,11 +745,10 @@ nc_80s = max(0,min(n_c_80s-1,floor(n_c_80s*(nx-n_x_sub)/(1+n_x-n_x_sub))));
 plot(log10(tmp_.kinv_A_p_r_),real(tmp_fsc_crop_kx__(:,1+nx)),'-','Color',c_80s__(1+nc_80s,:),'LineWidth',linewidth_use);
 end;%for nx=n_x_sub:n_x-1;
 hold off;
-set(gca,'xdir','reverse');
-xlim([0.975,+2.025]); set(gca,'XTick',[1,1.5,2],'XTickLabel',{'10','32','100'});
+xlim([0.975,+2.025]);
 ylim([0,1]);
 grid on;
-xlabel('-log10(k)'); ylabel('fsc','Interpreter','none');
+xlabel('log10(l = 1/k)'); ylabel('fsc','Interpreter','none');
 title(sprintf('reli_alig'),'Interpreter','none');
 set(gca,'FontSize',fontsize_use);
 %%%%;
@@ -821,111 +762,12 @@ end;%if (flag_replot | ~exist(fname_reli_fig_jpg,'file'));
 if  exist(fname_reli_fig_jpg,'file');
 disp(sprintf(' %% %s found, not creating',fname_reli_fig_jpg));
 end;%if  exist(fname_reli_fig_jpg,'file');
-
-fname_reli_fig_pre = sprintf('/%s/rangan/dir_cryoem/dir_relion_tutorial_3.1/tv1_job_%s2_gpu_run_class001_FIGB',string_root,tmp_str);
-fname_reli_fig_jpg = sprintf('%s.jpg',fname_reli_fig_pre);
-fname_reli_fig_eps = sprintf('%s.eps',fname_reli_fig_pre);
-if (flag_replot | ~exist(fname_reli_fig_jpg,'file'));
-%%%%%%%%;
-figure(1);clf;figsml;
-linewidth_use = 2;
-fontsize_use = 24;
-c_80s__ = colormap_80s; n_c_80s = size(c_80s__,1);
-p_row = 1; p_col = 1; np=0;
 %%%%;
-tmp_fsc_crop_kx__ = tmp_.fsc_crop_reli_alig_kx__;
-n_x = size(tmp_fsc_crop_kx__,2);
-n_x_sub = max(1,min(n_x,ceil(n_x/(n_x_u*Pixel_Spacing)*250))) ; %<-- assume a 250 angstrom diameter. ;
-%%%%;
-subplot(p_row,p_col,1+np); np=np+1;
-hold on;
-for nx=n_x_sub:n_x-1;
-nc_80s = max(0,min(n_c_80s-1,floor(n_c_80s*(nx-n_x_sub)/(1+n_x-n_x_sub))));
-plot(log10(tmp_.kinv_A_p_r_),real(tmp_fsc_crop_kx__(:,1+nx)),'-','Color',c_80s__(1+nc_80s,:),'LineWidth',linewidth_use);
-end;%for nx=n_x_sub:n_x-1;
-hold off;
-set(gca,'xdir','reverse');
-xlim([0.975,+2.025]); set(gca,'XTick',[1,1.5,2],'XTickLabel',{'10','32','100'});
-ylim([0,1]);
-grid on;
-xlabel('Angstroms'); ylabel('correlation','Interpreter','none');
-%title(sprintf('reli_alig'),'Interpreter','none');
-set(gca,'FontSize',fontsize_use);
-%%%%;
-sgtitle(sprintf('%s: <-- %0.4f',fname_reli_mat,tmp_.corr_reco_vs_reli_alig),'Interpreter','none');
-if (verbose); disp(sprintf(' %% Writing %s',fname_reli_fig_pre)); end;
-print('-djpeg',fname_reli_fig_jpg);
-print('-depsc',fname_reli_fig_eps);
-sgtitle('');
-tmp_dir = sprintf('/%s/rangan/dir_cryoem/dir_ampm_manuscript/dir_ampm_fig_medres',string_root);
-fname_fig_jpg_strip = sprintf('%s/tv1_job_%s2_gpu_run_class001_FIGB_strip.jpg',tmp_dir,tmp_str);
-disp(sprintf(' %% writing %s',fname_fig_jpg_strip));
-print('-djpeg',sprintf('%s',fname_fig_jpg_strip));
-%%%%;
-end;%if (flag_replot | ~exist(fname_reli_fig_jpg,'file'));
-%%%%%%%%;
-if  exist(fname_reli_fig_jpg,'file');
-disp(sprintf(' %% %s found, not creating',fname_reli_fig_jpg));
-end;%if  exist(fname_reli_fig_jpg,'file');
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 end;%if  exist(fname_reli_mat,'file');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+%;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 end;%for tmp_str_ = {'A','B'};
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
-
-fname_reli_fig_pre = sprintf('/%s/rangan/dir_cryoem/dir_relion_tutorial_3.1/tv1_job_x2_gpu_run_class001_FIGC',string_root);
-fname_reli_fig_jpg = sprintf('%s.jpg',fname_reli_fig_pre);
-fname_reli_fig_eps = sprintf('%s.eps',fname_reli_fig_pre);
-if (flag_replot | ~exist(fname_reli_fig_jpg,'file'));
-%%%%%%%%;
-figure(1);clf;figsml;
-%%%%;
-tmp_str = 'A';
-fname_reli_mat = sprintf('/%s/rangan/dir_cryoem/dir_relion_tutorial_3.1/tv1_job_%s2_gpu_run_class001.mat',string_root,tmp_str);
-tmp_A_ = load(fname_reli_mat);
-tmp_str = 'B';
-fname_reli_mat = sprintf('/%s/rangan/dir_cryoem/dir_relion_tutorial_3.1/tv1_job_%s2_gpu_run_class001.mat',string_root,tmp_str);
-tmp_B_ = load(fname_reli_mat);
-%%%%;
-linewidth_use = 2;
-fontsize_use = 24;
-c_80s__ = colormap_80s; n_c_80s = size(c_80s__,1);
-p_row = 1; p_col = 1; np=0;
-%%%%;
-n_x = size(tmp_A_.fsc_crop_reli_alig_kx__,2);
-n_x_sub = max(1,min(n_x,ceil(n_x/(n_x_u*Pixel_Spacing)*250))) ; %<-- assume a 250 angstrom diameter. ;
-%%%%;
-subplot(p_row,p_col,1+np); np=np+1;
-hold on;
-for nx=n_x_sub;%for nx=n_x_sub:n_x-1;
-nc_80s = max(0,min(n_c_80s-1,floor(n_c_80s*(nx-n_x_sub)/(1+n_x-n_x_sub))));
-plot(log10(tmp_.kinv_A_p_r_),real(tmp_A_.fsc_crop_reli_alig_kx__(:,1+nx)),'-','Color','m','LineWidth',linewidth_use);
-plot(log10(tmp_.kinv_A_p_r_),real(tmp_B_.fsc_crop_reli_alig_kx__(:,1+nx)),'-','Color','b','LineWidth',linewidth_use);
-end;%for nx=n_x_sub:n_x-1;
-hold off;
-set(gca,'xdir','reverse');
-xlim([0.975,+2.025]); set(gca,'XTick',[1,1.5,2],'XTickLabel',{'10','32','100'});
-ylim([0,1]);
-grid on;
-xlabel('Angstroms'); ylabel('correlation','Interpreter','none');
-%title(sprintf('reli_alig'),'Interpreter','none');
-set(gca,'FontSize',fontsize_use);
-%%%%;
-sgtitle(sprintf('%s',fname_reli_mat),'Interpreter','none');
-if (verbose); disp(sprintf(' %% Writing %s',fname_reli_fig_pre)); end;
-print('-djpeg',fname_reli_fig_jpg);
-print('-depsc',fname_reli_fig_eps);
-sgtitle('');
-tmp_dir = sprintf('/%s/rangan/dir_cryoem/dir_ampm_manuscript/dir_ampm_fig_medres',string_root);
-fname_fig_jpg_strip = sprintf('%s/tv1_job_x2_gpu_run_class001_FIGC_strip.jpg',tmp_dir);
-disp(sprintf(' %% writing %s',fname_fig_jpg_strip));
-print('-djpeg',sprintf('%s',fname_fig_jpg_strip));
-%%%%;
-end;%if (flag_replot | ~exist(fname_reli_fig_jpg,'file'));
-%%%%%%%%;
-if  exist(fname_reli_fig_jpg,'file');
-disp(sprintf(' %% %s found, not creating',fname_reli_fig_jpg));
-end;%if  exist(fname_reli_fig_jpg,'file');
-
 

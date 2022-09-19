@@ -23,6 +23,7 @@ test_pm_collect_excerpt_fsc_xa__1( ...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 if nargin<1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+string_root = 'data';
 setup_access1;
 Pixel_Spacing = 1.699;
 parameter = struct('type','parameter','Pixel_Spacing',Pixel_Spacing,'flag_recalc',0,'flag_verbose',1);
@@ -287,15 +288,15 @@ end;%if ( exist(sprintf('%s.jpg',fname_fig),'file') );
 
 flag_replot = 1;
 fname_fig_pre = sprintf('%s/dir_ps1_x0to7_combine/dir_pm_jpg/test_pm_collect_excerpt_fsc_xa__1_FIGB',dir_base);
-fname_fig_jpg = sprintf('%s.jpg',fname_fig);
-fname_fig_eps = sprintf('%s.eps',fname_fig);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+fname_fig_eps = sprintf('%s.eps',fname_fig_pre);
 if ( flag_replot | ~exist(fname_fig_jpg,'file') );
-disp(sprintf(' %% %s not found, creating',fname_fig));
+disp(sprintf(' %% %s not found, creating',fname_fig_jpg));
 figure(1);clf;figsml;
 c_80s__ = colormap_80s; n_c_80s = size(c_80s__,1);
 linewidth_use = 3;
 markersize_use = 12;
-fontsize_use = 12;
+fontsize_use = 18;
 ncrop = 40;
 %tmp_g = @(s) 0 ...
 %  | ~isempty(strfind(s,'X_2d_xcor_d0_a1t0122p20r')) ...
@@ -355,17 +356,23 @@ end;%for noctile=0:n_octile-1;
 hold off;
 %xlim([-1,n_octile+2]); set(gca,'XTick',0:n_octile+1,'XTickLabel',{'1K','1st','2nd','3rd','4th','5th','6th','7th','8th','8K'});
 xlim([-1,n_octile+1]); set(gca,'XTick',0:n_octile+0,'XTickLabel',{'1K','1st','2nd','3rd','4th','5th','6th','7th','8th'});
-ylim([0.55,0.75]); ylabel('correlation (masked)'); grid on;
+xlabel('octile'); ylim([0.55,0.75]); ylabel('correlation (masked)'); grid on;
 title(sprintf('corr_full_reco_vs_crop_ampm_?xa___ ncrop %d',ncrop),'Interpreter','none');
 %%%%%%%%%%%%%%%%;
 sgtitle(fname_fig_pre,'Interpreter','none');
-disp(sprintf(' %% writing %s',fname_fig));
+disp(sprintf(' %% writing %s',fname_fig_jpg));
 print('-djpeg',fname_fig_jpg);
 print('-depsc',fname_fig_eps);
+sgtitle('');
+title('Correlation');
+tmp_dir = sprintf('/%s/rangan/dir_cryoem/dir_ampm_manuscript/dir_ampm_fig_misc',string_root);
+fname_fig_jpg_strip = sprintf('%s/test_pm_collect_excerpt_fsc_xa__1_FIGB_strip.jpg',tmp_dir);
+disp(sprintf(' %% writing %s',fname_fig_jpg_strip));
+print('-djpeg',sprintf('%s',fname_fig_jpg_strip));
 %close(gcf);
 end;%if ( flag_replot | ~exist(fname_fig_jpg,'file') );
 if ( exist(fname_fig_jpg,'file') );
-disp(sprintf(' %% %s found, not creating',fname_fig));
+disp(sprintf(' %% %s found, not creating',fname_fig_jpg));
 end;%if ( exist(fname_fig_jpg,'file') );
 
 disp('returning');return;
