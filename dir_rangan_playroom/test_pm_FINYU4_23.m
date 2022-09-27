@@ -21,7 +21,7 @@ nf=0;
 %%%%%%%%;
 n_x_u_0in = 64; %<-- increase to increase number of pixels (also decrease Pixel_A_0in). ;
 delta_sigma_true_0in = 0.00; %<-- increase to increase translation-spread of images. ;
-snr_per_AA_0in = 0.0001; %<-- decrease to increase noise. ;
+snr_per_AA_0in = 0.035; %<-- decrease to increase noise. ;
 n_M_0in = 1024; %<-- number of images. ;
 n_CTF_0in = 1; %<-- number of distinct CTFs. ;
 Pixel_A_0in = 4.0; %<-- Pixel_Spacing in Angstroms, if n_x_u increases, this should decrease. ;

@@ -35,6 +35,24 @@ get_loading_qbp_1( ...
 verbose = 1;
 if (verbose>1); disp(sprintf(' %% [entering get_loading_qbp_1]')); end;
 
+na=0;
+if (nargin<1+na); parameter=[]; end; na=na+1;
+if (nargin<1+na); n_k_p_r=[]; end; na=na+1;
+if (nargin<1+na); k_p_r_=[]; end; na=na+1;
+if (nargin<1+na); weight_3d_k_p_r_=[]; end; na=na+1;
+if (nargin<1+na); l_max_=[]; end; na=na+1;
+if (nargin<1+na); n_w_=[]; end; na=na+1;
+if (nargin<1+na); n_M=[]; end; na=na+1;
+if (nargin<1+na); M_k_p_wnM__=[]; end; na=na+1;
+if (nargin<1+na); index_nCTF_from_nM_=[]; end; na=na+1;
+if (nargin<1+na); CTF_k_p_wnc__=[]; end; na=na+1;
+if (nargin<1+na); euler_polar_a_=[]; end; na=na+1;
+if (nargin<1+na); euler_azimu_b_=[]; end; na=na+1;
+if (nargin<1+na); euler_gamma_z_=[]; end; na=na+1;
+if (nargin<1+na); image_delta_x_=[]; end; na=na+1;
+if (nargin<1+na); image_delta_y_=[]; end; na=na+1;
+if (nargin<1+na); image_I_value_=[]; end; na=na+1;
+
 SV_loading_Ml__ = [];
 a_k_Y_0qbp_yn_ = [];
 T_k_p_wnM__ = [];
@@ -68,10 +86,6 @@ cg_lsq_n_order = parameter.cg_lsq_n_order;
 qbp_eps = parameter.qbp_eps;
 flag_loading_svd_vs_iterate = parameter.flag_loading_svd_vs_iterate;
 flag_loading_skip_loading = parameter.flag_loading_skip_loading;
-
-if (nargin<14); image_delta_x_ = []; end;
-if (nargin<15); image_delta_y_ = []; end;
-if (nargin<16); image_I_value_ = []; end;
 
 if isempty(image_delta_x_); image_delta_x_ = zeros(n_M,1); end;
 if isempty(image_delta_y_); image_delta_y_ = zeros(n_M,1); end;
@@ -296,7 +310,7 @@ if ~flag_loading_skip_loading;
 % For each nk_p_r, we load the residual R_wM__ for that shell, ;
 % and weight it by CTF_wM_ to form R_CTF_wM__. ;
 % We then map the residuals for each image (individually) onto the quadrature-nodes, ;
-% assuming the ohter images are all zero (hence normalizing by CTF2_q_). ;
+% assuming the other images are all zero (hence normalizing by CTF2_q_). ;
 % Finally, we integrate to obtain an (image- and residual-specific) volume H_ynM__(:,1+nM). ;
 % (Note that we account for quadrature-weights in Ylm_w_yq__ below). ;
 %%%%%%%%;

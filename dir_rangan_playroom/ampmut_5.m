@@ -236,7 +236,7 @@ flag_alternate_MS_vs_SM = parameter.flag_alternate_MS_vs_SM;
 % index bounds. ;
 %%%%%%%%;
 n_w_max = n_w_max + mod(n_w_max,2); %<-- round up to nearest even number. ;
-l_max_max = n_w_max/2 - 1; assert(l_max_max==max(l_max_));
+l_max_max = max(l_max_); %l_max_max = n_w_max/2 - 1; assert(l_max_max==max(l_max_));
 n_w_ = n_w_max*ones(n_k_p_r,1);
 n_w_sum = sum(n_w_);
 n_w_csum_ = cumsum([0;n_w_]);

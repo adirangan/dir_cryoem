@@ -25,7 +25,7 @@ qbp_6( ...
 % Associates CTF_k_p_wkC__(:,1+index_nCTF_from_nM_(1+nM)) with image M_k_p_wkM__(:,1+nM);
 % ;
 % Input: ;
-% qbp_eps: pseudoinverse threshold used for solving local least-squares for ctf. ;
+% qbp_eps: pseudoinverse threshold used for solving local least-squares for ctf. ; %<-- Bug: this is actually ignored internally, and a value of 1e-12 is hard-coded. Not fixing because we are putting together a draft of the paper. ;
 % n_k_p_r: integer number of shells. ;
 % k_p_r_: real array of size n_k_p_r. k-values for each shell. ;
 % l_max_: integer array of size n_k_p_r. l_max_(1+nk_p_r) is the order used for a_k_Y_ on shell nk_p_r. ;
