@@ -1,0 +1,22 @@
+wget ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-8434/map/emd_8434.map.gz ;
+wget ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-8440/map/emd_8440.map.gz ;
+wget ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-8441/map/emd_8441.map.gz ;
+wget ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-8442/map/emd_8442.map.gz ;
+wget ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-8443/map/emd_8443.map.gz ;
+wget ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-8444/map/emd_8444.map.gz ;
+wget ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-8445/map/emd_8445.map.gz ;
+wget ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-8446/map/emd_8446.map.gz ;
+wget ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-8447/map/emd_8447.map.gz ;
+wget ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-8448/map/emd_8448.map.gz ;
+wget ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-8449/map/emd_8449.map.gz ;
+wget ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-8450/map/emd_8450.map.gz ;
+wget ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-8451/map/emd_8451.map.gz ;
+wget ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-8452/map/emd_8452.map.gz ;
+wget ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-8453/map/emd_8453.map.gz ;
+#wget ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-8454/map/emd_8454.map.gz ;
+wget ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-8455/map/emd_8455.map.gz ;
+wget ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-8456/map/emd_8456.map.gz ;
+wget ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-8457/map/emd_8457.map.gz ;
+wget ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-8458/map/emd_8458.map.gz ;
+wget ftp://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-8459/map/emd_8459.map.gz ;
+
