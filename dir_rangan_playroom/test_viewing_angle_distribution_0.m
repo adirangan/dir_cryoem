@@ -13,15 +13,15 @@ flag_verbose = 1; nf=0;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 table_data__ = { ...
-%'p28hRPT1_x0' , 'p28hRP' , 0.98 , 'emd_8674.map' , 'T1.star' ; ...
-'ISWINCP_x0' , 'ISWINCP' , 1.07 , 'emd_9718.map' , 'ADPBeF.star' ; ...
-'trpv1_x0' , 'trpv1' , 1.2156 , 'emd_5778.mrc' , 'tv1_relion_data.star' ; ...
-'rib80s_x0' , 'rib80s' , 1.34 , 'emd_2660.mrc' , 'shiny_2sets.star' ; ...
-'MlaFEDB_x0' , 'MlaFEDB' , 0.832 , 'emd_22116.map' , 'Empiar_10536_00_to_23.star' ; ...
-'LetB1_x0' , 'LetB1' , 1.31 , 'emd_20993.map' , 'job_569_model_1.star' ; ...
-'TMEM16F_x0' , 'TMEM16F' , 1.059 , 'emd_20244.map' , 'All_8192.star' ; ...
-'LSUbl17dep_x0' , 'LSUbl17dep' , 1.31 , 'emd_8434.map' , 'Parameters_negated.star' ; ...
-'ps1_x0' , 'precatalytic_spliceosome' , 1.699 , 'consensus_half1_class001.mrc' , 'consensus_data.star' ; ...
+'p28hRPT1_x0' , 'p28hRP' , 0.98 , 'emd_8674.map' , 'T1.star' ; ...
+%'ISWINCP_x0' , 'ISWINCP' , 1.07 , 'emd_9718.map' , 'ADPBeF.star' ; ...
+%'trpv1_x0' , 'trpv1' , 1.2156 , 'emd_5778.mrc' , 'tv1_relion_data.star' ; ...
+%'rib80s_x0' , 'rib80s' , 1.34 , 'emd_2660.mrc' , 'shiny_2sets.star' ; ...
+%'MlaFEDB_x0' , 'MlaFEDB' , 0.832 , 'emd_22116.map' , 'Empiar_10536_00_to_23.star' ; ...
+%'LetB1_x0' , 'LetB1' , 1.31 , 'emd_20993.map' , 'job_569_model_1.star' ; ...
+%'TMEM16F_x0' , 'TMEM16F' , 1.059 , 'emd_20244.map' , 'All_8192.star' ; ...
+%'LSUbl17dep_x0' , 'LSUbl17dep' , 1.31 , 'emd_8434.map' , 'Parameters_negated.star' ; ...
+%'ps1_x0' , 'precatalytic_spliceosome' , 1.699 , 'consensus_half1_class001.mrc' , 'consensus_data.star' ; ...
 };
 n_experiment = size(table_data__,1);
 ampm__ = cell(n_experiment,1);
@@ -83,6 +83,7 @@ if (flag_replot_vol | ~exist(fname_vol_a_fig_jpg,'file'));
 %%%%%%%%;
 test_viewing_angle_distribution_vol_a_helper_0; %<-- construct a_x_u_ampm_. ;
 %%%%%%%%;
+if strfind(ampm_.dir_pm,'p28hRPT1');   percent_threshold_ = 95.25; tmp_nx = 5; end;
 if strfind(ampm_.dir_pm,'ISWINCP');    percent_threshold_ = 94.50; tmp_nx = 14; end;
 if strfind(ampm_.dir_pm,'trpv1');      percent_threshold_ = 91.25; tmp_nx = 14; end;
 if strfind(ampm_.dir_pm,'rib80s');     percent_threshold_ = 86.25; tmp_nx = 14; end;
@@ -129,10 +130,166 @@ end;%if (flag_replot_vol | ~exist(fname_vol_a_fig_jpg,'file'));
 end;%if flag_disp;
 %%%%%%%%;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+for ntype=0:1;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+if ntype==0; str_type = 'ampm'; end;
+if ntype==1; str_type = 'prev'; end;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+% Here we align the approximate viewing angles associated with each image to the true volume. ;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+flag_verbose=0;
+tmp_n_a = ampm_.n_str_filter;
+tmp_n_M = ampm_.n_M;
+tmp_viewing_euler_gamma_z_ampm_alig_Ma__ = zeros(tmp_n_M,tmp_n_a);
+tmp_viewing_euler_azimu_b_ampm_alig_Ma__ = zeros(tmp_n_M,tmp_n_a);
+tmp_viewing_euler_polar_a_ampm_alig_Ma__ = zeros(tmp_n_M,tmp_n_a);
+for na=0:tmp_n_a-1;
+if ntype==0; tmp_viewing_euler_gamma_z_ = ampm_.euler_gamma_z_ampm_Ma__(:,1+na); end;
+if ntype==0; tmp_viewing_euler_azimu_b_ = ampm_.euler_azimu_b_ampm_Ma__(:,1+na); end;
+if ntype==0; tmp_viewing_euler_polar_a_ = ampm_.euler_polar_a_ampm_Ma__(:,1+na); end;
+if ntype==1; tmp_viewing_euler_gamma_z_ = ampm_.euler_gamma_z_prev_Ma__(:,1+na); end;
+if ntype==1; tmp_viewing_euler_azimu_b_ = ampm_.euler_azimu_b_prev_Ma__(:,1+na); end;
+if ntype==1; tmp_viewing_euler_polar_a_ = ampm_.euler_polar_a_prev_Ma__(:,1+na); end;
+if (ampm_.X_best_flag_flip_ampm_ia__(end,1+na));
+[ ...
+ tmp_viewing_euler_gamma_z_ ...
+] = ...
+rotate_viewing_angles_from_invert_spharm_0( ...
+ flag_verbose ...
+,tmp_viewing_euler_gamma_z_ ...
+);
+end;%if (ampm_.X_best_flag_flip_ampm_ia__(end,1+na));
+%%%%;
+[ ...
+ ~ ...
+,tmp_viewing_euler_polar_a_ ...
+,tmp_viewing_euler_azimu_b_ ...
+,tmp_viewing_euler_gamma_z_ ...
+] = ...
+rotate_viewing_angles_from_rotate_spharm_to_spharm_0( ...
+ max(0,flag_verbose-1) ...
+,ampm_.polar_a_best_ampm_ia__(end,1+na) ...
+,ampm_.azimu_b_best_ampm_ia__(end,1+na) ...
+,ampm_.gamma_z_best_ampm_ia__(end,1+na) ...
+,tmp_viewing_euler_polar_a_ ...
+,tmp_viewing_euler_azimu_b_ ...
+,tmp_viewing_euler_gamma_z_ ...
+);
+tmp_viewing_euler_gamma_z_ampm_alig_Ma__(:,1+na) = tmp_viewing_euler_gamma_z_;
+tmp_viewing_euler_azimu_b_ampm_alig_Ma__(:,1+na) = tmp_viewing_euler_azimu_b_;
+tmp_viewing_euler_polar_a_ampm_alig_Ma__(:,1+na) = tmp_viewing_euler_polar_a_;
+clear tmp_viewing_euler_gamma_z_ tmp_viewing_euler_azimu_b_ tmp_viewing_euler_polar_a_ ;
+end;%for na=0:tmp_n_a-1;
+%%%%%%%%;
+% Now we compare the (aligned) approximate viewing_angles  with the 'true' alignments. ;
+%%%%%%%%;
+flag_disp=1;
+n_a_srt = min(8,tmp_n_a);
+fname_fig_pre = sprintf('%s_jpg/%s_viewing_angle_compare_%s_n%d_FIGF',ampm_.dir_pm,fname_prefix,str_type,n_a_srt);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+fname_fig_eps = sprintf('%s.eps',fname_fig_pre);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+if (flag_replot | ~exist(fname_fig_jpg,'file'));
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+figure(1+nf);nf=nf+1;clf;figbig;colormap('hot');
+markersize_use = 2;
+n_h = 16; h_1pi_ = linspace(0,1*pi,1+n_h); h_1pi_ = h_1pi_(1:1+n_h); h_2pi_ = linspace(0,2*pi,1+2*n_h); h_2pi_ = h_2pi_(1:2*n_h);
+tmp_viewing_euler_gamma_z_ = tmp_viewing_euler_gamma_z_ampm_alig_Ma__(:,1+index_X_best_ampm_srt_(1+[0:n_a_srt-1]));
+tmp_viewing_euler_azimu_b_ = tmp_viewing_euler_azimu_b_ampm_alig_Ma__(:,1+index_X_best_ampm_srt_(1+[0:n_a_srt-1]));
+tmp_viewing_euler_polar_a_ = tmp_viewing_euler_polar_a_ampm_alig_Ma__(:,1+index_X_best_ampm_srt_(1+[0:n_a_srt-1]));
+tmp_h2d_0_gamma_z__ = zeros(2*n_h,2*n_h); tmp_h2d_1_gamma_z__ = zeros(2*n_h,2*n_h);
+tmp_h2d_0_azimu_b__ = zeros(2*n_h,2*n_h); tmp_h2d_1_azimu_b__ = zeros(2*n_h,2*n_h);
+tmp_h2d_0_polar_a__ = zeros(1+n_h,1+n_h); tmp_h2d_1_polar_a__ = zeros(1+n_h,1+n_h);
+if isfield(ampm_,'euler_gamma_z_Mi__'); tmp_h2d_0_gamma_z__ = hist2d_0(reshape(repmat(ampm_.euler_gamma_z_Mi__(:,end)  ,[1,n_a_srt]),[n_M*n_a_srt,1]),tmp_viewing_euler_gamma_z_,2*n_h,2*n_h,h_2pi_,h_2pi_); end;
+if isfield(ampm_,'euler_gamma_z_reco_stab_'); tmp_h2d_1_gamma_z__ = hist2d_0(reshape(repmat(ampm_.euler_gamma_z_reco_stab_(:),[1,n_a_srt]),[n_M*n_a_srt,1]),tmp_viewing_euler_gamma_z_,2*n_h,2*n_h,h_2pi_,h_2pi_); end;
+if isfield(ampm_,'euler_azimu_b_Mi__'); tmp_h2d_0_azimu_b__ = hist2d_0(reshape(repmat(ampm_.euler_azimu_b_Mi__(:,end)  ,[1,n_a_srt]),[n_M*n_a_srt,1]),tmp_viewing_euler_azimu_b_,2*n_h,2*n_h,h_2pi_,h_2pi_); end;
+if isfield(ampm_,'euler_azimu_b_reco_stab_'); tmp_h2d_1_azimu_b__ = hist2d_0(reshape(repmat(ampm_.euler_azimu_b_reco_stab_(:),[1,n_a_srt]),[n_M*n_a_srt,1]),tmp_viewing_euler_azimu_b_,2*n_h,2*n_h,h_2pi_,h_2pi_); end;
+if isfield(ampm_,'euler_polar_a_Mi__'); tmp_h2d_0_polar_a__ = hist2d_0(reshape(repmat(ampm_.euler_polar_a_Mi__(:,end)  ,[1,n_a_srt]),[n_M*n_a_srt,1]),tmp_viewing_euler_polar_a_,n_h+1,n_h+1,h_1pi_,h_1pi_); end;
+if isfield(ampm_,'euler_polar_a_reco_stab_'); tmp_h2d_1_polar_a__ = hist2d_0(reshape(repmat(ampm_.euler_polar_a_reco_stab_(:),[1,n_a_srt]),[n_M*n_a_srt,1]),tmp_viewing_euler_polar_a_,n_h+1,n_h+1,h_1pi_,h_1pi_); end;
+%%%%%%%%;
+for na_srt=0:8-1;
+na = index_X_best_ampm_srt_(1+na_srt);
+%%%%;
+subplot(2,3,1+0*3);
+hold on;
+%plot(ampm_.euler_gamma_z_Mi__(:,end),tmp_viewing_euler_gamma_z_ampm_alig_Ma__(:,1+na),'k.','MarkerSize',markersize_use);
+%plot([0,2*pi],[0,2*pi],'k-');
+imagesc(1+log(tmp_h2d_0_gamma_z__));
+hold off;
+%xlim([0,2*pi]);ylim([0,2*pi]); axis square; axisnotick; 
+axis image; axisnotick;
+title('ampm_.euler_gamma_z_Mi__(:,end)','Interpreter','none');
+%%%%;
+subplot(2,3,1+1*3);
+hold on;
+%plot(ampm_.euler_gamma_z_reco_stab_(:),tmp_viewing_euler_gamma_z_ampm_alig_Ma__(:,1+na),'k.','MarkerSize',markersize_use);
+%plot([0,2*pi],[0,2*pi],'k-');
+imagesc(1+log(tmp_h2d_1_gamma_z__));
+hold off;
+%xlim([0,2*pi]);ylim([0,2*pi]); axis square; axisnotick;
+axis image; axisnotick;
+title('ampm_.euler_gamma_z_reco_stab_(:)','Interpreter','none');
+%%%%;
+subplot(2,3,2+0*3);
+hold on;
+%plot(ampm_.euler_azimu_b_Mi__(:,end),tmp_viewing_euler_azimu_b_ampm_alig_Ma__(:,1+na),'k.','MarkerSize',markersize_use);
+%plot([0,2*pi],[0,2*pi],'k-');
+imagesc(1+log(tmp_h2d_0_azimu_b__));
+hold off;
+%xlim([0,2*pi]);ylim([0,2*pi]); axis square; axisnotick;
+axis image; axisnotick;
+title('ampm_.euler_azimu_b_Mi__(:,end)','Interpreter','none');
+%%%%;
+subplot(2,3,2+1*3);
+hold on;
+%plot(ampm_.euler_azimu_b_reco_stab_(:),tmp_viewing_euler_azimu_b_ampm_alig_Ma__(:,1+na),'k.','MarkerSize',markersize_use);
+%plot([0,2*pi],[0,2*pi],'k-');
+imagesc(1+log(tmp_h2d_1_azimu_b__));
+hold off;
+%xlim([0,2*pi]);ylim([0,2*pi]); axis square; axisnotick;
+axis image; axisnotick;
+title('ampm_.euler_azimu_b_reco_stab_(:)','Interpreter','none');
+%%%%;
+subplot(2,3,3+0*3);
+hold on;
+%plot(ampm_.euler_polar_a_Mi__(:,end),tmp_viewing_euler_polar_a_ampm_alig_Ma__(:,1+na),'k.','MarkerSize',markersize_use);
+%plot([0,1*pi],[0,1*pi],'k-');
+imagesc(1+log(tmp_h2d_0_polar_a__));
+hold off;
+%xlim([0,1*pi]);ylim([0,1*pi]); axis square; axisnotick;
+axis image; axisnotick;
+title('ampm_.euler_polar_a_Mi__(:,end)','Interpreter','none');
+%%%%;
+subplot(2,3,3+1*3);
+hold on;
+%plot(ampm_.euler_polar_a_reco_stab_(:),tmp_viewing_euler_polar_a_ampm_alig_Ma__(:,1+na),'k.','MarkerSize',markersize_use);
+%plot([0,1*pi],[0,1*pi],'k-');
+imagesc(1+log(tmp_h2d_1_polar_a__));
+hold off;
+%xlim([0,1*pi]);ylim([0,1*pi]); axis square; axisnotick;
+axis image; axisnotick;
+title('ampm_.euler_polar_a_reco_stab_(:)','Interpreter','none');
+%%%%;
+end;%for na_srt=0:8-1;
+%%%%%%%%;
+sgtitle(fname_fig_pre,'Interpreter','none');
+disp(sprintf(' %% writing %s',fname_fig_jpg));
+print('-djpeg',fname_fig_jpg);
+print('-depsc',fname_fig_eps);
+close(gcf);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+end;%if (flag_replot | ~exist(fname_fig_jpg,'file'));
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+end;%for ntype=0:1;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+
 %%%%%%%%;
 % Choose the na. ;
 %%%%%%%%;
 na_ = index_X_best_ampm_srt_([1,2,round(numel(ij_X_best_ampm_srt_)/2),round(numel(ij_X_best_ampm_srt_)/2)+1]); %<-- take top 2 best as well as 2 near the median. ;
+%na_ = index_X_best_ampm_srt_([1:4]); %<-- take top 4 best. ;
 n_na = numel(na_);
 %%%%%%%%%%%%%%%%;
 for nna=0:n_na-1;
@@ -604,7 +761,7 @@ subplot(1,3,1);
 imagesc(log(n_z) + log(1+hist2d_0(tmp_.X_SM__(:),tmp_.X_ampm_alig_SM__(:),n_h,n_h,[0,+1],[0,+1])),hlim_);
 set(gca,'Ydir','normal'); tmp_c_= colorbar; set(tmp_c_,'Ticks',[-4,+4]);
 xlabel('corr (true)','Interpreter','none');
-ylabel('corr (AMPM)','Interpreter','none');
+ylabel('corr (EMPM)','Interpreter','none');
 title('Correlation','Interpreter','none');
 axis image; set(gca,'XTick',[1,n_h],'XTickLabel',[0,1],'YTick',[1,n_h],'YTickLabel',[0,1]);
 set(gca,'FontSize',fontsize_use);
@@ -613,7 +770,7 @@ subplot(1,3,2);
 imagesc(log(n_z) + log(1+hist2d_0(tmp_.P_SM__(:),tmp_.P_ampm_alig_SM__(:),n_h,n_h,[1,tmp_.n_S],[1,tmp_.n_S])),hlim_);
 set(gca,'Ydir','normal'); tmp_c_= colorbar; set(tmp_c_,'Ticks',[-4,+4]);
 xlabel('rank (true)','Interpreter','none');
-ylabel('rank (AMPM)','Interpreter','none');
+ylabel('rank (EMPM)','Interpreter','none');
 title('template rank','Interpreter','none');
 axis image; set(gca,'XTick',[1,n_h],'XTickLabel',[0,1],'YTick',[1,n_h],'YTickLabel',[0,1]);
 set(gca,'FontSize',fontsize_use);
@@ -622,7 +779,7 @@ subplot(1,3,3);
 imagesc(log(n_z) + log(1+hist2d_0(tmp_.Q_SM__(:),tmp_.Q_ampm_alig_SM__(:),n_h,n_h,[1,tmp_.n_M],[1,tmp_.n_M])),hlim_);
 set(gca,'Ydir','normal'); tmp_c_= colorbar; set(tmp_c_,'Ticks',[-4,+4]);
 xlabel('rank (true)','Interpreter','none');
-ylabel('rank (AMPM)','Interpreter','none');
+ylabel('rank (EMPM)','Interpreter','none');
 title('image rank','Interpreter','none');
 axis image; set(gca,'XTick',[1,n_h],'XTickLabel',[0,1],'YTick',[1,n_h],'YTickLabel',[0,1]);
 set(gca,'FontSize',fontsize_use);
@@ -657,7 +814,7 @@ subplot(p_row,p_col,1+np);np=np+1;
 imagesc_polar_a_azimu_b_0(tmp_.template_viewing_polar_a_all_,tmp_.template_viewing_azimu_b_all_,mean(tmp_.X_ampm_alig_SM__,2));
 xlabel('azimuthal','Interpreter','none');
 ylabel('polar','Interpreter','none');
-axis image; axisnotick; title('corr (AMPM)','Interpreter','none'); set(gca,'FontSize',fontsize_use);
+axis image; axisnotick; title('corr (EMPM)','Interpreter','none'); set(gca,'FontSize',fontsize_use);
 %subplot(p_row,p_col,1+np);np=np+1;
 %imagesc_polar_a_azimu_b_0(tmp_.template_viewing_polar_a_all_,tmp_.template_viewing_azimu_b_all_,mean(tmp_.X_ampm_SM__,2));
 %xlabel('azimuthal','Interpreter','none');
@@ -673,7 +830,7 @@ subplot(p_row,p_col,1+np);np=np+1;
 imagesc_polar_a_azimu_b_0(tmp_.template_viewing_polar_a_all_,tmp_.template_viewing_azimu_b_all_,mean(tmp_.P_ampm_alig_SM__,2));
 xlabel('azimuthal','Interpreter','none');
 ylabel('polar','Interpreter','none');
-axis image; axisnotick; title('template rank (AMPM)','Interpreter','none'); set(gca,'FontSize',fontsize_use);
+axis image; axisnotick; title('template rank (EMPM)','Interpreter','none'); set(gca,'FontSize',fontsize_use);
 %subplot(p_row,p_col,1+np);np=np+1;
 %imagesc_polar_a_azimu_b_0(tmp_.template_viewing_polar_a_all_,tmp_.template_viewing_azimu_b_all_,mean(tmp_.P_ampm_SM__,2));
 %xlabel('azimuthal','Interpreter','none');
@@ -702,6 +859,7 @@ if (flag_replot_vol | ~exist(fname_vol_fig_jpg,'file'));
 %%%%%%%%;
 test_viewing_angle_distribution_vol_helper_0; %<-- construct a_x_u_ampm_. ;
 %%%%%%%%;
+if strfind(ampm_.dir_pm,'p28hRPT1');   percent_threshold_ = 97.50; tmp_nx = 15; end;
 if strfind(ampm_.dir_pm,'ISWINCP');    percent_threshold_ = 94.50; tmp_nx = 14; end;
 if strfind(ampm_.dir_pm,'trpv1');      percent_threshold_ = 91.25; tmp_nx = 14; end;
 if strfind(ampm_.dir_pm,'rib80s');     percent_threshold_ = 86.25; tmp_nx = 14; end;
@@ -771,8 +929,8 @@ title(sprintf('OBIS')); xlabel('');ylabel('');zlabel(''); set(gca,'FontSize',fon
 %%%%;
 subplot(p_row,p_col,1+npt+nnp*n_percent_threshold);nnp=nnp+1;
 isosurface_f_x_u_0(a_x_u_ampm_alig_(1+tmp_index_),tmp_percent_threshold);
-%title(sprintf('AMPM %.3f',tmp_percent_threshold)); xlabel('');ylabel('');zlabel(''); set(gca,'FontSize',fontsize_use);
-title(sprintf('AMPM')); xlabel('');ylabel('');zlabel(''); set(gca,'FontSize',fontsize_use);
+%title(sprintf('EMPM %.3f',tmp_percent_threshold)); xlabel('');ylabel('');zlabel(''); set(gca,'FontSize',fontsize_use);
+title(sprintf('EMPM')); xlabel('');ylabel('');zlabel(''); set(gca,'FontSize',fontsize_use);
 %%%%;
 end;%for npt=0:n_percent_threshold-1;
 set(gcf,'Position',1+[0,0,512*5,512+64]);
@@ -799,6 +957,7 @@ if (flag_replot_vol | ~exist(fname_vol_fig_jpg,'file'));
 %%%%%%%%;
 test_viewing_angle_distribution_vol_helper_0; %<-- construct a_x_u_ampm_. ;
 %%%%%%%%;
+if strfind(ampm_.dir_pm,'p28hRPT1');   percent_threshold_ = 97.50; tmp_nx = 15; end;
 if strfind(ampm_.dir_pm,'ISWINCP');    percent_threshold_ = 94.50; tmp_nx = 14; end;
 if strfind(ampm_.dir_pm,'trpv1');      percent_threshold_ = 91.25; tmp_nx = 14; end;
 if strfind(ampm_.dir_pm,'rib80s');     percent_threshold_ = 86.25; tmp_nx = 14; end;
@@ -897,6 +1056,8 @@ end;%for nna=0:n_na-1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 end;%for nexperiment=0:n_experiment-1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+
+
 
 
 

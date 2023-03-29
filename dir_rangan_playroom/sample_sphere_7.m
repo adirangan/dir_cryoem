@@ -17,6 +17,8 @@ function ...
 ,J_weight_ ...
 ,J_chebfun_ ...
 ,J_polyval_ ...
+,n_polar_a_k_ ...
+,n_azimu_b_ka__ ...
 ] = ...
 sample_sphere_7( ...
  verbose ...
@@ -24,6 +26,7 @@ sample_sphere_7( ...
 ,k_eq_d ...
 ,str_T_vs_L ...
 ,flag_unif_vs_adap ...
+,flag_tensor_vs_adap ...
 ) ;
 % generate k_p_azimu_b_ and k_p_polar_a_ arrays sampled on sphere of radius k_p_r_max at equatorial_distance k_eq_d ;
 % Note: k_p_azimu_b_ in [0,2*pi], k_p_polar_a_ in [0,1*pi];
@@ -40,6 +43,7 @@ sample_sphere_7( ...
 % k_eq_d: real equatorial distance required on each shell (for sampling). ;
 % str_T_vs_L: string either 'T' for tschebycheff or 'L' [default] for legendre quadrature in the polar_a-direction (errors are comparable). ;
 % flag_unif_vs_adap: integer either '1' for uniform or '0' [default] for adaptive spherical grid (in k_p_r) over each k_p_r-shell. ;
+% flag_tensor_vs_adap: integer either '1' for tensor or '0' [default] for adaptive grid (in polar_a) over each azimu_b-ring. ;
 % ;
 % Outputs: ;
 % n_k_all: integer number of total points. ;
@@ -67,6 +71,7 @@ if (nargin<1+na); k_p_r_max=[]; end; na=na+1;
 if (nargin<1+na); k_eq_d=[]; end; na=na+1;
 if (nargin<1+na); str_T_vs_L=[]; end; na=na+1;
 if (nargin<1+na); flag_unif_vs_adap=[]; end; na=na+1;
+if (nargin<1+na); flag_tensor_vs_adap=[]; end; na=na+1;
 
 if (nargin<1);
 verbose=2;
@@ -75,18 +80,23 @@ k_eq_d_ = 0.5.^[-2:0.25:3]; n_k_eq_d = length(k_eq_d_);
 E_ = zeros(n_k_eq_d,1);
 for nk_eq_d = 1:n_k_eq_d;
 k_eq_d = k_eq_d_(nk_eq_d);
-sample_sphere_7(verbose,k_p_r_max,k_eq_d,'T',0);
-sample_sphere_7(verbose,k_p_r_max,k_eq_d,'L',0);
-sample_sphere_7(verbose,k_p_r_max,k_eq_d,'T',1);
-sample_sphere_7(verbose,k_p_r_max,k_eq_d,'L',1);
+for str_T_vs_L_={'T','L'};
+for flag_unif_vs_adap=[0,1];
+for flag_tensor_vs_adap=[0,1];
+sample_sphere_7(verbose,k_p_r_max,k_eq_d,str_T_vs_L_{1},flag_unif_vs_adap,flag_tensor_vs_adap);
+end;%for flag_tensor_vs_adap=[0,1];
+end;%for flag_unif_vs_adap=[0,1];
+end;%for str_T_vs_L_={'T','L'};
 end;%for nk_eq_d = 1:n_k_eq_d;
 disp('returning'); return;
 end;%if (nargin<1);
 
 if isempty(str_T_vs_L); str_T_vs_L = 'L'; end;
 if isempty(flag_unif_vs_adap); flag_unif_vs_adap=0; end;
+if isempty(flag_tensor_vs_adap); flag_tensor_vs_adap=0; end;
 
 if (verbose>2); disp(sprintf(' %% [entering sample_sphere_7]')); end;
+%%%%%%%%;
 n_k_p_r = 1+ceil(k_p_r_max/k_eq_d); [a_jx_,a_jw_] = jacpts(n_k_p_r,0,2);
 k_p_r_ = (a_jx_+1.0)*k_p_r_max/2; weight_3d_k_p_r_ = a_jw_*(k_p_r_max/2)^3;
 J_node_ = a_jx_ ; J_weight_ = a_jw_ ;
@@ -99,34 +109,53 @@ end;%for nk_p_r=0:n_k_p_r;
 n_k_all = 0; n_k_all_csum_ = zeros(1+n_k_p_r,1);
 for nk_p_r=0:n_k_p_r-1;
 k_p_r = k_p_r_(1+nk_p_r);
-if flag_unif_vs_adap==0;
-[n_k_all_csum] = sample_shell_5(k_p_r,k_eq_d,str_T_vs_L) ;
-end;%if flag_unif_vs_adap==0;
-if flag_unif_vs_adap==1;
-[n_k_all_csum] = sample_shell_5(k_p_r,k_eq_d*k_p_r/k_p_r_max,str_T_vs_L) ;
-end;%if flag_unif_vs_adap==1;
+if flag_unif_vs_adap==0; k_eq_d_use = k_eq_d; end; if flag_unif_vs_adap==1; k_eq_d_use = k_eq_d*k_p_r/k_p_r_max; end;
+[n_k_all_csum] = sample_shell_6(k_p_r,k_eq_d_use,str_T_vs_L,flag_tensor_vs_adap) ;
 n_k_all_csum_(1+nk_p_r) = n_k_all;
 n_k_all = n_k_all + n_k_all_csum;
 end;%for nk_p_r=0:n_k_p_r-1;
 n_k_all_csum_(1+n_k_p_r) = n_k_all;
-k_p_r_all_ = zeros(n_k_all,1); k_p_azimu_b_all_ = zeros(n_k_all,1); k_p_polar_a_all_ = zeros(n_k_all,1); weight_3d_k_all_ = zeros(n_k_all,1); weight_shell_k_ = zeros(n_k_all,1);
+%%%%%%%%;
+k_p_r_all_ = zeros(n_k_all,1);
+k_p_azimu_b_all_ = zeros(n_k_all,1);
+k_p_polar_a_all_ = zeros(n_k_all,1);
+weight_3d_k_all_ = zeros(n_k_all,1);
+weight_shell_k_ = zeros(n_k_all,1);
+n_polar_a_k_ = zeros(n_k_p_r,1);
+n_azimu_b_ka__ = cell(n_k_p_r,1);
 ix=0;
 for nk_p_r=0:n_k_p_r-1;
 k_p_r = k_p_r_(1+nk_p_r);
-if flag_unif_vs_adap==0;
-[n_k_all_csum,k_p_azimu_b_sub_,k_p_polar_a_sub_,weight_k_sub_] = sample_shell_5(k_p_r,k_eq_d,str_T_vs_L) ;
-end;%if flag_unif_vs_adap==0;
-if flag_unif_vs_adap==1;
-[n_k_all_csum,k_p_azimu_b_sub_,k_p_polar_a_sub_,weight_k_sub_] = sample_shell_5(k_p_r,k_eq_d*k_p_r/k_p_r_max,str_T_vs_L) ;
-end;%if flag_unif_vs_adap==1;
+if flag_unif_vs_adap==0; k_eq_d_use = k_eq_d; end; if flag_unif_vs_adap==1; k_eq_d_use = k_eq_d*k_p_r/k_p_r_max; end;
+[ ...
+ n_k_all_csum ...
+,k_p_azimu_b_sub_ ...
+,k_p_polar_a_sub_ ...
+,weight_k_sub_ ...
+,k_c_0_all_ ...
+,k_c_1_all_ ...
+,k_c_2_all_ ...
+,n_polar_a ...
+,polar_a_ ...
+,n_azimu_b_ ...
+] = ...
+sample_shell_6( ...
+ k_p_r ...
+,k_eq_d_use ...
+,str_T_vs_L ...
+,flag_tensor_vs_adap ...
+);
 ij_ = ix + (0:n_k_all_csum-1);
 k_p_r_all_(1+ij_) = k_p_r*ones(n_k_all_csum,1);
 k_p_azimu_b_all_(1+ij_) = k_p_azimu_b_sub_;
 k_p_polar_a_all_(1+ij_) = k_p_polar_a_sub_;
 weight_shell_k_(1+ij_) = weight_k_sub_;
 weight_3d_k_all_(1+ij_) = weight_k_sub_ * weight_3d_k_p_r_(1+nk_p_r) / k_p_r.^2;
+n_polar_a_k_(1+nk_p_r) = n_polar_a;
+n_azimu_b_ka__{1+nk_p_r} = n_azimu_b_;
 ix = ix + n_k_all_csum;
 end;%for nk_p_r=0:n_k_p_r-1;
+%%%%%%%%;
 
 if (verbose>1);
 delta_ = [0.51;0.75;1.9]; delta_012 = fnorm(delta_); delta_01 = fnorm(delta_(1:2)); 
@@ -137,7 +166,7 @@ k_c_1_all_ = k_p_r_all_.*sin(k_p_azimu_b_all_).*sin(k_p_polar_a_all_);
 k_c_2_all_ = k_p_r_all_.*cos(k_p_polar_a_all_);
 f_all_ = exp(+i* ( k_c_0_all_*delta_(1+0) + k_c_1_all_*delta_(1+1) + k_c_2_all_*delta_(1+2) ));
 Iq = sum(f_all_.*weight_3d_k_all_);
-disp(sprintf(' %% sample_sphere_7: k_p_r_max: %0.2f; k_eq_d %0.2f; n_k_all %.8d n_k_shell %.6d flag_unif_vs_adap %d str_T_vs_L %s; error %0.16f',k_p_r_max,k_eq_d,n_k_all,n_k_all_csum_(end)-n_k_all_csum_(end-1),flag_unif_vs_adap,str_T_vs_L,fnorm(Ix-Iq)/fnorm(Ix))); 
+disp(sprintf(' %% sample_sphere_7: k_p_r_max: %0.2f; k_eq_d %0.2f; n_k_all %.8d n_k_shell %.6d flag_unif_vs_adap %d flag_tensor_vs_adap %d str_T_vs_L %s; error %0.16f',k_p_r_max,k_eq_d,n_k_all,n_k_all_csum_(end)-n_k_all_csum_(end-1),flag_unif_vs_adap,flag_tensor_vs_adap,str_T_vs_L,fnorm(Ix-Iq)/fnorm(Ix))); 
 end;%if (verbose>0); 
 
 if (nargout>10);

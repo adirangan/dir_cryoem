@@ -104,6 +104,26 @@ S_k_q_wkS__(:,1+nS) = interp_p_to_q(n_k_p_r,n_w_,n_w_sum,S_k_p_wkS__(:,1+nS));
 end;%for nS=0:n_S-1;
 %%%%%%%%;
 
+%%%%%%%%;
+% plot some S_k_p_. ;
+%%%%%%%%;
+%tmp_index_ = efind(abs(template_viewing_polar_a_all_-pi/2)<1e-3); %<-- equatorial belt. ;
+%tmp_index_ = efind(abs(template_viewing_polar_a_all_-0)<pi/16); %<-- polar cap. ;
+%tmp_index_ = [0,floor(1*n_S/8),floor(2*n_S/8),floor(3*n_S/8)]; %<-- selection of a few templates. ;
+tmp_index_ = [floor(1*n_S/16),floor(2*n_S/8)]; %<-- selection of a few templates. ;
+imagesc_S_k_p_3d_2( ...
+ struct('type','parameter','k_p_r_max_use',k_p_r_max/3) ...
+,n_k_p_r ...
+,k_p_r_ ...
+,k_p_r_max ...
+,n_w_ ...
+,weight_2d_k_all_ ...
+,numel(tmp_index_) ...
+,S_k_p_wkS__(:,1+tmp_index_) ...
+,template_viewing_azimu_b_all_(1+tmp_index_) ...
+,template_viewing_polar_a_all_(1+tmp_index_) ...
+);
+
 flag_disp=1;
 %%%%%%%%;
 % examine S_k_p_. ;
@@ -119,6 +139,64 @@ imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,log10(abs(S_k_p_wkS__(:,1+nS))));
 axis image; axisnotick; title(sprintf('nS %d',nS)); 
 if flag_drawnow; drawnow(); end;
 end;%for nS=0:tmp_n_S-1;
+end;%if flag_disp;
+
+flag_disp=1;
+if flag_disp;
+%%%%%%%%;
+% plot volume in real-space. ;
+%%%%%%%%;
+fname_emd = sprintf('%s/%s',dir_data_star,fname_nopath_volume);
+a_x_u_load_ = cast(ReadMRC(fname_emd),'double');
+figure(1+nf);nf=nf+1;clf;
+p_row = 1; p_col = 2; np=0;
+for prow=0:p_row-1;for pcol=0:p_col-1;
+if pcol==0; tmp_prctile = 99.0; end;
+if pcol==1; tmp_prctile = 98.5; end;
+subplot(p_row,p_col,1+np);np=np+1;
+isosurface_cut_f_x_u_0(a_x_u_load_,tmp_prctile,[],(1-colormap('bone')));
+title(sprintf('p%.1f',tmp_prctile),'Interpreter','none');
+xlabel(''); ylabel(''); zlabel('');
+end;end;%for prow=0:p_row-1;for pcol=0:p_col-1;
+set(gcf,'Position',1+[0,0,1024*2,1024]);
+fname_fig_pre = sprintf('%s_jpg/test_heterogeneity_spurious_trpv1c_FIGB',dir_pm);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+sgtitle(fname_fig_pre,'Interpreter','none');
+if (flag_replot | ~exist(fname_fig_jpg,'file'));
+disp(sprintf(' %% %s not found, creating',fname_fig_jpg));
+sgtitle(fname_fig_pre,'Interpreter','none');
+print('-djpeg',fname_fig_jpg);
+end;%if (flag_replot | ~exist(fname_fig_jpg,'file'));
+end;%if flag_disp;
+
+flag_disp=1;
+if flag_disp;
+%%%%%%%%;
+% plot volume in fourier-space. ;
+%%%%%%%%;
+a_k_u_pack_ = fftshift(fftn(fftshift(a_x_u_pack_)));
+fname_emd = sprintf('%s/%s',dir_data_star,fname_nopath_volume);
+a_x_u_load_ = cast(ReadMRC(fname_emd),'double');
+a_k_u_load_ = fftshift(fftn(fftshift(a_x_u_load_)));
+figure(1+nf);nf=nf+1;clf;
+p_row = 1; p_col = 2; np=0;
+for prow=0:p_row-1;for pcol=0:p_col-1;
+if pcol==0; tmp_prctile = 99.75; end;
+if pcol==1; tmp_prctile = 99.50; end;
+subplot(p_row,p_col,1+np);np=np+1;
+isosurface_cut_f_x_u_0(real(a_k_u_load_),tmp_prctile,[],(1-colormap('bone')));
+title(sprintf('p%.1f',tmp_prctile),'Interpreter','none');
+xlabel(''); ylabel(''); zlabel('');
+end;end;%for prow=0:p_row-1;for pcol=0:p_col-1;
+set(gcf,'Position',1+[0,0,1024*2,1024]);
+fname_fig_pre = sprintf('%s_jpg/test_heterogeneity_spurious_trpv1c_FIGC',dir_pm);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+sgtitle(fname_fig_pre,'Interpreter','none');
+if (flag_replot | ~exist(fname_fig_jpg,'file'));
+disp(sprintf(' %% %s not found, creating',fname_fig_jpg));
+sgtitle(fname_fig_pre,'Interpreter','none');
+print('-djpeg',fname_fig_jpg);
+end;%if (flag_replot | ~exist(fname_fig_jpg,'file'));
 end;%if flag_disp;
 
 flag_disp=1;
@@ -1505,7 +1583,7 @@ subplot(p_row,p_col,1+pcol+2*p_col);
 isosurface_f_x_u_0(a_x_u_norm_refi_half_xxx_,tmp_prct);
 title(sprintf('a_x_u_norm_refi_half_xxx_: %.1f%%',tmp_prct),'Interpreter','none');
 end;%for pcol=0:p_col-1;
-fname_fig_pre = sprintf('%s_jpg/test_heterogeneity_spurious_tprv1c_FIGA',dir_pm);
+fname_fig_pre = sprintf('%s_jpg/test_heterogeneity_spurious_trpv1c_FIGA',dir_pm);
 fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
 if (flag_replot | ~exist(fname_fig_jpg,'file'));
 disp(sprintf(' %% %s not found, creating',fname_fig_jpg));
