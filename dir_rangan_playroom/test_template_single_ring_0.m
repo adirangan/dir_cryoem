@@ -2,16 +2,18 @@ function ...
 [ ...
  parameter ...
 ] = ...
-M3d_shape_longitudinal_perturbation_1( ...
+test_template_single_ring_0( ...
  parameter ...
 );
+
+str_thisfunction = 'test_template_single_ring_0';
 
 if (nargin<1);
 disp(sprintf(' %% testing %s',str_thisfunction));
 parameter = struct('type','parameter');
 parameter.flag_verbose = 1;
 parameter.str_shape = 'rand';
-M3d_shape_longitudinal_perturbation_1(parameter);
+test_template_single_ring_0(parameter);
 disp(sprintf(' %% returning')); return;
 end;%if (nargin<1);
 
@@ -19,10 +21,9 @@ na=0;
 if (nargin<1+na); parameter=[]; end; na=na+1;
 
 %clear; parameter = [];
-str_thisfunction = 'M3d_shape_longitudinal_perturbation_1';
 
 if isempty(parameter); parameter = struct('type','parameter'); end;
-if ~isfield(parameter,'flag_verbose'); parameter.flag_verbose = 0; end;
+if ~isfield(parameter,'flag_verbose'); parameter.flag_verbose = 1; end;
 flag_verbose = parameter.flag_verbose;
 if ~isfield(parameter,'flag_disp'); parameter.flag_disp = 0; end;
 flag_disp = parameter.flag_disp; nf=0;
@@ -34,6 +35,8 @@ if ~isfield(parameter,'n_mode'); parameter.n_mode = 2; end;
 n_mode = parameter.n_mode;
 if ~isfield(parameter,'d_source'); parameter.d_source = 0.25*pi; end;
 d_source = parameter.d_source;
+if ~isfield(parameter,'sigma_x_c'); parameter.sigma_x_c = 0.025; end;
+sigma_x_c = parameter.sigma_x_c;
 if ~isfield(parameter,'str_shape'); parameter.str_shape = 'rand'; end;
 str_shape = parameter.str_shape;
 if ~isfield(parameter,'rseed'); parameter.rseed = 0; end;
@@ -99,6 +102,7 @@ tmp_t = tic;
 ,J_chebfun_ ...
 ,J_polyval_ ...
 ,n_polar_a_k_ ...
+,polar_a_ka__ ...
 ,n_azimu_b_ka__ ...
 ] = ...
 sample_sphere_7( ...
@@ -134,7 +138,6 @@ get_weight_2d_2( ...
 n_w_max = max(n_w_); n_w_sum = sum(n_w_); n_w_csum_ = cumsum([0;n_w_]);
 %%%%%%%%;
 
-sigma_x_c = 0.05;
 sigma_k_p = 1/sigma_x_c;
 %%%%%%%%;
 % check formula for fourier-transform of gaussian. ;
@@ -231,22 +234,6 @@ end;%if flag_disp;
 %%%%%%%%;
 
 %%%%%%%%;
-% Now deform via longitudinal perturbation. ;
-%%%%%%%%;
-% Below we assume that the integral of a function on a ring can be approximated by the laplacian: ;
-% B_{r} = ring of radius r. ;
-% I(r) = \frac{1}{|\partial B_{r}|} \int_{B_{r}} u(\vx) d\Gamma. ;
-% \partial_{r} I(r) = \frac{1}{|\partial B_{r}|} \int_{B_{r}} \Delta u(\vx) d\vx. ;
-% \partial_{r} I(r) \approx \frac{1}{|\partial B_{r}|} \pi r^{2} \Delta u(0) \approx 0.5*r*\Delta u(0). ;
-% I(r) = I(0) + \int_{0}^{r} \partial_{r} I(s)ds \approx u(0) + 0.25*r^{2}*\Delta u(0). ;
-%%%%%%%%;
-% Similarly, the integral of a function on a collapsed ring (e.g., only in the azimu_b direction) is: ;
-% B_{r} = ring of radius r projected onto the x_{0} coordinate. ;
-% I(r) = \frac{1}{|\partial B_{r}|} \int_{B_{r}} u(x_{0}) d\Gamma \approx u(0) + 0.25*r^{2}*\partial^{2}_{x_{0}} u(0). ;
-% This is what one would expect if u did not vary orthogonal to the x_{0} direction. ;
-%%%%%%%%;
-
-%%%%%%%%;
 % Set up interpolation matrix. ;
 % This strongly assumes that each shell and ring is discretized identically. ;
 % (i.e., flag_unif_vs_adap==1 & flag_tensor_vs_adap==1). ;
@@ -291,42 +278,6 @@ cg_interpolate_n_3( ...
 );
 tmp_t = toc(tmp_t); disp(sprintf(' %% cg_interpolate_n_3: time %0.2fs',tmp_t));
 %%%%%%%%;
-a_k_p_pre_ = a_k_p_form_;
-for nt=0:n_t-1;
-tmp_t = tic;
-a_k_p_pos_ = a_k_p_pre_;
-for nk_p_r=0:n_k_p_r-1;
-n_k_all_csum_pre = n_k_all_csum_(1+nk_p_r+0);
-n_k_all_csum_pos = n_k_all_csum_(1+nk_p_r+1);
-assert(shell_n_k_all==n_k_all_csum_pos-n_k_all_csum_pre);
-a_k_p_sub_ = a_k_p_pos_(1+n_k_all_csum_pre+[0:shell_n_k_all-1]);
-a_k_p_sub_ = shell_scatter_from_tensor_sba__*a_k_p_sub_ + 0.25 * shell_longitudinal_r_.^2 .* (shell_scatter_from_tensor_db2da0_sba__*a_k_p_sub_ + shell_scatter_from_tensor_db0da2_sba__*a_k_p_sub_);
-a_k_p_pos_(1+n_k_all_csum_pre+[0:shell_n_k_all-1]) = a_k_p_sub_;
-end;%for nk_p_r=0:n_k_p_r-1;
-a_k_p_pre_ = a_k_p_pos_;
-tmp_t = toc(tmp_t); disp(sprintf(' %% shell_scatter_from_tensor_sba__: time %0.2fs',tmp_t));
-%%%%;
-eta = pi/k_p_r_max; tmp_t = tic;
-a_x_c_pre_ = xxnufft3d3(n_k_all,2*pi*k_c_0_all_*eta,2*pi*k_c_1_all_*eta,2*pi*k_c_2_all_*eta,a_k_p_pre_.*(2*pi)^3.*weight_3d_k_all_,+1,1e-12,n_xxx_c,x_c_0_012___(:)/eta,x_c_1_012___(:)/eta,x_c_2_012___(:)/eta)/sqrt(2*pi)/sqrt(2*pi)/sqrt(2*pi) /  sqrt(2*pi)^3;
-tmp_t = toc(tmp_t); disp(sprintf(' %% xxnufft3d3: a_x_c_pre_ time %0.2fs',tmp_t));
-%%%%;
-flag_disp=1;
-if flag_disp;
-figure(1+nf);nf=nf+1;clf;figmed;
-subplot(1,2,1); isosurface_f_x_u_0(a_x_c_pre_,98.5); title(sprintf('a_x_c_pre_ nt %d/%d',nt,n_t),'Interpreter','none');
-nk_p_r = floor(n_k_p_r/3);%nk_p_r = n_k_p_r-1;
-n_k_all_csum_pre = n_k_all_csum_(1+nk_p_r+0);
-n_k_all_csum_pos = n_k_all_csum_(1+nk_p_r+1);
-assert(shell_n_k_all==n_k_all_csum_pos-n_k_all_csum_pre);
-a_k_p_sub_ = a_k_p_pos_(1+n_k_all_csum_pre+[0:shell_n_k_all-1]);
-a_k_p_sub_lim_ = prctile(abs(a_k_p_sub_),95)*[-1,+1];
-subplot(1,2,2); imagesc_polar_a_azimu_b_0(shell_k_p_polar_a_,shell_k_p_azimu_b_,real(a_k_p_sub_),a_k_p_sub_lim_,colormap_80s,0); axisnotick3d;
-drawnow();
-end;%if flag_disp;
-%%%%;
-end;%for nt=0:n_t-1;
-
-if flag_verbose; disp(sprintf(' %% [finished %s]',str_thisfunction)); end;
 
 %%%%%%%%;
 % Construct a_k_Y_quad_. ;
@@ -480,39 +431,18 @@ if (flag_verbose> 0);
 disp(sprintf(' %% S_k_p_wkS__(:,1+index_viewing_sub_) vs S_k_p_wkn__: %0.16f',fnorm(S_k_p_wkS__(:,1+index_viewing_sub_)-S_k_p_wkn__)/fnorm(S_k_p_wkS__(:,1+index_viewing_sub_)))); 
 disp(sprintf(' %% S_k_p_wkS__(:,1+randperm(n_S,n_viewing_sub)-1) vs S_k_p_wkn__: %0.16f',fnorm(S_k_p_wkS__(:,1+randperm(n_S,n_viewing_sub)-1)-S_k_p_wkn__)/fnorm(S_k_p_wkS__(:,1+randperm(n_S,n_viewing_sub)-1)))); 
 end;%if (flag_verbose> 0); 
+
+flag_disp=1;
+if flag_disp;
+%%%%%%%%;
+% illustrate some of the templates. ;
+%%%%%%%%;
 np=0;
 for nviewing_sub=0:n_viewing_sub-1;
-subplot(4,6,1+np);np=np+1; imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(S_k_p_wkS__(:,1+index_viewing_sub_(1+nviewing_sub)))); title(sprintf('%.2d',nviewing_sub));
-subplot(4,6,1+np);np=np+1; imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(S_k_p_wkn__(:,1+nviewing_sub))); title(sprintf('%.2d',nviewing_sub));
+subplot(4,6,1+np);np=np+1; imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(S_k_p_wkS__(:,1+index_viewing_sub_(1+nviewing_sub)))); title(sprintf('%.2d <- Y',nviewing_sub));
+subplot(4,6,1+np);np=np+1; imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(S_k_p_wkn__(:,1+nviewing_sub))); title(sprintf('%.2d <- p',nviewing_sub));
 end;%for nviewing_sub=0:n_viewing_sub-1;
+end;%if flag_disp;
 
-figure(1+nf);nf=nf+1;clf;figsml;
-nk_p_r = floor(n_k_p_r/4);%nk_p_r = n_k_p_r-1;
-k_p_r = k_p_r_(1+nk_p_r);
-n_k_all_csum_pre = n_k_all_csum_(1+nk_p_r+0);
-n_k_all_csum_pos = n_k_all_csum_(1+nk_p_r+1);
-assert(shell_n_k_all==n_k_all_csum_pos-n_k_all_csum_pre);
-a_k_p_sub_ = a_k_p_pos_(1+n_k_all_csum_pre+[0:shell_n_k_all-1]);
-a_k_p_sub_lim_ = prctile(abs(a_k_p_sub_),95)*[-1,+1];
-hold on;
-%imagesc_polar_a_azimu_b_0(shell_k_p_polar_a_,shell_k_p_azimu_b_,real(a_k_p_sub_),a_k_p_sub_lim_,colormap_80s,0,k_p_r);
-n_contour = 16;
-tmp_parameter = struct('type','parameter');
-tmp_parameter.flag_percent_use=0;
-tmp_parameter.vlim_ = 10*a_k_p_sub_lim_;
-tmp_parameter.vval_ = transpose(linspace(min(tmp_parameter.vlim_),max(tmp_parameter.vlim_),n_contour));
-imagesc_S_k_p_3d_2( ...
- tmp_parameter ...
-,n_k_p_r ...
-,k_p_r_ ...
-,k_p_r_max ...
-,n_w_ ...
-,weight_2d_k_all_ ...
-,n_viewing_sub ...
-,real(S_k_p_wkn__) ...
-,template_viewing_sub_azimu_b_ ...
-,template_viewing_sub_polar_a_ ...
-);
-hold off;
-xlabel('k0'); ylabel('k1'); zlabel('k2'); axisnotick3d;
+if flag_verbose; disp(sprintf(' %% [finished %s]',str_thisfunction)); end;
 

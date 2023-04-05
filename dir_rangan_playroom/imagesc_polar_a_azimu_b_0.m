@@ -1,14 +1,29 @@
-function imagesc_polar_a_azimu_b_0(polar_a_,azimu_b_,data_,lim_,c_,flag_2d_vs_3d);
+function ...
+imagesc_polar_a_azimu_b_0( ...
+ polar_a_ ... 
+,azimu_b_ ... 
+,data_ ... 
+,lim_ ... 
+,c__ ... 
+,flag_2d_vs_3d ...
+,k_p_r_max ...
+);
 % We assume that there are several values of azimu_b_ for each value of polar_a_. ;
-if nargin<4; lim_ = []; end;
-if nargin<5; c_ = []; end;
-if nargin<6; flag_2d_vs_3d = []; end;
+na=0;
+if (nargin<1+na); polar_a_=[]; end; na=na+1;
+if (nargin<1+na); azimu_b_=[]; end; na=na+1;
+if (nargin<1+na); data_=[]; end; na=na+1;
+if (nargin<1+na); lim_=[]; end; na=na+1;
+if (nargin<1+na); c__=[]; end; na=na+1;
+if (nargin<1+na); flag_2d_vs_3d=[]; end; na=na+1;
+if (nargin<1+na); k_p_r_max=[]; end; na=na+1;
 
 if isempty(lim_); lim_ = mean(data_) + 1.5*std(data_,1)*[-1,1]; end;
-if isempty(c_);  c_ = colormap_beach(); end;
+if isempty(c__);  c__ = colormap_beach(); end;
 if isempty(flag_2d_vs_3d); flag_2d_vs_3d = 1; end;
+if isempty(k_p_r_max); k_p_r_max = 1.0; end;
 
-n_c = size(c_,1);
+n_c = size(c__,1);
 
 assert(numel(polar_a_)==numel(azimu_b_));
 assert(numel(polar_a_)==numel(data_));
@@ -34,7 +49,7 @@ n_patch = sum(n_azimu_b_);
 x__ = zeros(5,n_patch);
 y__ = zeros(5,n_patch);
 if flag_2d_vs_3d==0; z__ = zeros(5,n_patch); end;
-c__ = zeros(1,n_patch,3);
+c___ = zeros(1,n_patch,3);
 %%%%%%%%;
 [s_polar_a_,index_u_from_s_polar_a_] = sort(u_polar_a_); index_u_from_s_polar_a_ = index_u_from_s_polar_a_ - 1;
 [~,index_s_from_u_polar_a_] = sort(index_u_from_s_polar_a_); index_s_from_u_polar_a_ = index_s_from_u_polar_a_ - 1;
@@ -65,7 +80,7 @@ y__(1+1,1+npatch) = y_dn;
 y__(1+2,1+npatch) = y_up;
 y__(1+3,1+npatch) = y_up;
 y__(1+4,1+npatch) = y_dn;
-c__(1,1+npatch,:) = c_(1+nc,:);
+c___(1,1+npatch,:) = c__(1+nc,:);
 end;%if flag_2d_vs_3d==1;
 %%%%%%%%;
 if flag_2d_vs_3d==0;
@@ -96,7 +111,7 @@ z__(1+1,1+npatch) = k_3d_2_se;
 z__(1+2,1+npatch) = k_3d_2_ne;
 z__(1+3,1+npatch) = k_3d_2_nw;
 z__(1+4,1+npatch) = k_3d_2_sw;
-c__(1,1+npatch,:) = c_(1+nc,:);
+c___(1,1+npatch,:) = c__(1+nc,:);
 end;%if flag_2d_vs_3d==0;
 %%%%%%%%;
 
@@ -104,8 +119,8 @@ npatch=npatch+1;
 end;%for nazimu_b=0:n_azimu_b-1;
 end;%for npolar_a=0:n_polar_a-1;
 %%%%%%%%;
-if flag_2d_vs_3d==1; p=patch(x__,y__,c__,'EdgeColor','none'); xlim([0,2*pi]);ylim([0,pi]); axisnotick; end;
-if flag_2d_vs_3d==0; p=patch(x__,y__,z__,c__,'EdgeColor','none'); view([-65,20]); axis vis3d; end;
+if flag_2d_vs_3d==1; p=patch(k_p_r_max*x__,k_p_r_max*y__,c___,'EdgeColor','none'); xlim([0,2*pi]);ylim([0,pi]); axisnotick; end;
+if flag_2d_vs_3d==0; p=patch(k_p_r_max*x__,k_p_r_max*y__,k_p_r_max*z__,c___,'EdgeColor','none'); view([-65,20]); axis vis3d; end;
 %%%%%%%%;
 
 

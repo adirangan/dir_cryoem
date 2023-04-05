@@ -2,24 +2,33 @@ function ...
 [ ...
  parameter ...
 ] = ...
-M3d_shape_longitudinal_perturbation_1( ...
+M3d_shape_latitudinal_perturbation_3( ...
  parameter ...
 );
+
+str_thisfunction = 'M3d_shape_latitudinal_perturbation_3';
 
 if (nargin<1);
 disp(sprintf(' %% testing %s',str_thisfunction));
 parameter = struct('type','parameter');
 parameter.flag_verbose = 1;
-parameter.str_shape = 'rand';
-M3d_shape_longitudinal_perturbation_1(parameter);
+for flag_sign = [-1,+1];
+for d_source = [0,0.125*pi,0.250*pi];
+for sigma_x_c = [0.10,0.05,0.025];
+parameter.flag_sign = flag_sign;
+parameter.d_source = d_source;
+parameter.sigma_x_c = sigma_x_c;
+M3d_shape_latitudinal_perturbation_3(parameter);
+end;%for sigma_x_c = [0.10,0.05,0.025];
+end;%for d_source = [0,0.125*pi,0.250*pi];
+end;%for flag_sign = [-1,+1];
 disp(sprintf(' %% returning')); return;
 end;%if (nargin<1);
 
 na=0;
 if (nargin<1+na); parameter=[]; end; na=na+1;
 
-%clear; parameter = [];
-str_thisfunction = 'M3d_shape_longitudinal_perturbation_1';
+%clear; parameter = []; str_thisfunction = 'M3d_shape_latitudinal_perturbation_3';
 
 if isempty(parameter); parameter = struct('type','parameter'); end;
 if ~isfield(parameter,'flag_verbose'); parameter.flag_verbose = 0; end;
@@ -30,17 +39,21 @@ if ~isfield(parameter,'flag_replot'); parameter.flag_replot = 0; end;
 flag_replot = parameter.flag_replot;
 if ~isfield(parameter,'str_shape'); parameter.str_shape = 'rand'; end;
 str_shape = parameter.str_shape;
+if ~isfield(parameter,'flag_sign'); parameter.flag_sign = -1; end;
+flag_sign = parameter.flag_sign;
 if ~isfield(parameter,'n_mode'); parameter.n_mode = 2; end;
 n_mode = parameter.n_mode;
 if ~isfield(parameter,'d_source'); parameter.d_source = 0.25*pi; end;
 d_source = parameter.d_source;
+if ~isfield(parameter,'sigma_x_c'); parameter.sigma_x_c = 0.05; end;
+sigma_x_c = parameter.sigma_x_c;
 if ~isfield(parameter,'str_shape'); parameter.str_shape = 'rand'; end;
 str_shape = parameter.str_shape;
 if ~isfield(parameter,'rseed'); parameter.rseed = 0; end;
 rseed = parameter.rseed;
 if ~isfield(parameter,'n_x_c'); parameter.n_x_c = 256; end;
 n_x_c = parameter.n_x_c;
-if ~isfield(parameter,'k_p_r_max'); parameter.k_p_r_max = 1.0*48.0/(2*pi); end;
+if ~isfield(parameter,'k_p_r_max'); parameter.k_p_r_max = 2.0*48.0/(2*pi); end;
 k_p_r_max = parameter.k_p_r_max;
 if ~isfield(parameter,'k_eq_d'); parameter.k_eq_d = sqrt(1.0)/(2*pi); end;
 k_eq_d = parameter.k_eq_d;
@@ -57,7 +70,7 @@ if (strcmp(platform,'rusty')); setup_rusty; string_root = 'mnt/home'; end;
 %%%%%%%%;
 dir_manuscript = sprintf('/%s/rangan/dir_cryoem/dir_spurious_heterogeneity_manuscript',string_root);
 if ~exist(dir_manuscript,'dir'); disp(sprintf(' %% mkdir %s',dir_manuscript)); mkdir(dir_manuscript); end;
-dir_manuscript_jpg = sprintf('%s/dir_M3d_shape_longitudinal_perturbation_jpg',dir_manuscript);
+dir_manuscript_jpg = sprintf('%s/dir_M3d_shape_latitudinal_perturbation_jpg',dir_manuscript);
 if ~exist(dir_manuscript_jpg,'dir'); disp(sprintf(' %% mkdir %s',dir_manuscript_jpg)); mkdir(dir_manuscript_jpg); end;
 
 if strcmp(str_shape,'rand'); rng(rseed); end;
@@ -99,6 +112,7 @@ tmp_t = tic;
 ,J_chebfun_ ...
 ,J_polyval_ ...
 ,n_polar_a_k_ ...
+,polar_a_ka__ ...
 ,n_azimu_b_ka__ ...
 ] = ...
 sample_sphere_7( ...
@@ -134,7 +148,6 @@ get_weight_2d_2( ...
 n_w_max = max(n_w_); n_w_sum = sum(n_w_); n_w_csum_ = cumsum([0;n_w_]);
 %%%%%%%%;
 
-sigma_x_c = 0.05;
 sigma_k_p = 1/sigma_x_c;
 %%%%%%%%;
 % check formula for fourier-transform of gaussian. ;
@@ -162,6 +175,10 @@ end;%if flag_check;
 %%%%%%%%;
 % Sum of gaussians. ;
 %%%%%%%%;
+if d_source==0;
+n_source = 2; x_c_0_source_ = [-0.2;+0.4]; x_c_1_source_ = [-0.3;+0.3]; x_c_2_source_ = [-0.4;+0.2];
+end;%if d_source==0;
+if d_source> 0;
 [ ...
  n_source ...
 ,azimu_b_source_ ...
@@ -175,6 +192,7 @@ sample_shell_5( ...
  0.75*half_diameter_x_c ...
 ,0.75*half_diameter_x_c*d_source ...
 ) ;
+end;%if d_source> 0;
 %%%%%%%%;
 a_x_c_form_ = zeros(n_x_c,n_x_c,n_x_c);
 a_k_p_form_ = zeros(n_k_all,1);
@@ -225,13 +243,13 @@ disp(sprintf(' %% xxnufft3d3: a_x_c_reco error: %0.16f',fnorm(a_x_c_form_(:)-a_x
 flag_disp=1;
 if flag_disp;
 figure(1+nf);nf=nf+1;clf;figmed;
-subplot(1,2,1); isosurface_f_x_u_0(a_x_c_form_,98.5); title('a_x_c_form_','Interpreter','none');
-subplot(1,2,2); isosurface_f_x_u_0(a_x_c_reco_,98.5); title('a_x_c_reco_','Interpreter','none');
+subplot(1,2,1); isosurface_f_x_u_1([],a_x_c_form_); title('a_x_c_form_','Interpreter','none');
+subplot(1,2,2); isosurface_f_x_u_1([],a_x_c_reco_); title('a_x_c_reco_','Interpreter','none');
 end;%if flag_disp;
 %%%%%%%%;
 
 %%%%%%%%;
-% Now deform via longitudinal perturbation. ;
+% Define deformation via latitudinal perturbation. ;
 %%%%%%%%;
 % Below we assume that the integral of a function on a ring can be approximated by the laplacian: ;
 % B_{r} = ring of radius r. ;
@@ -267,12 +285,12 @@ shell_n_azimu_b = tmp_n_azimu_b_a_(1+0);
 assert(shell_n_k_all==shell_n_polar_a*shell_n_azimu_b);
 shell_k_p_azimu_b_ = k_p_azimu_b_all_(1+n_k_all_csum_pre+[0:shell_n_k_all-1]);
 shell_k_p_polar_a_ = k_p_polar_a_all_(1+n_k_all_csum_pre+[0:shell_n_k_all-1]);
-shell_longitudinal_r_ = 0.5*g_dilation(shell_k_p_polar_a_);
+shell_latitudinal_r_ = flag_sign*0.5*g_dilation(shell_k_p_polar_a_);
 %%%%;
 tmp_t = tic();
 shell_n_scatter = shell_n_k_all; %<-- single point for each. ;
 shell_azimu_b_scatter__ = shell_k_p_azimu_b_;
-shell_polar_a_scatter_ = shell_k_p_polar_a_ + shell_longitudinal_r_;
+shell_polar_a_scatter_ = shell_k_p_polar_a_ + shell_latitudinal_r_;
 [ ...
  shell_scatter_from_tensor_sba__ ...
 ,shell_scatter_from_tensor_db1da0_sba__ ...
@@ -291,142 +309,21 @@ cg_interpolate_n_3( ...
 );
 tmp_t = toc(tmp_t); disp(sprintf(' %% cg_interpolate_n_3: time %0.2fs',tmp_t));
 %%%%%%%%;
-a_k_p_pre_ = a_k_p_form_;
-for nt=0:n_t-1;
-tmp_t = tic;
-a_k_p_pos_ = a_k_p_pre_;
-for nk_p_r=0:n_k_p_r-1;
-n_k_all_csum_pre = n_k_all_csum_(1+nk_p_r+0);
-n_k_all_csum_pos = n_k_all_csum_(1+nk_p_r+1);
-assert(shell_n_k_all==n_k_all_csum_pos-n_k_all_csum_pre);
-a_k_p_sub_ = a_k_p_pos_(1+n_k_all_csum_pre+[0:shell_n_k_all-1]);
-a_k_p_sub_ = shell_scatter_from_tensor_sba__*a_k_p_sub_ + 0.25 * shell_longitudinal_r_.^2 .* (shell_scatter_from_tensor_db2da0_sba__*a_k_p_sub_ + shell_scatter_from_tensor_db0da2_sba__*a_k_p_sub_);
-a_k_p_pos_(1+n_k_all_csum_pre+[0:shell_n_k_all-1]) = a_k_p_sub_;
-end;%for nk_p_r=0:n_k_p_r-1;
-a_k_p_pre_ = a_k_p_pos_;
-tmp_t = toc(tmp_t); disp(sprintf(' %% shell_scatter_from_tensor_sba__: time %0.2fs',tmp_t));
-%%%%;
-eta = pi/k_p_r_max; tmp_t = tic;
-a_x_c_pre_ = xxnufft3d3(n_k_all,2*pi*k_c_0_all_*eta,2*pi*k_c_1_all_*eta,2*pi*k_c_2_all_*eta,a_k_p_pre_.*(2*pi)^3.*weight_3d_k_all_,+1,1e-12,n_xxx_c,x_c_0_012___(:)/eta,x_c_1_012___(:)/eta,x_c_2_012___(:)/eta)/sqrt(2*pi)/sqrt(2*pi)/sqrt(2*pi) /  sqrt(2*pi)^3;
-tmp_t = toc(tmp_t); disp(sprintf(' %% xxnufft3d3: a_x_c_pre_ time %0.2fs',tmp_t));
-%%%%;
+
+%%%%%%%%;
+% Define slices to visualize during deformation. ;
+%%%%%%%%;
+n_viewing_sub = 1;
+template_viewing_sub_azimu_b_ori_ = pi*[linspace(-1.0/3.0,-1.0/3.0,n_viewing_sub)];
+template_viewing_sub_polar_a_ori_ = pi*[linspace(0,+0.5,n_viewing_sub+2)];
+template_viewing_sub_polar_a_ori_ = template_viewing_sub_polar_a_ori_(2:end-1);
+template_viewing_sub_azimu_b_ = template_viewing_sub_azimu_b_ori_;
+template_viewing_sub_polar_a_ = template_viewing_sub_polar_a_ori_;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 flag_disp=1;
 if flag_disp;
-figure(1+nf);nf=nf+1;clf;figmed;
-subplot(1,2,1); isosurface_f_x_u_0(a_x_c_pre_,98.5); title(sprintf('a_x_c_pre_ nt %d/%d',nt,n_t),'Interpreter','none');
-nk_p_r = floor(n_k_p_r/3);%nk_p_r = n_k_p_r-1;
-n_k_all_csum_pre = n_k_all_csum_(1+nk_p_r+0);
-n_k_all_csum_pos = n_k_all_csum_(1+nk_p_r+1);
-assert(shell_n_k_all==n_k_all_csum_pos-n_k_all_csum_pre);
-a_k_p_sub_ = a_k_p_pos_(1+n_k_all_csum_pre+[0:shell_n_k_all-1]);
-a_k_p_sub_lim_ = prctile(abs(a_k_p_sub_),95)*[-1,+1];
-subplot(1,2,2); imagesc_polar_a_azimu_b_0(shell_k_p_polar_a_,shell_k_p_azimu_b_,real(a_k_p_sub_),a_k_p_sub_lim_,colormap_80s,0); axisnotick3d;
-drawnow();
-end;%if flag_disp;
-%%%%;
-end;%for nt=0:n_t-1;
-
-if flag_verbose; disp(sprintf(' %% [finished %s]',str_thisfunction)); end;
-
-%%%%%%%%;
-% Construct a_k_Y_quad_. ;
-%%%%%%%%;
-l_max_upb = round(2*pi*k_p_r_max); %<-- typically sufficient for 2-3 digits of precision. ;
-l_max_ = zeros(n_k_p_r,1);
-for nk_p_r=0:n_k_p_r-1;
-l_max_(1+nk_p_r) = max(0,min(l_max_upb,1+ceil(2*pi*k_p_r_(1+nk_p_r))));
-end;%for nk_p_r=0:n_k_p_r-1;
-n_lm_ = (l_max_+1).^2;
-n_lm_max = max(n_lm_);
-n_lm_sum = sum(n_lm_);
-n_lm_csum_ = cumsum([0;n_lm_]);
-l_max_max = max(l_max_); dWtdkd__l_max_max = 2*l_max_max;
-m_max_ = -l_max_max : +l_max_max;
-n_m_max = length(m_max_);
-Y_l_val_ = zeros(n_lm_sum,1);
-Y_m_val_ = zeros(n_lm_sum,1);
-Y_k_val_ = zeros(n_lm_sum,1);
-for nk_p_r=0:n_k_p_r-1;
-l_max = l_max_(1+nk_p_r);
-tmp_l_val_ = zeros(n_lm_(1+nk_p_r),1);
-tmp_m_val_ = zeros(n_lm_(1+nk_p_r),1);
-na=0; 
-for l_val=0:l_max;
-for m_val=-l_val:+l_val;
-tmp_l_val_(1+na) = l_val;
-tmp_m_val_(1+na) = m_val;
-na=na+1;
-end;%for m_val=-l_val:+l_val;
-end;%for l_val=0:l_max;
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm_(1+nk_p_r)-1);
-Y_l_val_(1+tmp_index_) = tmp_l_val_;
-Y_m_val_(1+tmp_index_) = tmp_m_val_;
-Y_k_val_(1+tmp_index_) = k_p_r_(1+nk_p_r);
-end;%for nk_p_r=0:n_k_p_r-1;
-weight_Y_ = zeros(n_lm_sum,1);
-for nk_p_r=0:n_k_p_r-1;
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm_(1+nk_p_r)-1);
-weight_Y_(1+tmp_index_) = weight_3d_k_p_r_(1+nk_p_r);
-end;%for nk_p_r=0:n_k_p_r-1;
-%%%%%%%%;
-tmp_t = tic;
-[a_k_Y_quad_] = convert_k_p_to_spharm_1(flag_verbose,n_k_all,n_k_all_csum_,k_p_r_all_,k_p_azimu_b_all_,k_p_polar_a_all_,weight_3d_k_all_,weight_shell_k_,n_k_p_r,k_p_r_,weight_3d_k_p_r_,l_max_,a_k_p_quad_);
-tmp_t = toc(tmp_t); disp(sprintf(' %% a_k_Y_quad_ time %0.2fs',tmp_t));
-disp(sprintf(' %% Here we should ensure that a_k_Y_ on the outer shells has decayed to the desired precision.'));
-disp(sprintf(' %% Moreover, we should ensure that a_k_Y_(l,m) has decayed for large l,m at each shell.'));
-tmp_t = tic;
-[a_k_p_reco_] = convert_spharm_to_k_p_1(flag_verbose,n_k_all,n_k_all_csum_,k_p_r_all_,k_p_azimu_b_all_,k_p_polar_a_all_,weight_3d_k_all_,weight_shell_k_,n_k_p_r,k_p_r_,weight_3d_k_p_r_,l_max_,a_k_Y_quad_);
-tmp_t = toc(tmp_t); disp(sprintf(' %% a_k_Y_quad_ --> a_k_p_reco_ time %0.2fs',tmp_t));
-disp(sprintf(' %% xxnufft3d3: a_k_p_reco error: %0.16f',fnorm(a_k_p_quad_-a_k_p_reco_)/fnorm(a_k_p_quad_))); %<-- this should be 2-3 digits. ;
-%%%%%%%%;
-a_k_Y_quad__ = zeros(n_lm_max,n_k_p_r);
-for nk_p_r=0:n_k_p_r-1;
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm_(1+nk_p_r)-1);
-a_k_Y_quad__(1:n_lm_(1+nk_p_r),1+nk_p_r) = a_k_Y_quad_(1+tmp_index_);
-end;%for nk_p_r=0:n_k_p_r-1;
-%%%%%%%%;
-
-%%%%%%%%;
-% Construct S_k_p_wkS__. ;
-%%%%%%%%;
-template_k_eq_d = -1;
-viewing_k_eq_d = 1.0; %<-- subsample just a few templates for visualization. ;
-tmp_t = tic();
-[ ...
- S_k_p_wkS__ ...
-,n_w_ ...
-,weight_2d_k_p_r_ ...
-,weight_2d_k_all_ ...
-,n_viewing_all ...
-,viewing_azimu_b_all_ ...
-,viewing_polar_a_all_ ...
-,viewing_weight_all_ ...
-,n_viewing_polar_a ...
-,viewing_polar_a_ ...
-,n_viewing_azimu_b_ ...
-,template_k_c_0__ ...
-,template_k_c_1__ ...
-,template_k_c_2__ ...
-] = ...
-get_template_1( ...
- 0*flag_verbose ...
-,n_k_p_r ...
-,k_p_r_ ...
-,k_p_r_max ...
-,weight_3d_k_p_r_ ...
-,l_max_ ...
-,a_k_Y_quad_ ...
-,viewing_k_eq_d ...
-,template_k_eq_d ...
-,n_w_max*ones(n_k_p_r,1) ...
-);
-tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% get_template_1: %0.2fs',tmp_t)); end;
-if (flag_verbose); disp(sprintf(' %% n_viewing_all %d n_viewing_polar_a %d n_w_max %d',n_viewing_all,n_viewing_polar_a,max(n_w_))); end;
-n_S = n_viewing_all; n_w_max = max(n_w_); n_w_sum = sum(n_w_); n_w_csum_ = cumsum([0;n_w_]);
-
-n_viewing_sub = 12; index_viewing_sub_ = floor(linspace(0,n_S-1,n_viewing_sub));
-template_viewing_sub_azimu_b_ = viewing_azimu_b_all_(1+index_viewing_sub_);
-template_viewing_sub_polar_a_ = viewing_polar_a_all_(1+index_viewing_sub_);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 S_k_p_wkn__ = zeros(n_w_sum,n_viewing_sub);
 %%%%%%%%;
 for nviewing_sub=0:n_viewing_sub-1;
@@ -476,30 +373,40 @@ S_k_p_wkn__(:,1+nviewing_sub) = S_k_p_wk_;
 clear template_ring* ring_azimu_b_scatter_ ring_polar_a_scatter_ ring_scatter_from_tensor_sba__ S_k_p_wk_;
 end;%for nviewing_sub=0:n_viewing_sub-1;
 %%%%%%%%;
-if (flag_verbose> 0); 
-disp(sprintf(' %% S_k_p_wkS__(:,1+index_viewing_sub_) vs S_k_p_wkn__: %0.16f',fnorm(S_k_p_wkS__(:,1+index_viewing_sub_)-S_k_p_wkn__)/fnorm(S_k_p_wkS__(:,1+index_viewing_sub_)))); 
-disp(sprintf(' %% S_k_p_wkS__(:,1+randperm(n_S,n_viewing_sub)-1) vs S_k_p_wkn__: %0.16f',fnorm(S_k_p_wkS__(:,1+randperm(n_S,n_viewing_sub)-1)-S_k_p_wkn__)/fnorm(S_k_p_wkS__(:,1+randperm(n_S,n_viewing_sub)-1)))); 
-end;%if (flag_verbose> 0); 
-np=0;
-for nviewing_sub=0:n_viewing_sub-1;
-subplot(4,6,1+np);np=np+1; imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(S_k_p_wkS__(:,1+index_viewing_sub_(1+nviewing_sub)))); title(sprintf('%.2d',nviewing_sub));
-subplot(4,6,1+np);np=np+1; imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(S_k_p_wkn__(:,1+nviewing_sub))); title(sprintf('%.2d',nviewing_sub));
-end;%for nviewing_sub=0:n_viewing_sub-1;
-
-figure(1+nf);nf=nf+1;clf;figsml;
-nk_p_r = floor(n_k_p_r/4);%nk_p_r = n_k_p_r-1;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+figure(1+nf);nf=nf+1;clf;figmed;
+%%%%%%%%;
+subplot(1,2,1);
+tmp_parameter = struct('type','parameter');
+tmp_parameter.c_use__ = colormap_beach();
+tmp_parameter.vlim_ = prctile(mean(reshape(a_x_c_form_,[n_x_c,n_x_c,n_x_c]),3),[ 5,95]);
+isosurface_f_x_u_1(tmp_parameter,a_x_c_form_);
+xlabel('x0'); ylabel('x1'); zlabel('x2'); axisnotick3d;
+%%%%%%%%;
+subplot(1,2,2);
+%%%%;
+nk_p_r = floor(0.50*n_k_p_r);
 k_p_r = k_p_r_(1+nk_p_r);
 n_k_all_csum_pre = n_k_all_csum_(1+nk_p_r+0);
 n_k_all_csum_pos = n_k_all_csum_(1+nk_p_r+1);
 assert(shell_n_k_all==n_k_all_csum_pos-n_k_all_csum_pre);
-a_k_p_sub_ = a_k_p_pos_(1+n_k_all_csum_pre+[0:shell_n_k_all-1]);
+a_k_p_sub_fin_ = a_k_p_quad_(1+n_k_all_csum_pre+[0:shell_n_k_all-1]);
+a_k_p_sub_fin_lim_ = prctile(abs(a_k_p_sub_fin_),95)*[-1,+1];
+%%%%;
+nk_p_r = floor(0.33*n_k_p_r);%nk_p_r = n_k_p_r-1;
+k_p_r = k_p_r_(1+nk_p_r);
+n_k_all_csum_pre = n_k_all_csum_(1+nk_p_r+0);
+n_k_all_csum_pos = n_k_all_csum_(1+nk_p_r+1);
+assert(shell_n_k_all==n_k_all_csum_pos-n_k_all_csum_pre);
+a_k_p_sub_ = a_k_p_quad_(1+n_k_all_csum_pre+[0:shell_n_k_all-1]);
 a_k_p_sub_lim_ = prctile(abs(a_k_p_sub_),95)*[-1,+1];
+%%%%;
 hold on;
-%imagesc_polar_a_azimu_b_0(shell_k_p_polar_a_,shell_k_p_azimu_b_,real(a_k_p_sub_),a_k_p_sub_lim_,colormap_80s,0,k_p_r);
+imagesc_polar_a_azimu_b_0(shell_k_p_polar_a_,shell_k_p_azimu_b_,real(a_k_p_sub_),a_k_p_sub_fin_lim_,colormap_80s,0,k_p_r);
 n_contour = 16;
 tmp_parameter = struct('type','parameter');
 tmp_parameter.flag_percent_use=0;
-tmp_parameter.vlim_ = 10*a_k_p_sub_lim_;
+tmp_parameter.vlim_ = 1.0*a_k_p_sub_fin_lim_;
 tmp_parameter.vval_ = transpose(linspace(min(tmp_parameter.vlim_),max(tmp_parameter.vlim_),n_contour));
 imagesc_S_k_p_3d_2( ...
  tmp_parameter ...
@@ -515,4 +422,169 @@ imagesc_S_k_p_3d_2( ...
 );
 hold off;
 xlabel('k0'); ylabel('k1'); zlabel('k2'); axisnotick3d;
+%%%%%%%%;
+drawnow;
+str_d_source = sprintf('ds%.2d',floor(100*d_source));
+str_sigma_x_c = sprintf('sg%.2d',floor(100*sigma_x_c));
+if flag_sign> 0; str_flag_sign = sprintf('dp'); end;
+if flag_sign< 0; str_flag_sign = sprintf('dn'); end;
+str_nt = sprintf('nt00');
+fname_fig_pre = sprintf('%s/M3d_shape_latitudinal_perturbation_%s%s%s%s_FIGA',dir_manuscript_jpg,str_d_source,str_sigma_x_c,str_flag_sign,str_nt);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+if ( flag_replot | ~exist(fname_fig_jpg,'file'));
+if (flag_verbose> 0); disp(sprintf(' %% writing %s',fname_fig_pre)); end;
+sgtitle(fname_fig_pre,'Interpreter','none');
+print('-djpeg',fname_fig_jpg);
+end;%if ( flag_replot | ~exist(fname_fig_jpg,'file'));
+%%%%%%%%;
+clear S_k_p_wkn__;
+%close(gcf);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+end;%if flag_disp;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
+%%%%%%%%;
+% Now perform deformation. ;
+%%%%%%%%;
+a_k_p_pre_ = a_k_p_form_;
+for nt=0:5;%for nt=0:n_t-1;
+tmp_t = tic;
+a_k_p_pos_ = a_k_p_pre_;
+for nk_p_r=0:n_k_p_r-1;
+n_k_all_csum_pre = n_k_all_csum_(1+nk_p_r+0);
+n_k_all_csum_pos = n_k_all_csum_(1+nk_p_r+1);
+assert(shell_n_k_all==n_k_all_csum_pos-n_k_all_csum_pre);
+a_k_p_sub_ = a_k_p_pos_(1+n_k_all_csum_pre+[0:shell_n_k_all-1]);
+a_k_p_sub_ = shell_scatter_from_tensor_sba__*a_k_p_sub_ + 0.25 * shell_latitudinal_r_.^2 .* (shell_scatter_from_tensor_db2da0_sba__*a_k_p_sub_ + shell_scatter_from_tensor_db0da2_sba__*a_k_p_sub_);
+a_k_p_pos_(1+n_k_all_csum_pre+[0:shell_n_k_all-1]) = a_k_p_sub_;
+end;%for nk_p_r=0:n_k_p_r-1;
+a_k_p_pre_ = a_k_p_pos_;
+tmp_t = toc(tmp_t); disp(sprintf(' %% shell_scatter_from_tensor_sba__: time %0.2fs',tmp_t));
+%%%%;
+eta = pi/k_p_r_max; tmp_t = tic;
+a_x_c_pos_ = xxnufft3d3(n_k_all,2*pi*k_c_0_all_*eta,2*pi*k_c_1_all_*eta,2*pi*k_c_2_all_*eta,a_k_p_pos_.*(2*pi)^3.*weight_3d_k_all_,+1,1e-12,n_xxx_c,x_c_0_012___(:)/eta,x_c_1_012___(:)/eta,x_c_2_012___(:)/eta)/sqrt(2*pi)/sqrt(2*pi)/sqrt(2*pi) /  sqrt(2*pi)^3;
+tmp_t = toc(tmp_t); disp(sprintf(' %% xxnufft3d3: a_x_c_pos_ time %0.2fs',tmp_t));
+%%%%;
+template_viewing_sub_polar_a_ = template_viewing_sub_polar_a_ + flag_sign*0.5*g_dilation(template_viewing_sub_polar_a_);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+flag_disp=1;
+if flag_disp;
+%%%%%%%%;
+S_k_p_pos_wkn__ = zeros(n_w_sum,n_viewing_sub);
+%%%%%%%%;
+for nviewing_sub=0:n_viewing_sub-1;
+template_viewing_sub_azimu_b = template_viewing_sub_azimu_b_(1+nviewing_sub);
+template_viewing_sub_polar_a = template_viewing_sub_polar_a_(1+nviewing_sub);
+[ ...
+ template_ring_k_c_0__ ...
+,template_ring_k_c_1__ ...
+,template_ring_k_c_2__ ...
+,template_ring_azimu_b__ ...
+,template_ring_polar_a__ ...
+] = ...
+get_template_single_ring_k_c_0( ...
+ flag_verbose ...
+,1 ...
+,template_viewing_sub_azimu_b ...
+,template_viewing_sub_polar_a ...
+,n_w_max ...
+);
+%%%%%%%%;
+n_order = 5;
+ring_azimu_b_scatter_ = template_ring_azimu_b__(:,1+0);
+ring_polar_a_scatter_ = template_ring_polar_a__(:,1+0);
+[ ...
+ ring_scatter_from_tensor_sba__ ...
+] = ...
+cg_interpolate_n_3( ...
+ n_order ...
+,shell_n_azimu_b ...
+,shell_n_polar_a ...
+,n_w_max ...
+,ring_azimu_b_scatter_ ...
+,ring_polar_a_scatter_ ...
+);
+%%%%%%%%;
+S_k_p_pos_wk_ = zeros(n_w_sum,1);
+for nk_p_r=0:n_k_p_r-1;
+n_k_all_csum_pre = n_k_all_csum_(1+nk_p_r+0);
+n_k_all_csum_pos = n_k_all_csum_(1+nk_p_r+1);
+assert(shell_n_k_all==n_k_all_csum_pos-n_k_all_csum_pre);
+a_k_p_pos_sub_ = a_k_p_pos_(1+n_k_all_csum_pre+[0:shell_n_k_all-1]);
+S_k_p_pos_sub_ = ring_scatter_from_tensor_sba__*a_k_p_pos_sub_;
+S_k_p_pos_wk_(1+n_w_csum_(1+nk_p_r)+[0:n_w_max-1]) = S_k_p_pos_sub_;
+end;%for nk_p_r=0:n_k_p_r-1;
+%%%%%%%%;
+S_k_p_pos_wkn__(:,1+nviewing_sub) = S_k_p_pos_wk_;
+clear template_ring* ring_azimu_b_scatter_ ring_polar_a_scatter_ ring_scatter_from_tensor_sba__ S_k_p_pos_wk_;
+end;%for nviewing_sub=0:n_viewing_sub-1;
+%%%%%%%%;
+figure(1+nf);nf=nf+1;clf;figmed;
+%%%%%%%%;
+subplot(1,2,1);
+tmp_parameter = struct('type','parameter');
+tmp_parameter.c_use__ = colormap_beach();
+tmp_parameter.vlim_ = prctile(mean(reshape(real(a_x_c_pos_),[n_x_c,n_x_c,n_x_c]),3),[ 5,95]);
+isosurface_f_x_u_1(tmp_parameter,real(a_x_c_pos_));
+xlabel('x0'); ylabel('x1'); zlabel('x2'); axisnotick3d;
+%%%%%%%%;
+subplot(1,2,2);
+%%%%;
+nk_p_r = floor(0.50*n_k_p_r);
+k_p_r = k_p_r_(1+nk_p_r);
+n_k_all_csum_pre = n_k_all_csum_(1+nk_p_r+0);
+n_k_all_csum_pos = n_k_all_csum_(1+nk_p_r+1);
+assert(shell_n_k_all==n_k_all_csum_pos-n_k_all_csum_pre);
+a_k_p_pos_sub_fin_ = a_k_p_pos_(1+n_k_all_csum_pre+[0:shell_n_k_all-1]);
+a_k_p_pos_sub_fin_lim_ = prctile(abs(a_k_p_pos_sub_fin_),95)*[-1,+1];
+%%%%;
+nk_p_r = floor(0.33*n_k_p_r);%nk_p_r = n_k_p_r-1;
+k_p_r = k_p_r_(1+nk_p_r);
+n_k_all_csum_pre = n_k_all_csum_(1+nk_p_r+0);
+n_k_all_csum_pos = n_k_all_csum_(1+nk_p_r+1);
+assert(shell_n_k_all==n_k_all_csum_pos-n_k_all_csum_pre);
+a_k_p_pos_sub_ = a_k_p_pos_(1+n_k_all_csum_pre+[0:shell_n_k_all-1]);
+a_k_p_pos_sub_lim_ = prctile(abs(a_k_p_pos_sub_),95)*[-1,+1];
+%%%%;
+hold on;
+imagesc_polar_a_azimu_b_0(shell_k_p_polar_a_,shell_k_p_azimu_b_,real(a_k_p_pos_sub_),a_k_p_pos_sub_fin_lim_,colormap_80s,0,k_p_r);
+n_contour = 16;
+tmp_parameter = struct('type','parameter');
+tmp_parameter.flag_percent_use=0;
+tmp_parameter.vlim_ = 1.0*a_k_p_pos_sub_fin_lim_;
+tmp_parameter.vval_ = transpose(linspace(min(tmp_parameter.vlim_),max(tmp_parameter.vlim_),n_contour));
+imagesc_S_k_p_3d_2( ...
+ tmp_parameter ...
+,n_k_p_r ...
+,k_p_r_ ...
+,k_p_r_max ...
+,n_w_ ...
+,weight_2d_k_all_ ...
+,n_viewing_sub ...
+,real(S_k_p_pos_wkn__) ...
+,template_viewing_sub_azimu_b_ ...
+,template_viewing_sub_polar_a_ ...
+);
+hold off;
+xlabel('k0'); ylabel('k1'); zlabel('k2'); axisnotick3d;
+%%%%%%%%;
+drawnow;
+str_d_source = sprintf('ds%.2d',floor(100*d_source));
+str_sigma_x_c = sprintf('sg%.2d',floor(100*sigma_x_c));
+str_flag_sign = sprintf('d%.1d',flag_sign>0);
+str_nt = sprintf('nt%.2d',1+nt);
+fname_fig_pre = sprintf('%s/M3d_shape_latitudinal_perturbation_%s%s%s%s_FIGA',dir_manuscript_jpg,str_d_source,str_sigma_x_c,str_flag_sign,str_nt);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+if ( flag_replot | ~exist(fname_fig_jpg,'file'));
+if (flag_verbose> 0); disp(sprintf(' %% writing %s',fname_fig_pre)); end;
+sgtitle(fname_fig_pre,'Interpreter','none');
+print('-djpeg',fname_fig_jpg);
+end;%if ( flag_replot | ~exist(fname_fig_jpg,'file'));
+%%%%%%%%;
+clear S_k_p_pos_wkn__;
+close(gcf);
+end;%if flag_disp;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+end;%for nt=0:n_t-1;
+
+if flag_verbose; disp(sprintf(' %% [finished %s]',str_thisfunction)); end;

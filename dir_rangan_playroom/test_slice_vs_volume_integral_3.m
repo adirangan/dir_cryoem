@@ -37,6 +37,38 @@ nf=0;
 % Define grids for x_c_ (cartesian), ;
 % sometimes called x_u_ (for uniform). ;
 % This is in contrast to x_p_ (polar) (which is rare). ;
+% Note: the x_c_ grids used in this test file are only used for visualization, ;
+% and are not exactly the x_c_ grids that are 'pixel-aligned' to the images. ;
+% The pixel-aligned x_c_ grids used when processing the images are described immediately below: ;
+%%%%%%%%;
+% Each image is assumed to be a torus of side-length 2 lying in (periodic) [-1,+1]^{2}. ;
+% half_diameter_x_c is typically 1.0. ;
+% n_x_M_u: integer number of pixels on the side of an image. ;
+% typically n_x_M_u is 256 or 360 in a typical mrc or mrcs image-stack from EMPIAR. ;
+% x_c_0_ and x_c_1_ are the first and second coordinates used to describe the image-pixels. ;
+% Note that these are left-aligned to each (square) pixel: ;
+% x_c_0_ = -half_diameter_x_c + transpose([0:n_x_M_u-1]/n_x_M_u)*diameter_x_c; %<-- records the array of left-sides of each pixel. ;
+% x_c_1_ = -half_diameter_x_c + transpose([0:n_x_M_u-1]/n_x_M_u)*diameter_x_c; %<-- records the array of bottom-sides of each pixel. ;
+% so, for example, x_c_0_ ranges from -1.0 all the way up to (+1.0 - diameter_x_c/n_x_M_u). ;
+% This is so that we can use the type-1 and type-2 nufft, where the first omitted spatial-point (i.e., +1.0) ;
+% is assumed to be the same as the first included spatial-point (i.e. -1.0). ;
+% With the above notation, a real-space image M_x_c__ ;
+% (read from an image-stack using rlnImageName_from_star_1 or rlnImageName_from_star_2) ;
+% has the following organization: ;
+% M_x_c__(1+nx0,1+nx1) is the value in pixel (1+nx0,1+nx1), ;
+% where nx0 and nx1 are zero-based. ;
+% To convert from M_x_c__ (2d array in real-space) to M_k_p_ (unrolled array in fourier-space polar coordinates): ;
+% dx = diameter_x_c/n_x_M_u; %<-- pixel-width. ;
+% M_k_p_ = interp_x_c_to_k_p_xxnufft(n_x_M_u,diameter_x_c,n_x_M_u,diameter_x_c,M_x_c__,n_k_p_r,k_p_r_,n_w_)*sqrt(n_x_M_u^2)*dx^2 ;
+% n_k_p_r: integer number of radii (i.e., rings) in the polar-grid. ;
+% k_p_r_: double array of size n_k_p_r; k_p_r_(1+nk_p_r) is the radius of ring indexed by nk_p_r (zero-based). ;
+% n_w_: integer array of size n_k_p_r; n_w_(1+nk_p_r) is the number of equispaced angular points on the ring of radius k_p_r_(1+nk_p_r). ;
+%         angles (implicitly defined) are assumed to take the form of: ;
+%         gamma_z_: double array of size n_w = n_w_(1+nk_p_r). ; Note that this is different for each ring. ;
+%                 gamma_z_(1+nw) = (2*pi)*cast(nw,'double')/max(1.0,cast(n_w,'double')); %<-- where nw is zero-based. ;
+%                 Thus, gamma_z_ (for a particular image-ring) ranges from 0 all the way up to (2*pi - dgamma), ;
+%                 where dgamma is (2*pi)/n_w. ;
+% The normalization constant at the end (i.e., sqrt(n_x_M_u^2)*dx^2) is just a convention. ;
 %%%%%%%%;
 n_x_u = 256; %<-- this is a typical resolution for a volume loaded from the protein database. ;
 half_diameter_x_c = 1.0d0; %<-- assume the volume sits in a box of side-length 2. ;
@@ -75,9 +107,24 @@ k_u_0_ = periodize(0:n_x_u_pack-1,-n_x_u_pack/2,+n_x_u_pack/2)/2; %<-- box has d
 k_u_1_ = periodize(0:n_x_u_pack-1,-n_x_u_pack/2,+n_x_u_pack/2)/2; %<-- box has diameter 2. ;
 k_u_2_ = periodize(0:n_x_u_pack-1,-n_x_u_pack/2,+n_x_u_pack/2)/2; %<-- box has diameter 2. ;
 [k_u_0___,k_u_1___,k_u_2___] = ndgrid(k_u_0_,k_u_1_,k_u_2_); n_kkk_u = n_x_u_pack^3;
+%%%%%%%%;
+flag_disp=1;
+if flag_disp;
+%%%%%%%%;
+% visualize x_c_ grid. ;
+% This does not matter too much since we only really use this for visualization. ;
+%%%%%%%%;
+figure(1+nf);nf=nf+1;clf;figsml;
+markersize_use = 8;
+plot3(x_u_0___(:),x_u_1___(:),x_u_2___(:),'ko','MarkerSize',markersize_use,'MarkerFaceColor','c');
+axis(half_diameter_x_c*[-1,+1,-1,+1,-1,+1]); axis vis3d;
+xlabel('x0'); ylabel('x1'); zlabel('x2');
+title('x_c_','Interpreter','none');
+end;%if flag_disp;
+%%%%%%%%%;
 
 %%%%%%%%;
-% Now set up grids for k_p_ (polar). ;
+% Now set up grids for (3d) k_p_ (polar). ;
 % For historical reasons, the suffix '_all_' refers to the unrolled gridpoints associated with the sphere in k_p_ (in 3d). ;
 % This can be confusing later on, since the suffix '_all_' is also used to refer to ;
 % the unrolled gridpoints associated with a disk in k_p_ (in 2d), ;
@@ -87,11 +134,29 @@ k_u_2_ = periodize(0:n_x_u_pack-1,-n_x_u_pack/2,+n_x_u_pack/2)/2; %<-- box has d
 % Unfortunately, I misnamed the variable 'weight_shell_k_' long ago, and it should really be called 'weight_shell_all_'. ;
 % Fortunately, this variable is not used frequently. ;
 %%%%%%%%;
+% The k_p_ grid itself is defined in terms of the following: ;
+% n_k_p_r: integer number of shells for the spherical grid. ; %<-- strongly assume this is the same as the n_k_p_r used for the (2d) k_p_. ;
+% k_p_r_: double array of size n_k_p_r; k_p_r_(1+nk_p_r) is the radius of the shell with index nk_p_r (zero-based). ;
+%         strongly assume that this k_p_r_ is the same as the one used for the (2d) k_p_. ;
+% n_polar_a_k_: integer array of size n_k_p_r; n_polar_a_k_(1+nk_p_r) is the number of latitudes (i.e., polar_a values) ;
+%         associated with shell nk_p_r. ;
+% polar_a_ka__: cell array of size n_k_p_r. polar_a_ka__{1+nk_p_r} is the array of polar_a values for shell nk_p_r. ;
+%         For shell nk_p_r, ;
+%         n_polar_a = n_polar_a_k_(1+nk_p_r) is an integer number of latitudes for that shell. ;
+%         polar_a_a_ := polar_a_ka__{1+nk_p_r} is an array of size n_polar_a. ; 
+%                 polar_a_a_(1+npolar_a) is a double storing the polar_a for latitude-line npolar_a. ;
+% n_azimu_b_ka__: cell array of size n_k_p_r. ;
+%         For shell nk_p_r, ;
+%         n_polar_a = n_polar_a_k_(1+nk_p_r) is an integer number of latitudes for that shell. ;
+%         n_azimu_b_a_ := n_azimu_b_ka__{1+nk_p_r} is an array of size n_polar_a. ; 
+%                 n_azimu_b_a_(1+npolar_a) is an integer storing the number of azimu_b values for latitude-line npolar_a. ;
+% weight_3d_k_all_: double array of size n_k_all, storing quadrature (integration) weights for each point in the unrolled array. ;
+%%%%%%%%;
 tmp_t = tic;
 k_p_r_max = 48.0/(2*pi); %<-- k_p_r_max is the maximum frequency. ;
-% Note that we calculate frequency modulo 2*pi, so the exponentials involved will look like exp(+i*2*pi*k_p_r*x_p_r). ;
+% Note that we technically use the 'wavenumber' rather than the 'frequency' (related by 2*pi), so the exponentials involved in our calculations will look like exp(+i*2*pi*k_p_r*x_p_r). ;
 k_eq_d = 1.0/(2*pi); %<-- k_eq_d is the distance (along the equator) between gridpoints. ;
-% Note that (due to the support of a_x_u_) we expect the bandlimit of a_k_p_ to be 1.0 (modulo 2*pi). ;
+% Note that (due to the support of a_x_u_) we expect the bandlimit of a_k_p_ to be 1.0 in terms of frequency (or 1.0/(2*pi) in terms of wavenumber). ;
 [ ...
  n_k_all ...
 ,n_k_all_csum_ ...
@@ -110,6 +175,9 @@ k_eq_d = 1.0/(2*pi); %<-- k_eq_d is the distance (along the equator) between gri
 ,J_weight_ ...
 ,J_chebfun_ ...
 ,J_polyval_ ...
+,n_polar_a_k_ ...
+,polar_a_ka__ ...
+,n_azimu_b_ka__ ...
 ] = ...
 sample_sphere_7( ...
  flag_verbose ...
@@ -118,6 +186,19 @@ sample_sphere_7( ...
 ,'L' ...
 ) ; %<-- sum(weight_3d_k_p_r_)*(4*pi) = (4/3)*pi*k_p_r_max^3 --> sum(weight_3d_k_p_r_) = (1/3)*k_p_r_max^3 ;
 tmp_t = toc(tmp_t); disp(sprintf(' %% sample_sphere_7: time %0.2fs',tmp_t));
+%%%%%%%%;
+flag_disp=1;
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figsml;
+makersize_use = 4;
+nk_p_r = n_k_p_r-1;
+tmp_index_ = n_k_all_csum_(1+nk_p_r):n_k_all_csum_(1+nk_p_r+1)-1;
+plot3(k_c_0_all_(1+tmp_index_),k_c_1_all_(1+tmp_index_),k_c_2_all_(1+tmp_index_),'k.','MarkerSize',markersize_use);
+axis(k_p_r_max*[-1,+1,-1,+1,-1,+1]); axis vis3d;
+xlabel('k0'); ylabel('k1'); zlabel('k2');
+title(sprintf(' shell nk_p_r=%d k_p_ plotted in k_c_',nk_p_r),'Interpreter','none');
+end;%if flag_disp;
+%%%%%%%%;
 
 %%%%%%%%;
 % Now set up grids for k_Y_ (spherical_harmonic). ;
@@ -350,7 +431,7 @@ disp(sprintf(' %% S_k_p_wkS__ vs tmp_S_k_p_wkS__: %0.16f',fnorm(S_k_p_wkS__-tmp_
 end;%if flag_check;
 %%%%%%%%;
 
-flag_disp=0;
+flag_disp=1;
 if flag_disp;
 %%%%%%%%;
 % View one of the templates. ;
@@ -369,10 +450,10 @@ interp_k_p_to_x_c_xxnufft( ...
 ,n_w_ ...
 ,S_k_p_wk_ ...
 );
-subplot(2,2,1); imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(S_k_p_wk_)); title(sprintf('nS %d real(S_k_p_wk_)',nS),'Interpreter','none'); axis image; axisnotick;
-subplot(2,2,2); imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,imag(S_k_p_wk_)); title(sprintf('nS %d imag(S_k_p_wk_)',nS),'Interpreter','none'); axis image; axisnotick;
-subplot(2,2,3); imagesc_c(n_x_u_pack,x_u_0_,n_x_u_pack,x_u_1_,real(S_x_c_)); title(sprintf('nS %d real(S_x_c_)',nS),'Interpreter','none'); axis image; axisnotick;
-subplot(2,2,4); imagesc_c(n_x_u_pack,x_u_0_,n_x_u_pack,x_u_1_,imag(S_x_c_)); title(sprintf('nS %d imag(S_x_c_)',nS),'Interpreter','none'); axis image; axisnotick;
+subplot(2,2,1); imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(S_k_p_wk_),[],colormap_80s); title(sprintf('nS %d real(S_k_p_wk_)',nS),'Interpreter','none'); axis image; axisnotick;
+subplot(2,2,2); imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,imag(S_k_p_wk_),[],colormap_80s); title(sprintf('nS %d imag(S_k_p_wk_)',nS),'Interpreter','none'); axis image; axisnotick;
+subplot(2,2,3); imagesc_c(n_x_u_pack,x_u_0_,n_x_u_pack,x_u_1_,real(S_x_c_),[],colormap_beach); title(sprintf('nS %d real(S_x_c_)',nS),'Interpreter','none'); axis image; axisnotick;
+subplot(2,2,4); imagesc_c(n_x_u_pack,x_u_0_,n_x_u_pack,x_u_1_,imag(S_x_c_),[],colormap_beach); title(sprintf('nS %d imag(S_x_c_)',nS),'Interpreter','none'); axis image; axisnotick;
 end;%if flag_disp;
 
 %%%%%%%%;
@@ -447,14 +528,23 @@ if (flag_verbose); disp(sprintf(' %% L2_2d_k_p %0.6f vs L2_2d_k_Y %0.6f: %0.16f'
 % Temporarily (i.e., in the code below) we will use n_M to refer to the number of image-sets, ;
 % with nM referring to the index of the image-set. ;
 %%%%;
-% Each image-set corresponds to a volume which ;
-% generates a full set of templates (i.e., one for each viewing-angle). ;
+% For this particular script, we are interested in checking the equivalence of image- vs volumetric likelihood calculations, ;
+% and so we construct the images in such a way that we immediately know the back-propagated volume (1st-order) and volumetric-variance (2nd-order) ;
+% associated with the images. ;
+% To do this, we actually generate the images in 'sets' or batches, where each image-set corresponds to a volume ;
+% which itself generates a full set of templates (i.e., one for each viewing-angle). ;
 % Thus, each image-set will have n_S images in it. ;
 % Note also that, due to this particular construction, each image-set ;
 % will have a distribution of viewing-angles that is close to uniform ;
 % (because the templates were generated with a uniform distribution of viewing-angles). ;
 %%%%%%%%;
-n_M = 5; %<-- number of image-sets. ;
+% Thus, if we have n_M image-sets, each corresponding to a particular volume, ;
+% the back-propagated volume constructed from the full image-pool will simply be the set-wise average volume (i.e., 1st-order). ;
+% Moreover, the back-propagated volumetric variance will simply be the set-wise variance of those volumes (i.e., 2nd-order). ;
+% We structure the image pool this way so that there is a very small error associated with back-propagation. ;
+% We use n_M> 1 so that the variance is nonzero. ;
+%%%%%%%%;
+n_M = 5; %<-- number of individual 'independent' image-sets. ;
 b_k_Y_quad_ykM__ = zeros(n_lm_sum,n_M); %<-- volume in k_Y_ coordinates for each image-set. ;
 b_k_Y_quad_ykM___ = zeros(n_lm_max,n_k_p_r,n_M);
 for nM=0:n_M-1;
@@ -528,6 +618,8 @@ tmp_t = toc(tmp_t); disp(sprintf(' %% pm_template_2: %0.2fs',tmp_t));
 
 %%%%%%%%;
 % Now we check the volumetric formulation, assuming a uniform viewing-angle-distribution. ;
+% This compares formul 'image-wise calculation' with 'volumetric-calculation' in the section entitled: ;
+% '[simple volumetric formulation with uniformly distributed viewing-angles]' in the overleaf. ;
 % The 'set-volume' associated with each image-set is b_k_Y_quad_ykM__(:,1+nM), ;
 % while the 'set-avg-volume' is b_avg_k_Y_quad_yk_. ;
 % The 'true-volume' associated with the templates is a_k_Y_base_yk_. ;
@@ -536,8 +628,9 @@ tmp_t = toc(tmp_t); disp(sprintf(' %% pm_template_2: %0.2fs',tmp_t));
 % we have very little 'error' in the volume-formation for each set. ;
 % The volumes are known ahead of time, ;
 % and the images and templates are produced from those volumes. ;
-% Below we will repeat this calculation while reconstructing the volume from the images ;
+% Later on we should repeat this calculation while reconstructing the volume from the images ;
 % (as one might do when dealing with real data). ;
+% We actually do something along these lines (i.e., reconstructing the 2nd-order term from noisy images) below. ;
 %%%%%%%%;
 if (flag_verbose); disp(sprintf(' %% Assuming uniform distribution of viewing-angles: ')); end;
 if (flag_verbose); disp(sprintf(' %% (multi volume to ensure accurate variance calculation): ')); end;
@@ -545,11 +638,11 @@ if (flag_verbose); disp(sprintf(' %% (multi volume to ensure accurate variance c
 % In each calculation below 'L2' refers to a squared-L2-norm. ;
 % L2_2d_alM_k_p contrasts the images and the templates in (2d) k_p_ coordinates. ;
 %%%%%%%%;
-L2_2d_alM_k_p = sum( bsxfun(@times,abs(bsxfun(@minus,M_k_p_wkSM___,S_k_p_wkS__)).^2,weight_2d_k_p_wkS__) , 'all' );
+L2_2d_alM_k_p = sum( bsxfun(@times,abs(bsxfun(@minus,M_k_p_wkSM___,S_k_p_wkS__)).^2,weight_2d_k_p_wkS__) , 'all' ); %<-- image-wise calculation. ;
 %%%%%%%%;
 % L2_2d_alM_k_Y contrasts the set-volumes against the true-volume. ;
 %%%%%%%%;
-L2_2d_alM_k_Y = sum( bsxfun(@times,abs(bsxfun(@minus,b_k_Y_quad_ykM__,a_k_Y_base_yk_)).^2,weight_Y_2d_) , 'all' );
+L2_2d_alM_k_Y = sum( bsxfun(@times,abs(bsxfun(@minus,b_k_Y_quad_ykM__,a_k_Y_base_yk_)).^2,weight_Y_2d_) , 'all' ); %<-- image-wise calculation using spherical harmonics. This kind of calculation is not typically accessible with arbitrary images. ;
 %%%%%%%%;
 if (flag_verbose); disp(sprintf(' %% L2_2d_alM_k_p %0.6f vs L2_2d_alM_k_Y %0.6f: %0.16f',L2_2d_alM_k_p,L2_2d_alM_k_Y,fnorm(L2_2d_alM_k_p - L2_2d_alM_k_Y)/fnorm(L2_2d_alM_k_Y))); end;
 %%%%%%%%;
@@ -576,6 +669,7 @@ if (flag_verbose); disp(sprintf(' %% L2_2d_var_k_p %0.6f vs L2_2d_var_k_Y %0.6f:
 % Now we compare: ;
 % L2_2d_alM_k_Y (i.e., the log-likelihood calculated using images) to ;
 % (L2_2d_avg_k_Y*n_M + L2_2d_var_k_Y) (i.e., the the log-likelihood calculated using volumes). ;
+% This is the 'volumetric-calculation' in the overleaf. ;
 %%%%%%%%;
 disp(sprintf(' %% L2_2d_alM_k_Y vs (L2_2d_avg_k_Y*n_M + L2_2d_var_k_Y): %0.16f',fnorm(L2_2d_alM_k_Y-(L2_2d_avg_k_Y*n_M + L2_2d_var_k_Y))/fnorm(L2_2d_alM_k_Y)));
 %%%%%%%%;
@@ -661,16 +755,18 @@ disp(sprintf(' %% L2_2d_alM_k_p vs (L2_2d_avg_k_p*n_M + L2_2d_var_k_p): %0.16f',
 %%%%;
 
 %%%%%%%%;
-% m_val_ is a double-array of size (1+2*l_max) storing the array of spherical-harmonic orders. ;
-% Note that l_max_ is often chosen adaptively, so not all orders will be used on all shells. ;
-%%%%%%%%;
-m_val_ = -l_max:+l_max;
-%%%%%%%%;
-% Now set up a nonuniform distribution of viewing-angles. ;
+% Now we will check the image-wise and volumetric-calculations in the section: ;
+% 'More general volume formulation' in the overleaf. ;
+% We set up a nonuniform distribution of viewing-angles. ;
 % This is defined using the function JL_AB_, with values stored in jl_ab_all_. ;
 % jl_ab_all_ is a double-array of size n_S. ;
 %         jl_ab_all_(1+nS) stores the probability of observing the viewing-angle ;
 %         associated with [ viewing_azimu_b_(1+nS) , viewing_polar_a_(1+nS) ]. ;
+%%%%%%%%;
+% m_val_ is a double-array of size (1+2*l_max) storing the array of spherical-harmonic orders. ;
+% Note that l_max_ is often chosen adaptively, so not all orders will be used on all shells. ;
+%%%%%%%%;
+m_val_ = -l_max:+l_max;
 %%%%%%%%;
 JL_AB_const_a = 3; JL_AB_const_b = 4;
 JL_AB_ = @(a,b) (JL_AB_const_b + cos(b)).*(JL_AB_const_a + sin(a)) / (JL_AB_const_b * 2*pi * (JL_AB_const_a*2 + pi/2 ));
@@ -805,19 +901,27 @@ j1_hk_yk_ = zeros(n_lm_sum,1);
 for nlm_sum=0:n_lm_sum-1;
 j1_hk_yk_(1+nlm_sum) = j1_hk_lm__(1+Y_l_val_(1+nlm_sum),1+l_max+Y_m_val_(1+nlm_sum));
 end;%for nlm_sum=0:n_lm_sum-1;
-
+%%%%%%%%;
 flag_disp=1;
 if flag_disp;
 %%%%%%%%;
-% demonstrate the nonuniform viewing-angle distribution. ;
+% Demonstrate the nonuniform viewing-angle distribution (JL). ;
+% Compare with the uniform  viewing-angle distribution (J1). ;
 %%%%%%%%;
-figure(1+nf);nf=nf+1;clf;figsml;
-subplot(1,1,1);
+figure(1+nf);nf=nf+1;clf;figmed;
+subplot(1,2,1);
 imagesc_polar_a_azimu_b_0(viewing_polar_a_all_,viewing_azimu_b_all_,real(jl_ab_all_),[0,0.1],[],0);
 xlabel('k0'); ylabel('k1'); zlabel('k2');
 set(gca,'XTick',[],'YTick',[],'ZTick',[]);
 title('jl_ab_all_','Interpreter','none');
 end;%if flag_disp;
+subplot(1,2,2);
+imagesc_polar_a_azimu_b_0(viewing_polar_a_all_,viewing_azimu_b_all_,real(j1_ab_all_),[0,0.1],[],0);
+xlabel('k0'); ylabel('k1'); zlabel('k2');
+set(gca,'XTick',[],'YTick',[],'ZTick',[]);
+title('j1_ab_all_','Interpreter','none');
+end;%if flag_disp;
+%%%%%%%%;
 
 %%%%%%%%;
 % Now we construct representations of the distribution jl and j1 in (3d) k_p_ coordinates. ;

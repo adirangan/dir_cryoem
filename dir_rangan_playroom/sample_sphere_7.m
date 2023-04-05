@@ -18,6 +18,7 @@ function ...
 ,J_chebfun_ ...
 ,J_polyval_ ...
 ,n_polar_a_k_ ...
+,polar_a_ka__ ...
 ,n_azimu_b_ka__ ...
 ] = ...
 sample_sphere_7( ...
@@ -63,6 +64,17 @@ sample_sphere_7( ...
 % J_weight_: real array of size n_k_p_r: list of quadrature weights on interval [-1,+1]. ;
 % J_chebfun_: chebfun cell array of size 1+n_k_p_r: Jv_{1+nk_p_r} is the chebfun associated with the jacobi-polynomial (0,2) of order nk_p_r. ;
 % J_polyval_: matrix of size (1+n_k_p_r)*(n_k_p_r): J_polyval_(1+nk_p_r,:) is equal to J_chebfun_{1+nk_p_r} evaluted at the quadrature nodes. ;
+% n_polar_a_k_: integer array of size n_k_p_r. number of latitudes for each shell. ;
+% polar_a_ka__: cell array of size n_k_p_r. polar_a_ka__{1+nk_p_r} is the array of polar_a values for shell nk_p_r. ;
+%         For shell nk_p_r, ;
+%         n_polar_a = n_polar_a_k_(1+nk_p_r) is an integer number of latitudes for that shell. ;
+%         polar_a_a_ := polar_a_ka__{1+nk_p_r} is an array of size n_polar_a. ; 
+%                 polar_a_a_(1+npolar_a) is a double storing the polar_a for latitude-line npolar_a. ;
+% n_azimu_b_ka__: cell array of size n_k_p_r. ;
+%         For shell nk_p_r, ;
+%         n_polar_a = n_polar_a_k_(1+nk_p_r) is an integer number of latitudes for that shell. ;
+%         n_azimu_b_a_ := n_azimu_b_ka__{1+nk_p_r} is an array of size n_polar_a. ; 
+%                 n_azimu_b_a_(1+npolar_a) is an integer storing the number of azimu_b values for latitude-line npolar_a. ;
 % ;
 
 na=0;
@@ -122,6 +134,7 @@ k_p_polar_a_all_ = zeros(n_k_all,1);
 weight_3d_k_all_ = zeros(n_k_all,1);
 weight_shell_k_ = zeros(n_k_all,1);
 n_polar_a_k_ = zeros(n_k_p_r,1);
+polar_a_k_ = zeros(n_k_p_r,1);
 n_azimu_b_ka__ = cell(n_k_p_r,1);
 ix=0;
 for nk_p_r=0:n_k_p_r-1;
@@ -152,6 +165,7 @@ k_p_polar_a_all_(1+ij_) = k_p_polar_a_sub_;
 weight_shell_k_(1+ij_) = weight_k_sub_;
 weight_3d_k_all_(1+ij_) = weight_k_sub_ * weight_3d_k_p_r_(1+nk_p_r) / k_p_r.^2;
 n_polar_a_k_(1+nk_p_r) = n_polar_a;
+polar_a_ka__{1+nk_p_r} = polar_a_;
 n_azimu_b_ka__{1+nk_p_r} = n_azimu_b_;
 ix = ix + n_k_all_csum;
 end;%for nk_p_r=0:n_k_p_r-1;
