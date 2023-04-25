@@ -35,7 +35,7 @@ if ~isfield(parameter,'flag_verbose'); parameter.flag_verbose = 0; end;
 flag_verbose = parameter.flag_verbose;
 if ~isfield(parameter,'flag_disp'); parameter.flag_disp = 0; end;
 flag_disp = parameter.flag_disp; nf=0;
-if ~isfield(parameter,'flag_replot'); parameter.flag_replot = 0; end;
+if ~isfield(parameter,'flag_replot'); parameter.flag_replot = 1; end;
 flag_replot = parameter.flag_replot;
 if ~isfield(parameter,'str_shape'); parameter.str_shape = 'rand'; end;
 str_shape = parameter.str_shape;
@@ -408,6 +408,7 @@ tmp_parameter = struct('type','parameter');
 tmp_parameter.flag_percent_use=0;
 tmp_parameter.vlim_ = 1.0*a_k_p_sub_fin_lim_;
 tmp_parameter.vval_ = transpose(linspace(min(tmp_parameter.vlim_),max(tmp_parameter.vlim_),n_contour));
+tmp_parameter.flag_k_c_interp = 1;
 imagesc_S_k_p_3d_2( ...
  tmp_parameter ...
 ,n_k_p_r ...
@@ -553,6 +554,7 @@ tmp_parameter = struct('type','parameter');
 tmp_parameter.flag_percent_use=0;
 tmp_parameter.vlim_ = 1.0*a_k_p_pos_sub_fin_lim_;
 tmp_parameter.vval_ = transpose(linspace(min(tmp_parameter.vlim_),max(tmp_parameter.vlim_),n_contour));
+tmp_parameter.flag_k_c_interp = 1;
 imagesc_S_k_p_3d_2( ...
  tmp_parameter ...
 ,n_k_p_r ...

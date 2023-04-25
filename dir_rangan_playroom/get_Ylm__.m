@@ -6,11 +6,15 @@ function [Ylm__] = get_Ylm__(n_l,l_val_,n_all,azimu_b_all_,polar_a_all_,flag_fli
 % Y_{l_val}^{m_val}(azimu_b_{np},polar_a_{np});
 % If flag_flip is used, we calculate the values of Ylm for the polar-reflection, ;
 % or antipodal point on the sphere instead. ;
+str_thisfunction = 'get_Ylm__';
+verbose=0;
+if (verbose>0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
 if (nargin<6); flag_flip=0; end;
 Ylm__ = cell(n_l,1);
 [polar_a_unique_,ij_unique_,ij_return_] = unique(polar_a_all_(1:n_all));
 for nl=1:n_l;
 l_val = l_val_(nl);
+if (verbose>0); disp(sprintf(' %% nl %d/%d: l_val %d',nl,n_l,l_val)); end;
 Ylm__{nl} = zeros(2*l_val+1,n_all);
 a1=((2*l_val+1)/(4*pi));
 if ( flag_flip); Llm__ = legendre(l_val,cos(1*pi-polar_a_unique_),'unnorm'); end;
@@ -28,3 +32,4 @@ if (~flag_flip); Ylm_ = s*c*reshape(Llm_(ij_return_),1,n_all).*reshape(exp(+i*m_
 Ylm__{nl}(1+l_val+m_val,:) = Ylm_;
 end;%for m_val=-l_val:+l_val;
 end;%for nl=1:n_l;
+if (verbose>0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;

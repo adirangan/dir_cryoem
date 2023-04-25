@@ -14,7 +14,7 @@ function ...
 sample_shell_6( ...
  r ...
 ,d ...
-,TorL ...
+,str_T_vs_L ...
 ,flag_tensor_vs_adap ...
 ) ;
 % generate azimu_b_ and polar_a_ arrays sampled on shell of radius r at equatorial_distance d ;
@@ -95,34 +95,34 @@ disp(sprintf(' %% returning')); return;
 end;%if (nargin<1);
 
 if (nargin<2); d = []; end;
-if (nargin<3); TorL = []; end;
+if (nargin<3); str_T_vs_L = []; end;
 if (nargin<3); flag_tensor_vs_adap = []; end;
 if isempty(d); d = 1/(2*pi); end;
-if isempty(TorL); TorL = 'L'; end;
+if isempty(str_T_vs_L); str_T_vs_L = 'L'; end;
 if isempty(flag_tensor_vs_adap); flag_tensor_vs_adap = 0; end;
 
 n_equator = 3+round(2*pi*r/max(1e-12,d));
 n_polar_a = 3+round(n_equator/2);
 
-if TorL == 'T';
+if str_T_vs_L == 'T';
 %[tsch_node_,tsch_weight_] = tsch_node_weight_0(n_polar_a,-1,1);
 [tsch_node_,tsch_weight_] = chebpts(n_polar_a,1);
 polar_a_ = acos(tsch_node_); dpolar_a = mean(diff(sort(polar_a_)));
 weight_ = tsch_weight_;
-end;%if TorL == 'T';
+end;%if str_T_vs_L == 'T';
 
-if TorL == 'C';
+if str_T_vs_L == 'C';
 [tsch_node_,tsch_weight_] = chebpts(n_polar_a,2);
 polar_a_ = acos(tsch_node_); dpolar_a = mean(diff(sort(polar_a_)));
 weight_ = tsch_weight_;
-end;%if TorL == 'T';
+end;%if str_T_vs_L == 'T';
 
-if TorL == 'L';
+if str_T_vs_L == 'L';
 %[lgnd_node_,lgnd_weight_] = lgnd_node_weight_0(n_polar_a,-1,1);
 [lgnd_node_,lgnd_weight_] = legpts(n_polar_a);
 polar_a_ = acos(lgnd_node_); dpolar_a = mean(diff(sort(polar_a_)));
 weight_ = lgnd_weight_;
-end;%if TorL == 'L';
+end;%if str_T_vs_L == 'L';
 
 n_azimu_b_max = 3+round(2*pi*r/max(1e-12,d));
 n_azimu_b_ = zeros(n_polar_a,1);

@@ -2,48 +2,57 @@ function ...
 [ ...
  parameter ...
 ] = ...
-M3d_shape_longitudinal_perturbation_3( ...
+M3d_shape_perturbation_4( ...
  parameter ...
 );
 
-str_thisfunction = 'M3d_shape_longitudinal_perturbation_3';
+str_thisfunction = 'M3d_shape_perturbation_4';
 
 if (nargin<1);
 disp(sprintf(' %% testing %s',str_thisfunction));
 parameter = struct('type','parameter');
 parameter.flag_verbose = 1;
+parameter.flag_replot = 0;
+for flag_longitudinal_vs_latitudinal = [0,1];
 for flag_diffusion = [0,+1];
 for flag_sign = [-1,+1];
 for d_source = [0,0.125*pi,0.250*pi];
-for sigma_x_c = [0.10,0.05,0.025];
+for sigma_x_c = [0.100,0.060,0.050,0.040];
+flag_hires = 0; if sigma_x_c< 0.10; flag_hires = 1; end;
+parameter.flag_longitudinal_vs_latitudinal = flag_longitudinal_vs_latitudinal;
 parameter.flag_diffusion = flag_diffusion;
 parameter.flag_sign = flag_sign;
 parameter.d_source = d_source;
 parameter.sigma_x_c = sigma_x_c;
-M3d_shape_longitudinal_perturbation_3(parameter);
-end;%for sigma_x_c = [0.10,0.05,0.025];
+parameter.k_p_r_max = 2.0*48.0/(2*pi); if flag_hires; parameter.k_p_r_max = 4.0*48.0/(2*pi); end;%if flag_hires;
+parameter.k_eq_d = 1.0/(2*pi); if flag_hires; parameter.k_eq_d = sqrt(0.5)/(2*pi); end;%if flag_hires;
+M3d_shape_perturbation_4(parameter);
+end;%for sigma_x_c = [0.10,0.060,0.050,0.040];
 end;%for d_source = [0,0.125*pi,0.250*pi];
 end;%for flag_sign = [-1,+1];
 end;%for flag_diffusion = [0,+1];
+end;%for flag_longitudinal_vs_latitudinal = [0,1];
 disp(sprintf(' %% returning')); return;
 end;%if (nargin<1);
 
 na=0;
 if (nargin<1+na); parameter=[]; end; na=na+1;
 
-%clear; parameter = []; str_thisfunction = 'M3d_shape_longitudinal_perturbation_3';
+%clear; parameter = []; str_thisfunction = 'M3d_shape_perturbation_4';
 
 if isempty(parameter); parameter = struct('type','parameter'); end;
 if ~isfield(parameter,'flag_verbose'); parameter.flag_verbose = 0; end;
 flag_verbose = parameter.flag_verbose;
 if ~isfield(parameter,'flag_disp'); parameter.flag_disp = 0; end;
 flag_disp = parameter.flag_disp; nf=0;
-if ~isfield(parameter,'flag_replot'); parameter.flag_replot = 1; end;
+if ~isfield(parameter,'flag_replot'); parameter.flag_replot = 0; end;
 flag_replot = parameter.flag_replot;
 if ~isfield(parameter,'str_shape'); parameter.str_shape = 'rand'; end;
 str_shape = parameter.str_shape;
 if ~isfield(parameter,'flag_sign'); parameter.flag_sign = -1; end;
 flag_sign = parameter.flag_sign;
+if ~isfield(parameter,'flag_longitudinal_vs_latitudinal'); parameter.flag_longitudinal_vs_latitudinal = 0; end;
+flag_longitudinal_vs_latitudinal = parameter.flag_longitudinal_vs_latitudinal;
 if ~isfield(parameter,'flag_diffusion'); parameter.flag_diffusion = +1; end;
 flag_diffusion = parameter.flag_diffusion;
 if ~isfield(parameter,'n_mode'); parameter.n_mode = 2; end;
@@ -62,8 +71,16 @@ if ~isfield(parameter,'k_p_r_max'); parameter.k_p_r_max = 2.0*48.0/(2*pi); end;
 k_p_r_max = parameter.k_p_r_max;
 if ~isfield(parameter,'k_eq_d'); parameter.k_eq_d = sqrt(1.0)/(2*pi); end;
 k_eq_d = parameter.k_eq_d;
+if ~isfield(parameter,'nt_max'); parameter.nt_max = 5; end;
+nt_max = parameter.nt_max;
 
 if flag_verbose; disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
+if flag_longitudinal_vs_latitudinal==0;
+str_longitudinal_vs_latitudinal = 'latitudinal';
+end;%if flag_longitudinal_vs_latitudinal==0;
+if flag_longitudinal_vs_latitudinal==1;
+str_longitudinal_vs_latitudinal = 'longitudinal';
+end;%if flag_longitudinal_vs_latitudinal==1;
 
 %%%%%%%%;
 platform = 'rusty';
@@ -75,8 +92,24 @@ if (strcmp(platform,'rusty')); setup_rusty; string_root = 'mnt/home'; end;
 %%%%%%%%;
 dir_manuscript = sprintf('/%s/rangan/dir_cryoem/dir_spurious_heterogeneity_manuscript',string_root);
 if ~exist(dir_manuscript,'dir'); disp(sprintf(' %% mkdir %s',dir_manuscript)); mkdir(dir_manuscript); end;
-dir_manuscript_jpg = sprintf('%s/dir_M3d_shape_longitudinal_perturbation_jpg',dir_manuscript);
+dir_manuscript_jpg = sprintf('%s/dir_M3d_shape_%s_perturbation_jpg',dir_manuscript,str_longitudinal_vs_latitudinal);
 if ~exist(dir_manuscript_jpg,'dir'); disp(sprintf(' %% mkdir %s',dir_manuscript_jpg)); mkdir(dir_manuscript_jpg); end;
+%%%%%%%%;
+str_d_source = sprintf('ds%.2d',floor(100*d_source));
+str_sigma_x_c = sprintf('sg%.2d',floor(100*sigma_x_c));
+if flag_diffusion==1; str_flag_diffusion = sprintf('d1'); end;
+if flag_diffusion==0; str_flag_diffusion = sprintf('d0'); end;
+if flag_sign> 0; str_flag_sign = sprintf('tp'); end;
+if flag_sign< 0; str_flag_sign = sprintf('tn'); end;
+str_infix = sprintf('%s_%s%s%s%s',str_longitudinal_vs_latitudinal,str_d_source,str_sigma_x_c,str_flag_diffusion,str_flag_sign);
+%%%%%%%%;
+nt=nt_max; str_nt = sprintf('nt%.2d',1+nt);
+fname_fig_pre = sprintf('%s/M3d_%s%s_FIGA',dir_manuscript_jpg,str_infix,str_nt);
+%fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+[flag_skip_jpg,fname_fig_jpg] = open_fname_tmp(fname_fig_pre,[],[],[],'jpg');
+if flag_replot | ~flag_skip_jpg;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
 if strcmp(str_shape,'rand'); rng(rseed); end;
 
@@ -282,9 +315,12 @@ end;%if flag_disp;
 %%%%%%%%;
 nk_p_r = 0; %<-- any individual shell will do. ;
 t_max = 1.0; n_t = 16;
-dt = t_max/max(1,n_t); equa_band_dilated_amplitude = dt;
-h_dilation = @(polar_a) (1 - abs(cos(polar_a)))./max(1e-12,1 + abs(cos(polar_a)));
-g_dilation = @(azimu_b,polar_a) h_dilation(polar_a).*sin(2*azimu_b); %<-- first mode. ;
+dt = t_max/max(1,n_t);
+equa_band_dilated_amplitude = dt;
+polar_cap_dilated_amplitude = dt;
+g_latitudinal_dilation = @(polar_a) sin(2*polar_a); %<-- first mode. ;
+h_longitudinal_dilation = @(polar_a) (1 - abs(cos(polar_a)))./max(1e-12,1 + abs(cos(polar_a)));
+g_longitudinal_dilation = @(azimu_b,polar_a) h_longitudinal_dilation(polar_a).*sin(2*azimu_b); %<-- first mode. ;
 n_order = 5;
 %%%%;
 n_k_all_csum_pre = n_k_all_csum_(1+nk_p_r+0);
@@ -297,14 +333,24 @@ shell_n_azimu_b = tmp_n_azimu_b_a_(1+0);
 assert(shell_n_k_all==shell_n_polar_a*shell_n_azimu_b);
 shell_k_p_azimu_b_ = k_p_azimu_b_all_(1+n_k_all_csum_pre+[0:shell_n_k_all-1]);
 shell_k_p_polar_a_ = k_p_polar_a_all_(1+n_k_all_csum_pre+[0:shell_n_k_all-1]);
-shell_longitudinal_avg_ = flag_sign*equa_band_dilated_amplitude*g_dilation(shell_k_p_azimu_b_,shell_k_p_polar_a_);
-shell_longitudinal_var_ = 0.5*equa_band_dilated_amplitude^2*(1-h_dilation(shell_k_p_polar_a_).^2);
-shell_longitudinal_rsq_ = 1.0*equa_band_dilated_amplitude^2*(1-h_dilation(shell_k_p_polar_a_).^2);
+shell_latitudinal_avg_ = flag_sign*0.5*polar_cap_dilated_amplitude*g_latitudinal_dilation(shell_k_p_polar_a_);
+shell_latitudinal_rsq_ = shell_latitudinal_avg_.^2;
+shell_longitudinal_avg_ = flag_sign*equa_band_dilated_amplitude*g_longitudinal_dilation(shell_k_p_azimu_b_,shell_k_p_polar_a_);
+shell_longitudinal_var_ = 0.5*equa_band_dilated_amplitude^2*(1-h_longitudinal_dilation(shell_k_p_polar_a_).^2);
+shell_longitudinal_rsq_ = 1.0*equa_band_dilated_amplitude^2*(1-h_longitudinal_dilation(shell_k_p_polar_a_).^2);
 %%%%;
 tmp_t = tic();
 shell_n_scatter = shell_n_k_all; %<-- single point for each. ;
+%%%%;
+if flag_longitudinal_vs_latitudinal==0;
+shell_azimu_b_scatter__ = shell_k_p_azimu_b_;
+shell_polar_a_scatter_ = shell_k_p_polar_a_ + shell_latitudinal_avg_;
+end;%if flag_longitudinal_vs_latitudinal==0;
+if flag_longitudinal_vs_latitudinal==1;
 shell_azimu_b_scatter__ = shell_k_p_azimu_b_ + shell_longitudinal_avg_;
 shell_polar_a_scatter_ = shell_k_p_polar_a_;
+end;%if flag_longitudinal_vs_latitudinal==1;
+%%%%;
 [ ...
  shell_scatter_from_tensor_sba__ ...
 ,shell_scatter_from_tensor_db1da0_sba__ ...
@@ -333,14 +379,6 @@ template_viewing_sub_polar_a_ori_ = pi*[linspace(0,+0.5,n_viewing_sub+2)];
 template_viewing_sub_polar_a_ori_ = template_viewing_sub_polar_a_ori_(2:end-1);
 template_viewing_sub_azimu_b_ = template_viewing_sub_azimu_b_ori_;
 template_viewing_sub_polar_a_ = template_viewing_sub_polar_a_ori_;
-
-str_d_source = sprintf('ds%.2d',floor(100*d_source));
-str_sigma_x_c = sprintf('sg%.2d',floor(100*sigma_x_c));
-if flag_diffusion==1; str_flag_diffusion = sprintf('d1'); end;
-if flag_diffusion==0; str_flag_diffusion = sprintf('d0'); end;
-if flag_sign> 0; str_flag_sign = sprintf('tp'); end;
-if flag_sign< 0; str_flag_sign = sprintf('tn'); end;
-str_infix = sprintf('%s%s%s%s',str_d_source,str_sigma_x_c,str_flag_diffusion,str_flag_sign);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 flag_disp=1;
@@ -405,7 +443,7 @@ subplot(1,1,1);
 imagesc_c(n_x_c,x_c_0_,n_x_c,x_c_1_,real(S_x_c_01n___(:,:,1+0)),S_x_c_lim_v2__{1+0},colormap_beach()); axis image; axisnotick;
 drawnow;
 str_nt = sprintf('nt00');
-fname_fig_pre = sprintf('%s/M3d_shape_longitudinal_perturbation_%s%s_FIGS',dir_manuscript_jpg,str_infix,str_nt);
+fname_fig_pre = sprintf('%s/M3d_%s%s_FIGS',dir_manuscript_jpg,str_infix,str_nt);
 fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
 if ( flag_replot | ~exist(fname_fig_jpg,'file'));
 if (flag_verbose> 0); disp(sprintf(' %% writing %s',fname_fig_pre)); end;
@@ -466,7 +504,7 @@ xlabel('k0'); ylabel('k1'); zlabel('k2'); axisnotick3d;
 %%%%%%%%;
 drawnow;
 str_nt = sprintf('nt00');
-fname_fig_pre = sprintf('%s/M3d_shape_longitudinal_perturbation_%s%s_FIGA',dir_manuscript_jpg,str_infix,str_nt);
+fname_fig_pre = sprintf('%s/M3d_%s%s_FIGA',dir_manuscript_jpg,str_infix,str_nt);
 fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
 if ( flag_replot | ~exist(fname_fig_jpg,'file'));
 if (flag_verbose> 0); disp(sprintf(' %% writing %s',fname_fig_pre)); end;
@@ -484,7 +522,7 @@ end;%if flag_disp;
 % Now perform deformation. ;
 %%%%%%%%;
 a_k_p_pre_ = a_k_p_form_;
-for nt=0:5;%for nt=0:n_t-1;
+for nt=0:min(nt_max,n_t-1);%for nt=0:n_t-1;
 tmp_t = tic;
 a_k_p_pos_ = a_k_p_pre_;
 for nk_p_r=0:n_k_p_r-1;
@@ -492,7 +530,16 @@ n_k_all_csum_pre = n_k_all_csum_(1+nk_p_r+0);
 n_k_all_csum_pos = n_k_all_csum_(1+nk_p_r+1);
 assert(shell_n_k_all==n_k_all_csum_pos-n_k_all_csum_pre);
 a_k_p_sub_ = a_k_p_pos_(1+n_k_all_csum_pre+[0:shell_n_k_all-1]);
-a_k_p_sub_ = shell_scatter_from_tensor_sba__*a_k_p_sub_ + flag_diffusion * 0.25 * shell_longitudinal_rsq_ .* (shell_scatter_from_tensor_db2da0_sba__*a_k_p_sub_);
+%%%%;
+if flag_longitudinal_vs_latitudinal==0;
+a_k_p_sub_ = shell_scatter_from_tensor_sba__*a_k_p_sub_ + ...
+  flag_diffusion * 0.25 * shell_latitudinal_rsq_ .* (shell_scatter_from_tensor_db2da0_sba__*a_k_p_sub_ + shell_scatter_from_tensor_db0da2_sba__*a_k_p_sub_);
+end;%if flag_longitudinal_vs_latitudinal==0;
+if flag_longitudinal_vs_latitudinal==1;
+a_k_p_sub_ = shell_scatter_from_tensor_sba__*a_k_p_sub_ + ...
+  flag_diffusion * 0.25 * shell_longitudinal_rsq_ .* (shell_scatter_from_tensor_db2da0_sba__*a_k_p_sub_);
+end;%if flag_longitudinal_vs_latitudinal==1;
+%%%%;
 a_k_p_pos_(1+n_k_all_csum_pre+[0:shell_n_k_all-1]) = a_k_p_sub_;
 end;%for nk_p_r=0:n_k_p_r-1;
 a_k_p_pre_ = a_k_p_pos_;
@@ -503,8 +550,14 @@ a_x_c_pos_ = xxnufft3d3(n_k_all,2*pi*k_c_0_all_*eta,2*pi*k_c_1_all_*eta,2*pi*k_c
 tmp_t = toc(tmp_t); disp(sprintf(' %% xxnufft3d3: a_x_c_pos_ time %0.2fs',tmp_t));
 a_x_c_pos_lim_ = prctile(mean(reshape(real(a_x_c_pos_),[n_x_c,n_x_c,n_x_c]),3),[ 5,95]);
 %%%%;
+if flag_longitudinal_vs_latitudinal==0;
+template_viewing_sub_polar_a_ = template_viewing_sub_polar_a_ + ...
+  flag_sign*0.5*polar_cap_dilated_amplitude*g_latitudinal_dilation(template_viewing_sub_polar_a_);
+end;%if flag_longitudinal_vs_latitudinal==0;
+if flag_longitudinal_vs_latitudinal==1;
 template_viewing_sub_azimu_b_ = template_viewing_sub_azimu_b_ + ...
-  flag_sign*equa_band_dilated_amplitude*g_dilation(template_viewing_sub_azimu_b_,template_viewing_sub_polar_a_);
+  flag_sign*equa_band_dilated_amplitude*g_longitudinal_dilation(template_viewing_sub_azimu_b_,template_viewing_sub_polar_a_);
+end;%if flag_longitudinal_vs_latitudinal==1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 flag_disp=1;
 if flag_disp;
@@ -568,7 +621,7 @@ subplot(1,1,1);
 imagesc_c(n_x_c,x_c_0_,n_x_c,x_c_1_,real(S_x_c_pos_01n___(:,:,1+0)),S_x_c_lim_v2__{1+0},colormap_beach()); axis image; axisnotick;
 drawnow;
 str_nt = sprintf('nt%.2d',1+nt);
-fname_fig_pre = sprintf('%s/M3d_shape_longitudinal_perturbation_%s%s_FIGS',dir_manuscript_jpg,str_infix,str_nt);
+fname_fig_pre = sprintf('%s/M3d_%s%s_FIGS',dir_manuscript_jpg,str_infix,str_nt);
 fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
 if ( flag_replot | ~exist(fname_fig_jpg,'file'));
 if (flag_verbose> 0); disp(sprintf(' %% writing %s',fname_fig_pre)); end;
@@ -628,7 +681,7 @@ xlabel('k0'); ylabel('k1'); zlabel('k2'); axisnotick3d;
 %%%%%%%%;
 drawnow;
 str_nt = sprintf('nt%.2d',1+nt);
-fname_fig_pre = sprintf('%s/M3d_shape_longitudinal_perturbation_%s%s_FIGA',dir_manuscript_jpg,str_infix,str_nt);
+fname_fig_pre = sprintf('%s/M3d_%s%s_FIGA',dir_manuscript_jpg,str_infix,str_nt);
 fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
 if ( flag_replot | ~exist(fname_fig_jpg,'file'));
 if (flag_verbose> 0); disp(sprintf(' %% writing %s',fname_fig_pre)); end;
@@ -640,6 +693,11 @@ clear S_k_p_pos_wkn__ S_x_c_pos_01n___;
 close(gcf);
 end;%if flag_disp;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
-end;%for nt=0:n_t-1;
+end;%for nt=0:min(nt_max,n_t-1);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+close_fname_tmp(fname_fig_pre);
+end;%if ~flag_skip_jpg;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
 if flag_verbose; disp(sprintf(' %% [finished %s]',str_thisfunction)); end;

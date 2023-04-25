@@ -42,6 +42,12 @@ if ~isfield(parameter,'vlim_'); parameter.vlim_ = []; end;
 vlim_ = parameter.vlim_;
 if ~isfield(parameter,'vval_'); parameter.vval_ = []; end;
 vval_ = parameter.vval_;
+if ~isfield(parameter,'flag_k_c_interp'); parameter.flag_k_c_interp = 1; end;
+flag_k_c_interp = parameter.flag_k_c_interp;
+if ~isfield(parameter,'n_order'); parameter.n_order = 5; end;
+n_order = parameter.n_order;
+if ~isfield(parameter,'flag_pad_xxnufft'); parameter.flag_pad_xxnufft = 0; end;
+flag_pad_xxnufft = parameter.flag_pad_xxnufft;
 if ~isfield(parameter,'n_x_c'); parameter.n_x_c = 128; end;
 n_x_c = parameter.n_x_c;
 n_k_c = n_x_c;
@@ -84,7 +90,46 @@ k_c_0_ = transpose(linspace(-k_p_r_max,+k_p_r_max,n_k_c));
 k_c_1_ = transpose(linspace(-k_p_r_max,+k_p_r_max,n_k_c));
 k_c_2_ = transpose(linspace(-k_p_r_max,+k_p_r_max,n_k_c));
 [x_c_0__,x_c_1__] = ndgrid(x_c_0_,x_c_1_);
+x_c_r__ = sqrt(x_c_0__.^2 + x_c_1__.^2);
 [k_c_0__,k_c_1__] = ndgrid(k_c_0_,k_c_1_);
+k_c_r__ = sqrt(k_c_0__.^2 + k_c_1__.^2);
+k_c_w__ = atan2(k_c_1__,k_c_0__);
+%%%%%%%%%%%%%%%%;
+if flag_pad_xxnufft==1;
+n_pad = 3; n_rep = (n_pad-1)/2;
+n_x_c_pad = n_pad*n_x_c;
+diameter_x_c_pad = n_pad*diameter_x_c;
+half_diameter_x_c_pad = 0.5*diameter_x_c_pad;
+x_c_pad_0_lim_ = half_diameter_x_c_pad*[-1,+1];
+x_c_pad_1_lim_ = half_diameter_x_c_pad*[-1,+1];
+x_c_pad_2_lim_ = half_diameter_x_c_pad*[-1,+1];
+dx_c_pad = diameter_x_c_pad/n_x_c_pad;
+x_c_pad_0_ = transpose(linspace(-half_diameter_x_c_pad,+half_diameter_x_c_pad,n_x_c_pad));
+x_c_pad_1_ = transpose(linspace(-half_diameter_x_c_pad,+half_diameter_x_c_pad,n_x_c_pad));
+x_c_pad_2_ = transpose(linspace(-half_diameter_x_c_pad,+half_diameter_x_c_pad,n_x_c_pad));
+[x_c_pad_0__,x_c_pad_1__] = ndgrid(x_c_pad_0_,x_c_pad_1_);
+x_c_pad_r__ = sqrt(x_c_pad_0__.^2 + x_c_pad_1__.^2);
+sigma_pad = 0.25*half_diameter_x_c;
+x_c_app__ = exp(-max(0,x_c_r__-half_diameter_x_c).^2/(2*sigma_pad^2));
+x_c_pad_app__ = exp(-max(0,x_c_pad_r__-half_diameter_x_c).^2/(2*sigma_pad^2));
+end;%if flag_pad_xxnufft==1;
+%%%%%%%%%%%%%%%%;
+if flag_k_c_interp;
+[ ...
+ scatter_from_tensor_swk__ ...
+] = ...
+disk_k_p_scatter_from_tensor_interpolate_n_4( ...
+ n_order ...
+,n_w_max ...
+,n_k_p_r ...
+,k_p_r_ ...
+,k_p_r_max ...
+,n_k_c^2 ...
+,k_c_w__(:) ...
+,k_c_r__(:) ...
+);
+end;%if flag_k_c_interp;
+%%%%%%%%%%%%%%%%;
 
 if isempty(template_viewing_azimu_b_S_); template_viewing_azimu_b_S_ = zeros(n_S,1); end;
 if isempty(template_viewing_polar_a_S_); template_viewing_polar_a_S_ = zeros(n_S,1); end;
@@ -96,17 +141,88 @@ S_k_c_01S___ = zeros(n_k_c,n_k_c,n_S);
 for nS=0:n_S-1;
 S_k_p_ = S_k_p_wkS__(:,1+nS);
 S_k_p_l2 = sum(abs(S_k_p_).^2.*weight_2d_k_all_)*(2*pi)^2;
+%%%%%%%%%%%%%%%%;
+if flag_k_c_interp==0;
+%%%%%%%%%%%%%%%%;
 S_x_c_ = interp_k_p_to_x_c_xxnufft(n_x_c,diameter_x_c,n_x_c,diameter_x_c,n_k_p_r,k_p_r_,n_w_,S_k_p_.*weight_2d_k_all_*(2*pi)^2)*sqrt(n_x_c^2) * n_w_sum;
 S_x_c__ = reshape(S_x_c_,[n_x_c,n_x_c]);
 S_x_c_l2 = sum(abs(S_x_c__).^2,'all')*dx^2;
-S_k_c__ = reshape(xxnufft2d3(n_x_c^2,pi*x_c_0__(:),pi*x_c_1__(:),S_x_c__(:)*dx^2,-1,1e-7,n_k_c^2,2*k_c_0__(:),2*k_c_1__(:)),[n_k_c,n_k_c]);
+if flag_pad_xxnufft==1;
+eta_pad = pi/diameter_x_c_pad;
+S_x_c_pad__ = ...
+[ ...
+ repmat(S_x_c__(end,end),[n_rep*n_x_c,n_rep*n_x_c]) , repmat(S_x_c__(end,  :),[n_rep*n_x_c,          1]) , repmat(S_x_c__(  1,end),[n_rep*n_x_c,n_rep*n_x_c]) , 
+ repmat(S_x_c__(  :,end),[          1,n_rep*n_x_c]) , repmat(S_x_c__(  :,  :),[          1,          1]) , repmat(S_x_c__(  :,  1),[          1,n_rep*n_x_c]) ,
+% repmat(S_x_c__(  :,end),[          1,n_rep*n_x_c]) , repmat(S_x_c__(  1,  1),[    1*n_x_c,    1*n_x_c]) , repmat(S_x_c__(  :,  1),[          1,n_rep*n_x_c]) , 
+ repmat(S_x_c__(end,  1),[n_rep*n_x_c,n_rep*n_x_c]) , repmat(S_x_c__(  1,  :),[n_rep*n_x_c,          1]) , repmat(S_x_c__(  1,  1),[n_rep*n_x_c,n_rep*n_x_c]) , 
+].*x_c_pad_app__;
+S_k_c__ = reshape( ...
+		   xxnufft2d3( ...
+			       n_x_c_pad^2 ...
+			       ,x_c_pad_0__(:)*eta_pad ...
+			       ,x_c_pad_1__(:)*eta_pad ...
+			       ,S_x_c_pad__(:)*dx_c_pad^2 ...
+			       ,-1 ...
+			       ,1e-7 ...
+			       ,n_k_c^2 ...
+			       ,2*pi*k_c_0__(:)/eta_pad ...
+			       ,2*pi*k_c_1__(:)/eta_pad ...
+			       ) ...
+		   ,[n_k_c,n_k_c] ...
+		   );
+end;%if flag_pad_xxnufft==1;
+if flag_pad_xxnufft==0;
+eta = pi/diameter_x_c;
+S_k_c__ = reshape(xxnufft2d3(n_x_c^2,x_c_0__(:)*eta,x_c_1__(:)*eta,S_x_c__(:)*dx^2,-1,1e-7,n_k_c^2,2*pi*k_c_0__(:)/eta,2*pi*k_c_1__(:)/eta),[n_k_c,n_k_c]);
+end;%if flag_pad_xxnufft==1;
 S_k_c_l2 = sum(abs(S_k_c__).^2,'all')*dk^2;
-if flag_verbose>-1;
+%%%%%%%%;
+flag_check=0;
+if flag_check | flag_verbose>1;
 disp(sprintf(' %% S_k_p_l2: %0.6f',S_k_p_l2));
 disp(sprintf(' %% S_x_c_l2: %0.6f',S_x_c_l2));
 disp(sprintf(' %% S_x_c_l2/S_k_p_l2: %0.6f',S_x_c_l2/S_k_p_l2));
 disp(sprintf(' %% S_k_c_l2: %0.6f',S_k_c_l2));
-end;%if flag_verbose;
+end;%if flag_check | flag_verbose>1;
+if flag_check;
+figure(1);clf;figmed;
+subplot(1,3,1); imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(S_k_p_),vlim_,colormap_80s); axis image; axisnotick;
+title('S_k_p_','Interpreter','none');
+if flag_pad_xxnufft==0;
+subplot(1,3,2); imagesc_c(n_x_c,x_c_0_,n_x_c,x_c_1_,(real(S_x_c__)),[],colormap_beach); axis(half_diameter_x_c*[-1,1,-1,1]); axis equal; axisnotick;
+end;%if flag_pad_xxnufft==0;
+title('(S_x_c__)','Interpreter','none');
+if flag_pad_xxnufft==1;
+subplot(1,3,2); imagesc_c(n_x_c_pad,x_c_pad_0_,n_x_c_pad,x_c_pad_1_,(real(S_x_c_pad__)),[],colormap_beach); axis(half_diameter_x_c_pad*[-1,1,-1,1]); axis equal; axisnotick;
+title('(S_x_c_pad__)','Interpreter','none');
+end;%if flag_pad_xxnufft==1;
+subplot(1,3,3); imagesc_c(n_k_c,k_c_0_,n_k_c,k_c_1_,real(S_k_c__),vlim_,colormap_80s); axis(k_p_r_max*[-1,1,-1,1]); axis equal; axisnotick;
+title('S_k_c__','Interpreter','none');
+error('stopping');
+end;%if flag_check;
+%%%%%%%%%%%%%%%%;
+end;%if flag_k_c_interp==0;
+%%%%%%%%%%%%%%%%;
+if flag_k_c_interp==1;
+%%%%%%%%%%%%%%%%;
+S_k_c__ = reshape(scatter_from_tensor_swk__*S_k_p_,[n_k_c,n_k_c]);
+S_k_c_l2 = sum(abs(S_k_c__).^2,'all')*dk^2;
+flag_check=0;
+if flag_check | flag_verbose>1;
+disp(sprintf(' %% S_k_p_l2: %0.6f',S_k_p_l2));
+disp(sprintf(' %% S_k_c_l2: %0.6f',S_k_c_l2));
+end;%if flag_check | flag_verbose>1;
+if flag_check;
+figure(1);clf;figmed;
+subplot(1,2,1); imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(S_k_p_),vlim_,colormap_80s); axis image; axisnotick;
+title('S_k_p_','Interpreter','none');
+subplot(1,2,2); imagesc_c(n_k_c,k_c_0_,n_k_c,k_c_1_,real(S_k_c__),vlim_,colormap_80s); axis(k_p_r_max*[-1,1,-1,1]); axis equal; axisnotick;
+title('S_k_c__','Interpreter','none');
+error('stopping');
+end;%if flag_check;
+%%%%%%%%%%%%%%%%;
+end;%if flag_k_c_interp==1;
+%%%%%%%%%%%%%%%%;
 S_k_c_01S___(:,:,1+nS) = S_k_c__;
 end;%for nS=0:n_S-1;
 if flag_percent_use==1;
@@ -116,14 +232,6 @@ end;%if flag_percent_use==1;
 if flag_percent_use==0;
 n_contour = numel(vval_);
 end;%if flag_percent_use==0;
-
-flag_check=0;
-if flag_check;
-figure(1);clf;figmed;
-subplot(1,2,1); imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(S_k_p_wkS__(:,1)),vlim_,colormap_80s); axis image; axisnotick;
-subplot(1,2,2); imagesc_c(n_k_c,k_c_0_,n_k_c,k_c_1_,real(S_k_c_01S___(:,:,1)),vlim_,colormap_80s); axis(k_p_r_max*[-1,1,-1,1]); axis equal; axisnotick;
-error('stopping');
-end;%if flag_check;
 
 if flag_check;
 figure(1);clf;figsml;
