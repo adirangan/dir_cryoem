@@ -129,6 +129,7 @@ flag_het = 0; if (n_volume> 1); flag_het = 1; end;
 rseed_drgn_max = 0;
 if strcmp(dir_nopath_data_star,'precatalytic_spliceosome'); rseed_drgn_max = 3; end;
 if strcmp(dir_nopath_data_star,'LetB1'); rseed_drgn_max = 3; end;
+if strcmp(dir_nopath_data_star,'LSUbl17dep'); rseed_drgn_max = 3; end;
 %%%%%%%%%%%%%%%%;
 for rseed_drgn=0:rseed_drgn_max;
 %%%%%%%%%%%%%%%%;
