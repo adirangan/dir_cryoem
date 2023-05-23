@@ -914,7 +914,6 @@ imagesc_polar_a_azimu_b_0(viewing_polar_a_all_,viewing_azimu_b_all_,real(jl_ab_a
 xlabel('k0'); ylabel('k1'); zlabel('k2');
 set(gca,'XTick',[],'YTick',[],'ZTick',[]);
 title('jl_ab_all_','Interpreter','none');
-end;%if flag_disp;
 subplot(1,2,2);
 imagesc_polar_a_azimu_b_0(viewing_polar_a_all_,viewing_azimu_b_all_,real(j1_ab_all_),[0,0.1],[],0);
 xlabel('k0'); ylabel('k1'); zlabel('k2');

@@ -13,12 +13,12 @@ flag_verbose = 1; nf=0;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 table_data__ = { ...
-'p28hRPT1_x0' , 'p28hRP' , 0.98 , 'emd_8674.map' , 'T1.star' ; ...
+%'p28hRPT1_x0' , 'p28hRP' , 0.98 , 'emd_8674.map' , 'T1.star' ; ...
 %'ISWINCP_x0' , 'ISWINCP' , 1.07 , 'emd_9718.map' , 'ADPBeF.star' ; ...
 %'trpv1_x0' , 'trpv1' , 1.2156 , 'emd_5778.mrc' , 'tv1_relion_data.star' ; ...
 %'rib80s_x0' , 'rib80s' , 1.34 , 'emd_2660.mrc' , 'shiny_2sets.star' ; ...
 %'MlaFEDB_x0' , 'MlaFEDB' , 0.832 , 'emd_22116.map' , 'Empiar_10536_00_to_23.star' ; ...
-%'LetB1_x0' , 'LetB1' , 1.31 , 'emd_20993.map' , 'job_569_model_1.star' ; ...
+'LetB1_x0' , 'LetB1' , 1.31 , 'emd_20993.map' , 'job_569_model_1.star' ; ...
 %'TMEM16F_x0' , 'TMEM16F' , 1.059 , 'emd_20244.map' , 'All_8192.star' ; ...
 %'LSUbl17dep_x0' , 'LSUbl17dep' , 1.31 , 'emd_8434.map' , 'Parameters_negated.star' ; ...
 %'ps1_x0' , 'precatalytic_spliceosome' , 1.699 , 'consensus_half1_class001.mrc' , 'consensus_data.star' ; ...
@@ -843,6 +843,70 @@ print('-depsc',sprintf('%s.eps',fname_fig));
 sgtitle(sprintf('%s',fname_prefix(1:strfind(fname_prefix,'_')-1)),'Interpreter','none','FontSize',fontsize_use+8);
 tmp_dir = sprintf('/%s/rangan/dir_cryoem/dir_ampm_manuscript/dir_ampm_fig_viewing_angle_X_S',string_root);
 fname_fig_jpg_strip = sprintf('%s/%s_viewing_angle_distribution_FIGC_strip.jpg',tmp_dir,fname_prefix_str_fname_mat_inf);
+disp(sprintf(' %% writing %s',fname_fig_jpg_strip));
+print('-djpeg',sprintf('%s',fname_fig_jpg_strip));
+close gcf;
+end;%if flag_replot | ~exist(sprintf('%s.jpg',fname_fig),'file');
+end;%if flag_disp;
+
+flag_disp=1;
+if flag_disp;
+fname_fig = sprintf('%s_FIGD',fname_pre);
+if (flag_replot>=1) | ~exist(sprintf('%s.jpg',fname_fig),'file');
+if (flag_verbose); disp(sprintf(' %% %s not found, creating',fname_fig)); end;
+%%%%;
+figure(1+nf);nf=nf+1;;clf;set(gcf,'Position',1+[0,0,768,512]);fig80s; fontsize_use = 16;
+p_row = 1; p_col = 2; np=0;
+%%%%;
+[~,tmp_ij_] = max(tmp_.X_SM__,[],1); tmp_index_ = tmp_ij_-1;
+tmp_template_viewing_polar_a_M_ = tmp_.template_viewing_polar_a_all_(1+tmp_index_);
+tmp_polar_a_ = unique(tmp_.template_viewing_polar_a_all_); n_h = numel(tmp_polar_a_); tmp_da = mean(diff(tmp_polar_a_));
+tmp_h_0_ = hist(tmp_.template_viewing_polar_a_all_,tmp_polar_a_);
+tmp_h_1_ = hist(tmp_template_viewing_polar_a_M_,tmp_polar_a_);
+tmp_h_r_ = tmp_h_1_./max(1,tmp_h_0_); 
+tmp_h_r_ = tmp_h_r_/max(1e-12,sum(tmp_h_r_))/tmp_da;
+tmp_h0_r_ = tmp_h_r_;
+%%%%;
+[~,tmp_ij_] = max(tmp_.X_ampm_alig_SM__,[],1); tmp_index_ = tmp_ij_-1;
+tmp_template_viewing_polar_a_M_ = tmp_.template_viewing_polar_a_all_(1+tmp_index_);
+tmp_polar_a_ = unique(tmp_.template_viewing_polar_a_all_); n_h = numel(tmp_polar_a_); tmp_da = mean(diff(tmp_polar_a_));
+tmp_h_0_ = hist(tmp_.template_viewing_polar_a_all_,tmp_polar_a_);
+tmp_h_1_ = hist(tmp_template_viewing_polar_a_M_,tmp_polar_a_);
+tmp_h_r_ = tmp_h_1_./max(1,tmp_h_0_); 
+tmp_h_r_ = tmp_h_r_/max(1e-12,sum(tmp_h_r_))/tmp_da;
+tmp_h1_r_ = tmp_h_r_;
+%%%%;
+tmp_hlim_ = [0,max(max(tmp_h0_r_),max(tmp_h1_r_))]; tmp_hlim_ = mean(tmp_hlim_) + 0.5*1.25*diff(tmp_hlim_)*[-1,+1];
+%%%%;
+subplot(p_row,p_col,1+np);np=np+1;
+b = bar(tmp_polar_a_,tmp_h_r_); set(b,'EdgeColor',0.35*[1,1,1]); set(b,'FaceColor',0.65*[1,1,1]);
+xlim([0,pi]); ylim(tmp_hlim_);
+set(gca,'XTick',[0,pi/2,pi]);
+set(gca,'XTickLabel',{'0','\pi/2','\pi'});
+title('$\beta$ distribution (true)','Interpreter','latex');
+set(gca,'FontSize',fontsize_use);
+%%%%;
+subplot(p_row,p_col,1+np);np=np+1;
+[~,tmp_ij_] = max(tmp_.X_ampm_alig_SM__,[],1); tmp_index_ = tmp_ij_-1;
+tmp_template_viewing_polar_a_M_ = tmp_.template_viewing_polar_a_all_(1+tmp_index_);
+tmp_polar_a_ = unique(tmp_.template_viewing_polar_a_all_); n_h = numel(tmp_polar_a_); tmp_da = mean(diff(tmp_polar_a_));
+tmp_h_0_ = hist(tmp_.template_viewing_polar_a_all_,tmp_polar_a_);
+tmp_h_1_ = hist(tmp_template_viewing_polar_a_M_,tmp_polar_a_);
+tmp_h_r_ = tmp_h_1_./max(1,tmp_h_0_); 
+tmp_h_r_ = tmp_h_r_/max(1e-12,sum(tmp_h_r_))/tmp_da;
+b = bar(tmp_polar_a_,tmp_h_r_); set(b,'EdgeColor',0.35*[1,1,1]); set(b,'FaceColor',0.65*[1,1,1]);
+xlim([0,pi]); ylim(tmp_hlim_);
+set(gca,'XTick',[0,pi/2,pi]);
+set(gca,'XTickLabel',{'0','\pi/2','\pi'});
+title('$\beta$ distribution (EMPM)','Interpreter','latex');
+set(gca,'FontSize',fontsize_use);
+%%%%;
+sgtitle(fname_fig,'Interpreter','none');
+print('-djpeg',sprintf('%s.jpg',fname_fig));
+print('-depsc',sprintf('%s.eps',fname_fig));
+sgtitle(sprintf('%s',fname_prefix(1:strfind(fname_prefix,'_')-1)),'Interpreter','none','FontSize',fontsize_use+8);
+tmp_dir = sprintf('/%s/rangan/dir_cryoem/dir_ampm_manuscript/dir_ampm_fig_viewing_angle_X_S',string_root);
+fname_fig_jpg_strip = sprintf('%s/%s_viewing_angle_distribution_FIGD_strip.jpg',tmp_dir,fname_prefix_str_fname_mat_inf);
 disp(sprintf(' %% writing %s',fname_fig_jpg_strip));
 print('-djpeg',sprintf('%s',fname_fig_jpg_strip));
 close gcf;

@@ -171,7 +171,7 @@ ylim([-1.00,+1.00]);
 axis equal;
 axisnotick;
 drawnow(); %error('stop');
-fname_fig_pre = sprintf('%s/MSA_shape_demonstration_ns%.2d_reconstruction_FIGA',dir_manuscript_jpg,n_source_gaussian);
+fname_fig_pre = sprintf('%s/MSA_shape_demonstration_%s_ns%.2d_reconstruction_FIGA',dir_manuscript_jpg,str_shape,n_source_gaussian);
 fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
 if ( flag_replot | ~exist(fname_fig_jpg,'file') );
 sgtitle(fname_fig_pre,'Interpreter','none');

@@ -97,7 +97,7 @@ if isempty(image_delta_x_); image_delta_x_ = zeros(n_M,1); end;
 if isempty(image_delta_y_); image_delta_y_ = zeros(n_M,1); end;
 if isempty(image_I_value_); image_I_value_ = ones(n_M,1); end;
 if isempty(index_nCTF_from_nM_); index_nCTF_from_nM_ = zeros(n_M,1); end;
-if isempty(CTF_k_p_wnc__); CTF_k_p_wnc__ = ones(n_w_sum,1); end;
+if isempty(CTF_k_p_wnc__); CTF_k_p_wnc__ = ones(sum(n_w_(1:n_k_p_r)),1); end;
 if (qbp_eps>1); qbp_eps = max(1e-12,0.1^(qbp_eps)); end;
 
 %%%%%%%%;
