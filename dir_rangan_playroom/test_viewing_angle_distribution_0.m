@@ -63,6 +63,7 @@ N_k_p_use__ = ampm_.M_k_p__; if (global_parameter.flag_center_image==1); N_k_p_u
 tmp_delta_r_max = 0.030;
 tmp_delta_r_upb = 0.250;
 n_M = ampm_.n_M;
+n_str_filter = ampm_.n_str_filter;
 n_iteration_orig = size(ampm_.corr_a_k_Y_i_,1);
 n_iteration_seco = max(1,min(n_iteration_orig-2,6));
 
