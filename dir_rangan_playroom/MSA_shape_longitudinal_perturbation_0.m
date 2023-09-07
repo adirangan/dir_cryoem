@@ -286,6 +286,7 @@ MSA_shape_longitudinal_perturbation_0_helper_0;
 %%%%%%%%;
 MSA_shape_longitudinal_perturbation_0_helper_2;
 MSA_shape_longitudinal_perturbation_0_helper_3;
+MSA_shape_longitudinal_perturbation_0_helper_4;
 
 %%%%%%%%;
 % longitudinal perturbation. ;

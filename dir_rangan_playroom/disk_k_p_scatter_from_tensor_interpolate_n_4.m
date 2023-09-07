@@ -16,6 +16,7 @@ disk_k_p_scatter_from_tensor_interpolate_n_4( ...
 ,n_scatter ...
 ,gamma_z_scatter_ ...
 ,k_p_rad_scatter_ ...
+,flag_zero_vs_extrap ...
 );
 % returns sparse matrix encoding the n_order interpolation operator between a tensor_grid ;
 % using n_gamma_z gamma_z (unformly from 0 to 2*pi with periodic boundary). ;
@@ -169,15 +170,23 @@ if (nargin<1+na); k_p_rad_max=[]; end; na=na+1;
 if (nargin<1+na); n_scatter=[]; end; na=na+1;
 if (nargin<1+na); gamma_z_scatter_=[]; end; na=na+1;
 if (nargin<1+na); k_p_rad_scatter_=[]; end; na=na+1;
+if (nargin<1+na); flag_zero_vs_extrap=[]; end; na=na+1;
 
 if (n_order>min(n_gamma_z,n_k_p_rad)); disp(sprintf(' %% Warning, n_order %d > n_gamma_z %d n_k_p_rad %d',n_order,n_gamma_z,n_k_p_rad)); end;
 n_order = min(n_order,min(n_gamma_z,n_k_p_rad));
+if isempty(flag_zero_vs_extrap); flag_zero_vs_extrap = 0; end;
 
 %%%%%%%%;
 % transform k_p_rad_ to be uniform. ;
 %%%%%%%%;
 k_p_rad_uni_ = transpose(0:n_k_p_rad-1); %<-- uniform transformation. ;
+if flag_zero_vs_extrap==0;
 k_p_rad_scatter_ = interp1(k_p_rad_(:),k_p_rad_uni_(:),k_p_rad_scatter_,'spline','extrap'); %<-- use interpolation to uniformize k_p_rad_. ;
+end;%if flag_zero_vs_extrap==0;
+if flag_zero_vs_extrap==1;
+k_p_rad_scatter_ = interp1(k_p_rad_(:),k_p_rad_uni_(:),k_p_rad_scatter_,'spline',0); %<-- use interpolation to uniformize k_p_rad_. ;
+end;%if flag_zero_vs_extrap==1;
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 % calculate scatter_from_tensor_swk__. ;

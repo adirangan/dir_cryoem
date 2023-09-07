@@ -1,4 +1,36 @@
 %%%%%%%%;
+% plotting original micrograph Q_x_u_pack_ in test_pm_clathrin_6.m ;
+%%%%%%%%;
+tmp_Q_x_u_pack_ = Q_x_u_pack_;
+tmp_p = prctile(tmp_Q_x_u_pack_,100,'all');
+tmp_q = prctile(tmp_Q_x_u_pack_,  0,'all');
+n_p = 10;
+for np=0:n_p-1;
+tmp_index = round(size(Q_x_u_pack_,1)*np/n_p);
+tmp_Q_x_u_pack_(1+tmp_index,:) = tmp_q;
+tmp_Q_x_u_pack_(:,1+tmp_index) = tmp_q;
+end;%for np=0:n_p-1;
+tmp_Q_x_u_pack_(min(R_sub_ij_0_),R_sub_ij_1_) = tmp_p;
+tmp_Q_x_u_pack_(max(R_sub_ij_0_),R_sub_ij_1_) = tmp_p;
+tmp_Q_x_u_pack_(R_sub_ij_0_,min(R_sub_ij_1_)) = tmp_p;
+tmp_Q_x_u_pack_(R_sub_ij_0_,max(R_sub_ij_1_)) = tmp_p;
+fname_fig = sprintf('%s_jpg/Q_sub_x_u_pack_FIGA',dir_pm);
+if (flag_replot | ~exist(sprintf('%s.jpg',fname_fig),'file'));
+disp(sprintf(' %% %s not found, creating',fname_fig));
+figure(1+nf);nf=nf+1;clf;figbig;colormap('gray');
+subplot(1,2,1); imagesc(tmp_Q_x_u_pack_); axis image; axisnotick; title('Q','Interpreter','none');
+subplot(1,2,2); imagesc(Q_sub_x_u_pack_); axis image; axisnotick; title('Q_sub','Interpreter','none');
+sgtitle(fname_fig,'Interpreter','none');
+disp(sprintf(' %% writing %s',fname_fig));
+print('-djpeg',sprintf('%s.jpg',fname_fig));
+print('-depsc',sprintf('%s.eps',fname_fig));
+%close(gcf);
+end;%if (~exist(sprintf('%s.jpg',fname_fig),'file'));
+if ( exist(sprintf('%s.jpg',fname_fig),'file'));
+disp(sprintf(' %% %s found, not creating',fname_fig));
+end;%if ( exist(sprintf('%s.jpg',fname_fig),'file'));
+
+%%%%%%%%;
 % experimenting with str_shape. ;
 %%%%%%%%;
 
