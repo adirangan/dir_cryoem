@@ -248,7 +248,7 @@ tmp_t = tic();
 ,scatter_from_tensor_zswk___ ...
 ] = ...
 innerproduct_O_x_u_vs_S_x_u_2( ...
- struct('type','parameter','nw_stride',nw_stride) ...
+ struct('type','parameter','nw_stride',nw_stride,'flag_verbose',2) ...
 ,n_O_x_0 ...
 ,n_O_x_1 ...
 ,O_x_u_xx__ ...
@@ -274,7 +274,7 @@ tmp_t = tic();
 ,scatter_from_tensor_zswk___ ...
 ] = ...
 innerproduct_O_x_u_vs_S_x_u_2( ...
- struct('type','parameter','nw_stride',nw_stride) ...
+ struct('type','parameter','nw_stride',nw_stride,'flag_verbose',2) ...
 ,n_O_x_0 ...
 ,n_O_x_1 ...
 ,O_x_u_xx__ ...
@@ -306,6 +306,36 @@ ngamma_z=ngamma_z+1;
 end;%for tmp_nw=0:n_w_max-1;
 tmp_t = toc(tmp_t);
 if (flag_verbose); disp(sprintf(' %% conv2: %0.2fs',tmp_t)); end;
+%%%%;
+tmp_t = tic();
+[
+ ~ ...
+,OCS_x_v_xxz___ ...
+,scatter_from_tensor_order ...
+,scatter_from_tensor_zswk___ ...
+] = ...
+innerproduct_O_x_u_vs_S_x_u_2( ...
+ struct('type','parameter','nw_stride',nw_stride,'flag_verbose',2,'flag_conv2_vs_svt',1) ...
+,n_O_x_0 ...
+,n_O_x_1 ...
+,O_x_u_xx__ ...
+,n_S_x_0 ...
+,n_S_x_1 ...
+,[] ...
+,n_k_p_r ...
+,k_p_r_ ...
+,k_p_r_max ...
+,n_w_ ...
+,S_k_p_wk_ ...
+,weight_2d_wk_ ...
+,CTF_k_p_r_k_ ...
+,scatter_from_tensor_order ...
+,scatter_from_tensor_zswk___ ...
+);
+tmp_t = toc(tmp_t);
+if (flag_verbose); disp(sprintf(' %% innerproduct_O_x_u_vs_S_x_u_2 (prior precomputation, flag_conv2_vs_svt==1): %0.2fs',tmp_t)); end;
+disp(sprintf(' %% OCS_x_v_xxz___ vs OCS_x_c_xxz___: %0.16f',fnorm(OCS_x_v_xxz___-OCS_x_c_xxz___)/fnorm(OCS_x_v_xxz___)));
+%%%%;
 figure(1+nf);nf=nf+1;clf;figbig; fig80s; p_row=2;p_col=4;np=0;
 subplot(p_row,p_col,1+np);np=np+1; imagesc(O_x_u_xx__); title('O'); axisnotick; colorbar;
 subplot(p_row,p_col,1+np);np=np+1; imagesc(S_x_u_xx__); title('S'); axisnotick; colorbar;
@@ -351,6 +381,8 @@ if ~isfield(parameter,'flag_verbose'); parameter.flag_verbose=0; end;
 flag_verbose=parameter.flag_verbose;
 if ~isfield(parameter,'nw_stride'); parameter.nw_stride=1; end;
 nw_stride=parameter.nw_stride;
+if ~isfield(parameter,'flag_conv2_vs_svt'); parameter.flag_conv2_vs_svt=0; end;
+flag_conv2_vs_svt=parameter.flag_conv2_vs_svt;
 
 if (flag_verbose> 0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
 
@@ -370,7 +402,13 @@ if  isempty(S_k_p_wk_);
 S_k_p_wk_ = interp_x_c_to_k_p_xxnufft(n_S_x_0,diameter_x_c,n_S_x_1,diameter_x_c,S_x_u_xx__,n_k_p_r,k_p_r_,n_w_)*sqrt(n_S_x_0*n_S_x_1)*dx_0*dx_1;
 end;%if  isempty(S_k_p_wk_);
 %%%%;
-if  isempty(CTF_k_p_r_k_); CTF_k_p_r_k_ = ones(n_k_p_r,1); end;
+flag_ori_CTF_S_x_c = 0;
+if  isempty(CTF_k_p_r_k_);
+CTF_k_p_r_k_ = ones(n_k_p_r,1);
+if ~isempty(S_x_u_xx__);
+flag_ori_CTF_S_x_c = 1;
+end;%if ~isempty(S_x_u_xx__);
+end;%if  isempty(CTF_k_p_r_k_);
 CTF_S_k_p_wk_ = zeros(n_w_sum,1);
 na=0;
 for nk_p_r=0:n_k_p_r-1;
@@ -427,7 +465,7 @@ disk_k_p_scatter_from_tensor_interpolate_n_4( ...
 tmp_t = toc(tmp_t); if (flag_verbose); disp(sprintf(' %% disk_k_p_scatter_from_tensor_interpolate_n_4: %0.2fs',tmp_t)); end;
 if (flag_verbose); disp(sprintf(' %% scatter_from_tensor_ori_swk__: numel %d, nnz %d --> %0.4f GB',numel(scatter_from_tensor_ori_swk__),nnz(scatter_from_tensor_ori_swk__),nnz(scatter_from_tensor_ori_swk__)*3*8/1e9)); end;
 %%%%%%%%;
-
+%%%%;
 %%%%%%%%;
 flag_check=0;
 if flag_check;
@@ -478,7 +516,7 @@ if (flag_verbose); disp(sprintf(' %% finished check')); end;
 error('finished check');
 end;%if flag_check;
 %%%%%%%%;
-
+%%%%;
 %%%%%%%%;
 tmp_t = tic();
 [tmp_ij_row_,tmp_ij_col_,tmp_val_] = find(scatter_from_tensor_ori_swk__);
@@ -519,6 +557,9 @@ end;%for tmp_nw=0:nw_stride:n_w_max-1;
 %%%%%%%%;
 
 %%%%%%%%;
+if flag_conv2_vs_svt==0;
+%%%%%%%%;
+tmp_t = tic();
 ngamma_z=0;
 for tmp_nw=0:nw_stride:n_w_max-1;
 R_k_u_kkz___(:,:,1+ngamma_z) = fftshift(reshape(scatter_from_tensor_zswk___{1+ngamma_z}*CTF_S_k_p_wk_,[n_R_x_0,n_R_x_1]))*(n_S_x_0*n_S_x_1)/diameter_x_c^2;
@@ -527,6 +568,36 @@ end;%for tmp_nw=0:nw_stride:n_w_max-1;
 NR_k_u_kkz___ = bsxfun(@times,N_k_u_kk__,R_k_u_kkz___);
 NR_x_u_xxz___ = real(fftshift(fftshift(ifft2(NR_k_u_kkz___),1),2));
 OCS_x_u_xxz___ = NR_x_u_xxz___(ij_O_0_,ij_O_1_,:);
+tmp_t = toc(tmp_t); if (flag_verbose); disp(sprintf(' %% OCS_x_u_xxz___: %0.2fs',tmp_t)); end;
+%%%%%%%%;
+%%%%;
+%%%%%%%%;
+end;%if flag_conv2_vs_svt==0;
+%%%%%%%%;
+
+%%%%%%%%;
+if flag_conv2_vs_svt==1;
+%%%%%%%%;
+tmp_t = tic();
+OCS_x_u_xxz___ = zeros(n_O_x_0,n_O_x_1,n_gamma_z);
+ngamma_z=0;
+for tmp_nw=0:nw_stride:n_w_max-1;
+if tmp_nw==0 & flag_ori_CTF_S_x_c;
+tmp_CTF_S_x_c_xx__ = S_x_u_xx__;
+else;
+tmp_gamma_z = (2*pi*tmp_nw)/max(1,n_w_max);
+tmp_CTF_S_k_p_wk_ = rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,CTF_S_k_p_wk_,+tmp_gamma_z);
+tmp_CTF_S_x_c_xx_ = interp_k_p_to_x_c_xxnufft(n_S_x_0,diameter_x_c,n_S_x_1,diameter_x_c,n_k_p_r,k_p_r_,n_w_,tmp_CTF_S_k_p_wk_.*weight_2d_wk_*(2*pi)^2)*sqrt(n_S_x_0*n_S_x_1) * n_w_sum;
+tmp_CTF_S_x_c_xx__ = real(reshape(tmp_CTF_S_x_c_xx_,[n_S_x_0,n_S_x_1]));
+end;%if tmp_nw==0 & flag_ori_CTF_S_x_c;
+OCS_x_u_xxz___(:,:,1+ngamma_z) = conv2(O_x_u_xx__,tmp_CTF_S_x_c_xx__,'same');
+ngamma_z=ngamma_z+1;
+clear tmp_gamma_z tmp_CTF_S_k_p_wk_ tmp_CTF_S_x_c_xx_ tmp_CTF_S_x_c_xx__ ;
+end;%for tmp_nw=0:n_w_max-1;
+tmp_t = toc(tmp_t);
+if (flag_verbose); disp(sprintf(' %% conv2: %0.2fs',tmp_t)); end;
+%%%%%%%%;
+end;%if flag_conv2_vs_svt==1;
 %%%%%%%%;
 
 if (flag_verbose> 0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;

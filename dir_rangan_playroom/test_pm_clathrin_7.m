@@ -778,7 +778,7 @@ get_weight_2d_2( ...
 ,template_k_eq_d ...
 ,n_w_ref_0in_ ...
 );
-n_w_ref_max = max(n_w_ref_); n_w_ref_sum = sum(n_w_ref_);
+n_w_ref_max = max(n_w_ref_); n_w_ref_sum = sum(n_w_ref_); n_w_ref_csum_ = cumsum([0;n_w_ref_]);
 %%%%;
 
 %%%%;
@@ -900,7 +900,7 @@ P_ref_std_k_p_ = tmp_P_ref_std_k_p_;
 
 WSF_x_u_xx__ = reshape( real(interp_k_p_to_x_c_xxnufft(n_x_u_pack,diameter_x_c,n_x_u_pack,diameter_x_c,n_k_p_r,k_p_r_,n_w_,1./max(1e-12,tmp_P_std_k_p_).*weight_2d_wk_*(2*pi)^2)*sqrt(n_x_u_pack*n_x_u_pack)) * n_w_ref_sum , [n_x_u_pack,n_x_u_pack] ) ;
 WSF_ref_x_u_xx__ = reshape( real(interp_k_p_to_x_c_xxnufft(n_x_u_pack,diameter_x_c,n_x_u_pack,diameter_x_c,n_k_ref_p_r,k_ref_p_r_,n_w_ref_,1./max(1e-12,tmp_P_ref_std_k_p_).*weight_2d_ref_wk_*(2*pi)^2)*sqrt(n_x_u_pack*n_x_u_pack)) * n_w_ref_sum , [n_x_u_pack,n_x_u_pack] ) ;
-Q_x_u_pack_ = conv2(P_x_u_pack_,WSF_ref_x_u_xx__,'same'); %<-- use k_ref_p_r_max to whiten. ;
+Q_x_u_pack_ = conv2(P_x_u_pack_,WSF_ref_x_u_xx__,'same')*dx_pack*dx_pack; %<-- use k_ref_p_r_max to whiten. ;
 %%%%;
 n_Q_0 = size(Q_x_u_pack_,1+0);
 n_Q_1 = size(Q_x_u_pack_,1+1);
@@ -986,6 +986,7 @@ disp(sprintf(' %% %s found, not creating',fname_fig));
 end;%if ( exist(sprintf('%s.jpg',fname_fig),'file'));
 end;%if flag_check;
 %%%%%%%%;
+clear tmp_Q_avg_k_p_ tmp_Q_var_k_p_ tmp_Q_ref_avg_k_p_ tmp_Q_ref_var_k_p_ ;
 
 %%%%%%%%;
 % Now calculate CTF functions. ;
@@ -1042,6 +1043,7 @@ niko_ctf( ...
 ,tmp_k_c_1 ... 
 ,tmp_k_c_2 ...
 );
+clear tmp_k_c_1 tmp_k_c_2 ;
 CTF_k_p_wkC__(1+na,1+nCTF) = -tmp_ctf_value;
 na = na+1;
 end;%for nw=0:n_w_(1+nk)-1;
@@ -1093,6 +1095,7 @@ tmp_CTF_avg_k_p_r_k_(1+nk_p_r) = mean(tmp_CTF_avg_k_p_wk_(1+tmp_index_));
 end;%for nk_p_r=0:n_k_p_r-1;
 CTF_k_p_r_xavg__ = tmp_CTF_avg_k_p_r_k_ * transpose(tmp_CTF_avg_k_p_r_k_);
 CTF_k_p_r_xcor__ = CTF_k_p_r_kC__(:,1) * transpose(CTF_k_p_r_kC__(:,1));
+clear tmp_CTF_avg_k_p_wk_ tmp_CTF_avg_k_p_r_k_ ;
 %%%%%%%%;
 fname_fig = sprintf('%s_jpg/CTF_k_p_xcor__',dir_pm);
 if (flag_replot | ~exist(sprintf('%s.jpg',fname_fig),'file'));
@@ -1176,6 +1179,7 @@ tmp_delta_sigma = 0;
 [X_2d_xavg_d0_kk__,X_2d_xavg_d0_weight_r_] = principled_marching_cost_matrix_6(n_k_p_r,k_p_r_,weight_2d_k_p_r_,l_max_,[],[],a_k_Y_quad_,tmp_CTF_k_p_r_xavg_kk__,tmp_delta_sigma);
 X_2d_xavg_d0_kkC___(:,:,1+nCTF) = X_2d_xavg_d0_kk__;
 X_2d_xavg_d0_weight_rC__(:,1+nCTF) = X_2d_xavg_d0_weight_r_;
+clear tmp_CTF_k_p_r_xavg_k_ tmp_CTF_k_p_r_xavg_kk__ tmp_delta_sigma ;
 clear X_2d_xavg_d0_kk__ X_2d_xavg_d0_weight_r_ ;
 end;%for nCTF=0:n_CTF-1;
 %%%%%%%%;
@@ -1197,12 +1201,12 @@ end;%if ( exist(sprintf('%s.jpg',fname_fig),'file'));
 %%%%%%%%;
 
 %%%%%%%%;
-% Now calculate likelihood. ;
+% Now calculate the innerproducts and correlations. ;
 %%%%%%%%;
 n_R_sub_x_u_pack_ = floor(n_O_x_u_pack_/5);
 R_sub_ij_0_ = floor(n_O_x_u_pack_(1+0)*3.0/10) + [1:n_R_sub_x_u_pack_(1+0)];
 R_sub_ij_1_ = floor(n_O_x_u_pack_(1+1)*3.0/10) + [1:n_R_sub_x_u_pack_(1+1)];
-R_x_u_pack_ = conv2(Q_x_u_pack_,PSF_avg_x_u_xx__,'same');
+R_x_u_pack_ = conv2(Q_x_u_pack_,PSF_avg_x_u_xx__,'same')*dx_pack*dx_pack;
 Q_sub_x_u_pack_ = Q_x_u_pack_(R_sub_ij_0_,R_sub_ij_1_);
 R_sub_x_u_pack_ = R_x_u_pack_(R_sub_ij_0_,R_sub_ij_1_);
 flag_disp=1;
@@ -1269,6 +1273,7 @@ end;%if (~exist(sprintf('%s.jpg',fname_fig),'file'));
 if ( exist(sprintf('%s.jpg',fname_fig),'file'));
 disp(sprintf(' %% %s found, not creating',fname_fig));
 end;%if ( exist(sprintf('%s.jpg',fname_fig),'file'));
+clear tmp_p tmp_q tmp_Q_x_u_pack_ tmp_R_x_u_pack_ ;
 end;%if flag_disp;
 %%%%%%%%;
 k_ref_p_r_max = 2*k_p_r_max; k_ref_eq_d = k_eq_d;
@@ -1436,6 +1441,109 @@ end;%for nS=0:n_S-1;
 R0M1_S_ = reshape(R0M1_S_,[1,1,1,n_S]);
 R0S1_S_ = reshape(R0S1_S_,[1,1,1,n_S]);
 R0S2_S_ = reshape(R0S2_S_,[1,1,1,n_S]);
+
+%%%%%%%%;
+% Demonstrate that the innerproducts are calculated correctly. ;
+%%%%%%%%;
+if flag_check;
+%%%%%%%%;
+n_R_0 = n_R_sub_x_u_pack_(1+0);
+n_R_1 = n_R_sub_x_u_pack_(1+1);
+n_R = prod(n_R_sub_x_u_pack_);
+nS = min(128,n_S-1); %<-- pick a single nS. ;
+ngamma_z = min(floor(n_w_ref_max/12),n_w_ref_max-1); %<-- pick a single nw. ;
+gamma_z = (2*pi*ngamma_z)/n_gamma_z;
+S_x_u_xx__ = S_x_u_xxS___(:,:,1+nS);
+n_S_x_0 = n_x_u_pack; n_S_x_1 = n_x_u_pack; dx_0 = dx_pack; dx_1 = dx_pack;
+S_k_p_wk_ = interp_x_c_to_k_p_xxnufft(n_S_x_0,diameter_x_c,n_S_x_1,diameter_x_c,S_x_u_xx__,n_k_ref_p_r,k_ref_p_r_,n_w_ref_)*sqrt(n_S_x_0*n_S_x_1)*dx_0*dx_1;
+S_k_p_wk_ = rotate_p_to_p_fftw(n_k_ref_p_r,n_w_ref_,n_w_ref_sum,S_k_p_wk_,+gamma_z);
+S_x_u_xx__ = real( interp_k_p_to_x_c_xxnufft(n_x_u_pack,diameter_x_c,n_x_u_pack,diameter_x_c,n_k_ref_p_r,k_ref_p_r_,n_w_ref_,S_k_p_wk_.*weight_2d_ref_wk_*(2*pi)^2)*sqrt(n_x_u_pack*n_x_u_pack) * n_w_ref_sum );
+M_x_u_xx__ = M_x_u_xxS___(:,:,1+nS);
+M_k_p_wk_ = interp_x_c_to_k_p_xxnufft(n_S_x_0,diameter_x_c,n_S_x_1,diameter_x_c,M_x_u_xx__,n_k_ref_p_r,k_ref_p_r_,n_w_ref_)*sqrt(n_S_x_0*n_S_x_1)*dx_0*dx_1;
+M_k_p_wk_ = rotate_p_to_p_fftw(n_k_ref_p_r,n_w_ref_,n_w_ref_sum,M_k_p_wk_,+gamma_z);
+M_x_u_xx__ = real( interp_k_p_to_x_c_xxnufft(n_x_u_pack,diameter_x_c,n_x_u_pack,diameter_x_c,n_k_ref_p_r,k_ref_p_r_,n_w_ref_,M_k_p_wk_.*weight_2d_ref_wk_*(2*pi)^2)*sqrt(n_x_u_pack*n_x_u_pack) * n_w_ref_sum );
+%%%%;
+figure(1+nf);nf=nf+1;clf;figbig; figmed; np=0;
+subplot(1,2,1+np);np=np+1;
+imagesc_c(n_x_u_pack,x_u_0_,n_x_u_pack,x_u_1_,S_x_u_xx__,[],colormap_beach);
+axis image; axis square; axisnotick; title('S_x_u_xx__','Interpreter','none');
+subplot(1,2,1+np);np=np+1;
+imagesc_c(n_x_u_pack,x_u_0_,n_x_u_pack,x_u_1_,M_x_u_xx__,[],colormap_beach);
+axis image; axis square; axisnotick; title('M_x_u_xx__','Interpreter','none');
+%%%%;
+M1_sum = sum(M_x_u_xx__.^1,'all');
+R0M1 = M1_sum;
+S1_sum = sum(S_x_u_xx__.^1.*M_x_u_xx__,'all');
+S2_sum = sum(S_x_u_xx__.^2.*M_x_u_xx__,'all');
+R0S1 = S1_sum;
+R0S2 = S2_sum;
+R1S1_A_xx__ = R1S1_xxzS____(:,:,1+ngamma_z,1+nS);
+R1S1_B_xx__ = conv2(R_sub_x_u_pack_.^1,S_x_u_xx__,'same');
+%%;
+parameter_innerproduct = struct('type','parameter','nw_stride',2,'flag_conv2_vs_svt',1);
+tmp_t = tic();
+[ ...
+ ~ ...
+,R1S1_C_xxz___ ...
+,scatter_from_tensor_order ...
+,scatter_from_tensor_zswk___ ...
+] = ...
+innerproduct_O_x_u_vs_S_x_u_2( ...
+ parameter_innerproduct ...
+,n_R_sub_x_u_pack_(1+0) ...
+,n_R_sub_x_u_pack_(1+1) ...
+,R_sub_x_u_pack_.^1 ...
+,n_x_u_pack ...
+,n_x_u_pack ...
+,S_x_u_xx__ ...
+,n_k_ref_p_r ...
+,k_ref_p_r_ ...
+,k_ref_p_r_max ...
+,n_w_ref_ ...
+,[] ...
+,weight_2d_ref_wk_ ...
+,[] ...
+,scatter_from_tensor_order ...
+,scatter_from_tensor_zswk___ ...
+);
+tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% innerproduct_O_x_u_vs_S_x_u_2: %0.2fs',tmp_t)); end;
+R1S1_C_xx__ = R1S1_C_xxz___(:,:,1+0);
+disp(sprintf(' %% R1S1_C_xx__ vs R1S1_B_xx__: %0.16f',fnorm(R1S1_C_xx__-R1S1_B_xx__)/fnorm(R1S1_C_xx__)));
+%%;
+nx0 = 7; nx1 = 3;
+R1S1_D = sum(R_sub_x_u_pack_(1+nx0+[0:n_x_u_pack-1],1+nx1+[0:n_x_u_pack-1]).*fliplr(flipud(S_x_u_xx__)),'all');
+R1S1_A = R1S1_A_xx__(1+nx0+floor(n_x_u_pack/2)-1,1+nx1+floor(n_x_u_pack/2)-1);
+R1S1_B = R1S1_B_xx__(1+nx0+floor(n_x_u_pack/2)-1,1+nx1+floor(n_x_u_pack/2)-1);
+disp(sprintf(' %% R1S1_D vs R1S1_A: %0.16f',fnorm(R1S1_D-R1S1_A)/fnorm(R1S1_D)));
+disp(sprintf(' %% R1S1_D vs R1S1_B: %0.16f',fnorm(R1S1_D-R1S1_B)/fnorm(R1S1_D)));
+%%;
+%%%%;
+figure(1+nf);nf=nf+1;clf;figmed; figbeach;
+subplot(1,3,1); imagesc(R1S1_A_xx__); axis image; axisnotick; title('R1S1_A_xx__','Interpreter','none'); colorbar;
+subplot(1,3,2); imagesc(R1S1_B_xx__); axis image; axisnotick; title('R1S1_B_xx__','Interpreter','none'); colorbar;
+n_h = 128; np=0;
+hlim_AB_ = [ ...
+ min(min(R1S1_A_xx__,[],'all'),min(R1S1_B_xx__,[],'all')) ...
+ max(max(R1S1_A_xx__,[],'all'),max(R1S1_B_xx__,[],'all')) ...
+];
+h2_AB__ = hist2d_0(R1S1_A_xx__,R1S1_B_xx__,n_h,n_h,hlim_AB_,hlim_AB_);
+subplot(1,3,3);
+imagesc(log2(1+h2_AB__)); axis image; axisnotick; colorbar; set(gca,'ydir','normal');
+title('R1S1_A_xx__ vs R1S1_B_xx__','Interpreter','none');
+%%%%;
+clear M1_sum R0M1 S1_sum S2_sum R0S1 R0S2 R1S1_A_xx__ R1S1_B_xx__ R1S1_C_xxz___ R1S1_C_xx__ R1S1_D R1S1_C R1S1_B R1S1_A ;
+clear S_x_u_xx__ S_k_p_wk_ M_x_u_xx__ M_k_p_wk_ ;
+%%%%%%%%;
+end;%if flag_check;
+%%%%%%%%;
+
+%%%%%%%%;
+% test CoC. ;
+%%%%%%%%;
+if flag_check;
+test_pm_clathrin_7_excerpt_test_CoC_0;
+end;%if flag_check;
+%%%%%%%%;
 
 n_R_0 = n_R_sub_x_u_pack_(1+0);
 n_R_1 = n_R_sub_x_u_pack_(1+1);

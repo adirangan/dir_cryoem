@@ -44,6 +44,8 @@ if ~isfield(parameter,'k_1_offset'); parameter.k_1_offset = 0.0; end;
 k_1_offset = parameter.k_1_offset;
 if ~isfield(parameter,'gamma_offset'); parameter.gamma_offset = 0.0; end;
 gamma_offset = parameter.gamma_offset;
+if ~isfield(parameter,'gamma_offset_'); if ~isempty(n_gamma_z); parameter.gamma_offset_ = 0.0*gamma_z_; else parameter.gamma_offset_ = 0.0*zeros(1,n_w_sum); end; end;
+gamma_offset_ = parameter.gamma_offset_;
 
 if (flag_verbose> 0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
 
@@ -85,7 +87,12 @@ k_0_k__ = [ r_lob_k_ , r_upb_k_ , r_upb_k_ , r_lob_k_ ];
 k_0_k__ = transpose(k_0_k__);
 k_1_k__ = k_p_r_max*strip_width*[ -ones(2*n_k_p_r,1) , -ones(2*n_k_p_r,1) , +ones(2*n_k_p_r,1) , +ones(2*n_k_p_r,1) ];
 k_1_k__ = transpose(k_1_k__);
-R__ = [cos(gamma_z+gamma_offset),-sin(gamma_z+gamma_offset);+sin(gamma_z+gamma_offset),cos(gamma_z+gamma_offset)];
+R__ = [ ...
+ +cos(gamma_z+gamma_offset+gamma_offset_(1+ngamma_z)) ...
+,-sin(gamma_z+gamma_offset+gamma_offset_(1+ngamma_z)) ...
+;+sin(gamma_z+gamma_offset+gamma_offset_(1+ngamma_z)) ...
+,+cos(gamma_z+gamma_offset+gamma_offset_(1+ngamma_z)) ...
+];
 k_k__ = R__ * [ reshape(k_0_k__,[1,4*2*n_k_p_r]) ; reshape(k_1_k__,[1,4*2*n_k_p_r]) ];
 k_0_k__ = reshape(k_k__(1+0,:),[4,2*n_k_p_r]);
 k_1_k__ = reshape(k_k__(1+1,:),[4,2*n_k_p_r]);
@@ -122,8 +129,8 @@ c_(1,1+ic,:) = c_use__(1+nc,:);
 ic=ic+1;
 end;%for nw=0:n_w_(1+nk_p_r)-1;
 end;%for nk_p_r=0:n_k_p_r-1;
-tmp_w0_ = tmp_w0_ + gamma_offset;
-tmp_w1_ = tmp_w1_ + gamma_offset;
+tmp_w0_ = tmp_w0_ + gamma_offset + gamma_offset_;
+tmp_w1_ = tmp_w1_ + gamma_offset + gamma_offset_;
 k_0_k__ = [tmp_k0_.*cos(tmp_w0_) ; tmp_k1_.*cos(tmp_w0_) ; tmp_k1_.*cos(tmp_w1_) ; tmp_k0_.*cos(tmp_w1_) ; tmp_k0_.*cos(tmp_w0_) ];
 k_1_k__ = [tmp_k0_.*sin(tmp_w0_) ; tmp_k1_.*sin(tmp_w0_) ; tmp_k1_.*sin(tmp_w1_) ; tmp_k0_.*sin(tmp_w1_) ; tmp_k0_.*sin(tmp_w0_) ];
 p=patch(k_0_k__+k_0_offset,k_1_k__+k_1_offset,c_,'LineStyle','none');
