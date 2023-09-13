@@ -1,3 +1,50 @@
+Now imagine that you are given a radioactive material. 
+You start with 2150 atoms on day 0. 
+Each day you record the number of atoms remaining: 
+Day 00: 2150 atoms remaining 
+Day 01: 1876 atoms remaining 
+Day 02: 1655 atoms remaining 
+Day 03: 1482 atoms remaining 
+Day 04: 1373 atoms remaining 
+Day 05: 1280 atoms remaining 
+Day 06: 1222 atoms remaining 
+Day 07: 1171 atoms remaining 
+Day 08: 1145 atoms remaining 
+Day 09: 1110 atoms remaining 
+Day 10: 1091 atoms remaining 
+Day 11: 1072 atoms remaining 
+Day 12: 1057 atoms remaining 
+Day 13: 1050 atoms remaining 
+Day 14: 1044 atoms remaining 
+Day 15: 1040 atoms remaining 
+Day 16: 1039 atoms remaining 
+Day 17: 1034 atoms remaining 
+Day 18: 1031 atoms remaining 
+Day 19: 1030 atoms remaining 
+Day 20: 1030 atoms remaining 
+Day 21: 1029 atoms remaining 
+Day 22: 1029 atoms remaining 
+Day 23: 1029 atoms remaining 
+Day 24: 1028 atoms remaining 
+Day 25: 1028 atoms remaining 
+Day 26: 1027 atoms remaining 
+Day 27: 1027 atoms remaining 
+Day 28: 1027 atoms remaining 
+Day 29: 1026 atoms remaining 
+Day 30: 1026 atoms remaining 
+Day 31: 1026 atoms remaining 
+Can you estimate the decay-probability? 
+(i.e., the probability that a given atom will decay over a day). 
+
+ Assume that you have a large sample of radioactive material. 
+Assume that each atom decays as a random variable, independently of all other atoms. 
+Say that the probability of any particular atom decaying over the course of one day is 30%. 
+Make a graph/plot of your model, illustrating the amount of radioactive material you expect as a function of time (in days). 
+Now assume that somebody else models the same radioactive process, but uses a different timescale, say hours instead of days. 
+What decay-probability should they use? 
+Make a graph/plot of their model (in hours). 
+Compare your model with theirs. What are the similarities? 
+
 %%%%%%%%;
 % plotting original micrograph Q_x_u_pack_ in test_pm_clathrin_6.m ;
 %%%%%%%%;
