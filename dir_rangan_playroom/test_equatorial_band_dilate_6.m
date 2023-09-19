@@ -17,7 +17,7 @@ if ~exist(dir_manuscript,'dir'); disp(sprintf(' %% mkdir %s',dir_manuscript)); m
 dir_manuscript_jpg = sprintf('%s/dir_M3d_shape_longitudinal_perturbation_jpg',dir_manuscript);
 if ~exist(dir_manuscript_jpg,'dir'); disp(sprintf(' %% mkdir %s',dir_manuscript_jpg)); mkdir(dir_manuscript_jpg); end;
 flag_verbose = 0;
-flag_replot=0;
+flag_replot=1;
 
 %%%%%%%%;
 % First set up collection of templates. ;

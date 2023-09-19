@@ -29,6 +29,8 @@ end;%if (nargin<1);
 na=0;
 if (nargin<1+na); parameter=[]; end; na=na+1;
 
+% parameter=[]; 
+
 if isempty(parameter); parameter = struct('type','parameter'); end;
 if ~isfield(parameter,'flag_verbose'); parameter.flag_verbose = 0; end;
 flag_verbose = parameter.flag_verbose;
@@ -287,7 +289,8 @@ MSA_shape_longitudinal_perturbation_0_helper_0;
 MSA_shape_longitudinal_perturbation_0_helper_2;
 MSA_shape_longitudinal_perturbation_0_helper_3;
 MSA_shape_longitudinal_perturbation_0_helper_4;
-MSA_shape_longitudinal_perturbation_0_helper_5;
+n_dt_use = 4; MSA_shape_longitudinal_perturbation_0_helper_5;
+n_dt_use = 8; MSA_shape_longitudinal_perturbation_0_helper_5;
 
 %%%%%%%%;
 % longitudinal perturbation. ;

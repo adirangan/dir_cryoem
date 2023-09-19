@@ -16,7 +16,7 @@ dir_manuscript = sprintf('/%s/rangan/dir_cryoem/dir_spurious_heterogeneity_manus
 if ~exist(dir_manuscript,'dir'); disp(sprintf(' %% mkdir %s',dir_manuscript)); mkdir(dir_manuscript); end;
 dir_manuscript_jpg = sprintf('%s/dir_M3d_shape_latitudinal_perturbation_jpg',dir_manuscript);
 if ~exist(dir_manuscript_jpg,'dir'); disp(sprintf(' %% mkdir %s',dir_manuscript_jpg)); mkdir(dir_manuscript_jpg); end;
-flag_replot=0;
+flag_replot=1;
 
 %%%%%%%%;
 % First set up collection of templates. ;
@@ -173,7 +173,6 @@ Ry = @(polar_a) ...
    0            1  0            ; ...
   -sin(polar_a) 0 +cos(polar_a) ; ...
 ];
-
 
 %%%%%%%%;
 % Set parameters for polar cap dilation. ;
@@ -362,6 +361,8 @@ print('-djpeg',sprintf('%s_strip.jpg',fname_fig_pre));
 end;%if ( flag_replot | ~exist(fname_fig_jpg,'file'));
 %%%%%%%%;
 end;%if flag_disp;
+
+error('stopping early');
 
 flag_disp=1;
 %%%%%%%%;
