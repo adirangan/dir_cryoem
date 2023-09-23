@@ -84,7 +84,7 @@ parameter.infix = sprintf( ...
 
 if (flag_verbose> 0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
 
-flag_disp=0;
+flag_disp=1;
 if flag_disp;
 tmp_index_ = efind(k_p_r_all_==max(k_p_r_all_)); n_k_sub = numel(tmp_index_);
 k_p_azimu_b_sub_ = k_p_azimu_b_all_(1+tmp_index_);
@@ -95,14 +95,34 @@ k_c_2_sub_ = k_c_2_all_(1+tmp_index_);
 a_k_p_sub_ = shell_val_A(parameter,k_p_r_max,n_k_sub,k_c_0_sub_,k_c_1_sub_,k_c_2_sub_);
 b_k_p_sub_ = shell_val_B(parameter,k_p_r_max,n_k_sub,k_c_0_sub_,k_c_1_sub_,k_c_2_sub_);
 c_k_p_sub_ = shell_val_C(parameter,k_p_r_max,n_k_sub,k_c_0_sub_,k_c_1_sub_,k_c_2_sub_);
-figure(1+nf);nf=nf+1;figmed;
+dir_jpg = sprintf('%s/dir_jpg',pwd); if ~exist(dir_jpg,'dir'); mkdir(dir_jpg); end;
+fname_fig_pre = sprintf('%s/test_heterogeneity_spurious_%s_FIGB',dir_jpg,parameter.infix);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+figure(1+nf);nf=nf+1;figbig;
+p_row = 2; p_col = 6; np=0;
 a_k_p_sub_lim_ = max(abs(a_k_p_sub_),[],'all')*[-1,+1];
-subplot(2,3,1); imagesc_polar_a_azimu_b_0(k_p_polar_a_sub_,k_p_azimu_b_sub_,real(a_k_p_sub_),a_k_p_sub_lim_,colormap_beach(),0); title('real A');
-subplot(2,3,2); imagesc_polar_a_azimu_b_0(k_p_polar_a_sub_,k_p_azimu_b_sub_,real(b_k_p_sub_),a_k_p_sub_lim_,colormap_beach(),0); title('real B');
-subplot(2,3,3); imagesc_polar_a_azimu_b_0(k_p_polar_a_sub_,k_p_azimu_b_sub_,real(c_k_p_sub_),a_k_p_sub_lim_,colormap_beach(),0); title('real C');
-subplot(2,3,4); imagesc_polar_a_azimu_b_0(k_p_polar_a_sub_,k_p_azimu_b_sub_,imag(a_k_p_sub_),a_k_p_sub_lim_,colormap_beach(),0); title('imag A');
-subplot(2,3,5); imagesc_polar_a_azimu_b_0(k_p_polar_a_sub_,k_p_azimu_b_sub_,imag(b_k_p_sub_),a_k_p_sub_lim_,colormap_beach(),0); title('imag B');
-subplot(2,3,6); imagesc_polar_a_azimu_b_0(k_p_polar_a_sub_,k_p_azimu_b_sub_,imag(c_k_p_sub_),a_k_p_sub_lim_,colormap_beach(),0); title('imag C');
+%%%%;
+for nl=0:2;
+if nl==0; tmp_d_k_p_sub_ = a_k_p_sub_; tmp_d_k_p_sub_lim_ = a_k_p_sub_lim_; tmp_str = 'A'; end;
+if nl==1; tmp_d_k_p_sub_ = b_k_p_sub_; tmp_d_k_p_sub_lim_ = a_k_p_sub_lim_; tmp_str = 'B'; end;
+if nl==2; tmp_d_k_p_sub_ = c_k_p_sub_; tmp_d_k_p_sub_lim_ = a_k_p_sub_lim_; tmp_str = 'C'; end;
+subplot(p_row,p_col,1+np);
+imagesc_polar_a_azimu_b_0(k_p_polar_a_sub_,k_p_azimu_b_sub_,real(tmp_d_k_p_sub_),tmp_d_k_p_sub_lim_,colormap_beach(),0); title(sprintf('real $F_{%s}(k)$',tmp_str),'Interpreter','latex'); set(gca,'XTick',[],'YTick',[],'ZTick',[])
+subplot(p_row,p_col,1+np+p_col);
+imagesc_polar_a_azimu_b_0(k_p_polar_a_sub_,k_p_azimu_b_sub_,imag(tmp_d_k_p_sub_),tmp_d_k_p_sub_lim_,colormap_beach(),0); title(sprintf('imag $F_{%s}(k)$',tmp_str),'Interpreter','latex'); set(gca,'XTick',[],'YTick',[],'ZTick',[])
+np=np+1;
+subplot(p_row,p_col,1+np);
+imagesc_polar_a_azimu_b_0(k_p_polar_a_sub_,k_p_azimu_b_sub_,real(tmp_d_k_p_sub_),tmp_d_k_p_sub_lim_,colormap_beach(),0); title(sprintf('real $F_{%s}(k)$ (pole)',tmp_str),'Interpreter','latex'); view(0,90); set(gca,'XTick',[],'YTick',[],'ZTick',[])
+subplot(p_row,p_col,1+np+p_col);
+imagesc_polar_a_azimu_b_0(k_p_polar_a_sub_,k_p_azimu_b_sub_,imag(tmp_d_k_p_sub_),tmp_d_k_p_sub_lim_,colormap_beach(),0); title(sprintf('imag $F_{%s}(k)$ (pole)',tmp_str),'Interpreter','latex'); view(0,90); set(gca,'XTick',[],'YTick',[],'ZTick',[])
+np=np+1;
+end;%for nl=0:2;
+%%%%;
+set(gcf,'Position',1+[0,0,1024*1.75,512]);
+disp(sprintf(' %% writing %s',fname_fig_jpg));
+print('-djpeg',fname_fig_jpg);
+close(gcf);
+%disp('returning');return;
 end;%if flag_disp;
 
 a_k_p_all_ = sphere_val_A(parameter,k_p_r_max,n_k_all,k_c_0_all_,k_c_1_all_,k_c_2_all_);
@@ -135,15 +155,15 @@ fontsize_use = 24;
 tmp_parameter = struct('type','parameter');
 tmp_parameter.vval_ = prctile(abs(a_x_c_xxx_),95,'all');
 tmp_parameter.vlim_ = prctile(abs(a_x_c_xxx_),[ 1,99],'all');
-subplot(1,3,1); isosurface_f_x_u_1(tmp_parameter,a_x_c_xxx_); title('A');
+subplot(1,3,1); isosurface_f_x_u_1(tmp_parameter,a_x_c_xxx_); title('$F_{A}(x)$','Interpreter','latex');
 xlabel('');ylabel('');zlabel(''); set(gca,'FontSize',fontsize_use);
-subplot(1,3,2); isosurface_f_x_u_1(tmp_parameter,b_x_c_xxx_); title('B');
+subplot(1,3,2); isosurface_f_x_u_1(tmp_parameter,b_x_c_xxx_); title('$F_{B}(x)$','Interpreter','latex');
 xlabel('');ylabel('');zlabel(''); set(gca,'FontSize',fontsize_use);
-subplot(1,3,3); isosurface_f_x_u_1(tmp_parameter,c_x_c_xxx_); title('C');
+subplot(1,3,3); isosurface_f_x_u_1(tmp_parameter,c_x_c_xxx_); title('$F_{C}(x)$','Interpreter','latex');
 xlabel('');ylabel('');zlabel(''); set(gca,'FontSize',fontsize_use);
 disp(sprintf(' %% writing %s',fname_fig_jpg));
 print('-djpeg',fname_fig_jpg);
-%close(gcf);
+close(gcf);
 
 if (flag_verbose> 0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;
 return;

@@ -246,7 +246,7 @@ tmp_t = toc(tmp_t); disp(sprintf(' %% xxnufft3d3: a_x_c_reco_ time %0.2fs',tmp_t
 disp(sprintf(' %% xxnufft3d3: a_x_c_reco error: %0.16f',fnorm(a_x_c_form_(:)-a_x_c_reco_)/fnorm(a_x_c_form_(:))));
 a_x_c_reco_lim_ = prctile(mean(reshape(real(a_x_c_reco_),[n_x_c,n_x_c,n_x_c]),3),[ 5,95]);
 %%%%%%%%;
-flag_disp=1;
+flag_disp=0;
 if flag_disp;
 figure(1+nf);nf=nf+1;clf;figmed;
 subplot(1,2,1); isosurface_f_x_u_1([],a_x_c_form_); title('a_x_c_form_','Interpreter','none');

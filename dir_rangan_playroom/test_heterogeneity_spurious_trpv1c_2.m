@@ -14,8 +14,10 @@ if (strcmp(platform,'rusty')); setup_rusty; string_root = 'mnt/home'; end;
 test_pm_trpv1c_9b;
 
 CTF_k_p_r_kC__ = CTF_k_p_r__;
+a_k_Y_true_ = a_k_Y_quad_;
 a_k_Y_true_yk_ = a_k_Y_true_;
 delta_r_max_factor = 0.25;
+delta_sigma_use = delta_sigma;
 delta_r_max_use = delta_r_max_factor * delta_sigma_use*sqrt(log(20^2));
 delta_r_max = delta_r_max_use;
 tolerance_pm = tolerance_master;
@@ -1087,7 +1089,6 @@ convert_spharm_to_x_c_4( ...
 tmp_t = toc(tmp_t); if (verbose); disp(sprintf(' %% a_x_u_norm_resq_xxx_ time %0.2fs',tmp_t)); end;
 %%%%%%%%;
 
-
 if (verbose);
 disp(sprintf(' %% a_k_Y_norm_yk_ vs a_k_Y_norm_reco_yk_: %0.16f',fnorm(a_k_Y_norm_yk_ - a_k_Y_norm_reco_yk_)/fnorm(a_k_Y_norm_yk_)));
 disp(sprintf(' %% a_k_Y_norm_yk_ vs a_k_Y_norm_equa_yk_: %0.16f',fnorm(a_k_Y_norm_yk_ - a_k_Y_norm_equa_yk_)/fnorm(a_k_Y_norm_yk_)));
@@ -1469,6 +1470,58 @@ subplot(1,2,2);
 imagesc_polar_a_azimu_b_0(viewing_polar_a_all_,viewing_azimu_b_all_,max(X_TT_half__,[],2),[0.5,1.0],colormap_80s,1);
 end;%if flag_disp;
 %%%%%%%%;
+flag_disp=1;
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figmed;
+subplot(1,4,[1,2]);
+imagesc_polar_a_azimu_b_0(viewing_polar_a_all_,viewing_azimu_b_all_,max(X_TT_half__,[],2),[0.75,1.0],colormap_80s,0);
+xlabel('k0'); ylabel('k1'); zlabel('k2'); axis vis3d;
+set(gca,'XTick',[],'YTick',[],'ZTick',[]);
+title('Shell');
+subplot(1,4,[3,4]);
+imagesc_polar_a_azimu_b_0(viewing_polar_a_all_,viewing_azimu_b_all_,max(X_TT_half__,[],2),[0.75,1.0],colormap_80s,1);
+tmp_c_ = colorbar; fig80s;
+set(tmp_c_,'Ticks',[0,0.5,1]);
+set(tmp_c_,'TickLabels',{0.75,0.875,1.00});
+xlabel('azimu_b','Interpreter','none');
+ylabel('polar_a','Interpreter','none');
+title('Flattened Shell');
+sgtitle('Best Correlation in half for each orig');
+fname_fig_pre = sprintf('%s_jpg/test_heterogeneity_spurious_trpv1c_max_X_TT_half_2_FIGA',dir_pm);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+if (flag_replot | ~exist(fname_fig_jpg,'file'));
+disp(sprintf(' %% %s not found, creating',fname_fig_jpg));
+print('-djpeg',fname_fig_jpg);
+end;%if (flag_replot | ~exist(fname_fig_jpg,'file'));
+close(gcf);
+end;%if flag_disp;
+%%%%%%%%;
+flag_disp=1;
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figmed;
+subplot(1,4,[1,2]);
+imagesc_polar_a_azimu_b_0(viewing_polar_a_all_,viewing_azimu_b_all_,max(X_TT_half__,[],1),[0.75,1.0],colormap_80s,0);
+xlabel('k0'); ylabel('k1'); zlabel('k2'); axis vis3d;
+set(gca,'XTick',[],'YTick',[],'ZTick',[]);
+title('Shell');
+subplot(1,4,[3,4]);
+imagesc_polar_a_azimu_b_0(viewing_polar_a_all_,viewing_azimu_b_all_,max(X_TT_half__,[],1),[0.75,1.0],colormap_80s,1);
+tmp_c_ = colorbar; fig80s;
+set(tmp_c_,'Ticks',[0,0.5,1]);
+set(tmp_c_,'TickLabels',{0.75,0.875,1.00});
+xlabel('azimu_b','Interpreter','none');
+ylabel('polar_a','Interpreter','none');
+title('Flattened Shell');
+sgtitle('Best Correlation in orig for each half');
+fname_fig_pre = sprintf('%s_jpg/test_heterogeneity_spurious_trpv1c_max_X_TT_half_1_FIGA',dir_pm);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+if (flag_replot | ~exist(fname_fig_jpg,'file'));
+disp(sprintf(' %% %s not found, creating',fname_fig_jpg));
+print('-djpeg',fname_fig_jpg);
+end;%if (flag_replot | ~exist(fname_fig_jpg,'file'));
+close(gcf);
+end;%if flag_disp;
+%%%%%%%%;
 
 %%%%%%%%;
 % Verdict so far: ;
@@ -1509,6 +1562,120 @@ end;% if flag_disp;
 equ_theta = min(abs(pi/2 - sort(viewing_polar_a_all_(tmp_nllr_sort_ij_(tmp_n_S_use+1:end))))); %<-- equ_theta = pi*0.1356;
 cap_theta = equ_theta; %<-- cap_theta = pi*0.1356;
 cap_sigma = cap_theta/3; %<-- so now 3 stds captures cap_theta. ;
+ 
+%%%%%%%%;
+figure(1+nf);nf=nf+1;clf;figmed;
+view_ab_ = [00,05];
+%%%%;
+%subplot(1,3,1);
+%plot_sphere_grid_0(struct('linecolor_a',0.35*[1,1,1],'linecolor_b',0.65*[1,1,1]));
+%xlabel('k0'); ylabel(''); zlabel('k2');
+%xlim(1.5*[-1,+1]); ylim(1.5*[-1,+1]); zlim(1.5*[-1,+1]); axis vis3d;
+%set(gca,'XTick',[],'YTick',[],'ZTick',[]);
+%view(view_ab_);
+%%%%;
+subplot(1,3,3);
+plot_sphere_grid_0(struct('linecolor_a',0.35*[1,1,1],'linecolor_b',0.65*[1,1,1]));
+imagesc_S_k_p_3d_belt_3( ...
+ struct('type','parameter','k_p_r_max',0.975,'flag_fill',0,'linewidth_use',2,'c_line_use_',[1,0,1]) ...
+,n_S - tmp_n_S_use ...
+,viewing_azimu_b_all_(tmp_nllr_sort_ij_(tmp_n_S_use+1:end)) ...
+,viewing_polar_a_all_(tmp_nllr_sort_ij_(tmp_n_S_use+1:end)) ...
+);
+xlabel('k0'); ylabel(''); zlabel('k2');
+xlim(1.05*[-1,+1]); ylim(1.05*[-1,+1]); zlim(1.25*[0.0,+1]); axis equal; %axis vis3d;
+set(gca,'XTick',[],'YTick',[],'ZTick',[]);
+view([00,0]);%view(view_ab_);
+title('zoom in on polar cap');
+%%%%;
+subplot(1,3,2);
+plot_sphere_grid_0(struct('linecolor_a',0.35*[1,1,1],'linecolor_b',0.65*[1,1,1]));
+imagesc_S_k_p_3d_belt_3( ...
+ struct('type','parameter','k_p_r_max',0.975,'flag_fill',0,'linewidth_use',2,'c_line_use_',[1,0,1]) ...
+,n_S - tmp_n_S_use ...
+,viewing_azimu_b_all_(tmp_nllr_sort_ij_(tmp_n_S_use+1:end)) ...
+,viewing_polar_a_all_(tmp_nllr_sort_ij_(tmp_n_S_use+1:end)) ...
+);
+xlabel('k0'); ylabel(''); zlabel('k2');
+xlim(1.5*[-1,+1]); ylim(1.5*[-1,+1]); zlim(1.5*[-1,+1]); axis vis3d;
+set(gca,'XTick',[],'YTick',[],'ZTick',[]);
+view(view_ab_);
+title('non-equatorial templates');
+%%%%;
+subplot(1,3,1);
+plot_sphere_grid_0(struct('linecolor_a',0.35*[1,1,1],'linecolor_b',0.65*[1,1,1]));
+imagesc_S_k_p_3d_belt_3( ...
+ struct('type','parameter','k_p_r_max',0.975,'flag_fill',0,'linewidth_use',2,'c_line_use_',[1,0,1]) ...
+,tmp_n_S_use ...
+,viewing_azimu_b_all_(tmp_nllr_sort_ij_(1:tmp_n_S_use)) ...
+,viewing_polar_a_all_(tmp_nllr_sort_ij_(1:tmp_n_S_use)) ...
+);
+xlabel('k0'); ylabel(''); zlabel('k2');
+xlim(1.5*[-1,+1]); ylim(1.5*[-1,+1]); zlim(1.5*[-1,+1]); axis vis3d;
+set(gca,'XTick',[],'YTick',[],'ZTick',[]);
+view(view_ab_);
+title('equatorial templates');
+%%%%;
+sgtitle('template [$\alpha$,$\beta$] in cyan, data in magenta','Interpreter','latex');
+set(gcf,'Position',1+[0,0,1024*1.5,512]);
+%%%%%%%%;
+fname_fig_pre = sprintf('%s_jpg/test_heterogeneity_spurious_trpv1c_equ_vs_pol_FIGA_stripped',dir_pm);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+if (flag_replot | ~exist(fname_fig_jpg,'file'));
+disp(sprintf(' %% %s not found, creating',fname_fig_jpg));
+print('-djpeg',fname_fig_jpg);
+end;%if (flag_replot | ~exist(fname_fig_jpg,'file'));
+%%%%;
+sgtitle(fname_fig_pre,'Interpreter','none');
+fname_fig_pre = sprintf('%s_jpg/test_heterogeneity_spurious_trpv1c_equ_vs_pol_FIGA',dir_pm);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+if (flag_replot | ~exist(fname_fig_jpg,'file'));
+disp(sprintf(' %% %s not found, creating',fname_fig_jpg));
+print('-djpeg',fname_fig_jpg);
+end;%if (flag_replot | ~exist(fname_fig_jpg,'file'));
+close(gcf);
+%%%%%%%%;
+
+%%%%%%%%;
+figure(1+nf);nf=nf+1;clf;figmed;
+fontsize_use = 12;
+n_h = 24;
+tmp_a_ = linspace(0,pi,n_h); tmp_h_ = hist(euler_polar_a_true_,tmp_a_);
+%%%%;
+subplot(1,2,1);
+tmp_hn_ = tmp_h_./sin(tmp_a_); tmp_hn_ = tmp_hn_./max(1e-12,max(tmp_hn_));
+tmp_b_ = bar(tmp_a_,tmp_hn_);
+set(tmp_b_,'EdgeColor',0.65*[1,1,1]);
+set(tmp_b_,'FaceColor',0.85*[1,1,1]);
+set(gca,'XTick',pi*[0,0.5,1],'XTickLabel',{'0','\pi/2','\pi'});
+set(gca,'YTick',[0:0.25:1.0]);
+xlim([0,pi]); ylim([0,1.125]);
+xlabel('polar_a','Interpreter','none');
+ylabel('relative count');
+title('polar_a distribution (normalized)','Interpreter','none');
+set(gca,'FontSize',fontsize_use);
+%%%%;
+subplot(1,2,2);
+tmp_b_ = bar(tmp_a_,tmp_h_);
+set(tmp_b_,'EdgeColor',0.65*[1,1,1]);
+set(tmp_b_,'FaceColor',0.85*[1,1,1]);
+set(gca,'XTick',pi*[0,0.5,1],'XTickLabel',{'0','\pi/2','\pi'});
+set(gca,'YTick',0:100:400);
+xlim([0,pi]); ylim([0,400]);
+xlabel('polar_a','Interpreter','none');
+ylabel('count');
+title('polar_a distribution (empirical)','Interpreter','none');
+set(gca,'FontSize',fontsize_use);
+%%%%;
+fname_fig_pre = sprintf('%s_jpg/test_heterogeneity_spurious_trpv1c_polar_a_distribution_FIGA',dir_pm);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+if (flag_replot | ~exist(fname_fig_jpg,'file'));
+disp(sprintf(' %% %s not found, creating',fname_fig_jpg));
+print('-djpeg',fname_fig_jpg);
+end;%if (flag_replot | ~exist(fname_fig_jpg,'file'));
+close(gcf);
+%%%%%%%%;
+
 %%%%%%%%;
 % Now modify the polar cap. ;
 %%%%%%%%;
@@ -1739,15 +1906,15 @@ tmp_prct = prct_(1+nprct); tmp_parameter = struct('type','parameter','percent_th
 figure(1+nf);nf=nf+1;clf;figmed;fontsize_use = 12;
 p_row = 1; p_col = 3; pcol=0;
 subplot(p_row,p_col,1+pcol);pcol=pcol+1;
-isosurface_f_x_u_1(tmp_parameter,a_x_u_norm_refi_xxx_);
+tmp_parameter = isosurface_f_x_u_1(tmp_parameter,a_x_u_norm_refi_xxx_); tmp_parameter = rmfield(tmp_parameter,'vval_');
 %title(sprintf('a_x_u_norm_refi_xxx_: %.1f%%',tmp_prct),'Interpreter','none');
 title(sprintf('A: %.1f%%',tmp_prct),'Interpreter','none'); set(gca,'FontSize',fontsize_use);
 subplot(p_row,p_col,1+pcol);pcol=pcol+1;
-isosurface_f_x_u_1(tmp_parameter,a_x_u_norm_rem2_xxx_);
+tmp_parameter = isosurface_f_x_u_1(tmp_parameter,a_x_u_norm_rem2_xxx_); tmp_parameter = rmfield(tmp_parameter,'vval_');
 %title(sprintf('a_x_u_norm_rem2_xxx_: %.1f%%',tmp_prct),'Interpreter','none');
 title(sprintf('B: %.1f%%',tmp_prct),'Interpreter','none'); set(gca,'FontSize',fontsize_use);
 subplot(p_row,p_col,1+pcol);pcol=pcol+1;
-isosurface_f_x_u_1(tmp_parameter,a_x_u_norm_refi_half_xxx_);
+tmp_parameter = isosurface_f_x_u_1(tmp_parameter,a_x_u_norm_refi_half_xxx_); tmp_parameter = rmfield(tmp_parameter,'vval_');
 %title(sprintf('a_x_u_norm_refi_half_xxx_: %.1f%%',tmp_prct),'Interpreter','none');
 title(sprintf('C: %.1f%%',tmp_prct),'Interpreter','none'); set(gca,'FontSize',fontsize_use);
 %%%%;

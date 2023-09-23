@@ -6,6 +6,7 @@ rsync \
     rangan@access1.cims.nyu.edu:/data/rangan/dir_cryoem/dir_rangan_playhouse \
     rangan@access1.cims.nyu.edu:/data/rangan/dir_cryoem/dir_rangan_playground \
     rangan@access1.cims.nyu.edu:/data/rangan/dir_cryoem/dir_presentations \
+    rangan@access1.cims.nyu.edu:/data/rangan/dir_cryoem/dir_fig_xfig \
     /home/rangan/dir_cryoem/ \
     --include "/*" \
     --include "*.m" \
@@ -14,5 +15,6 @@ rsync \
     --include "*.f" \
     --include "*.txt" \
     --include "*.sh" \
+    --include "*.fig" \
     --exclude "*" \
     ;
