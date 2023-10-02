@@ -1572,16 +1572,20 @@ gamma_z_ = linspace(0,2*pi,n_gamma_z+1); gamma_z_ = transpose(gamma_z_(1:n_gamma
 fname_fig = sprintf('%s_jpg/test_pm_clathrin_avg0_RS_vs_nll_FIGA',dir_pm);
 if (flag_replot | ~exist(sprintf('%s.jpg',fname_fig)));
 figure(1+nf);nf=nf+1;clf;figsml;
+linewidth_use = 2; markersize_use = 8; fontsize_use = 12;
 hold on;
-plot(tmp_theta_,tmp_costh_,'ro',tmp_theta_,tmp_nlltr_/4,'gx');
-plot(gamma_z_,cos(gamma_z_),'r-',gamma_z_,sin(gamma_z_)-1,'g-');
-xlim([0,pi/2]); xlabel('gamma');
-ylim([-1,+1]); ylabel('value');
-grid on;
-title('X (red) nll_rel_sum (green)','Interpreter','none');
+plot(tmp_theta_,tmp_costh_,'ko','LineWidth',linewidth_use,'MarkerSize',markersize_use,'MarkerFaceColor','r');
+plot(tmp_theta_,-tmp_nlltr_/4,'k^','LineWidth',linewidth_use,'MarkerSize',markersize_use,'MarkerFaceColor','g');
+plot(gamma_z_,cos(gamma_z_),'-','LineWidth',linewidth_use,'Color',0.65*[1,0,0]);
+plot(gamma_z_,1-sin(gamma_z_),'-','LineWidth',linewidth_use,'Color',0.65*[0,1,0]);
+xlim([0,pi/2]); set(gca,'XTick',[0,pi/4,pi/2],'XTickLabel',{'0','\pi/4','\pi/2'}); xlabel('omega');
+ylim([0-1/32,1+1/32]); set(gca,'YTick',[0:0.1:1.0]); ylabel('value'); grid on;
+title('X (red), log(L1/L0) (green)','Interpreter','none');
+set(gca,'FontSize',fontsize_use);
+disp(sprintf(' %% Writing %s',fname_fig));
 print('-djpeg',sprintf('%s.jpg',fname_fig));
 print('-depsc',sprintf('%s.eps',fname_fig));
-close(gcf);
+%close(gcf);
 end;%if (flag_replot | ~exist(sprintf('%s.jpg',fname_fig)));
 %%%%%%%%;
 
