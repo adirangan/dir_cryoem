@@ -1,3 +1,7 @@
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+
 Now imagine that you are given a radioactive material. 
 You start with 2150 atoms on day 0. 
 Each day you record the number of atoms remaining: 

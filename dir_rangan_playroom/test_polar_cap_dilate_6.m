@@ -530,7 +530,11 @@ point_pole_predilated_template_gammax_k_c_r_avg0_a_ = mean(point_pole_predilated
 disp(sprintf(' %% vs: %0.16f',fnorm(point_pole_predilated_template_gammax_k_c_r_avg1_a_ - point_pole_predilated_template_gammax_k_c_r_avg0_a_)./fnorm(point_pole_predilated_template_gammax_k_c_r_avg1_a_)));
 
 flag_disp=1;
+%%%%%%%%;
 if flag_disp;
+%%%%%%%%;
+% Demonstrate match. ;
+%%%%%%%%;
 figure(1+nf);nf=nf+1;clf;figmed;
 %%%%;
 subplot(1,3,1);
@@ -556,7 +560,20 @@ plot(point_output_polar_a_a_+pi/2,0.5*g_dilation(point_output_polar_a_a_+pi/2),'
 hold off;
 xlim([0,pi]); xlabel('point_output_polar_a_a_+pi/2','Interpreter','none'); ylabel('amplitude'); title('avg polar_a displacement radius','Interpreter','none');
 %%%%;
+fname_fig_pre = sprintf('%s/M3d_shape_latitudinal_perturbation_avg_and_std_FIGA',dir_manuscript_jpg);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+if ( flag_replot | ~exist(fname_fig_jpg,'file'));
+if (flag_verbose> 0); disp(sprintf(' %% writing %s',fname_fig_pre)); end;
+sgtitle(fname_fig_pre,'Interpreter','none');
+disp(sprintf(' %% Writing %s',fname_fig_jpg));
+print('-djpeg',fname_fig_jpg);
+sgtitle('','Interpreter','none');
+print('-djpeg',sprintf('%s_stripped.jpg',fname_fig_pre));
+end;%if ( flag_replot | ~exist(fname_fig_jpg,'file'));
+close(gcf);
+%%%%%%%%;
 end;%if flag_disp;
+%%%%%%%%;
 
 %%%%%%%%;
 % Now estimate:
