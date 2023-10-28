@@ -569,86 +569,51 @@ sqrt( ...
 %point_pole_predilated_template_gammax_k_c_r_avg_ab__ = sqrt(mean(point_pole_predilated_template_gammax_k_c_r_abw___.^2,3)); %<-- take 2-norm, rather than mean norm. ;
 point_pole_predilated_template_gammax_k_c_r_avg_ab__ = mean(point_pole_predilated_template_gammax_k_c_r_abw___,3); %<-- take mean-norm, rather than 2-norm. ;
 
-flag_disp=1;
-if flag_disp;
-figure(1+nf);nf=nf+1;clf;figmed;
+%%%%%%%%;
+% Notation: ;
+% g = g_dilation, f = I + g*epsilon, where we assume g_dilation(b) = epsilon*sin(2*b) ;
+% Assume that (a,b) are fixed for a particular point on the sphere: a = polar_a, b = azimu_b. ;
+% The value of c = gamma_z will parametrize the poles associated with that point. ;
 %%%%;
-subplot(1,2,1);
-imagesc( ...
-	 periodize( ...
-		    point_pole_predilated_template_gammax_azimu_b_avg_ab__ ...
-		    - point_output_azimu_b_ab__ ...
-		    - g_dilation(point_output_azimu_b_ab__).*( ...
-							       cos(1*point_output_polar_a_ab__) ...
-							       - 0.500*sin(2*point_output_polar_a_ab__).^2 ...
-							       - 0.250*sin(4*point_output_polar_a_ab__).^2 ...
-							       ) ...
-		    ,-pi,+pi) ...
-	 ,equa_band_dilated_amplitude*[-1,+1] ...
-	 );
-colorbar;
+% Now, all the pole locations for the point (a,b) are given by the same forumula used in get_template:
+% (x,y,z) = [ cb*ca*cc - sb*sc , sb*ca*cc + cb*sc , -sa*cc ] ;
+% The norm (x^2 + y^2) = (r01)^2 = ( (cb*ca*cc - sb*sc)^2 + (sb*ca*cc + cb*sc)^2 ) ;
+% = ( (cb*ca*cc)^2 + (sb*sc)^2 - 2*(cb*ca*cc*sb*sc) + (sb*ca*cc)^2 + (cb*sc)^2 + 2*(sb*ca*cc*cb*sc) ) ;
+% = ( (cb*ca*cc)^2 + (sb*sc)^2 + (sb*ca*cc)^2 + (cb*sc)^2 ) ;
+% = (ca*cc)^2 + (sc)^2 ;
 %%%%;
-subplot(1,2,2);
-hold on;
-plot(point_output_polar_a_a_,2*point_pole_predilated_template_gammax_azimu_b_var_ab__,'.-');
-plot(point_output_polar_a_a_,equa_band_dilated_amplitude.^2*(2/pi)*atan(2*pi*abs(point_output_polar_a_a_-pi/2)),'go');
-hold off;
-ylim(equa_band_dilated_amplitude.^2*[0,+1]);
-colorbar;
+% The pole-azimu_b at (x,y,z) is: atan2(y,x) = atan((sb*ca*cc+cb*sc)/(cb*ca*cc-sb*sc)) =: phi(a,b,c). ;
 %%%%;
-end;%if flag_disp;
-
-
-figure(1+nf);nf=nf+1;clf;figsml;
-%tmp_ab__ = g_dilation(point_output_azimu_b_ab__).*(cos(1*point_output_polar_a_ab__) - 0.500*sin(2*point_output_polar_a_ab__).^2	- 0.250*sin(4*point_output_polar_a_ab__).^2);
-tmp_ab__ = 0*g_dilation(point_output_azimu_b_ab__) .* ( (pi/2-abs(point_output_polar_a_ab__))/(pi/2) ).^2 ;
-plot(point_output_polar_a_a_,point_pole_predilated_template_gammax_azimu_b_avg_ab__(:,1:end-1) - point_output_azimu_b_ab__(:,1:end-1) - tmp_ab__(:,1:end-1),'.-');
-ylim(equa_band_dilated_amplitude*[-1,+1]);
-xlim([0,pi]);
-
-
-tmp_ij = 5;
-tmp_ab__ = g_dilation(point_output_azimu_b_ab__) .* ( ( (pi/2-abs(point_output_polar_a_ab__))/(pi/2) ).^3 );
-tmp2_ab__ = g_dilation(point_output_azimu_b_ab__) .* ( equa_band_dilated_amplitude*(1-cos(4*point_output_polar_a_ab__)) );
-tmp_ab__ = 0*tmp_ab__; tmp2_ab__ = 0*tmp2_ab__;
-plot(point_output_polar_a_a_,point_pole_predilated_template_gammax_azimu_b_avg_ab__(:,tmp_ij) - point_output_azimu_b_ab__(:,tmp_ij) - tmp_ab__(:,tmp_ij),'r-',point_output_polar_a_a_,tmp2_ab__(:,tmp_ij),'g-');
-%plot(point_output_polar_a_a_,point_pole_predilated_template_gammax_azimu_b_avg_ab__(:,tmp_ij) - point_output_azimu_b_ab__(:,tmp_ij),'k-',point_output_polar_a_a_,tmp_ab__(:,tmp_ij),'r-');
-%plot(point_pole_predilated_template_gammax_azimu_b_avg_ab__(:,tmp_ij) - point_output_azimu_b_ab__(:,tmp_ij) , tmp_ab__(:,tmp_ij).^2,'.-');
-%plot( log(point_pole_predilated_template_gammax_azimu_b_avg_ab__(:,tmp_ij) - point_output_azimu_b_ab__(:,tmp_ij)) , log(tmp_ab__(:,tmp_ij)) ,'.-');
-%plot(point_output_polar_a_a_,point_pole_predilated_template_gammax_azimu_b_avg_ab__(:,tmp_ij) - point_output_azimu_b_ab__(:,tmp_ij),'.');
-
-figure(1+nf);nf=nf+1;clf;figmed;
-subplot(1,2,1);
-tmp_d_ab__ = bsxfun(@minus ...
-		    ,point_pole_predilated_template_gammax_azimu_b_avg_ab__ ...
-		    ,point_output_azimu_b_ab__ ...
-		    );
-tmp_e_ab__ = bsxfun(@rdivide ...
-		    ,tmp_d_ab__ ...
-		    ,sin(2*point_output_azimu_b_ab__) ...
-		    ) ...
-  /(equa_band_dilated_amplitude);
-tmp_e_ab__ = tmp_e_ab__(:,2:end-1);
-hold on;
-plot(point_output_polar_a_a_,tmp_e_ab__,'.-');
-plot(point_output_polar_a_a_,exp(-abs(point_output_polar_a_a_-pi/2)/((2*pi/12))),'g-');
-hold off;
-ylim([-0.125,+1.125]);
-xlabel('point_output_polar_a_a_','Interpreter','none'); xlim([0,pi]); set(gca,'XTick',pi*[0,0.5,1],'XTickLabel',{'0','\pi/2','\pi'});
-title('scaled avg','Interpreter','none');
-subplot(1,2,2);
-tmp_v_ab__ = point_pole_predilated_template_gammax_azimu_b_var_ab__ ...
-  /(0.5*equa_band_dilated_amplitude.^2);
-tmp_v_ab__ = tmp_v_ab__(:,2:end-1);
-hold on;
-plot(point_output_polar_a_a_,tmp_v_ab__,'.-');
-plot(point_output_polar_a_a_,1-exp(-abs(point_output_polar_a_a_-pi/2)/((2*pi/24))),'g-');
-hold off;
-ylim([-0.125,+1.125]);
-xlabel('point_output_polar_a_a_','Interpreter','none'); xlim([0,pi]); set(gca,'XTick',pi*[0,0.5,1],'XTickLabel',{'0','\pi/2','\pi'});
-title('scaled var','Interpreter','none');
-% plot(point_output_polar_a_a_,tmp_e_ab__.^2,point_output_polar_a_a_,1-tmp_v_ab__,'o'); ylim([-0.125,+1.125]); %<-- Note overlap. ;
-
+% Note that, obviously, as any particular pole is perturbed azimuthally, ;
+% the associated point on the sphere (associated with that pole) is perturbed azimuthally by the same amount. ;
+% Thus, for any pole, the pole_predilated_azimu_b = pole_original_azimu_b - epsilon*g_dilation(pole_original_azimu_b) ;
+% or, more simply: phi_new - phi_old = -epsilon*sin(2*phi_old) ;
+% which is the azimuthal change in the point induced by the azimuthal change in the pole. ;
+%%%%;
+% Now we can estimate the average azimu_b-shift for any point on the sphere by averaging over c (parametrizing the poles associated with that point). ;
+% \int_{d\gamma_z} -epsilon * sin(2*phi) = -epsilon * \int_{d\gamma_z} 2*sin(phi)*cos(phi) = -epsilon * \int_{d\gamma_z} * 2 * (x/r01) * (y/r01) ;
+% = -epsilon \int_{d\gamma_z} 2 * ( (sb*ca*cc + cb*sc)*(cb*ca*cc - sb*sc) ) / ( (ca*cc)^2 + (sc)^2 ) ;
+%%%%;
+% Now seeking a separable solution we fix the azimu_b at, say, pi/4 to get:
+% = -2*epsilon \int_{d\gamma_z} ( (sqrt(0.5)*ca*cc + sqrt(0.5)*sc)*(sqrt(0.5)*ca*cc - sqrt(0.5)*sc) ) / ( (ca*cc)^2 + (sc)^2 ) ;
+% = -epsilon \int_{d\gamma_z} ( (ca*cc)^2 - (sc)^2 ) / ( (ca*cc)^2 + (sc)^2 ) ;
+% = -epsilon \int_{d\gamma_z} ( (ca)^2*(cc)^2 - (sc)^2 ) / ( (ca)^2*(cc)^2 + (sc)^2 ) ;
+%%%%;
+% Now using Gradshteyn & Ryzhik: 3.647 (p402) BI (47)(20) we see: ;
+% \int_{0}^{pi/2} dx (cos(x)^p * cos(px)) / (a^2*sin(x)^2 + b^2*cos(x)^2) = (pi/(2*b)) * a^(p-1) / (a+b)^p ;
+% (1/(2*pi)) * \int_{0}^{2*pi} dx (cos(x)^2)/(sin(x)^2 + b^2*cos(x)^2) = 1/(b*(1+b)) ;
+% +\int_{gamma_z} ( alpha^2 * cos(gamma)^2 )/ ( alpha^2*cos(gamma)^2 + sin(gamma)^2 ) = +alpha^2/(alpha*(1+alpha)) = -alpha/(1+alpha) ;
+% +\int_{gamma_z} ( sin(gamma)^2 )/ ( alpha^2*cos(gamma)^2 + sin(gamma)^2 ) = +(1/(alpha*(1+alpha)) - 1/alpha) ;
+% +\int_{gamma_z} ( alpha^2*cos(gamma)^2 - sin(gamma)^2 )/ ( alpha^2*cos(gamma)^2 + sin(gamma)^2 ) =  +alpha/(1+alpha) + (1/(alpha*(1+alpha)) - 1/alpha);
+% = (alpha^2 - alpha) / (alpha^2 + alpha) = (alpha-1)/(alpha+1) ;
+% Do not forget absolute-values: (abs(alpha)-1)/(abs(alpha)+1) ;
+%%%%%%%%;
+%% Aside: as we perturb the point-polar_a a, the pole-azimu_b phi changes as \partial_{a} phi. ;
+%% Note that: datan(y/x) = 1/(1+y^2/x^2) * (y'/x - yx'/x^2) = (x^2)/(x^2+y^2)*(y'x - yx')/(x^2) = (y'x-yx')/(x^2+y^2) ;
+%% Thus, \partial_{a} phi = ( (-sb*sa*cc)*(db*ca*cc-sb*sc) - (sb*ca*cc+cb*sc)*(-cb*sa*cc) ) / ( (ca*cc)^2 + (sc)^2 ) ;
+%% = ( (cc)^2*(-sb*sa*cb*ca) + (sb)^2*(sa*cc*sc) + (cc)^2*(+sb*ca*cb*sa) + (cb)^2*(sa*cc*sc) ) / ( (ca*cc)^2 + (sc)^2 ) ;
+%% = (sa*cc*sc) / ( (ca*cc)^2 + (sc)^2 ) ;
+%%%%%%%%;
 tmp_x_abw___ = bsxfun(@times,cos(point_output_azimu_b_ab__).*cos(point_output_polar_a_ab__-pi/2),reshape(cos(gamma_z_),[1,1,n_w_max])) - bsxfun(@times,sin(point_output_azimu_b_ab__),reshape(sin(gamma_z_),[1,1,n_w_max]));
 tmp_y_abw___ = bsxfun(@times,sin(point_output_azimu_b_ab__).*cos(point_output_polar_a_ab__-pi/2),reshape(cos(gamma_z_),[1,1,n_w_max])) + bsxfun(@times,cos(point_output_azimu_b_ab__),reshape(sin(gamma_z_),[1,1,n_w_max]));
 tmp_z_abw___ = sqrt(tmp_x_abw___.^2 + tmp_y_abw___.^2);
@@ -663,7 +628,11 @@ title('empirical');
 subplot(1,2,2);imagesc(point_pole_predilated_template_gammax_azimu_b_av2_ab__,equa_band_dilated_amplitude*[-1,+1]);
 axisnotick; xlabel('azimu_b','Interpreter','none'); ylabel('polar_a','Interpreter','none')
 title('formula');
+%%%%%%%%;
 
+%%%%%%%%;
+% fix cb = sb = sqrt(0.5). ;
+%%%%%%%%;
 tmp = sqrt(0.5); tmp_output_polar_a_a_ = transpose(linspace(-pi/2,+pi/2,n_point_a));
 tmp_x0_aw__ = bsxfun(@times,tmp.*cos(tmp_output_polar_a_a_-pi/2),reshape(cos(gamma_z_),[1,n_w_max])) - bsxfun(@times,tmp,reshape(sin(gamma_z_),[1,n_w_max]));
 tmp_y0_aw__ = bsxfun(@times,tmp.*cos(tmp_output_polar_a_a_-pi/2),reshape(cos(gamma_z_),[1,n_w_max])) + bsxfun(@times,tmp,reshape(sin(gamma_z_),[1,n_w_max]));
@@ -676,7 +645,7 @@ disp(sprintf(' %% tmp_u_ab__ vs tmp_u0_ab__: %0.16f',fnorm(tmp_u_ab__ - tmp_u0_a
 nb=round((n_point_b-1)/8);
 fnorm(tmp_u_ab__(:,1+nb) - tmp_u0_a_)/fnorm(tmp_u_ab__(:,1+nb));
 disp(sprintf(' %% tmp_u_ab__(:,1+nb) vs tmp_u0_a_: %0.16f',fnorm(tmp_u_ab__(:,1+nb) - tmp_u0_a_)/fnorm(tmp_u_ab__(:,1+nb)))); %<-- should be order equa_band_dilated_amplitude. ;
-
+%%%%%%%%;
 tmp_output_polar_a_a_ = transpose(linspace(-pi/2,+pi/2,n_point_a));
 tmp_z1_aw__ = bsxfun(@minus,bsxfun(@times,cos(tmp_output_polar_a_a_-pi/2),reshape(cos(gamma_z_),[1,n_w_max])).^2,reshape(sin(gamma_z_),[1,n_w_max]).^2);
 tmp_w1_aw__ = bsxfun(@plus ,bsxfun(@times,cos(tmp_output_polar_a_a_-pi/2),reshape(cos(gamma_z_),[1,n_w_max])).^2,reshape(sin(gamma_z_),[1,n_w_max]).^2);
@@ -686,13 +655,13 @@ disp(sprintf(' %% tmp_u_ab__ vs tmp_u1_ab__: %0.16f',fnorm(tmp_u_ab__ - tmp_u1_a
 nb=round((n_point_b-1)/8);
 fnorm(tmp_u_ab__(:,1+nb) - tmp_u1_a_)/fnorm(tmp_u_ab__(:,1+nb));
 disp(sprintf(' %% tmp_u_ab__(:,1+nb) vs tmp_u1_a_: %0.16f',fnorm(tmp_u_ab__(:,1+nb) - tmp_u1_a_)/fnorm(tmp_u_ab__(:,1+nb)))); %<-- should be order equa_band_dilated_amplitude. ;
-
+%%%%%%%%;
 % Gradshteyn & Ryzhik: 3.647 p402: ;
 % b0=rand();tmp_z_ = cos(gamma_z_).^2./(sin(gamma_z_).^2 + b0^2*cos(gamma_z_).^2); mean(tmp_z_),; 1/b0/(1+b0),;
 % b0=rand();tmp_z_ = 1./(sin(gamma_z_).^2 + b0^2*cos(gamma_z_).^2); mean(tmp_z_),; 1/b0,;
 % b0=rand();tmp_z_ = (b0^2*cos(gamma_z_).^2 - sin(gamma_z_).^2)./(b0^2*cos(gamma_z_).^2 + sin(gamma_z_).^2); mean(tmp_z_),; (b0^2+1)/b0/(1+b0) - 1/b0,;
 % b0=rand();tmp_z_ = (b0^2*cos(gamma_z_).^2 - sin(gamma_z_).^2)./(b0^2*cos(gamma_z_).^2 + sin(gamma_z_).^2); mean(tmp_z_),; (abs(b0)-1)/(abs(b0)+1),;
-
+%%%%%%%%;
 tmp_output_polar_a_a_ = transpose(linspace(-pi/2,+pi/2,n_point_a)); tmp_ca_ = cos(tmp_output_polar_a_a_-pi/2);
 tmp_u2_a_ = -equa_band_dilated_amplitude*(abs(tmp_ca_)-1)./(abs(tmp_ca_)+1);
 tmp_u2_ab__ = bsxfun(@times,tmp_u2_a_,reshape(sin(2*point_output_azimu_b_b_),[1,n_point_b]));
@@ -700,6 +669,7 @@ disp(sprintf(' %% tmp_u_ab__ vs tmp_u2_ab__: %0.16f',fnorm(tmp_u_ab__ - tmp_u2_a
 nb=round((n_point_b-1)/8);
 fnorm(tmp_u_ab__(:,1+nb) - tmp_u2_a_)/fnorm(tmp_u_ab__(:,1+nb));
 disp(sprintf(' %% tmp_u_ab__(:,1+nb) vs tmp_u2_a_: %0.16f',fnorm(tmp_u_ab__(:,1+nb) - tmp_u2_a_)/fnorm(tmp_u_ab__(:,1+nb)))); %<-- should be order equa_band_dilated_amplitude. ;
+%%%%%%%%;
 
 %%%%%%%%;
 figure(1+nf);nf=nf+1;clf;figmed; figbeach;
