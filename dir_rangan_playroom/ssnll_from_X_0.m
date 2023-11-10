@@ -18,6 +18,32 @@ ssnll_from_X_0( ...
 
 str_thisfunction = 'ssnll_from_X_0';
 
+%%%%%%%%;
+% calculates ssnll (sigma*sigma*log_unlikelihood). ;
+%%%%%%%%;
+% Inputs: ;
+% n_S: integer number of templates. ;
+% n_M: integer number of images. ;
+% X_SM__: double array of size (n_S,nM). ;
+%     X_SM__(1+nS,1+nM) = correlation between template nS and image nM. ;
+% S_l2_S_: double array of size (n_S,1). ;
+%    S_l2_S_(1+nS) = |S_k_p_wkS__(:,1+nS)|^{2}. ;
+% M_l2_M_: double array of size (n_M,1). ;
+%    M_l2_M_(1+nM) = |M_k_p_wkM__(:,1+nM)|^{2}. ;
+% viewing_weight_all_: double array of size(n_S,1). ;
+%    viewing_weight_all_(1+nS) = quadrature-weight for template nS. ;
+% n_sigma_bayesian: integer number of sigma values. ;
+% sigma_bayesian_: double array of size (n_sigma_bayesian,1). ;
+%    sigma_bayesian := sigma_bayesian_(1+nsigma_bayesian) = temperature parameter for bayesian-integration. ;
+%    Note that sigma_bayesian==0 corresponds to maximum-likelihood alignment. ;
+%%%%%%%%;
+% Outputs: ;
+% ssnll_Ms__: double array of size (n_M,n_sigma_bayesian). ;
+%     ssnll_Ms__(1+nM,1+nsigma_bayesian) = ssnll for image nM and sigma_bayesian. ;
+% D2_SM__: double array of size (n_S,n_M). ;
+%     D2_SM__(1+nS,1+nM) = distance-squared between template nS and image nM. ;
+%%%%%%%%;
+
 na=0;
 if (nargin<1+na); parameter=[]; end; na=na+1;
 if (nargin<1+na); n_S=[]; end; na=na+1;

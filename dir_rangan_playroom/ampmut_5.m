@@ -88,10 +88,10 @@ ampmut_5( ...
 % M_k_p_wkM__: complex array of size (n_w_sum,n_M). stack of images in k_p_ format. ;
 % M_k_q_wkM__: complex array of size (n_w_sum,n_M). stack of images in k_q_ format. ;
 % svd_VUXM_lwnM____: complex array of size(FTK.n_svd_l,n_w_max,pm_n_UX_rank,n_M). Principal-images combined with FTK-modes. ;
-%                    Note that, for ampmut_5, we assume nCTF-specific principal-modes from UX_Ckn___. ;
+%                    Note that, for ampmut_5, we assume nCTF-specific principal-modes from UX_knc___. ;
 % UX_M_l2_dM__: real array of size(FTK.n_delta_v,n_M). ;
 %               norms of principal-images (translated in accordance with the FTK.delta_x_ and FTK.delta_y_). ; 
-%               Note that, for ampmut_5, we assume nCTF-specific principal-modes from UX_Ckn___. ;
+%               Note that, for ampmut_5, we assume nCTF-specific principal-modes from UX_knc___. ;
 % l_max_max: integer order used for the volumes a_k_Y_reco_yk_. ;
 %            fixed to be n_w_max/2 - 1. ;
 % euler_polar_a_M_: real array of size n_M. initial polar_a used for each image (randomized if empty). ;

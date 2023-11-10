@@ -281,7 +281,7 @@ pm_template_2( ...
 S_k_p_wkS__ = reshape(S_k_p_wkS__,[n_w_max*n_k_p_r,n_S]);
 tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% pm_template_2 (n_S %d): %0.3fs',n_S,tmp_t)); end;
 %%%%%%%%;
-S_k_q_wk__ = zeros(n_w_sum,n_S);
+S_k_q_wkS__ = zeros(n_w_sum,n_S);
 for nS=0:n_S-1;
 S_k_q_wkS__(:,1+nS) = interp_p_to_q(n_k_p_r,n_w_,n_w_sum,S_k_p_wkS__(:,1+nS));
 end;%for nS=0:n_S-1;

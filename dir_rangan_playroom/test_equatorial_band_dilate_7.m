@@ -158,9 +158,7 @@ markersize_use = 8; markersize_dot = 4; linewidth_use = 1.5; linewidth_mrk = 2.0
 for np=0:1; subplot(1,2,1+np); plot_sphere_grid_0; hold on; end;
 npole_use = floor(0.92*n_w_max);
 n_point_a = 1+128; point_output_polar_a_a_ = linspace(0,pi,n_point_a+2); point_output_polar_a_a_ = transpose(point_output_polar_a_a_(2:end-1));
-%n_point_a = 1+8; point_output_polar_a_a_ = linspace(0,pi,n_point_a+2); point_output_polar_a_a_ = transpose(point_output_polar_a_a_(2:end-1));
-n_point_b = 1+32; point_output_azimu_b_b_ = linspace(0,2*pi,n_point_b+0); point_output_azimu_b_b_ = transpose(point_output_azimu_b_b_(1:end));
-%n_point_b = 0+3; point_output_azimu_b_b_ = linspace(0,2*pi,n_point_b+1); point_output_azimu_b_b_ = transpose(point_output_azimu_b_b_(1:n_point_b));
+n_point_b = 1+31; point_output_azimu_b_b_ = linspace(0,2*pi,n_point_b+0); point_output_azimu_b_b_ = transpose(point_output_azimu_b_b_(1:end));
 point_output_azimu_b_ab__ = zeros(n_point_a,n_point_b,1);
 point_output_polar_a_ab__ = zeros(n_point_a,n_point_b,1);
 point_pole_predilated_template_gammax_k_c_0_abw___ = zeros(n_point_a,n_point_b,n_w_max);
@@ -190,8 +188,8 @@ point_pole_polar_a_abw___(1+npoint_a,1+npoint_b,1+npole) = point_pole_polar_a;
 end;%for npole=0:n_w_max-1;
 end;end;%for npoint_a=0:n_point_a-1;for npoint_b=0:n_point_b-1;
 %%%%;
-npoint_a = 32; %<-- not too close to the equator. ;
-npoint_b = 32;
+npoint_a = min(n_point_a-1,32); %<-- not too close to the equator. ;
+npoint_b = min(n_point_b-1,32);
 %%%%%%%%;
 % Note that: ;
 % point_output_k_c_ = ;
@@ -361,7 +359,7 @@ end;%if ( flag_replot | ~exist(fname_fig_jpg,'file'));
 %%%%%%%%;
 end;%if flag_disp;
 
-error('stopping early');
+%error('stopping early');
 
 flag_disp=0;
 %%%%%%%%;
@@ -373,9 +371,7 @@ hold on;
 end;%if flag_disp;
 %%%%%%%%;
 n_point_a = 1+128; point_output_polar_a_a_ = linspace(0,pi,n_point_a+2); point_output_polar_a_a_ = transpose(point_output_polar_a_a_(2:end-1));
-%n_point_a = 1+8; point_output_polar_a_a_ = linspace(0,pi,n_point_a+2); point_output_polar_a_a_ = transpose(point_output_polar_a_a_(2:end-1));
-n_point_b = 1+32; point_output_azimu_b_b_ = linspace(0,2*pi,n_point_b+0); point_output_azimu_b_b_ = transpose(point_output_azimu_b_b_(1:end));
-%n_point_b = 0+3; point_output_azimu_b_b_ = linspace(0,2*pi,n_point_b+1); point_output_azimu_b_b_ = transpose(point_output_azimu_b_b_(1:n_point_b));
+n_point_b = 1+31; point_output_azimu_b_b_ = linspace(0,2*pi,n_point_b+0); point_output_azimu_b_b_ = transpose(point_output_azimu_b_b_(1:end));
 point_output_azimu_b_ab__ = zeros(n_point_a,n_point_b,1);
 point_output_polar_a_ab__ = zeros(n_point_a,n_point_b,1);
 point_pole_predilated_template_gammax_k_c_0_abw___ = zeros(n_point_a,n_point_b,n_w_max);
@@ -619,7 +615,8 @@ tmp_y_abw___ = bsxfun(@times,sin(point_output_azimu_b_ab__).*cos(point_output_po
 tmp_z_abw___ = sqrt(tmp_x_abw___.^2 + tmp_y_abw___.^2);
 tmp_w_abw___ = sqrt(bsxfun(@plus,bsxfun(@times,cos(point_output_polar_a_ab__-pi/2),reshape(cos(gamma_z_),[1,1,n_w_max])).^2,reshape(sin(gamma_z_),[1,1,n_w_max]).^2));
 disp(sprintf(' %% tmp_z_abw___ vs tmp_w_abw___: %0.16f',fnorm(tmp_z_abw___ - tmp_w_abw___)/fnorm(tmp_z_abw___)));
-tmp_u_ab__ = mean( -equa_band_dilated_amplitude*2*tmp_x_abw___.*tmp_y_abw___./max(1e-12,tmp_w_abw___.^2) , 3 );
+tmp_u_abw___ = -equa_band_dilated_amplitude*2*tmp_x_abw___.*tmp_y_abw___./max(1e-12,tmp_w_abw___.^2);
+tmp_u_ab__ = mean(tmp_u_abw___,3);
 point_pole_predilated_template_gammax_azimu_b_av2_ab__ = tmp_u_ab__;
 point_pole_predilated_template_gammax_azimu_b_av1_ab__ = periodize(point_pole_predilated_template_gammax_azimu_b_avg_ab__ - point_output_azimu_b_ab__,-pi,+pi);
 subplot(1,2,1);imagesc(point_pole_predilated_template_gammax_azimu_b_av1_ab__,equa_band_dilated_amplitude*[-1,+1]);
@@ -629,6 +626,60 @@ subplot(1,2,2);imagesc(point_pole_predilated_template_gammax_azimu_b_av2_ab__,eq
 axisnotick; xlabel('azimu_b','Interpreter','none'); ylabel('polar_a','Interpreter','none')
 title('formula');
 %%%%%%%%;
+
+%%%%%%%%;
+% Note that the formula within tmp_u_abw___ is useful for both the avg and the var. ;
+%%%%%%%%;
+figure(1+nf);nf=nf+1;clf;figmed;
+tmp_v_abw___ = periodize(bsxfun(@minus,point_pole_predilated_template_gammax_azimu_b_abw___,point_output_azimu_b_ab__),-pi,+pi);
+tmp_v_ab__ = mean(tmp_v_abw___,3);
+subplot(1,2,1);
+plot(reshape(tmp_u_abw___,[n_point_a*n_point_b*n_w_max,1]),reshape(tmp_v_abw___,[n_point_a*n_point_b*n_w_max,1]),'.');
+axis equal;
+tmp_u2_ab__ = mean(tmp_u_abw___.^2,3) - tmp_u_ab__.^2;
+tmp_v2_ab__ = point_pole_predilated_template_gammax_azimu_b_var_ab__;
+tmp_v2_a_ = mean(tmp_v2_ab__,2);
+subplot(1,2,2);
+plot(reshape(tmp_u2_ab__,[n_point_a*n_point_b,1]),reshape(tmp_v2_ab__,[n_point_a*n_point_b,1]),'.');
+axis equal;
+%%%%%%%%;
+
+%%%%%%%%;
+% test separability. ;
+%%%%%%%%;
+n_point_c = n_w_max;
+tmp_a_ = linspace(0,pi,n_point_a); tmp_a_ = transpose(tmp_a_);
+tmp_b_ = linspace(0,2*pi,1+n_point_b); tmp_b_ = transpose(tmp_b_(1:n_point_b));
+tmp_c_ = linspace(0,2*pi,1+n_point_c); tmp_c_ = transpose(tmp_c_(1:n_point_c));
+[tmp_a_abc___,tmp_b_abc___,tmp_c_abc___] = ndgrid(tmp_a_,tmp_b_,tmp_c_);
+tmp_numerator_abc___ = (sin(tmp_b_abc___).*cos(tmp_a_abc___).*cos(tmp_c_abc___) + cos(tmp_b_abc___).*sin(tmp_c_abc___)).*(cos(tmp_b_abc___).*cos(tmp_a_abc___).*cos(tmp_c_abc___) - sin(tmp_b_abc___).*sin(tmp_c_abc___)) ;
+tmp_num0_abc___ = 1.0*cos(2*tmp_b_abc___).*cos(tmp_a_abc___).*cos(tmp_c_abc___).*sin(tmp_c_abc___);
+tmp_num1_abc___ = 0.5*sin(2*tmp_b_abc___).*( (cos(tmp_a_abc___).*cos(tmp_c_abc___)).^2 - sin(tmp_c_abc___).^2 );
+tmp_denomator_abc___ = (cos(tmp_a_abc___).*cos(tmp_c_abc___)).^2 + (sin(tmp_c_abc___)).^2 ;
+tmp_integrand_abc___ = tmp_numerator_abc___./max(1e-12,tmp_denomator_abc___);
+%%%%%%%%;
+% Note that tmp_num0_abc___ can be written in terms of cos(2*tmp_c_abc___), integrating to zero. ;
+%%%%%%%%;
+tmp_avg_form_ab__ = bsxfun(@times,transpose(0.5*sin(2*tmp_b_)),(abs(cos(tmp_a_))-1)./max(1e-12,(abs(cos(tmp_a_))+1)));
+disp(sprintf(' %% tmp_avg_form_ab__ vs tmp_integrand_abc___: %0.16f',fnorm( tmp_avg_form_ab__ - mean(tmp_integrand_abc___,3) )/fnorm(tmp_avg_form_ab__)));
+%%%%%%%%;
+
+mean((tmp_integrand_abc___ - mean(tmp_integrand_abc___,3)).^2,3)
+%%%%%%%%;
+tmp_U0_ac__ = zeros(n_point_a,n_point_c);
+tmp_U1_ac__ = zeros(n_point_a,n_point_c);
+tmp_S_3c__ = zeros(3,n_point_c);
+tmp_V0_bc__ = zeros(n_point_b,n_point_c);
+tmp_V1_bc__ = zeros(n_point_b,n_point_c);
+for npoint_c=0:n_point_c-1;
+[tmp_U_,tmp_S,tmp_V_] = svds(squeeze(tmp_integrand_abc___(:,:,1+npoint_c)),3);
+tmp_U0_ac__(:,1+npoint_c) = tmp_U_(:,1+0);
+tmp_U1_ac__(:,1+npoint_c) = tmp_U_(:,1+1);
+tmp_S_3c__(:,1+npoint_c) = diag(tmp_S);
+tmp_V0_bc__(:,1+npoint_c) = tmp_V_(:,1+0);
+tmp_V1_bc__(:,1+npoint_c) = tmp_V_(:,1+1);
+clear tmp_U_ tmp_S tmp_V_;
+end;%for npoint_c=0:n_point_c-1;
 
 %%%%%%%%;
 % fix cb = sb = sqrt(0.5). ;

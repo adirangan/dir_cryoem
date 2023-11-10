@@ -22,6 +22,459 @@ fname_mat = sprintf('%s/test_heterogeneity_spurious_trpv1c_3_workspace_20231019.
 load(fname_mat);
 
 %%%%%%%%;
+% Check to see how the correlation associates with euler_angle_true. ;
+%%%%%%%%;
+figure(1+nf);nf=nf+1;clf;figmed;fig80s;
+markersize_use = 12;
+%%%%;
+subplot(1,2,1);
+hold on;
+xlim_ = [0,0.5];
+plot(xlim_,xlim_,'k-');
+scatter(max(X_half_TM__,[],1),max(X_rem2_TM__,[],1),markersize_use,euler_polar_a_true_,'filled');
+hold off;
+xlim(xlim_); xlabel('X_half_TM__','Interpreter','none');
+ylim(xlim_); ylabel('X_rem2_TM__','Interpreter','none');
+axis square; grid on;
+%%%%;
+subplot(1,2,2);
+hold on;
+xlim_ = [0,0.5];
+plot(xlim_,xlim_,'k-');
+scatter(max(X_TM__,[],1),max(X_rem2_TM__,[],1),markersize_use,euler_polar_a_true_,'filled');
+hold off;
+xlim(xlim_); xlabel('X_half_TM__','Interpreter','none');
+ylim(xlim_); ylabel('X_rem2_TM__','Interpreter','none');
+axis square; grid on;
+%%%%;
+fname_fig_pre = sprintf('%s_jpg/test_heterogeneity_spurious_trpv1c_true_vs_rem2_X_FIGA',dir_pm);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+fname_fig_eps = sprintf('%s.eps',fname_fig_pre);
+fname_fig_stripped_jpg = sprintf('%s_stripped.jpg',fname_fig_pre);
+fname_fig_stripped_eps = sprintf('%s_stripped.eps',fname_fig_pre);
+if (flag_replot | ~exist(fname_fig_jpg,'file'));
+disp(sprintf(' %% %s not found, creating',fname_fig_jpg));
+print('-djpeg',fname_fig_stripped_jpg);
+print('-depsc',fname_fig_stripped_eps);
+sgtitle(fname_fig_pre,'Interpreter','none');
+print('-djpeg',fname_fig_jpg);
+print('-depsc',fname_fig_eps);
+end;%if (flag_replot | ~exist(fname_fig_jpg,'file'));
+%%%%;
+close(gcf);
+%%%%%%%%;
+
+%%%%%%%%;
+% define empirical weight. ;
+%%%%%%%%;
+viewing_weight_emp_ = viewing_weight_all_;
+u_viewing_polar_a_ = sort(unique(viewing_polar_a_all_),'ascend');
+assert(fnorm(u_viewing_polar_a_ - sort(viewing_polar_a_,'ascend'))<1e-12); %<-- viewing_polar_a_ defined in test_pm_trpv1c_9b.m ;
+tmp_h_polar_a_all_ = hist(viewing_polar_a_all_,u_viewing_polar_a_);
+tmp_h_polar_a_emp_ = hist(euler_polar_a_true_,u_viewing_polar_a_);
+tmp_h_polar_a_rel_ = tmp_h_polar_a_emp_./max(1,tmp_h_polar_a_all_);
+tmp_ij_ = knnsearch(u_viewing_polar_a_,viewing_polar_a_all_);
+viewing_weight_emp_ = viewing_weight_emp_.*reshape(tmp_h_polar_a_rel_(tmp_ij_),[n_S,1]);
+viewing_weight_emp_ = viewing_weight_emp_.*sum(viewing_weight_all_)./max(1e-12,sum(viewing_weight_emp_));
+%%%%;
+% visualize: ;
+% subplot(1,2,1); imagesc_polar_a_azimu_b_0(viewing_polar_a_all_,viewing_azimu_b_all_,viewing_weight_all_,[0,1]); title('uni');
+% subplot(1,2,2); imagesc_polar_a_azimu_b_0(viewing_polar_a_all_,viewing_azimu_b_all_,viewing_weight_emp_,[0,1]); title('emp');
+%%%%;
+
+%%%%%%%%;
+% visualize a few images. ;
+%%%%%%%%;
+dx_pack = diameter_x_c/n_x_u_pack;
+nM = 0;
+M_k_p_ = M_k_p__(:,1+nM);
+M_x_c_ = interp_k_p_to_x_c_xxnufft(n_x_u_pack,diameter_x_c,n_x_u_pack,diameter_x_c,n_k_p_r,k_p_r_,n_w_,M_k_p_.*weight_2d_k_all_*(2*pi)^2)*sqrt(n_x_u_pack^2) * n_w_sum;
+T_k_p_ = interp_x_c_to_k_p_xxnufft(n_x_u_pack,diameter_x_c,n_x_u_pack,diameter_x_c,M_x_c_,n_k_p_r,k_p_r_,n_w_)*sqrt(n_x_u_pack^2)*dx_pack^2;
+T_x_c_ = interp_k_p_to_x_c_xxnufft(n_x_u_pack,diameter_x_c,n_x_u_pack,diameter_x_c,n_k_p_r,k_p_r_,n_w_,T_k_p_.*weight_2d_k_all_*(2*pi)^2)*sqrt(n_x_u_pack^2) * n_w_sum;
+disp(sprintf(' %% M_k_p_ vs T_k_p_: %0.16f',fnorm(M_k_p_-T_k_p_)/fnorm(M_k_p_)));
+disp(sprintf(' %% M_x_c_ vs T_x_c_: %0.16f',fnorm(M_x_c_-T_x_c_)/fnorm(M_x_c_)));
+%%%%;
+figure(1+nf);nf=nf+1;clf;figbig;
+M_k_p_lim_ = prctile(abs(M_k_p_),[ 5,95]); M_k_p_lim_ = mean(M_k_p_lim_) + 0.5*1.25*diff(M_k_p_lim_)*[-1,+1];
+M_x_c_lim_ = prctile(abs(M_x_c_),[ 5,95]); M_x_c_lim_ = mean(M_x_c_lim_) + 0.5*1.25*diff(M_x_c_lim_)*[-1,+1];
+p_row = 2; p_col = 6; np=0;
+subplot(p_row,p_col,1+np + 0*p_col);imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(M_k_p_),M_k_p_lim_,colormap_80s); axisnotick; axis image; title('real(M_k_p_)','Interpreter','none');
+subplot(p_row,p_col,1+np + 1*p_col);imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,imag(M_k_p_),M_k_p_lim_,colormap_80s); axisnotick; axis image; title('imag(M_k_p_)','Interpreter','none');
+np=np+1; 
+subplot(p_row,p_col,1+np + 0*p_col);imagesc_c(n_x_u_pack,x_u_0_,n_x_u_pack,x_u_1_,real(M_x_c_),M_x_c_lim_,colormap_80s); axisnotick; axis image; title('real(M_x_c_)','Interpreter','none');
+subplot(p_row,p_col,1+np + 1*p_col);imagesc_c(n_x_u_pack,x_u_0_,n_x_u_pack,x_u_1_,imag(M_x_c_),M_x_c_lim_,colormap_80s); axisnotick; axis image; title('imag(M_x_c_)','Interpreter','none');
+np=np+1; 
+subplot(p_row,p_col,1+np + 0*p_col);imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(T_k_p_),M_k_p_lim_,colormap_80s); axisnotick; axis image; title('real(T_k_p_)','Interpreter','none');
+subplot(p_row,p_col,1+np + 1*p_col);imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,imag(T_k_p_),M_k_p_lim_,colormap_80s); axisnotick; axis image; title('imag(T_k_p_)','Interpreter','none');
+np=np+1; 
+subplot(p_row,p_col,1+np + 0*p_col);imagesc_c(n_x_u_pack,x_u_0_,n_x_u_pack,x_u_1_,real(T_x_c_),M_x_c_lim_,colormap_80s); axisnotick; axis image; title('real(T_x_c_)','Interpreter','none');
+subplot(p_row,p_col,1+np + 1*p_col);imagesc_c(n_x_u_pack,x_u_0_,n_x_u_pack,x_u_1_,imag(T_x_c_),M_x_c_lim_,colormap_80s); axisnotick; axis image; title('imag(T_x_c_)','Interpreter','none');
+np=np+1; 
+subplot(p_row,p_col,1+np + 0*p_col);imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(M_k_p_-T_k_p_),M_k_p_lim_,colormap_80s); axisnotick; axis image; title('real(M_k_p_-T_k_p_)','Interpreter','none');
+subplot(p_row,p_col,1+np + 1*p_col);imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,imag(M_k_p_-T_k_p_),M_k_p_lim_,colormap_80s); axisnotick; axis image; title('imag(M_k_p_-T_k_p_)','Interpreter','none');
+np=np+1; 
+subplot(p_row,p_col,1+np + 0*p_col);imagesc_c(n_x_u_pack,x_u_0_,n_x_u_pack,x_u_1_,real(M_x_c_-T_x_c_),M_x_c_lim_,colormap_80s); axisnotick; axis image; title('real(M_x_c_-T_x_c_)','Interpreter','none');
+subplot(p_row,p_col,1+np + 1*p_col);imagesc_c(n_x_u_pack,x_u_0_,n_x_u_pack,x_u_1_,imag(M_x_c_-T_x_c_),M_x_c_lim_,colormap_80s); axisnotick; axis image; title('imag(M_x_c_-T_x_c_)','Interpreter','none');
+np=np+1;
+close(gcf);
+%%%%;
+
+%%%%%%%%;
+% Set up residual R_k_p__. ;
+%%%%%%%%;
+R_k_p__ = zeros(n_w_sum,n_M);
+viewing_k_c_0_all_ = sin(viewing_polar_a_all_).*cos(viewing_azimu_b_all_);
+viewing_k_c_1_all_ = sin(viewing_polar_a_all_).*sin(viewing_azimu_b_all_);
+viewing_k_c_2_all_ = cos(viewing_polar_a_all_);
+for nM=0:n_M-1;
+if (mod(nM,32)==0); disp(sprintf(' %% nM %d/%d',nM,n_M)); end;
+tmp_euler_polar_a = +euler_polar_a_true_(1+nM);
+tmp_euler_azimu_b = +euler_azimu_b_true_(1+nM);
+tmp_euler_gamma_z = +euler_gamma_z_true_(1+nM);
+tmp_image_delta_x = +1.0*image_delta_x_true_(1+nM);
+tmp_image_delta_y = +1.0*image_delta_y_true_(1+nM);
+M_k_p_ = M_k_p__(:,1+nM);
+tmp_k_c_0 = sin(tmp_euler_polar_a)*cos(tmp_euler_azimu_b);
+tmp_k_c_1 = sin(tmp_euler_polar_a)*sin(tmp_euler_azimu_b);
+tmp_k_c_2 = cos(tmp_euler_polar_a);
+nS = knnsearch([viewing_k_c_0_all_,viewing_k_c_1_all_,viewing_k_c_2_all_],[tmp_k_c_0,tmp_k_c_1,tmp_k_c_2]) - 1;
+S_k_p_ = S_k_p_wkS__(:,1+nS);
+T_k_p_ = rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,S_k_p_,+tmp_euler_gamma_z);
+T_k_p_ = transf_p_to_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,T_k_p_,-tmp_image_delta_x,-tmp_image_delta_y);
+T_k_p_ = sparse(1:n_w_sum,1:n_w_sum,CTF_k_p__(:,1+index_nCTF_from_nM_(1+nM)),n_w_sum,n_w_sum)*T_k_p_;
+tmp_TT_k_p = innerproduct_p_quad(n_k_p_r,k_p_r_,weight_2d_k_p_r_,n_w_,n_w_sum,T_k_p_,T_k_p_)/(2*pi);
+tmp_TM_k_p = innerproduct_p_quad(n_k_p_r,k_p_r_,weight_2d_k_p_r_,n_w_,n_w_sum,T_k_p_,M_k_p_)/(2*pi);
+tmp_MM_k_p = innerproduct_p_quad(n_k_p_r,k_p_r_,weight_2d_k_p_r_,n_w_,n_w_sum,M_k_p_,M_k_p_)/(2*pi);
+T_x_c_ = interp_k_p_to_x_c_xxnufft(n_x_u,diameter_x_c,n_x_u,diameter_x_c,n_k_p_r,k_p_r_,n_w_,T_k_p_.*weight_2d_k_all_*(2*pi)^2)*sqrt(n_x_u^2) * n_w_sum;
+M_x_c_ = interp_k_p_to_x_c_xxnufft(n_x_u,diameter_x_c,n_x_u,diameter_x_c,n_k_p_r,k_p_r_,n_w_,M_k_p_.*weight_2d_k_all_*(2*pi)^2)*sqrt(n_x_u^2) * n_w_sum;
+tmp_TM_x_c = sum(conj(T_x_c_).*M_x_c_,'all')*dx_u.^2;
+tmp_TT_x_c = sum(conj(T_x_c_).*T_x_c_,'all')*dx_u.^2;
+tmp_MM_x_c = sum(conj(M_x_c_).*M_x_c_,'all')*dx_u.^2;
+N_x_c_ = tmp_TM_x_c/max(1e-12,tmp_TT_x_c)*T_x_c_; %<-- projection of M_x_c_ onto T_x_c_. ;
+R_x_c_ = M_x_c_ - N_x_c_;
+R_k_p_ = interp_x_c_to_k_p_xxnufft(n_x_u,diameter_x_c,n_x_u,diameter_x_c,R_x_c_,n_k_p_r,k_p_r_,n_w_)*sqrt(n_x_u^2)*dx_u^2;
+R_k_p__(:,1+nM) = R_k_p_;
+clear tmp_euler_polar_a tmp_euler_azimu_b tmp_euler_gamma_z tmp_image_delta_x tmp_image_delta_y M_k_p_ tmp_k_c_0 tmp_k_c_1 tmp_k_c_2 nS S_k_p_ T_k_p_ T_k_p_ T_k_p_ tmp_TT_k_p tmp_TM_k_p tmp_MM_k_p T_x_c_ M_x_c_ tmp_TM_x_c tmp_TT_x_c tmp_MM_x_c N_x_c_ R_x_c_ R_k_p_ ;
+end;%for nM=0:n_M-1;
+%%%%%%%%;
+% R_k_q__. ;
+%%%%%%%%;
+R_k_q__ = zeros(n_w_sum,n_M); for nM=0:n_M-1; R_k_q__(:,1+nM) = interp_p_to_q(n_k_p_r,n_w_,n_w_sum,R_k_p__(:,1+nM)); end;%for nM=0:n_M-1;
+%%%%%%%%;
+% Now generate svd_VUXR_lwnM____. ;
+%%%%%%%%;
+tmp_t = tic();
+svd_VUXR_lwnM____ = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M,R_k_q__,n_UX_rank,UX_kn__,sqrt(weight_2d_k_p_r_));
+tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% svd_VUXR_lwnM____: %0.3fs',tmp_t)); end;
+%%%%%%%%;
+% Now calculate norms of the images. ;
+%%%%%%%%;
+tmp_t = tic();
+UX_R_l2_dM__ = ampmh_UX_M_l2_dM__1(FTK,n_w_,n_M,n_UX_rank,svd_VUXR_lwnM____);
+tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% UX_R_l2_dM__: %0.3fs',tmp_t)); end;
+if (verbose); disp(sprintf(' %% average l2-norm of images: %0.16f',mean(UX_R_l2_dM__(:))/(pi*k_p_r_max^2))); end;
+tmp_RR_M_ = zeros(n_M,1);
+for nM=0:n_M-1;
+tmp_RR = innerproduct_p_quad(n_k_p_r,k_p_r_,weight_2d_k_p_r_,n_w_,n_w_sum,R_k_p__(:,1+nM),R_k_p__(:,1+nM))/(2*pi);
+tmp_RR_M_(1+nM) = tmp_RR;
+end;%for nM=0:n_M-1;
+tmp_index = efind((FTK.delta_x_.^2 + FTK.delta_y_.^2)<1e-6);
+UX_R_l2_M_ = transpose(UX_R_l2_dM__(1+tmp_index,:));
+if (verbose); disp(sprintf(' %% tmp_RR_M_ vs UX_R_l2_M_: %0.16f',fnorm(tmp_RR_M_ - UX_R_l2_M_)/fnorm(tmp_RR_M_))); end;
+flag_plot=0;
+if flag_plot;
+tmp_index = efind((FTK.delta_x_.^2 + FTK.delta_y_.^2)<1e-6);
+subplot(1,2,1); hold on; 
+plot(0:n_M-1,UX_R_l2_M_/(pi*k_p_r_max^2),'rx'); xlabel('nM'); ylabel('l2');
+plot(0:n_M-1,tmp_RR_M_/(pi*k_p_r_max^2),'bo'); xlabel('nM'); ylabel('l2');
+hold off;
+subplot(1,2,2); plot(UX_R_l2_M_/(pi*k_p_r_max^2),tmp_RR_M_/(pi*k_p_r_max^2),'g.'); xlabel('l2_A'); ylabel('l2_B');
+end;%if flag_plot;
+%%%%%%%%;
+tmp_t = tic();
+[UX_R_k_q_wnM___,UX_R_k_p_wnM___] = ampmh_UX_M_k_p_wnM___0(FTK,n_w_,n_UX_rank,n_M,svd_VUXR_lwnM____,zeros(n_M,1),zeros(n_M,1));
+tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% UX_R_k_q_wnM___: %0.6fs',tmp_t)); end;
+UX_R_k_p_wnM__ = reshape(UX_R_k_p_wnM___(:,1:n_UX_rank,:),[n_w_max*n_UX_rank,n_M]);
+UX_R_k_q_wnM__ = reshape(UX_R_k_q_wnM___(:,1:n_UX_rank,:),[n_w_max*n_UX_rank,n_M]);
+%%%%%%%%;
+% Now calculate X_TR__ <-- correlation between true-templates and residual-images. ;
+%%%%%%%%;
+parameter = struct('type','parameter');
+parameter.flag_optimize_over_gamma_z = 1;
+parameter.flag_compute_I_value = 0;
+parameter.tolerance_master = tolerance_master;
+parameter.pm_n_UX_rank_use = n_UX_rank;
+tmp_t = tic();
+[ ...
+ parameter ...
+,X_TR__ ...
+,delta_x_TR__ ...
+,delta_y_TR__ ...
+] = ...
+ampmh_X_wSM___8( ...
+ parameter ...
+,FTK ...
+,n_w_max ...
+,n_UX_rank ...
+,n_S ...
+,UX_T_k_q_wnS__ ...
+,UX_T_l2_S_ ...
+,n_M ...
+,svd_VUXR_lwnM____ ...
+,UX_R_l2_dM__ ...
+);
+tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% X_TR__: %0.3fs',tmp_t)); end;
+%%%%%%%%;
+% Now calculate X_rem2_TR__ <-- correlation between rem2-templates and residual-images. ;
+%%%%%%%%;
+parameter = struct('type','parameter');
+parameter.flag_optimize_over_gamma_z = 1;
+parameter.flag_compute_I_value = 0;
+parameter.tolerance_master = tolerance_master;
+parameter.pm_n_UX_rank_use = n_UX_rank;
+tmp_t = tic();
+[ ...
+ parameter ...
+,X_rem2_TR__ ...
+,delta_x_rem2_TR__ ...
+,delta_y_rem2_TR__ ...
+] = ...
+ampmh_X_wSM___8( ...
+ parameter ...
+,FTK ...
+,n_w_max ...
+,n_UX_rank ...
+,n_S ...
+,UX_T_rem2_k_q_wnS__ ...
+,UX_T_rem2_l2_S_ ...
+,n_M ...
+,svd_VUXR_lwnM____ ...
+,UX_R_l2_dM__ ...
+);
+tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% X_rem2_TM__: %0.3fs',tmp_t)); end;
+%%%%%%%%;
+% As expected, the residual-images do not correlate particularly strongly with either the true-templates or the rem2-templates. ;
+%%%%%%%%;
+figure(1+nf);nf=nf+1;clf;figsml;fig80s;
+fontsize_use = 12;
+markersize_use = 16;
+xlim_ = [0,0.5];
+hold on;
+scatter(max(X_TR__,[],1),max(X_rem2_TR__,[],1),markersize_use,'g','filled');
+scatter(max(X_TM__,[],1),max(X_rem2_TM__,[],1),markersize_use,euler_polar_a_true_,'filled');
+plot(xlim_,xlim_,'k-');
+hold off;
+legend({'R','M'},'Location','NorthWest');
+xlim(xlim_); xlabel('X_true_TM__','Interpreter','none');
+ylim(xlim_); ylabel('X_rem2_TM__','Interpreter','none');
+axis square; grid on;
+set(gca,'FontSize',fontsize_use);
+set(gcf,'Position',1+[0,0,1024,1024]);
+%%%%%%%%;
+fname_fig_pre = sprintf('%s_jpg/test_heterogeneity_spurious_trpv1c_true_vs_rem2_R_FIGC',dir_pm);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+fname_fig_eps = sprintf('%s.eps',fname_fig_pre);
+fname_fig_stripped_jpg = sprintf('%s_stripped.jpg',fname_fig_pre);
+fname_fig_stripped_eps = sprintf('%s_stripped.eps',fname_fig_pre);
+if (flag_replot | ~exist(fname_fig_jpg,'file'));
+disp(sprintf(' %% %s not found, creating',fname_fig_jpg));
+print('-djpeg',fname_fig_stripped_jpg);
+print('-depsc',fname_fig_stripped_eps);
+sgtitle(fname_fig_pre,'Interpreter','none');
+print('-djpeg',fname_fig_jpg);
+print('-depsc',fname_fig_eps);
+end;%if (flag_replot | ~exist(fname_fig_jpg,'file'));
+%%%%;
+close(gcf);
+%%%%%%%%;
+
+%%%%%%%%;
+% Quick test of timing for volume registration. ;
+% Verdict; 11s or so. ;
+%%%%%%%%;
+tmp_t = tic();
+register_spharm_to_spharm_wigner_wrap_1( ...
+ n_k_p_r ...
+,k_p_r_ ...
+,k_p_r_max ...
+,weight_3d_k_p_r_ ...
+,0 ...
+,l_max_ ...
+,a_k_Y_norm_reco_yk_ ...
+,a_k_Y_norm_rem2_yk_ ...
+);
+tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% register_spharm_to_spharm_wigner_wrap_1: %0.3fs',tmp_t)); end;
+%%%%%%%%;
+
+n_R_ = [0,32,64,128,256,512,1024]; n_n_R = numel(n_R_);
+flag_replot = 1;
+flag_recalc = 0;
+flag_realign = 0; 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+for nn_R=0:n_n_R-1;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+n_R = n_R_(1+nn_R); M2_k_p__ = [M_k_p__ , R_k_p__(:,1:n_R)]; M2_k_q__ = [M_k_q__ , R_k_q__(:,1:n_R)]; %<-- define the expanded set of images. ;
+n_M2 = n_M + n_R;
+if (verbose); disp(sprintf(' %% n_R %d --> n_M2 %d',n_R,n_M2)); end;
+%%%%%%%%%%%%%%%%;
+fname_ssnll_pre = sprintf('%s_mat/test_heterogeneity_spurious_trpv1c_reco_rem2_rem3_ssnll2_R%.4d_',dir_pm,n_R);
+[flag_ssnll_skip,fname_ssnll_mat] = open_fname_tmp(fname_ssnll_pre);
+if flag_recalc | ~flag_ssnll_skip; test_heterogeneity_spurious_trpv1c_4_helper_0; end;%if ~flag_ssnll_skip;
+%%%%%%%%;
+if ~exist(fname_ssnll_mat,'file'); disp(sprintf(' %% Warning, %s not found',fname_ssnll_mat)); end;
+if  exist(fname_ssnll_mat,'file'); load(fname_ssnll_mat); test_heterogeneity_spurious_trpv1c_4_helper_1; end;%if  exist(fname_ssnll_mat,'file'); 
+%%%%%%%%%%%%%%%%;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+end;%for nn_R=0:n_n_R-1;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+
+disp('returning'); return;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+% plot log-unlikelihood ratio for original set of 1024 images. ;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+
+%%%%%%%%;
+sigma_bayesian_ = transpose([0,2.^[-12:0.125:0]]); n_sigma_bayesian = numel(sigma_bayesian_);
+%%%%%%%%;
+[ ...
+ ~ ...
+,ssnll_uni_s_ ...
+,ssnll_uni_Ms__ ...
+,inten_uni_vs__ ...
+] = ...
+ssnll_from_X_1( ...
+ [] ...
+,1 ... 
+,[n_S] ...
+,n_M ...
+,{X_TM__} ...
+,{UX_T_l2_S_} ...
+,UX_M_l2_M_ ...
+,{viewing_weight_all_} ...
+,n_sigma_bayesian ...
+,sigma_bayesian_ ...
+);
+%%%%;
+[ ...
+ ~ ...
+,ssnll_uni_two_s_ ...
+,ssnll_uni_two_Ms__ ...
+,inten_uni_two_vs__ ...
+] = ...
+ssnll_from_X_1( ...
+ [] ...
+,2 ... 
+,[n_S,n_S] ...
+,n_M ...
+,{X_half_TM__,X_rem2_TM__} ...
+,{UX_T_half_l2_S_,UX_T_rem2_l2_S_} ...
+,UX_M_l2_M_ ...
+,{viewing_weight_all_,viewing_weight_all_} ...
+,n_sigma_bayesian ...
+,sigma_bayesian_ ...
+,repmat(log(inten_uni_vs__),[2,1]) ...
+);
+%%%%;
+ssnllr_uni_Ms__ = ssnll_uni_Ms__ - ssnll_uni_two_Ms__; %<-- assumes hard assignment of images to volumes in 2-volume-model (see min). ;
+ssnllr_uni_s_ = sum(ssnllr_uni_Ms__,1); %<-- assumes hard assignment of images to volumes in 2-volume-model (see min). ;
+%%%%%%%%;
+[ ...
+ ~ ...
+,ssnll_emp_s_ ...
+,ssnll_emp_Ms__ ...
+,inten_emp_vs__ ...
+] = ...
+ssnll_from_X_1( ...
+ [] ...
+,1 ... 
+,[n_S] ...
+,n_M ...
+,{X_TM__} ...
+,{UX_T_l2_S_} ...
+,UX_M_l2_M_ ...
+,{viewing_weight_emp_} ...
+,n_sigma_bayesian ...
+,sigma_bayesian_ ...
+,repmat(log(inten_uni_vs__),[1,1]) ...
+);
+%%%%;
+[ ...
+ ~ ...
+,ssnll_emp_two_s_ ...
+,ssnll_emp_two_Ms__ ...
+,inten_emp_two_vs__ ...
+] = ...
+ssnll_from_X_1( ...
+ [] ...
+,2 ... 
+,[n_S,n_S] ...
+,n_M ...
+,{X_half_TM__,X_rem2_TM__} ...
+,{UX_T_half_l2_S_,UX_T_rem2_l2_S_} ...
+,UX_M_l2_M_ ...
+,{viewing_weight_emp_,viewing_weight_emp_} ...
+,n_sigma_bayesian ...
+,sigma_bayesian_ ...
+,repmat(log(inten_emp_vs__),[2,1]) ...
+);
+%%%%;
+ssnllr_emp_Ms__ = ssnll_emp_Ms__ - ssnll_emp_two_Ms__; %<-- assumes hard assignment of images to volumes in 2-volume-model (see min). ;
+ssnllr_emp_s_ = sum(ssnllr_emp_Ms__,1); %<-- assumes hard assignment of images to volumes in 2-volume-model (see min). ;
+%%%%%%%%;
+
+%%%%%%%%;
+% Now display log-unlikelihood-ratio vs temperature. ;
+%%%%%%%%;
+figure(1+nf);nf=nf+1;clf;figmed;
+fontsize_use = 12;
+markersize_use = 12;
+subplot(1,2,1);
+hold on;
+plot(1:n_sigma_bayesian-1,ssnllr_uni_s_(2:end),'ko','MarkerSize',markersize_use,'MarkerFaceColor','r');
+plot(1:n_sigma_bayesian-1,ssnllr_emp_s_(2:end),'ko','MarkerSize',markersize_use,'MarkerFaceColor','g');
+ylabel('$\sigma^{2}\cdot$ nllr','Interpreter','latex');
+xlim([0.5,0.5+n_sigma_bayesian-1]); xlabel('$-\log_{2}$(temperature)','Interpreter','latex');
+set(gca,'XTick',1:4:n_sigma_bayesian-1,'XTickLabel',num2str(-log2(sigma_bayesian_(2:4:end)),'%0.2f'));xtickangle(90);
+legend({'uniform','empirical'},'Location','NorthWest');
+set(gca,'FontSize',fontsize_use);
+hold off;
+%%%%;
+subplot(1,2,2);
+hold on;
+plot(1:n_sigma_bayesian-1,ssnllr_uni_s_(2:end)./transpose(sigma_bayesian_(2:end)).^2,'ko','MarkerSize',markersize_use,'MarkerFaceColor','r');
+plot(1:n_sigma_bayesian-1,ssnllr_emp_s_(2:end)./transpose(sigma_bayesian_(2:end)).^2,'ko','MarkerSize',markersize_use,'MarkerFaceColor','g');
+hold off;
+ylim([-3.5,+1]); ylabel('nllr','Interpreter','latex');
+xlim([0.5,0.5+n_sigma_bayesian-1]); xlabel('$-\log_{2}$(temperature)','Interpreter','latex');
+set(gca,'XTick',1:4:n_sigma_bayesian-1,'XTickLabel',num2str(-log2(sigma_bayesian_(2:4:end)),'%0.2f'));xtickangle(90);
+legend({'uniform','empirical'},'Location','NorthWest');
+set(gca,'FontSize',fontsize_use);
+%%%%%%%%;
+fname_fig_pre = sprintf('%s_jpg/test_heterogeneity_spurious_trpv1c_ssnllr_sigma_opt_FIGA',dir_pm);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+fname_fig_eps = sprintf('%s.eps',fname_fig_pre);
+fname_fig_stripped_jpg = sprintf('%s_stripped.jpg',fname_fig_pre);
+fname_fig_stripped_eps = sprintf('%s_stripped.eps',fname_fig_pre);
+if (flag_replot | ~exist(fname_fig_jpg,'file'));
+disp(sprintf(' %% %s not found, creating',fname_fig_jpg));
+print('-djpeg',fname_fig_stripped_jpg);
+print('-depsc',fname_fig_stripped_eps);
+sgtitle(fname_fig_pre,'Interpreter','none');
+print('-djpeg',fname_fig_jpg);
+print('-depsc',fname_fig_eps);
+end;%if (flag_replot | ~exist(fname_fig_jpg,'file'));
+%%%%;
+close(gcf);
+%%%%%%%%;
+
+disp('returning'); return;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+% fit with a larger set of images. ;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+
+%%%%%%%%;
 % Now load a larger set of images. ;
 %%%%%%%%;
 n_big_M = 1024*32;
@@ -46,7 +499,7 @@ assert(n_x_M_u==size(big_M_x_c___,2));
 disp(sprintf(' %% Removing edge-artefacts'));
 n_big_M_ext_ = zeros(n_big_M,1);
 for nbig_M=0:n_big_M-1;
-if (mod(nbig_M,128)==0); disp(sprintf(' %% nbig_M %d/%d',nbig_M,n_big_M)); end;
+if (verbose); if (mod(nbig_M,128)==0); disp(sprintf(' %% nbig_M %d/%d',nbig_M,n_big_M)); end; end;
 n_pixel = 4; edge_tolerance = 0.5; n_edge_overshoot = 8; rseed = 0;
 [big_M_x_c___(:,:,1+nbig_M),n_big_M_ext_(1+nbig_M)] = image_replace_edge_artefact_0(big_M_x_c___(:,:,1+nbig_M),4,0.5,2,0);
 end;%for nbig_M=0:n_big_M-1;
@@ -118,7 +571,7 @@ big_M_k_p__ = zeros(n_w_sum,n_big_M);
 image_center_delta_x_c_0_ = zeros(n_big_M,1);
 image_center_delta_x_c_1_ = zeros(n_big_M,1);
 for nbig_M=0:n_big_M-1;
-if (mod(nbig_M,128)==0); disp(sprintf(' %% nbig_M %d/%d',nbig_M,n_big_M)); end;
+if (verbose); if (mod(nbig_M,128)==0); disp(sprintf(' %% nbig_M %d/%d',nbig_M,n_big_M)); end; end;
 big_M_x_c_ = squeeze(big_M_x_c___(:,:,1+nbig_M));
 big_M_k_p_ = interp_x_c_to_k_p_xxnufft(n_x_M_u,diameter_x_c,n_x_M_u,diameter_x_c,big_M_x_c_,n_k_p_r,k_p_r_,n_w_)*sqrt(n_x_M_u^2)*dx^2 ;
 % Now *DO* translate according to big_M_abs_x_c_0_avg_ and big_M_abs_x_c_1_avg_. ;
@@ -215,7 +668,7 @@ n_big_CTF = numel(index_nbig_M_from_nbig_CTF_);
 big_CTF_index_ = index_nbig_CTF_from_nbig_M_;
 big_CTF_k_p__ = zeros(n_w_sum,n_big_CTF);
 for nbig_CTF=0:n_big_CTF-1;
-if (mod(nbig_CTF,100)==0); disp(sprintf(' %% nbig_CTF %d/%d',nbig_CTF,n_big_CTF)); end;
+if (verbose); if (mod(nbig_CTF,100)==0); disp(sprintf(' %% nbig_CTF %d/%d',nbig_CTF,n_big_CTF)); end; end;
 big_CTF_Spherical_Aberration = SphericalAberration_big_CTF_(1+nbig_CTF);% spherical aberation of the lens in mm ;
 big_CTF_Spherical_Aberration=big_CTF_Spherical_Aberration*(10.0d0^7.0d0);% convert into Angstroms ;
 big_CTF_Voltage_kV = Voltage_big_CTF_(1+nbig_CTF);% voltage in kVolts ;
