@@ -885,6 +885,7 @@ end;%if (~exist(sprintf('%s.jpg',fname_fig),'file'));
 if ( exist(sprintf('%s.jpg',fname_fig),'file'));
 disp(sprintf(' %% %s found, not creating',fname_fig));
 end;%if ( exist(sprintf('%s.jpg',fname_fig),'file'));
+close(gcf);
 end;%if flag_check;
 %%%%%%%%;
 % These moments of P_k_p_ will be used later ;

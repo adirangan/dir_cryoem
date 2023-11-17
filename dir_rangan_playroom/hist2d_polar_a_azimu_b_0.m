@@ -2,6 +2,7 @@ function ...
 [ ...
  hist_ ...
  weighted_hist_ ...
+ lim_use_ ...
 ] = ...
 hist2d_polar_a_azimu_b_0( ...
  polar_a_ ...
@@ -90,7 +91,7 @@ weight_val = weight_(1+index_azimu_b__{1+npolar_a}(1+nazimu_b));
 hist_(1+index_azimu_b__{1+npolar_a}(1+nazimu_b)) = hist_val;
 weighted_hist_val = hist_val/max(1e-12,weight_val);
 weighted_hist_val_use = weighted_hist_val; if flag_loghist_vs_hist; weighted_hist_val_use = log2(1+weighted_hist_val); end;
-weighted_hist_(1+index_azimu_b__{1+npolar_a}(1+nazimu_b)) = hist_val;
+weighted_hist_(1+index_azimu_b__{1+npolar_a}(1+nazimu_b)) = weighted_hist_val;
 weighted_hist_by_patch_(1+npatch) = weighted_hist_val_use;
 nc = max(0,min(n_c-1,floor((weighted_hist_val_use-min(lim_use_))/max(1e-12,diff(lim_use_))*n_c)));
 %%%%%%%%;
@@ -144,18 +145,34 @@ npatch=npatch+1;
 end;%for nazimu_b=0:n_azimu_b-1;
 end;%for npolar_a=0:n_polar_a-1;
 
-if isempty(lim_);
-lim_ = [0,prctile(weighted_hist_by_patch_,100)];
+lim_use_ = lim_;
+if isempty(lim_use_);
+lim_use_ = [0,prctile(weighted_hist_by_patch_,100)];
 for npatch=0:n_patch-1;
 weighted_hist_val_use = weighted_hist_by_patch_(1+npatch);
-nc = max(0,min(n_c-1,floor((weighted_hist_val_use-min(lim_))/max(1e-12,diff(lim_))*n_c)));
+nc = max(0,min(n_c-1,floor((weighted_hist_val_use-min(lim_use_))/max(1e-12,diff(lim_use_))*n_c)));
 c___(1,1+npatch,:) = c__(1+nc,:);
 end;%for npatch=0:n_patch-1;
-end;%if isempty(lim_);
+end;%if isempty(lim_use_);
 
+colormap(c__);
 %%%%%%%%;
-if flag_2d_vs_3d==1; p=patch(x__,y__,c___,'EdgeColor','none'); xlim([0,2*pi]);ylim([0,pi]); axisnotick; end;
-if flag_2d_vs_3d==0; p=patch(x__,y__,z__,c___,'EdgeColor','none'); view([-65,20]); axis vis3d; end;
+if flag_2d_vs_3d==1;
+p=patch(x__,y__,c___,'EdgeColor','none');
+xlim([0,2*pi]);
+ylim([0,pi]);
+axisnotick;
+end;%if flag_2d_vs_3d==1;
 %%%%%%%%;
+if flag_2d_vs_3d==0;
+p=patch(x__,y__,z__,c___,'EdgeColor','none');
+view([-65,20]);
+axis vis3d;
+end;%if flag_2d_vs_3d==0;
+%%%%%%%%;
+tmp_c_ = colorbar;
+set(tmp_c_,'Ticks',[0,1],'TickLabels',lim_use_);
+
+
 
 
