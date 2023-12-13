@@ -1,53 +1,162 @@
+verbose=1;
+flag_disp=1;
 
+equa_band_dilated_amplitude = 0.15;
+g_dilation = @(point_pole_predilated_azimu_b) equa_band_dilated_amplitude*sin(2*point_pole_predilated_azimu_b); %<-- approximation holds well for first nontrivial mode. ;
+f_dilation = @(point_pole_predilated_azimu_b) point_pole_predilated_azimu_b + g_dilation(point_pole_predilated_azimu_b);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+npoint_a = 32;
+npoint_b = 12;
+markersize_sml = 8;
+markersize_big = 16;
 
-Now imagine that you are given a radioactive material. 
-You start with 2150 atoms on day 0. 
-Each day you record the number of atoms remaining: 
-Day 00: 2150 atoms remaining 
-Day 01: 1876 atoms remaining 
-Day 02: 1655 atoms remaining 
-Day 03: 1482 atoms remaining 
-Day 04: 1373 atoms remaining 
-Day 05: 1280 atoms remaining 
-Day 06: 1222 atoms remaining 
-Day 07: 1171 atoms remaining 
-Day 08: 1145 atoms remaining 
-Day 09: 1110 atoms remaining 
-Day 10: 1091 atoms remaining 
-Day 11: 1072 atoms remaining 
-Day 12: 1057 atoms remaining 
-Day 13: 1050 atoms remaining 
-Day 14: 1044 atoms remaining 
-Day 15: 1040 atoms remaining 
-Day 16: 1039 atoms remaining 
-Day 17: 1034 atoms remaining 
-Day 18: 1031 atoms remaining 
-Day 19: 1030 atoms remaining 
-Day 20: 1030 atoms remaining 
-Day 21: 1029 atoms remaining 
-Day 22: 1029 atoms remaining 
-Day 23: 1029 atoms remaining 
-Day 24: 1028 atoms remaining 
-Day 25: 1028 atoms remaining 
-Day 26: 1027 atoms remaining 
-Day 27: 1027 atoms remaining 
-Day 28: 1027 atoms remaining 
-Day 29: 1026 atoms remaining 
-Day 30: 1026 atoms remaining 
-Day 31: 1026 atoms remaining 
-Can you estimate the decay-probability? 
-(i.e., the probability that a given atom will decay over a day). 
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figsml;
+plot_sphere_grid_0;
+axis equal; axis vis3d;
+hold on;
+end;%if flag_disp;
 
- Assume that you have a large sample of radioactive material. 
-Assume that each atom decays as a random variable, independently of all other atoms. 
-Say that the probability of any particular atom decaying over the course of one day is 30%. 
-Make a graph/plot of your model, illustrating the amount of radioactive material you expect as a function of time (in days). 
-Now assume that somebody else models the same radioactive process, but uses a different timescale, say hours instead of days. 
-What decay-probability should they use? 
-Make a graph/plot of their model (in hours). 
-Compare your model with theirs. What are the similarities? 
+point_output_azimu_b = point_output_azimu_b_b_(1+npoint_b); %<-- yes periodic. ;
+point_output_polar_a = -pi/2 + point_output_polar_a_a_(1+npoint_a); %<-- not periodic. ;
+point_output_gamma_z = 0;
+point_output_k_c_ = Rz(point_output_azimu_b) * Ry(point_output_polar_a) * Rz(point_output_gamma_z) * [1;0;0];
+point_pole_k_c__ = Rz(point_output_azimu_b) * Ry(point_output_polar_a) * Rz(point_output_gamma_z) * [zeros(1,n_w_max);transpose(sc_);transpose(cc_)];
+%%%%%%%%;
+if flag_disp;
+plot3(point_output_k_c_(1+0),point_output_k_c_(1+1),point_output_k_c_(1+2),'mo','MarkerFaceColor',0.85*[1,1,1],'MarkerSize',markersize_big);
+end;%if flag_disp;
+%%%%%%%%%%%%%%%%;
+for npole=floor(n_w_max/3);%for npole=0:n_w_max-1;
+%%%%%%%%%%%%%%%%;
+% Now we step through each of the templates associated with the point point_output. ;
+%%%%%%%%;
+if flag_disp;
+nc_hsv = max(0,min(n_c_hsv-1,floor(n_c_hsv*(periodize(npole,0,n_w_max/2)/(n_w_max/2))))); %<-- note double winding (i.e., andipodal templates are the same). ;
+end;%if flag_disp;
+point_pole_k_c_ = point_pole_k_c__(:,1+npole);
+if flag_disp;
+plot3(point_pole_k_c_(1+0),point_pole_k_c_(1+1),point_pole_k_c_(1+2),'o','MarkerEdgeColor','g','MarkerFaceColor',c_hsv__(1+nc_hsv,:),'MarkerSize',markersize_big);
+end;%if flag_disp;
+point_pole_k_r01 = sqrt(point_pole_k_c_(1+0).^2 + point_pole_k_c_(1+1).^2);
+point_pole_k_r012 = sqrt(point_pole_k_c_(1+0).^2 + point_pole_k_c_(1+1).^2 + point_pole_k_c_(1+2).^2);
+point_pole_azimu_b = atan2(point_pole_k_c_(1+1),point_pole_k_c_(1+0));
+point_pole_polar_a = atan2(point_pole_k_r01,point_pole_k_c_(1+2));
+[ ...
+ point_pole_template_k_c_0_w_ ...
+,point_pole_template_k_c_1_w_ ...
+,point_pole_template_k_c_2_w_ ...
+,point_pole_template_azimu_b_w_ ...
+,point_pole_template_polar_a_w_ ...
+] = ...
+get_template_single_ring_k_c_0( ...
+ verbose ...
+,1 ...
+,point_pole_azimu_b ...
+,point_pole_polar_a ...
+,n_w_max ...
+);
+if flag_disp;
+plot3( ...
+ point_pole_template_k_c_0_w_ ...
+,point_pole_template_k_c_1_w_ ...
+,point_pole_template_k_c_2_w_ ...
+,'go','MarkerFaceColor',0.95*[1,1,1],'MarkerSize',markersize_sml);
+end;%if flag_disp;
+%%%%%%%%%%%%%%%%;
+end;%for npole=0:n_w_max-1;
+%%%%%%%%%%%%%%%%;
+%%%%%%%%;
+% Here we determine the predilated template that is associated with the original template mapped to point_output. ;
+%%%%%%%%;
+tmp_f_error = @(point_pole_predilated_azimu_b) abs(f_dilation(point_pole_predilated_azimu_b) - point_pole_azimu_b).^2;
+point_pole_predilated_azimu_b = fminsearch(tmp_f_error,point_pole_azimu_b);
+tmp_point_pole_azimu_b = point_pole_predilated_azimu_b + equa_band_dilated_amplitude*sin(2*point_pole_predilated_azimu_b);
+if (verbose>0); disp(sprintf(' %% npole %d/%d, fnorm(point_pole_azimu_b-tmp_point_pole_azimu_b): %0.16f',npole,n_w_max,fnorm(point_pole_azimu_b-tmp_point_pole_azimu_b))); end;
+point_pole_predilated_polar_a = point_pole_polar_a;
+point_pole_predilated_k_c_ = [ ...
+  cos(point_pole_predilated_azimu_b)*sin(point_pole_predilated_polar_a) ...
+; sin(point_pole_predilated_azimu_b)*sin(point_pole_predilated_polar_a) ...
+; cos(point_pole_predilated_polar_a) ...
+];
+if flag_disp;
+plot3(point_pole_predilated_k_c_(1+0),point_pole_predilated_k_c_(1+1),point_pole_predilated_k_c_(1+2),'o','MarkerEdgeColor','c','MarkerFaceColor',c_hsv__(1+nc_hsv,:),'MarkerSize',markersize_sml);
+end;%if flag_disp;
+[ ...
+ point_pole_predilated_template_k_c_0_w_ ...
+,point_pole_predilated_template_k_c_1_w_ ...
+,point_pole_predilated_template_k_c_2_w_ ...
+,point_pole_predilated_template_azimu_b_w_ ...
+,point_pole_predilated_template_polar_a_w_ ...
+] = ...
+get_template_single_ring_k_c_0( ...
+ verbose ...
+,1 ...
+,point_pole_predilated_azimu_b ...
+,point_pole_predilated_polar_a ...
+,n_w_max ...
+);
+if flag_disp;
+plot3( ...
+ point_pole_predilated_template_k_c_0_w_ ...
+,point_pole_predilated_template_k_c_1_w_ ...
+,point_pole_predilated_template_k_c_2_w_ ...
+,'co','MarkerFaceColor',0.95*[1,1,1],'MarkerSize',markersize_sml);
+end;%if flag_disp;
+%%%%%%%%;
+point_pole_template_gamma0_k_c_ = [...
+ +cos(point_pole_azimu_b)*cos(point_pole_polar_a) ...
+;+sin(point_pole_azimu_b)*cos(point_pole_polar_a) ...
+;-sin(point_pole_polar_a) ...
+];
+if flag_disp;
+plot3( ...
+ point_pole_template_gamma0_k_c_(1) ...
+,point_pole_template_gamma0_k_c_(2) ...
+,point_pole_template_gamma0_k_c_(3) ...
+,'ko','MarkerFaceColor',0.95*[1,1,1],'MarkerSize',markersize_big);
+end;%if flag_disp;
+point_pole_template_sgx_k_c_ = cross(point_pole_template_gamma0_k_c_,point_output_k_c_);
+point_pole_template_sgx = dot(point_pole_template_sgx_k_c_,point_pole_k_c_);
+point_pole_template_cgx = dot(point_pole_template_gamma0_k_c_,point_output_k_c_);
+point_pole_gx = atan2(point_pole_template_sgx,point_pole_template_cgx);
+point_pole_template_gammax_k_c_ = [...
+ +cos(point_pole_azimu_b)*cos(point_pole_polar_a)*cos(point_pole_gx) - sin(point_pole_azimu_b)*sin(point_pole_gx) ...
+;+sin(point_pole_azimu_b)*cos(point_pole_polar_a)*cos(point_pole_gx) + cos(point_pole_azimu_b)*sin(point_pole_gx) ...
+;-sin(point_pole_polar_a)*cos(point_pole_gx) ...
+];
+if flag_disp;
+plot3( ...
+ point_pole_template_gammax_k_c_(1) ...
+,point_pole_template_gammax_k_c_(2) ...
+,point_pole_template_gammax_k_c_(3) ...
+,'ro','MarkerFaceColor',0.95*[1,1,1],'MarkerSize',markersize_big);
+end;%if flag_disp;
+% fnorm(point_pole_template_gammax_k_c_ - point_output_k_c_),; %<-- should be 0. ;
+point_pole_template_gammax_k_r01 = sqrt(point_pole_template_gammax_k_c_(1+0).^2 + point_pole_template_gammax_k_c_(1+1).^2);
+% fnorm((cos(point_pole_polar_a)*cos(point_pole_gx))^2 + (sin(point_pole_gx))^2 - point_pole_template_gammax_k_r01^2),; %<-- should be 0. ;
+point_pole_template_gammax_k_r012 = sqrt(point_pole_template_gammax_k_c_(1+0).^2 + point_pole_template_gammax_k_c_(1+1).^2 + point_pole_template_gammax_k_c_(1+2).^2);
+point_pole_template_gammax_azimu_b = atan2(point_pole_template_gammax_k_c_(1+1),point_pole_template_gammax_k_c_(1+0));
+point_pole_template_gammax_polar_a = atan2(point_pole_template_gammax_k_r01,point_pole_template_gammax_k_c_(1+2));
+%%%%%%%%;
+% Now we determine the gamma_z (denoted gammax) within predilated template that maps to point_output. ;
+%%%%%%%%;
+point_pole_predilated_template_gammax_k_c_ = [ ...
+ +cos(point_pole_predilated_azimu_b)*cos(point_pole_predilated_polar_a)*cos(point_pole_gx) - sin(point_pole_predilated_azimu_b)*sin(point_pole_gx) ...
+;+sin(point_pole_predilated_azimu_b)*cos(point_pole_predilated_polar_a)*cos(point_pole_gx) + cos(point_pole_predilated_azimu_b)*sin(point_pole_gx) ...
+;-sin(point_pole_predilated_polar_a)*cos(point_pole_gx) ...
+];
+if flag_disp;
+plot3( ...
+ point_pole_predilated_template_gammax_k_c_(1) ...
+,point_pole_predilated_template_gammax_k_c_(2) ...
+,point_pole_predilated_template_gammax_k_c_(3) ...
+,'ro','MarkerFaceColor',0.95*[1,1,1],'MarkerSize',markersize_sml);
+end;%if flag_disp;
+
+error('stopping');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
 %%%%%%%%;
 % plotting original micrograph Q_x_u_pack_ in test_pm_clathrin_6.m ;

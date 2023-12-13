@@ -915,6 +915,34 @@ end;%if ( exist(sprintf('%s.jpg',fname_fig),'file'));
 
 %%%%%%%%;
 % Now calculate CTF functions. ;
+%{
+Compare niko_ctf with section 28 from ; ;
+https://link.springer.com/book/10.1007/978-0-387-76501-3 ;
+The relevant formulae are 28.3 and 28.4
+(which define the spatial-frequency 'u' in terms of inverse-angstroms -- without a 2*pi built in) ;
+and then later on in 28.33 and 28.34,
+where the magnitude of the spatial-frequency 'u' is multiplied by lambda to provide a non-dimensional 'angle' (see 28.32). ;
+With this definition it seems as though 'u' is the wavenumber -- i.e., the number of full wavelengths per unit-length. ;
+So, in the matlab-code below, a wave-number of k_p_r_max = 48/(2*pi) then corresponds to a wave-number of 48, ;
+with the correction that -- since our box is of length 2 -- 
+there are actually k_p_r_max*2 = 96 full waves in the box when k_p_r = 48/(2*pi). ;
+ ;
+Now when we call niko_ctf below, ;
+we set tmp_k_c_1 and tmp_k_c_2 to equal (2*pi)*k_p_r*cos(tmp_theta) and (2*pi)*k_p_r*sin(tmp_theta), respectively. ;
+This corresponds to passing in essentially (2*pi)*k_p_r; ;
+i.e., when k_p_r = k_p_r_max we pass in the number 48. ;
+Now within niko_ctf this (2*pi)*k_p_r gets multiplied by 'thetatr': ;
+thetatr = ' CTF_lambda / Box_size_in_angstroms / pi ' (see line 941 and 949) ;
+ultimately producing: ;
+(2*pi) * k_p_r * thetatr = 2 * k_p_r * CTF_lambda / Box_size_in_angstroms . ;
+Now CTF_Lambda is the electron-wavelength in angstroms (see line 931) . ;
+Thus, within niko_ctf, the product ;
+angle = rad*thetatr = u*lambda, where ;
+lambda = electron-wavelength in angstroms ;
+u = 2 * k_p_r / Box_size_in_angstroms = wavenumber in inverse-angstroms ;
+Where, as we discussed above, ;
+the extra factor of 2 is because we define our wavenumbers assuming that the box is side-length 2 (rather than 1). ;
+%}
 %%%%%%%%;
 fname_mat = sprintf('%s_mat/CTF_k_p_wkC__.mat',dir_pm);
 if (flag_recalc | ~exist(fname_mat,'file'));
