@@ -418,7 +418,7 @@ parameter = parameter_timing_update(parameter,'CTF_UX_S_k_q_wnS__',tmp_t);
 %%%%%%%%;
 
 % disp(sprintf(' %% maxNumCompThreads = %d',maxNumCompThreads));
-% mex CFLAGS='$CFLAGS -fPIC -w -O2 -D_AVX -mavx -D_CBLAS -D_FMA -mfma -fopenmp' LDFLAGS='$LDFLAGS -fopenmp' mex_ampmh_X_wSM___15.c -lm -lfftw3_omp -lfftw3 -lfftw3f_omp -lfftw3f -lgslcblas -output /data/rangan/dir_cryoem/dir_rangan_playroom/mex_ampmh_X_wSM___15 ;
+% mex CFLAGS='$CFLAGS -fPIC -w -O3 -D_AVX -mavx -D_CBLAS -D_FMA -mfma -fopenmp' LDFLAGS='$LDFLAGS -fopenmp' mex_ampmh_X_wSM___15.c -lm -lfftw3_omp -lfftw3 -lfftw3f_omp -lfftw3f -lgslcblas -output /data/rangan/dir_cryoem/dir_rangan_playroom/mex_ampmh_X_wSM___15 ;
 pm_n_UX_rank_use = pm_n_UX_rank;
 n_M_use = n_M;
 n_S_use = n_S;
@@ -496,6 +496,7 @@ elrt_sum_l2_dSM___=0;
 elrt_sum_X_sub_dwSM____=0;
 elrt_sum_I_value_use_dwSM____=0;
 elrt_sum_X_wSM___=0;
+elrt_sum_ori_ampmh_X_wSM___15=0;
 
 tmp_t = tic(); nop=0;
 [ ...
@@ -524,8 +525,8 @@ nop = nop + numel(svd_VUXM_lwnM____);
 tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% reduce: %0.6f',tmp_t)); end;
 parameter = parameter_timing_update(parameter,'ampmh_X_wSM___8: reduce',tmp_t,1,nop);
 
-%%%%;
-tmp_t = tic();
+%%%%%%%%%%%%%%%%;
+tmp_t_0 = tic();
 [ ...
  mex_X_wSM___ ...
 ,mex_delta_x_wSM___...
@@ -553,8 +554,12 @@ mex_ampmh_X_wSM___15( ...
 ,svd_VUXM_lwnM____ ...
 ,UX_M_l2_dM__ ...
 );
-tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% mex_ampmh_X_wSM___15: %0.6f',tmp_t)); end; elrt_sum_mex_ampmh_X_wSM___15 = elrt_sum_mex_ampmh_X_wSM___15 + tmp_t;
-%%%%;
+tmp_t_0 = toc(tmp_t_0); if (verbose>1); disp(sprintf(' %% mex_ampmh_X_wSM___15: %0.6f',tmp_t_0)); end; elrt_sum_mex_ampmh_X_wSM___15 = elrt_sum_mex_ampmh_X_wSM___15 + tmp_t_0;
+%%%%%%%%%%%%%%%%;
+
+%%%%%%%%%%%%%%%%;
+tmp_t_1 = tic(); nop=0;
+%%%%%%%%%%%%%%%%;
 
 I_value_wSM___ = [];
 if (flag_optimize_over_gamma_z == 0);
@@ -849,6 +854,13 @@ save('ori_gamma_z_wSM___.mat','gamma_z_wSM___');
 save('ori_I_value_wSM___.mat','I_value_wSM___');
 end;%if flag_dump;
 
+%%%%%%%%%%%%%%%%;
+tmp_t_1 = toc(tmp_t_1);
+if (verbose>1); disp(sprintf(' %% ori_ampmh_X_wSM___15: %0.6f',tmp_t_1)); end;
+elrt_sum_ori_ampmh_X_wSM___15 = elrt_sum_ori_ampmh_X_wSM___15 + tmp_t_1;
+parameter = parameter_timing_update(parameter,'ampmh_X_wSM___8: matlab',tmp_t_1,1,nop);
+%%%%%%%%%%%%%%%%;
+
 if (verbose>0);
 disp(sprintf(' %% elrt_sum_mex_ampmh_X_wSM___15: %0.6f',elrt_sum_mex_ampmh_X_wSM___15));
 disp(sprintf(' %% elrt_sum_CTF_UX_S_k_q_nSw___: %0.6f',elrt_sum_CTF_UX_S_k_q_nSw___));
@@ -861,6 +873,7 @@ disp(sprintf(' %% elrt_sum_l2_dSM___: %0.6f',elrt_sum_l2_dSM___));
 disp(sprintf(' %% elrt_sum_X_sub_dwSM____: %0.6f',elrt_sum_X_sub_dwSM____));
 disp(sprintf(' %% elrt_sum_I_value_use_dwSM____: %0.6f',elrt_sum_I_value_use_dwSM____));
 disp(sprintf(' %% elrt_sum_X_wSM___: %0.6f',elrt_sum_X_wSM___));
+disp(sprintf(' %% elrt_sum_ori_ampmh_X_wSM___15: %0.6f',elrt_sum_ori_ampmh_X_wSM___15));
 end;%if (verbose>0);
 
 flag_disp=1;

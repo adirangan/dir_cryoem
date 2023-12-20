@@ -1,11 +1,18 @@
 function output = lfactorial(n);
-if (n<15);
-output = nfact(n);
+
+if nargin<1;
+disp(sprintf(' %% testing lfactorial'));
+x_ = 0:1024; plot(x_,(lfactorial(x_)-gammaln(x_+1))./max(1e-12,abs(gammaln(x_+1))),'r.-');
+xlabel('x'); xlim([0,max(x_)]);
+ylabel('rel error');
+disp('returning');return;
+end;%if nargin<1;
+
+nij = find(n< 15);
+output(nij) = nfact(n(nij));
+nij = find(n>=15);
+output(nij) = sfact(n(nij));
 output(find(~isfinite(output)))=-16;
- else;
-output = sfact(n);
-output(find(~isfinite(output)))=-16;
-end;%if (n<15);
 
 function output = nfact(d);
 output = d;

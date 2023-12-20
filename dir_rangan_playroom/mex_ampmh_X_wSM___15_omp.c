@@ -1,10 +1,7 @@
-void ping(){ printf(" %% ping\n");}
-void pong(){ printf(" %% pong\n");}
-
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
 /* The helper function */
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
-void mex_ampmh_X_wSM___15_omp
+void mex_ampmh_X_wSM___15_omp_helper
 (
   int n_M_per_Mbatch
  ,int n_S_per_Sbatch
@@ -118,7 +115,7 @@ void mex_ampmh_X_wSM___15_omp
   float * f_svd_SVUXM_out_wSMl_real____=NULL;
   float * f_svd_SVUXM_out_wSMl_imag____=NULL;
   /* %%%% */
-  if (verbose){ printf(" %% [entering mex_ampmh_X_wSM___15_omp]\n");}
+  if (verbose){ printf(" %% [entering mex_ampmh_X_wSM___15_omp_helper]\n");}
   /* %%%%%%%%%%%%%%%% */
   FTK_n_delta_v_rup = rup(FTK_n_delta_v,8); FTK_n_delta_v_256 = FTK_n_delta_v_rup/8;
   FTK_n_svd_l_rup = rup(FTK_n_svd_l,8); FTK_n_svd_l_256 = FTK_n_svd_l_rup/8;
@@ -990,14 +987,14 @@ void mex_ampmh_X_wSM___15_omp
     _mm_free(f_svd_USESVUXM_dwSM_imag____); f_svd_USESVUXM_dwSM_imag____=NULL;
     /* if (flag_fast){ } */}
   /* %%%%%%%%%%%%%%%% */
-  if (verbose){ printf(" %% [finished mex_ampmh_X_wSM___15_omp]\n");}
+  if (verbose){ printf(" %% [finished mex_ampmh_X_wSM___15_omp_helper]\n");}
 }  
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
 /* The computational routine (slow vs fast) */
 /* attempting omp */
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
-void mex_ampmh_X_wSM___15
+void mex_ampmh_X_wSM___15_omp
 (
   int n_M_per_Mbatch
  ,int n_S_per_Sbatch
@@ -1027,8 +1024,8 @@ void mex_ampmh_X_wSM___15
  ,double *I_value_wSM___
  )
 {
-  int flag_omp=0;
-  int verbose=1; // %<-- can use printf within parallel block more generally, since printf is thread safe. ;
+  int flag_omp=1;
+  int verbose=2; // %<-- can use printf within parallel block more generally, since printf is thread safe. ;
 #ifndef WITHOUT_MEX
   verbose = verbose && !flag_omp; // %<-- cannot use printf within parallel block in mex, since printf is sent to mexPrintf, which is not thread safe. ;
 #endif
@@ -1088,7 +1085,7 @@ void mex_ampmh_X_wSM___15
   long l_msec_[n_tick],l_ssec_[n_tick],l_usec_[n_tick];
   double elct_[n_tick],elrt_[n_tick];
   /* %%%% */
-  if (verbose){ printf(" %% [entering mex_ampmh_X_wSM___15]\n");}
+  if (verbose){ printf(" %% [entering mex_ampmh_X_wSM___15_omp]\n");}
   /* %%%%%%%%%%%%%%%% */
   tab = (unsigned long long int)n_w_max;
   gamma_z_ = (double *) malloc(tab*sizeof(double));
@@ -1297,7 +1294,7 @@ void mex_ampmh_X_wSM___15
     nMbatch = 0;
 #pragma omp for schedule(dynamic)
     for (nMbatch=0;nMbatch<n_Mbatch;nMbatch++){
-      mex_ampmh_X_wSM___15_omp
+      mex_ampmh_X_wSM___15_omp_helper
 	(
 	 n_M_per_Mbatch
 	 ,n_S_per_Sbatch
@@ -1356,7 +1353,7 @@ void mex_ampmh_X_wSM___15
   /* if (flag_omp){ } */}
   if (!flag_omp){
     for (nMbatch=0;nMbatch<n_Mbatch;nMbatch++){
-      mex_ampmh_X_wSM___15_omp
+      mex_ampmh_X_wSM___15_omp_helper
 	(
 	 n_M_per_Mbatch
 	 ,n_S_per_Sbatch
@@ -1440,5 +1437,5 @@ void mex_ampmh_X_wSM___15
     _mm_free(f_svd_VUXM_lwnM_imag____); f_svd_VUXM_lwnM_imag____=NULL;  
     /* if (flag_fast){ } */}
   /* %%%%%%%%%%%%%%%% */
-  if (verbose){ printf(" %% [finished mex_ampmh_X_wSM___15]\n");}
+  if (verbose){ printf(" %% [finished mex_ampmh_X_wSM___15_omp]\n");}
 }
