@@ -3,6 +3,7 @@
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
 void transpose_psx4_block1_omp_helper
 (
+ /* Warning, does not work on very small matrices. */
  float *A
  ,float *B
  ,const int n_row
@@ -51,6 +52,7 @@ void transpose_psx4_block1_omp
 ,const int block_size
 )
 {
+  /* Warning, does not work on very small matrices. */
   int flag_omp = 1;
   int nc=0,nr=0,max_nc2=0,max_nr2=0,nc2=0,nr2=0;
   int nrbatch=0,n_r_per_rbatch=0,n_rbatch=0;

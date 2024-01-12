@@ -109,11 +109,12 @@ void mex_ampmh_X_wSM___fftw_slow_test()
 							   ); /* %<-- note, for backwards dft we swap real and imag. ; */
   memset(svd_SVUXM_0in_wlSM____,0,tab*sizeof(fftw_complex));
   local_tic(0,t_start_,d_start_);
-  ulli=0;
-  for (tabA=0;tabA<tab;tabA++){
-    svd_SVUXM_0in_wlSM____[tabA] = (fftw_complex) ((float complex) (((int)ulli%7)-3) + _Complex_I * (float complex) (((int)ulli%7)-2));
-    ulli++;
-    /* for (tabA=0;tabA<tab;tabA++){ } */}
+  for (tabB=0;tabB<FTK_n_svd_l*n_S*n_M_per_Mbatch;tabB++){
+  for (tabA=0;tabA<n_w_max;tabA++){
+    ulli = tabA + tabB*n_w_max;
+    svd_SVUXM_0in_wlSM____[ulli] = (fftw_complex) (tabA + _Complex_I * tabB);
+    /* for (tabA=0;tabA<n_w_max;tabA++){ } */}
+  /* for (tabB=0;tabB<FTK_n_svd_l*n_S*n_M_per_Mbatch;tabB++){ } */}
   local_toc(0,t_start_,t_final_,d_start_,d_final_,l_msec_,l_ssec_,l_usec_,elct_,elrt_,tab,verbose," initialization: ");
   local_tic(0,t_start_,d_start_);
   mex_ampmh_X_wSM___fftw_slow_helper
@@ -129,6 +130,28 @@ void mex_ampmh_X_wSM___fftw_slow_test()
      ,fftw_plan_guru_split_dft_plan
      );
   local_toc(0,t_start_,t_final_,d_start_,d_final_,l_msec_,l_ssec_,l_usec_,elct_,elrt_,tab,verbose," mex_ampmh_X_wSM___fftw_slow_helper: ");
+  if (verbose){
+    array_sub_printf
+      (
+       svd_SVUXM_0in_wlSM____
+       ,"double complex"
+       ,n_w_max
+       ,4
+       ,FTK_n_svd_l*n_S*n_M_sub
+       ,5
+       ," %% svd_SVUXM_0in_wlSM____: "
+       );
+    array_sub_printf
+      (
+       svd_SVUXM_out_wlSM____
+       ,"double complex"
+       ,n_w_max
+       ,4
+       ,FTK_n_svd_l*n_S*n_M_sub
+       ,5
+       ," %% svd_SVUXM_out_wlSM____: "
+       );
+      /* if (verbose){ } */}
   _mm_free(svd_SVUXM_0inout_wlSM____); svd_SVUXM_0inout_wlSM____=NULL;
   fftw_destroy_plan(fftw_plan_guru_split_dft_plan);
   /* %%%%%%%%%%%%%%%% */

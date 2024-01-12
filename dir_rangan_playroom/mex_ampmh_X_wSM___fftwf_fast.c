@@ -131,12 +131,13 @@ void mex_ampmh_X_wSM___fftwf_fast_test()
   memset(f_svd_SVUXM_0in_wSMl_real____,0,tab*sizeof(float));
   memset(f_svd_SVUXM_0in_wSMl_imag____,0,tab*sizeof(float));
   local_tic(0,t_start_,d_start_);
-  ulli=0;
-  for (tabA=0;tabA<tab;tabA++){
-    f_svd_SVUXM_0in_wSMl_real____[tabA] = (float) (((int)ulli%7)-3);
-    f_svd_SVUXM_0in_wSMl_imag____[tabA] = (float) (((int)ulli%7)-2);
-    ulli++;
-    /* for (tabA=0;tabA<tab;tabA++){ } */}
+  for (tabB=0;tabB<FTK_n_svd_l*n_S*n_M_per_Mbatch;tabB++){
+    for (tabA=0;tabA<n_w_max;tabA++){
+      ulli = tabA + tabB*n_w_max_rup;
+      f_svd_SVUXM_0in_wSMl_real____[ulli] = (float) tabA;
+      f_svd_SVUXM_0in_wSMl_imag____[ulli] = (float) tabB;
+      /* for (tabA=0;tabA<n_w_max;tabA++){ } */}
+    /* for (tabB=0;tabB<FTK_n_svd_l*n_S*n_M_per_Mbatch;tabB++){ } */}
   local_toc(0,t_start_,t_final_,d_start_,d_final_,l_msec_,l_ssec_,l_usec_,elct_,elrt_,tab,verbose," initialization: ");
   local_tic(0,t_start_,d_start_);
   mex_ampmh_X_wSM___fftwf_fast_helper
@@ -154,6 +155,50 @@ void mex_ampmh_X_wSM___fftwf_fast_test()
      ,fftwf_plan_guru_split_dft_plan
      );
   local_toc(0,t_start_,t_final_,d_start_,d_final_,l_msec_,l_ssec_,l_usec_,elct_,elrt_,tab,verbose," mex_ampmh_X_wSM___fftwf_fast_helper: ");
+  if (verbose){
+    array_sub_printf
+      (
+       f_svd_SVUXM_0in_wSMl_real____
+       ,"float"
+       ,n_w_max_rup
+       ,4
+       ,n_S_rup*n_M_sub_rup*FTK_n_svd_l_rup
+       ,5
+       ," %% f_svd_SVUXM_0in_wSMl_real____: "
+       );
+      /* if (verbose){ } */
+    array_sub_printf
+      (
+       f_svd_SVUXM_0in_wSMl_imag____
+       ,"float"
+       ,n_w_max_rup
+       ,4
+       ,n_S_rup*n_M_sub_rup*FTK_n_svd_l_rup
+       ,5
+       ," %% f_svd_SVUXM_0in_wSMl_imag____: "
+       );
+    array_sub_printf
+      (
+       f_svd_SVUXM_out_wSMl_real____
+       ,"float"
+       ,n_w_max_rup
+       ,4
+       ,n_S_rup*n_M_sub_rup*FTK_n_svd_l_rup
+       ,5
+       ," %% f_svd_SVUXM_out_wSMl_real____: "
+       );
+      /* if (verbose){ } */
+    array_sub_printf
+      (
+       f_svd_SVUXM_out_wSMl_imag____
+       ,"float"
+       ,n_w_max_rup
+       ,4
+       ,n_S_rup*n_M_sub_rup*FTK_n_svd_l_rup
+       ,5
+       ," %% f_svd_SVUXM_out_wSMl_imag____: "
+       );
+      /* if (verbose){ } */}
   _mm_free(f_svd_SVUXM_0inout_wSMl_realimag____); f_svd_SVUXM_0inout_wSMl_realimag____=NULL;
   fftwf_destroy_plan(fftwf_plan_guru_split_dft_plan);
   /* %%%%%%%%%%%%%%%% */
