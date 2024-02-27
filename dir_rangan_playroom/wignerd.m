@@ -1,4 +1,7 @@
 function W_ = wignerd(n_l,beta) ;
+
+if (n_l>=88); disp(sprintf(' %% Warning, n_l=%d>=88 in wignerd',n_l)); end;
+
 % generates wigner-d matrices up to n_l;
 % uses 3-term recurrences. ;
 cb = cos(beta/2); sb = sin(beta/2); 

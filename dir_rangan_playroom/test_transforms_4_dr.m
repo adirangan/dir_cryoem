@@ -1,3 +1,8 @@
+%%%%%%%%;
+% Sets up a few templates and images ;
+% tests ampmh_X_wSM___8.m ;
+%%%%%%%%;
+
 flag_verbose = 1;
 
 %%%%%%%%;

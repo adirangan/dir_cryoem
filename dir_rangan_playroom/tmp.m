@@ -1,3 +1,171 @@
+%%%%%%%%;
+% Now we try and set up a template-operator ;
+% for a collection of azimu_b associated with a single polar_a. ;
+%%%%%%%%;
+polar_a_use = viewing_polar_a_S_(round(n_S/4));
+tmp_index_ = efind(abs(viewing_polar_a_S_-polar_a_use)<1e-6);
+n_azimu_b_use = numel(tmp_index_);
+azimu_b_use_ = viewing_azimu_b_S_(1+tmp_index_);
+S_k_p_sub_wkb__ = zeros(n_w_sum,n_azimu_b_use);
+T_k_p_sub_wkb__ = zeros(n_w_sum,n_azimu_b_use);
+S_k_q_sub_wkb__ = zeros(n_w_sum,n_azimu_b_use);
+T_k_q_sub_wkb__ = zeros(n_w_sum,n_azimu_b_use);
+for nazimu_b_use=0:n_azimu_b_use-1;
+nS = tmp_index_(1+nazimu_b_use);
+S_k_p_wk_ = S_k_p_wkS__(:,1+nS);
+tmp_azimu_b = viewing_azimu_b_S_(1+nS);
+tmp_polar_a = viewing_polar_a_S_(1+nS);
+tmp_gamma_z = 0.0; %<-- default. ;
+tmp_gamma_z = pi/12;
+S_k_p_wk_ = rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,S_k_p_wk_,-tmp_gamma_z);
+S_k_p_sub_wkb__(:,1+nazimu_b_use) = S_k_p_wk_;
+tmp_R__ = Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
+T_k_p_wk_ = zeros(n_w_sum,1);
+for nsource=0:n_source-1;
+tmp_delta_ = tmp_R__*delta_a_c__(:,1+nsource);
+T_k_p_wk_ = T_k_p_wk_ + exp(+i*2*pi*(k_c_0_wk_*tmp_delta_(1+0) + k_c_1_wk_*tmp_delta_(1+1)));
+end;%for nsource=0:n_source-1;
+T_k_p_sub_wkb__(:,1+nazimu_b_use) = T_k_p_wk_;
+S_k_q_wk_ = interp_p_to_q(n_k_p_r,n_w_,n_w_sum,S_k_p_wk_);
+T_k_q_wk_ = interp_p_to_q(n_k_p_r,n_w_,n_w_sum,T_k_p_wk_);
+S_k_q_sub_wkb__(:,1+nazimu_b_use) = S_k_q_wk_;
+T_k_q_sub_wkb__(:,1+nazimu_b_use) = T_k_q_wk_;
+clear S_k_p_wk_ T_k_p_wk_;
+end;%for nazimu_b_use=0:n_azimu_b_use-1;
+disp(sprintf(' %% S_k_p_sub_wkb__ vs T_k_p_sub_wkb__: %0.16f %%<-- should be <1e-2',fnorm(S_k_p_sub_wkb__-T_k_p_sub_wkb__)/fnorm(S_k_p_sub_wkb__)));
+disp(sprintf(' %% S_k_q_sub_wkb__ vs T_k_q_sub_wkb__: %0.16f %%<-- should be <1e-2',fnorm(S_k_q_sub_wkb__-T_k_q_sub_wkb__)/fnorm(S_k_q_sub_wkb__)));
+%%%%;
+flag_plot=0;
+if flag_plot;
+figure(1+nf);nf=nf+1;clf;figbig;
+p_row = 6; p_col = ceil(n_azimu_b_use/p_row); np=0;
+for nazimu_b_use=0:n_azimu_b_use-1;
+subplot(p_row,p_col,1+np);np=np+1;cla;
+imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(S_k_p_sub_wkb__(:,1+nazimu_b_use))); axis image; axisnotick;
+%title(sprintf('real(S_k_p_sub_wkb__(:,1+%d))',nazimu_b_use),'Interpreter','none');
+title(sprintf('nazimu_b_use %d',nazimu_b_use),'Interpreter','none');
+end;%for nazimu_b_use=0:n_azimu_b_use-1;
+end;%if flag_plot;
+%%%%;
+tmp_t = tic();
+W_beta__ = wignerd_b(l_max_max,-polar_a_use);
+zeta_lm__ = zeros(1+l_max_max,n_m_max);
+for l_val=0:l_max_max;
+a1=((2*l_val+1)/(4*pi));
+Llm__ = legendre(l_val,0,'unnorm');
+for m_val=-l_val:+l_val;
+if (l_val >0); Llm_ = Llm__(1+abs(m_val),:); end; if (l_val==0); Llm_ = Llm__; end; assert(numel(Llm_)==1);
+a2=exp(lfactorial(l_val-abs(m_val)) - lfactorial(l_val+abs(m_val))); c=sqrt(a1*a2); s=1; % original phase ;
+zeta_lm__(1+l_val,1+l_max_max+m_val) = s*c*Llm_(1+0);
+end;%for m_val=-l_val:+l_val;
+end;%for l_val=0:l_max_max;
+%%%%;
+W_betazeta_mlm___ = zeros(n_m_max,1+l_max_max,n_m_max);
+for l_val=0:l_max_max;
+for m0_val=-l_val:+l_val;
+for m1_val=-l_val:+l_val;
+W_betazeta_mlm___(1+l_max_max+m0_val,1+l_val,1+l_max_max+m1_val) = ...
+ W_beta__{1+l_val}(1+l_val+m0_val,1+l_val+m1_val) ...
+*zeta_lm__(1+l_val,1+l_max_max+m0_val) ...
+ ;
+end;%for m1_val=-l_val:+l_val;
+end;%for m0_val=-l_val:+l_val;
+end;%for l_val=0:l_max_max;
+tmp_t = toc(tmp_t); if (verbose); disp(sprintf(' %% W_betazeta_mlm___: %0.2fs',tmp_t)); end;
+%%%%;
+flag_check=1;
+if flag_check;
+tmp_w_ = crandn(n_m_max);
+tmp_azimu_b_use_ = 2*pi*rand(n_azimu_b_use,1);
+tmp_f__ = exp(-i*(-reshape(tmp_azimu_b_use_,[n_azimu_b_use,1]))*reshape(m_max_,[1,n_m_max]));
+tmp_fw_0_ = tmp_f__*tmp_w_;
+tmp_fw_1_ = xxnufft1d2(n_azimu_b_use,tmp_azimu_b_use_,+1,1e-6,n_m_max,tmp_w_);
+disp(sprintf(' %% tmp_fw_0_ vs tmp_fw_1_: %0.16f %%<-- should be <1e-6',fnorm(tmp_fw_0_-tmp_fw_1_)/fnorm(tmp_fw_0_)));
+clear tmp_azimu_b_use_ tmp_w_ tmp_f__ tmp_fw_0_ tmp_fw_1_ ;
+end;%if flag_check;
+%%%%;
+tmp_t = tic();
+W_caza_mkm___ = zeros(n_m_max,n_k_p_r,n_m_max); %<-- diag(exp(+i*m0_val_*tmp_gamma_z))*W_betazeta_ml__*a_k_Y_form_lk__ for each m1_val. ;
+for m1_val=-l_max_max:+l_max_max;
+W_caza_mkm___(:,:,1+l_max_max+m1_val) = ...
+ (pi^2) ...
+ *diag(exp(-i*m_max_*(-tmp_gamma_z))) ...
+ *reshape(W_betazeta_mlm___(:,:,1+l_max_max+m1_val),[n_m_max,1+l_max_max]) ...
+ *reshape(a_k_Y_form_lkm___(:,:,1+l_max_max+m1_val),[1+l_max_max,n_k_p_r]) ...
+ ;
+end;%for m1_val=-l_max_max:+l_max_max;
+tmp_t = toc(tmp_t); if (verbose); disp(sprintf(' %% W_caza_mkm___: %0.2fs',tmp_t)); end;
+tmp_t = tic();
+W_caza_mmk___ = permute(W_caza_mkm___,[3,1,2]);
+W_caza_bmk___ = reshape(xxnufft1d2(n_azimu_b_use,azimu_b_use_,+1,1e-6,n_m_max,reshape(W_caza_mmk___,[n_m_max,n_m_max*n_k_p_r])),[n_azimu_b_use,n_m_max,n_k_p_r]);
+W_caza_mkb___ = permute(W_caza_bmk___,[2,3,1]);
+tmp_t = toc(tmp_t); if (verbose); disp(sprintf(' %% W_caza_mkb___: %0.2fs',tmp_t)); end;
+%%%%%%%%;
+R_k_q_sub_wkb__ = zeros(n_w_sum,n_azimu_b_use);
+R_k_p_sub_wkb__ = zeros(n_w_sum,n_azimu_b_use);
+for nazimu_b_use=0:n_azimu_b_use-1;
+R_k_p_wk_ = zeros(n_w_sum,1);
+R_k_q_wk_ = zeros(n_w_sum,1);
+for nk_p_r=0:n_k_p_r-1;
+for m_val=-l_max_max:+l_max_max;
+nq = m_val; if (nq<0); nq=nq+n_w_max; end;
+R_k_q_wk_(1+nq+nk_p_r*n_w_max) = W_caza_mkb___(1+l_max_max+m_val,1+nk_p_r,1+nazimu_b_use);
+end;%for m_val=-l_max_max:+l_max_max;
+end;%for nk_p_r=0:n_k_p_r-1;
+R_k_q_sub_wkb__(:,1+nazimu_b_use) = R_k_q_wk_;
+R_k_p_wk_ = interp_q_to_p(n_k_p_r,n_w_,n_w_sum,R_k_q_wk_);
+R_k_p_sub_wkb__(:,1+nazimu_b_use) = R_k_p_wk_;
+end;%for nazimu_b_use=0:n_azimu_b_use-1;
+disp(sprintf(' %% S_k_p_sub_wkb__ vs T_k_p_sub_wkb__: %0.16f %%<-- should be <1e-2',fnorm(S_k_p_sub_wkb__ - T_k_p_sub_wkb__)/fnorm(S_k_p_sub_wkb__)));
+disp(sprintf(' %% S_k_p_sub_wkb__ vs R_k_p_sub_wkb__: %0.16f %%<-- should be <1e-2',fnorm(S_k_p_sub_wkb__ - R_k_p_sub_wkb__)/fnorm(S_k_p_sub_wkb__)));
+disp(sprintf(' %% T_k_p_sub_wkb__ vs R_k_p_sub_wkb__: %0.16f %%<-- should be <1e-2',fnorm(T_k_p_sub_wkb__ - R_k_p_sub_wkb__)/fnorm(T_k_p_sub_wkb__)));
+%%%%;
+flag_plot=0;
+if flag_plot;
+%%;
+figure(1+nf);nf=nf+1;clf;figbig;
+p_row = 6; p_col = ceil(n_azimu_b_use/p_row); np=0;
+for nazimu_b_use=0:n_azimu_b_use-1;
+subplot(p_row,p_col,1+np);np=np+1;cla;
+imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(S_k_p_sub_wkb__(:,1+nazimu_b_use))); axis image; axisnotick;
+title(sprintf('nazimu_b_use %d',nazimu_b_use),'Interpreter','none');
+end;%for nazimu_b_use=0:n_azimu_b_use-1;
+%%;
+figure(1+nf);nf=nf+1;clf;figbig;
+p_row = 6; p_col = ceil(n_azimu_b_use/p_row); np=0;
+for nazimu_b_use=0:n_azimu_b_use-1;
+subplot(p_row,p_col,1+np);np=np+1;cla;
+imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(R_k_p_sub_wkb__(:,1+nazimu_b_use))); axis image; axisnotick;
+title(sprintf('nazimu_b_use %d',nazimu_b_use),'Interpreter','none');
+end;%for nazimu_b_use=0:n_azimu_b_use-1;
+%%;
+end;%if flag_plot;
+%%%%%%%%;
+%%%%%%%%;
+[ ...
+ U_k_p_sub_wkb__ ...
+,tmp_W_betazeta_mlm___ ...
+,tmp_a_k_Y_lkm___ ...
+,tmp_W_caza_mkm___ ...
+] = ...
+sph_template_single_polar_a_3( ...
+ verbose ...
+,l_max ...
+,n_k_p_r ...
+,a_k_Y_form_lkm___ ...
+,n_w_max ...
+,polar_a_use ...
+,n_azimu_b_use ...
+,azimu_b_use_ ...
+,tmp_gamma_z ...
+);
+%%%%%%%%;
+figure(1+nf);nf=nf+1;plot(W_betazeta_mlm___(:),tmp_W_betazeta_mlm___(:),'.');
+figure(1+nf);nf=nf+1;plot(a_k_Y_form_lkm___(:),tmp_a_k_Y_lkm___(:),'.');
+figure(1+nf);nf=nf+1;plot(W_caza_mkm___(:),tmp_W_caza_mkm___(:),'.');
+
+disp('returning'); return;
+
 verbose=1;
 flag_disp=1;
 

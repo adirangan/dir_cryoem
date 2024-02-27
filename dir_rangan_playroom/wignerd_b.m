@@ -1,20 +1,33 @@
 function W_ = wignerd_b(n_l,beta) ;
-% generates wigner-d matrices up to n_l;
-% uses 3-term recurrences. ;
-% test with: ;
+% Generates wigner-d matrices up to n_l;
+% Note: uses 3-term recurrences, which are unstable after n_l==88 or so. ;
+% Fiddles with condon-shortley phase (c.f. wignerd). ;
+% Test with: ;
 %{
 
-  % plots should show matrices of all ones ;
-  n_l = 5;
-  W1_ = wignerd_lsq_b(n_l,pi/6); W2_ = wignerd_b(n_l,pi/6); 
+  beta=pi/6; 
+  %%%%%%%%;
+  % Note that the discrepancy is larger than 1e-6 at nl==88. ;
+  %%%%%%%%;
+  n_l=88;
+  tic; W1_ = wignerd_b(n_l,beta);     disp(sprintf(' %% wignerd    : %0.2f seconds',toc));
+  tic; W2_ = wignerd_lsq_b(n_l,beta); disp(sprintf(' %% wignerd_lsq_b: %0.2f seconds',toc));  
+  for nl=0:n_l;
+  disp(sprintf(' %% nl %d/%d: error %0.16f',nl,n_l,fnorm(W1_{1+nl}-W2_{1+nl})));
+  end;%for nl=0:n_l;
+  % top plot (real) should show matrices of all ones ;
+  n_l=5;
+  W1_ = wignerd_b(n_l,beta); 
+  W2_ = wignerd_lsq_b(n_l,beta);
   for nl = 1:n_l;
-  subplot(2,n_l,nl+0*n_l); imagesc(sign((W2_{nl})./real(W1_{nl})),[-1,1]);
-  subplot(2,n_l,nl+1*n_l); imagesc((W2_{nl})./real(W1_{nl}),[-3,3]);
+  subplot(2,n_l,nl+0*n_l); imagesc(real(W2_{nl})./real(W1_{nl}),[-2,2]); title('real');
+  subplot(2,n_l,nl+1*n_l); imagesc(imag(W2_{nl})./imag(W1_{nl}),[-2,2]); title('imag');
+  disp(sprintf(' %% nl %d/%d: error %0.16f',nl,n_l,fnorm(W1_{1+nl}-W2_{1+nl})));
   end;%for nl = 1:n_l;
-
 
   %}
 
+if (n_l>=88); disp(sprintf(' %% Warning, n_l=%d>=88 in wignerd_b',n_l)); end;
 verbose=0;
 
 cb = cos(beta/2); sb = sin(beta/2); 

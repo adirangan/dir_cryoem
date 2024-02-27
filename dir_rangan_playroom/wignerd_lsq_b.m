@@ -4,11 +4,14 @@ function W_ = wignerd_lsq_b(n_l,beta) ;
 % test with: 
 %{
 
-  n_l=40; beta=pi/6; 
-  tic; W1_ = wignerd(n_l,beta);     disp(sprintf(' %% wignerd    : %0.2f seconds',toc));
+  %%%%%%%%;
+  % Note that the discrepancy is larger than 1e-6 at nl==88. ;
+  %%%%%%%%;
+  n_l=88; beta=pi/6; 
+  tic; W1_ = wignerd_b(n_l,beta);     disp(sprintf(' %% wignerd    : %0.2f seconds',toc));
   tic; W2_ = wignerd_lsq_b(n_l,beta); disp(sprintf(' %% wignerd_lsq_b: %0.2f seconds',toc));  
   for nl=0:n_l;
-  disp(sprintf(' %% nl %d/%d: error %0.16f',nl,n_l,norm(W1_{1+nl}-W2_{1+nl})));
+  disp(sprintf(' %% nl %d/%d: error %0.16f',nl,n_l,fnorm(W1_{1+nl}-W2_{1+nl})));
   end;%for nl=0:n_l;
 
   %}
