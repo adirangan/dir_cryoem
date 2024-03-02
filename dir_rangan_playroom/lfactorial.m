@@ -8,6 +8,7 @@ ylabel('rel error');
 disp('returning');return;
 end;%if nargin<1;
 
+output = zeros(size(n));
 nij = find(n< 15);
 output(nij) = nfact(n(nij));
 nij = find(n>=15);
