@@ -43,8 +43,8 @@ Llm_jm__ = squeeze(Llm_jlm___(:,1+l_max,:));
 %l_val = l_max;
 %m_val_ = transpose(0:l_val);
 %tmp_a1 = ((1+2*l_val)/(4*pi));
-%tmp_a2_ = exp(lfactorial(l_val-abs(m_val_)) - lfactorial(l_val+abs(m_val_)));
-%tmp_a3_ = sqrt(tmp_a1*tmp_a2_);
+%tmp_a2_ = exp(0.5*lfactorial(l_val-abs(m_val_)) - 0.5*lfactorial(l_val+abs(m_val_)));
+%tmp_a3_ = sqrt(tmp_a1)*tmp_a2_;
 %Llm_jm__ = bsxfun(@rdivide,Llm_jm__,reshape(sqrt(4*pi)*tmp_a3_,[1,1+l_max]));
 Llm_mba___ = reshape(permute(Llm_jm__,[2,1]),[1+l_max,size(THETA_)])/sqrt(4*pi);
 
