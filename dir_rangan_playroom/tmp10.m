@@ -1,0 +1,62 @@
+%%%%%%%%;
+% Now working on Feng, Wang, Yang, Jin, 2015. ;
+%%%%%%%%;
+
+verbose = 1; nf=0;
+l_max = 16; n_l = l_max;
+m_max_ = transpose(-l_max:+l_max);
+n_m_max = numel(m_max_);
+beta = 5*pi/12;
+d0V_ = wignerd_b(l_max,beta);
+tmp_V__ = d0V_{1+l_max};
+
+l_val = l_max;
+m_val_ = transpose([-l_val:+l_val]);
+n_m_val = numel(m_val_);
+X_ = sqrt( (l_val + m_val_) .* (1 + l_val - m_val_) ); 
+S__ = spdiags([-X_ , +flip(X_)],[+1,-1],n_m_val,n_m_val);
+[V__,L__] = eigs(S__,n_m_val); L_ = diag(L__);
+tmp_W__ = zeros(n_m_val,n_m_val);
+for m0_val=-l_val:+l_val;
+for m1_val=-l_val:+l_val;
+tmp_W = 0.0 + i*0.0;
+for nl=0:n_m_val-1;
+%tmp_W = tmp_W + V__(1+nl,1+l_val+m0_val) * exp(-L_(1+nl)*beta) * conj(V__(1+nl,1+l_val+m1_val));
+%tmp_W = tmp_W + conj(V__(1+l_val+m0_val,1+nl)) * exp(-L_(1+nl)*beta) * V__(1+l_val+m1_val,1+nl);
+%tmp_W = tmp_W + conj(V__(1+l_val+m0_val,1+nl)) * exp(+L_(1+nl)*beta) * V__(1+l_val+m1_val,1+nl);
+tmp_W = tmp_W + V__(1+l_val+m0_val,1+nl) * exp(+L_(1+nl)*beta/2) * conj(V__(1+l_val+m1_val,1+nl));
+end;%for nl=0:n_m_val-1;
+tmp_W__(1+l_val+m0_val,1+l_val+m1_val) = tmp_W;
+end;%for m1_val=-l_val:+l_val;
+end;%for m0_val=-l_val:+l_val;
+
+sgn_ = (-1).^m_val_.*(m_val_>=0) + (+1).*(m_val_< 0);
+tmp_W__ = tmp_W__.*(sgn_*transpose(sgn_));
+
+figure(1+nf);nf=nf+1;clf;figmed; fig80s;
+p_row = 1; p_col = 3; np=0;
+subplot(p_row,p_col,1+np);np=np+1;
+imagesc(real(tmp_W__),[-1,+1]); axis image; axisnotick; title('real(W)'); colorbar;
+subplot(p_row,p_col,1+np);np=np+1;
+imagesc(real(tmp_V__),[-1,+1]); axis image; axisnotick; title('real(V)'); colorbar;
+subplot(p_row,p_col,1+np);np=np+1;
+imagesc(abs(tmp_V__)-abs(tmp_W__)); axis image; axisnotick; title('diff(abs)'); colorbar;
+%imagesc(real(tmp_V__)./real(tmp_W__),[-1,+1]); axis image; axisnotick; title('sgn');
+
+flag_check=0;
+if flag_check;
+figure(1+nf);nf=nf+1;clf;figmed; fig80s;
+p_row = 4; p_col = 6; np=0;
+subplot(p_row,p_col,1+np);np=np+1;
+imagesc(abs(tmp_W__),[-1,+1]); axis image; axisnotick;
+title(sprintf('W (%+0.2fpi)',beta/(2*pi)),'Interpreter','none');
+while (np<p_row*p_col);
+tmp_beta = -pi + np/(p_row*p_col)*2*pi;
+d0V_ = wignerd_b(l_max,tmp_beta); 
+tmp_V__ = d0V_{1+l_max}; 
+subplot(p_row,p_col,1+np);np=np+1;
+imagesc(abs(tmp_V__),[-1,+1]); axis image; axisnotick;
+title(sprintf('V (%+0.2fpi)',tmp_beta/(2*pi)),'Interpreter','none');
+end;%while (np<p_row*p_col);
+disp('returning'); return;
+end;%if flag_check;

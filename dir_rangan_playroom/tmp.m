@@ -1,4 +1,126 @@
 %%%%%%%%;
+% Now working on Feng, Wang, Yang, Jin, 2015. ;
+%%%%%%%%;
+
+l_max = 3; n_l = l_max;
+m_max_ = transpose(-l_max:+l_max);
+n_m_max = numel(m_max_);
+beta = pi/6;
+d0V_ = wignerd_b(l_max,beta);
+tmp_V__ = d0V_{1+l_max};
+
+l_val = l_max;
+m_val_ = transpose([-l_val:+l_val]);
+n_m_val = numel(m_val_);
+X_ = sqrt( (l_val + m_val_) .* (1 + l_val - m_val_) ); 
+D__ = spdiags([-X_ , +flip(X_)],[+1,-1],n_m_val,n_m_val);
+[V__,D__] = eigs(D__,n_m_val);
+%%%%%%%%;
+% see tmp10.m ;
+%%%%%%%%;
+
+
+disp('returning'); return;
+ 
+%%%%%%%%;
+% setting up sparse link operator. ;
+% +[d^{m0}_{l}H^{m0+1,m1}_{l} - d^{m0-1}_{l}H^{m0-1,m1}_{l}] - [d^{m1}_{l}H^{m0,m1+1}_{l} - d^{m1-1}_{l}H^{m0,m1-1}_{l}] = 0 ;
+% bsxfun(@times,H__(:),sparse_link__) \cdot d_ = 0_ ;
+% Verdict: looks as though it is full rank? Unsure how to fix. ;
+%%%%%%%%;
+d0U_ = cell(1+l_max,1);
+for l_val=0:l_max-1;
+d0U_{1+l_val} = zeros(1+2*l_val,1+2*l_val);
+for m_val=-l_val:+l_val;
+d0U_{1+l_val}(1+l_val+m_val,:) = d0V_{1+l_val}(1+l_val+m_val,:)*sqrt(2*(l_val+abs(m_val)) + 1);
+end;%for m_val=-l_val:+l_val;
+end;%for l_val=0:l_max-1;  
+%%%%;
+l_val = 10; tmp_n_m = 1+2*l_val;
+nl=0;
+index_H0_=[];
+index_H1_=[];
+index_d_ = [];
+sgn_ = [];
+for m0_val=-l_val:+l_val;
+for m1_val=-l_val:+l_val;
+%%%%;
+if (abs(m0_val+1)<=l_val); 
+index_H0_(1+nl) = l_val+(m0_val+1);
+index_H1_(1+nl) = l_val+(m1_val+0);
+index_d_(1+nl) = l_val+(m0_val+0);
+sgn_(1+nl) = +1;
+nl=nl+1;
+end;%if (abs(m0_val+1)<=l_val); 
+%%%%;
+if (abs(m0_val-1)<=l_val); 
+index_H0_(1+nl) = l_val+(m0_val-1);
+index_H1_(1+nl) = l_val+(m1_val+0);
+index_d_(1+nl) = l_val+(m0_val-1);
+sgn_(1+nl) = -1;
+nl=nl+1;
+end;%if (abs(m0_val+1)<=l_val); 
+%%%%;
+if (abs(m1_val+1)<=l_val); 
+index_H0_(1+nl) = l_val+(m0_val+0);
+index_H1_(1+nl) = l_val+(m1_val+1);
+index_d_(1+nl) = l_val+(m1_val+0);
+sgn_(1+nl) = -1;
+nl=nl+1;
+end;%if (abs(m1_val+1)<=l_val); 
+%%%%;
+if (abs(m1_val-1)<=l_val); 
+index_H0_(1+nl) = l_val+(m0_val+0);
+index_H1_(1+nl) = l_val+(m1_val-1);
+index_d_(1+nl) = l_val+(m1_val-1);
+sgn_(1+nl) = +1;
+nl=nl+1;
+end;%if (abs(m1_val-1)<=l_val); 
+%%%%;
+end;%for m1_val=-l_val:+l_val;
+end;%for m0_val=-l_val:+l_val;
+index_H_ = index_H0_ + index_H1_*tmp_n_m;
+sparse_link__ = sparse(1+index_H_,1+index_d_,sgn_,tmp_n_m^2,tmp_n_m);
+%%%%;
+tmp_U__ = d0U_{1+l_val};
+D__ = bsxfun(@times,reshape(tmp_U__,[tmp_n_m^2,1]),sparse_link__);
+rank(full(D__)),;
+
+
+%%%%%%%%;
+% Trying to determine recursion in Guraimov and Duraiswami 2014.
+% See wignerd_c.m. ;
+% d^{m0}_{l}H^{m0+1,m1}_{l} - d^{m0-1}_{l}H^{m0-1,m1}_{l} = d^{m1}_{l}H^{m0,m1+1}_{l} - d^{m1-1}_{l}H^{m0,m1-1}_{l} ;
+%%%%%%%%;
+d0U_ = cell(1+l_max,1);
+for l_val=0:l_max-1;
+d0U_{1+l_val} = zeros(1+2*l_val,1+2*l_val);
+for m_val=-l_val:+l_val;
+d0U_{1+l_val}(1+l_val+m_val,:) = d0V_{1+l_val}(1+l_val+m_val,:)*sqrt(2*(l_val+abs(m_val)) + 1);
+end;%for m_val=-l_val:+l_val;
+end;%for l_val=0:l_max-1;  
+%%%%%%%%;
+nf=0;
+l_val = 10; tmp_n_m = 1+2*l_val;
+tmp_U__ = d0U_{1+l_val};
+tmp_d_ = d_lm__(1+l_val,1+l_max+[-l_val:+l_val]);
+tmp_D0__ = ...
++bsxfun(@times,reshape(circshift(tmp_d_,+1),[tmp_n_m,1]),circshift(tmp_U__,+1,1)) ...
+-bsxfun(@times,reshape(circshift(tmp_d_,-0),[tmp_n_m,1]),circshift(tmp_U__,-1,1)) ...
+;
+tmp_D1__ = ...
++bsxfun(@times,reshape(circshift(tmp_d_,+1),[1,tmp_n_m]),circshift(tmp_U__,+1,2)) ...
+-bsxfun(@times,reshape(circshift(tmp_d_,-0),[1,tmp_n_m]),circshift(tmp_U__,-1,2)) ...
+;
+figure(1+nf);nf=nf+1;clf;figmed;
+subplot(1,3,1); imagesc(tmp_D0__,[-1,1]); axis image; axisnotick; fig80s; title('tmp_D0__','Interpreter','none'); colorbar;
+subplot(1,3,2); imagesc(tmp_D1__,[-1,1]); axis image; axisnotick; fig80s; title('tmp_D1__','Interpreter','none'); colorbar;
+subplot(1,3,3); imagesc(abs(tmp_D1__)-abs(tmp_D0__),[-1,1]); axis image; axisnotick; fig80s; title('diff','Interpreter','none'); colorbar;
+%%%%%%%%;
+disp('returning');return;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+
+%%%%%%%%;
 % Now we try and set up a template-operator ;
 % for a collection of azimu_b associated with a single polar_a. ;
 %%%%%%%%;
