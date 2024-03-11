@@ -1,12 +1,16 @@
 function ...
 [ ...
  d0W_ ...
+,V_lmm___ ...
+,L_lm__ ...
 ,d1W_ ...
 ,d2W_ ...
 ] = ...
 wignerd_c( ...
  n_l ...
 ,beta ...
+,V_lmm___ ...
+,L_lm__ ...
 ) ;
 % Generates wigner-d matrices up to n_l ;
 % See Gumerov and Duraiswami 2014. ; %<-- I could not get this to work. ;
@@ -70,7 +74,9 @@ beta=pi/6;
 % Note that the discrepancy is larger than 1e-6 at nl==88. ;
 %%%%%%%%;
 n_l=88;
-tic; W1_ = wignerd_c(n_l,beta);     disp(sprintf(' %% wignerd_c    : %0.2f seconds',toc));
+tic; W0_ = wignerd_b(n_l,beta); disp(sprintf(' %% wignerd_b : %0.2f seconds',toc));
+tic; [W1_,V_lmm___,L_lm__] = wignerd_c(n_l,beta); disp(sprintf(' %% wignerd_c (not precomputation): %0.2f seconds',toc));
+tic; [W1_] = wignerd_c(n_l,beta,V_lmm___,L_lm__); disp(sprintf(' %% wignerd_c (yes precomputation): %0.2f seconds',toc));
 tic; W2_ = wignerd_lsq_b(n_l,beta); disp(sprintf(' %% wignerd_lsq_b: %0.2f seconds',toc));  
 tmp_fnorm_numerator = 0;
 tmp_fnorm_denomator = 0;
@@ -98,9 +104,9 @@ if (verbose>0); disp(sprintf(' %% %% %% %% %% %% %% %% ')); end;
 if (verbose>0); disp(sprintf(' %% Now testing first-derivative: ')); end;
 if (verbose>0); disp(sprintf(' %% %% %% %% %% %% %% %% ')); end;
 n_l = 88; beta = pi/6; da = pi*1e-6;
-[d0W_mid_,d1W_mid_,d2W_mid_] = wignerd_c(n_l,beta+0*da);
-[d0W_pos_] = wignerd_c(n_l,beta+1*da);
-[d0W_neg_] = wignerd_c(n_l,beta-1*da);
+[d0W_mid_,V_lmm___,L_lm__,d1W_mid_,d2W_mid_] = wignerd_c(n_l,beta+0*da);
+[d0W_pos_] = wignerd_c(n_l,beta+1*da,V_lmm___,L_lm__);
+[d0W_neg_] = wignerd_c(n_l,beta-1*da,V_lmm___,L_lm__);
 d1W_dif_ = cell(1+n_l,1);
 tmp_fnorm_numerator = 0;
 tmp_fnorm_denomator = 0;
@@ -130,13 +136,17 @@ disp('returning'); return;
 end;%if nargin<1;
 %%%%%%%%;
 
+verbose=0;
+
 na=0;
 if (nargin<1+na); n_l = []; end; na=na+1;
 if (nargin<1+na); beta = []; end; na=na+1;
+if (nargin<1+na); V_lmm___ = []; end; na=na+1;
+if (nargin<1+na); L_lm__ = []; end; na=na+1;
 
 flag_d0 = 1;
-flag_d1 = (nargout>=2);
-flag_d2 = (nargout>=3);
+flag_d1 = (nargout>=4);
+flag_d2 = (nargout>=5);
 
 % n_l = 10; beta = pi/6; flag_d0 = 1; flag_d0=1; flag_d1 = 0; flag_d2 = 0; d0V_ = wignerd_b(n_l,beta);
 
@@ -144,6 +154,23 @@ l_max = n_l;
 l_val_ = transpose(0:l_max);
 m_val_ = transpose(0:l_max);
 m_max_ = transpose(-l_max:+l_max);
+
+flag_precomputation = isempty(V_lmm___) | isempty(V_lmm___);
+if flag_precomputation;
+if (verbose>-1); disp(sprintf(' %% flag_precomputation: %d l_max %d',flag_precomputation,l_max)); end;
+V_lmm___ = cell(1+l_max,1);
+L_lm__ = cell(1+l_max,1);
+for l_val=1:l_max;
+m_val_ = transpose([-l_val:+l_val]);
+n_m_val = numel(m_val_);
+X_ = sqrt( (l_val + m_val_) .* (1 + l_val - m_val_) ); 
+S__ = spdiags([-X_ , +flip(X_)],[+1,-1],n_m_val,n_m_val);
+[V_mm__,L__] = eigs(S__,n_m_val); L_m_ = diag(L__);
+V_lmm___{1+l_val} = V_mm__;
+L_lm__{1+l_val} = L_m_;
+clear V_mm__ L_m_ L__ S__ X_ ;
+end;%for l_val=1:l_max;
+end;%if flag_precomputation;
 
 if (flag_d0); d0W_ = cell(1+l_max,1); d0W_{1+0} = [1]; end;
 if (flag_d1); d1W_ = cell(1+l_max,1); d1W_{1+0} = [0]; end;
@@ -153,32 +180,31 @@ for l_val=1:l_max;
 m_val_ = transpose([-l_val:+l_val]);
 n_m_val = numel(m_val_);
 sgn_ = (-1).^m_val_.*(m_val_>=0) + (+1).*(m_val_< 0);
-X_ = sqrt( (l_val + m_val_) .* (1 + l_val - m_val_) ); 
-S__ = spdiags([-X_ , +flip(X_)],[+1,-1],n_m_val,n_m_val);
-[V__,L__] = eigs(S__,n_m_val); L_ = diag(L__);
+V_mm__ = V_lmm___{1+l_val};
+L_m_ = L_lm__{1+l_val};
 %%%%;
 if (flag_d0);
-tmp_d0W__ = V__ * bsxfun(@times,reshape((+L_/2).^0.*exp(+L_*beta/2),[n_m_val,1]),ctranspose(V__));
+tmp_d0W__ = V_mm__ * bsxfun(@times,reshape((+L_m_/2).^0.*exp(+L_m_*beta/2),[n_m_val,1]),ctranspose(V_mm__));
 tmp_d0W__ = tmp_d0W__.*(sgn_*transpose(sgn_));
 d0W_{1+l_val} = tmp_d0W__;
 clear tmp_d0W__;
 end;%if (flag_d0);
 %%%%;
 if (flag_d1);
-tmp_d1W__ = V__ * bsxfun(@times,reshape((+L_/2).^1.*exp(+L_*beta/2),[n_m_val,1]),ctranspose(V__));
+tmp_d1W__ = V_mm__ * bsxfun(@times,reshape((+L_m_/2).^1.*exp(+L_m_*beta/2),[n_m_val,1]),ctranspose(V_mm__));
 tmp_d1W__ = tmp_d1W__.*(sgn_*transpose(sgn_));
 d1W_{1+l_val} = tmp_d1W__;
 clear tmp_d1W__;
 end;%if (flag_d1);
 %%%%;
 if (flag_d2);
-tmp_d2W__ = V__ * bsxfun(@times,reshape((+L_/2).^2.*exp(+L_*beta/2),[n_m_val,1]),ctranspose(V__));
+tmp_d2W__ = V_mm__ * bsxfun(@times,reshape((+L_m_/2).^2.*exp(+L_m_*beta/2),[n_m_val,1]),ctranspose(V_mm__));
 tmp_d2W__ = tmp_d2W__.*(sgn_*transpose(sgn_));
 d2W_{1+l_val} = tmp_d2W__;
 clear tmp_d2W__;
 end;%if (flag_d2);
 %%%%;
-clear m_val n_m_val sgn_ X_ S__ V__ L__ L_ ;
+clear m_val n_m_val sgn_ V_mm__ L_m_ ;
 end;%for l_val=1:l_max;
 %%%%%%%%;
 
