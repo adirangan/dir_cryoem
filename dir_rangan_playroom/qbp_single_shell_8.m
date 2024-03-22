@@ -4,7 +4,7 @@ function ...
 ,a_k_Y_lm_ ...
 ,n_quad_from_data_q_ ...
 ] = ...
-qbp_single_shell_7( ...
+qbp_single_shell_8( ...
  parameter ...
 ,l_max ...
 ,n_w ...
@@ -16,6 +16,11 @@ qbp_single_shell_7( ...
 ,euler_azimu_b_ ...
 ,euler_gamma_z_ ...
 );
+%%%%%%%%;
+% fix get_ylm__ ; %<-- done. ;
+% fix knnsearch__ ; %<-- done. ;
+% allow precomputation ;
+% test using nonuniform mu(tau) ;
 %%%%%%%%;
 % Applies quadrature-back-propagation to solve for a single shell of a_k_Y_. ;
 % Associates CTF_k_p_wC__(:,1+index_nCTF_from_nM_(1+nM)) with image M_k_p_wM__(:,1+nM);
@@ -38,13 +43,13 @@ qbp_single_shell_7( ...
 % a_k_Y_lm_: complex array of size n_lm. output functions in k_Y_ format. ;
 %%%%%%%%;
 
-str_thisfunction = 'qbp_single_shell_7';
+str_thisfunction = 'qbp_single_shell_8';
 
 %%%%%%%%;
 if (nargin<1);
 %%%%%%%%;
 flag_verbose=1; nf=0;
-if (flag_verbose); disp(sprintf(' %% testing %s',str_thisfunction)); end;
+if (flag_verbose>0); disp(sprintf(' %% testing %s',str_thisfunction)); end;
 k_p_r_max = 48.0/(2*pi); k_eq_d = 1.0/(2*pi);
 n_k_p_r = 1; k_p_r_1 = 1.0; k_p_r_ = k_p_r_1;
 [ ...
@@ -149,7 +154,7 @@ convert_k_p_to_spharm_4( ...
 ,index_nu_n_k_per_shell_from_nk_p_r_ ...
 ,index_k_per_shell_uka__ ...
 );
-if (flag_verbose); disp(sprintf(' %% a_k_Y_form_ vs a_k_Y_quad_: %0.16f',fnorm(a_k_Y_form_-a_k_Y_quad_)/fnorm(a_k_Y_form_))); end;
+if (flag_verbose>0); disp(sprintf(' %% a_k_Y_form_ vs a_k_Y_quad_: %0.16f',fnorm(a_k_Y_form_-a_k_Y_quad_)/fnorm(a_k_Y_form_))); end;
 %%%%;
 n_w = 2*2*l_max;
 viewing_k_eq_d = 0.5*1.0/k_p_r_max;
@@ -171,7 +176,7 @@ pm_template_2( ...
 ,n_w ...
 );
 n_S = n_viewing_S;
-if (flag_verbose); disp(sprintf(' %% n_w %d, viewing_k_eq_d %0.6f, n_S %d',n_w,viewing_k_eq_d,n_S)); end;
+if (flag_verbose>0); disp(sprintf(' %% n_w %d, viewing_k_eq_d %0.6f, n_S %d',n_w,viewing_k_eq_d,n_S)); end;
 S_k_p_wS__ = reshape(S_k_p_wS__,[n_w,n_S]);
 %%%%;
 parameter_qbp = struct('type','parameter');
@@ -181,7 +186,7 @@ parameter_qbp.flag_verbose = flag_verbose;
 ,a_k_Y_0qbp_ ...
 ,n_quad_from_data_q_ ...
 ] = ...
-qbp_single_shell_7( ...
+qbp_single_shell_8( ...
  parameter_qbp ...
 ,l_max ...
 ,n_w ...
@@ -279,6 +284,10 @@ if (~isfield(parameter,'tolerance_master')); parameter.tolerance_master = 1e-2; 
 tolerance_master = parameter.tolerance_master;
 if (~isfield(parameter,'qbp_deconvolution_factor_max')); parameter.qbp_deconvolution_factor_max = 8; end; %<-- parameter_bookmark. ;
 qbp_deconvolution_factor_max = parameter.qbp_deconvolution_factor_max;
+if (~isfield(parameter,'flag_qbp_Ylm_1_vs_0')); parameter.flag_qbp_Ylm_1_vs_0 = 1; end; %<-- parameter_bookmark. ;
+flag_qbp_Ylm_1_vs_0 = parameter.flag_qbp_Ylm_1_vs_0;
+if (~isfield(parameter,'flag_qbp_knn_vs_box3d')); parameter.flag_qbp_knn_vs_box3d = 1; end; %<-- parameter_bookmark. ;
+flag_qbp_knn_vs_box3d = parameter.flag_qbp_knn_vs_box3d;
 %%%%%%%%;
 
 if isempty(euler_polar_a_); euler_polar_a_ = zeros(n_M,1); end;
@@ -314,11 +323,12 @@ quad_k_eq_d = 0.5*sqrt(4*pi./max(1,n_lm)); %<-- older setting from qbp_6. consid
 sigma_use = min(sigma_max,quad_k_eq_d); %<-- ensure maximum amplification. ;
 t_diffuse = (sigma_use^2)/2;
 n_ring = ceil(sqrt(max(1,-log(tolerance_master)*(2*sigma_use^2)/quad_k_eq_d^2))); %<-- number of nearest neighbors requested for each point. ;
-d2_max = (sqrt(3)/2 * n_ring*quad_k_eq_d)^2;
+d1_max = sqrt(3)/2 * n_ring*quad_k_eq_d ;
+d2_max = d1_max^2;
 epsilon_check = exp(-d2_max/(2*sigma_use^2));
 assert(epsilon_check<=tolerance_master);
 n_nearest = 1+6*n_ring*(n_ring+1)/2; %<-- rough number of neighbors on hexagonal grid (i.e., 1+6+12+18+...). ;
-if (flag_verbose); disp(sprintf(' %% quad_k_eq_d %0.6f n_nearest_k %d',quad_k_eq_d,n_nearest)); end;
+if (flag_verbose>0); disp(sprintf(' %% d1_max %0.6f d2_max %0.6f quad_k_eq_d %0.6f n_nearest_k %d',d1_max,d2_max,quad_k_eq_d,n_nearest)); end;
 %%%%;
 tmp_t = tic();
 [ ...
@@ -329,9 +339,9 @@ tmp_t = tic();
 ,quad_k_c_0_all_ ...
 ,quad_k_c_1_all_ ...
 ,quad_k_c_2_all_ ...
-,~ ...
-,~ ...
-,~ ...
+,quad_n_polar_a ...
+,quad_polar_a_ ...
+,quad_n_azimu_b_ ...
 ] = ...
 sample_shell_5( ...
  1.0 ...
@@ -339,12 +349,17 @@ sample_shell_5( ...
 ,'L' ...
 ) ;
 quad_k_c_qd__ = [ quad_k_c_0_all_ , quad_k_c_1_all_ , quad_k_c_2_all_ ];
-tmp_t = toc(tmp_t); if (flag_verbose); disp(sprintf(' %% sample_shell_5 (should be a precomputation): %0.2fs',tmp_t)); end;
-if (flag_verbose); disp(sprintf(' %% quad_n_all: %.d',quad_n_all)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% sample_shell_5 (should be a precomputation): %0.2fs',tmp_t)); end;
+if (flag_verbose>0); disp(sprintf(' %% quad_n_all: %.d',quad_n_all)); end;
 %%%%;
 tmp_t = tic();
-Ylm__ = get_Ylm__(1+l_max,0:l_max,quad_n_all,quad_azimu_b_all_,quad_polar_a_all_);
-tmp_t = toc(tmp_t); if (flag_verbose); disp(sprintf(' %% get_Ylm__ (should be a precomputation): %0.2fs',tmp_t)); end;
+if flag_qbp_Ylm_1_vs_0==0;
+Ylm__ = get_Ylm__(1+l_max,0:l_max,quad_n_all,quad_azimu_b_all_,quad_polar_a_all_); %<-- potentially unstable for l_max>=88. ;
+end;%if flag_qbp_Ylm_1_vs_0==0;
+if flag_qbp_Ylm_1_vs_0==1;
+Ylm__ = get_Ylm__1(1+l_max,0:l_max,quad_n_all,quad_azimu_b_all_,quad_polar_a_all_); %<-- more stable. ;
+end;%if flag_qbp_Ylm_1_vs_0==1;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% get_Ylm__1 (should be a precomputation): %0.2fs',tmp_t)); end;
 tmp_t = tic();
 Ylm_yq__ = zeros(n_lm,quad_n_all);
 Y_l_val_ = zeros(n_lm,1);
@@ -360,7 +375,7 @@ end;%for m_val=-l_val:+l_val;
 end;%for l_val=0:l_max;
 Ylm_weight_yq__ = Ylm_yq__ * sparse(1:quad_n_all,1:quad_n_all,quad_weight_all_,quad_n_all,quad_n_all);
 deconvolve_lm_ = exp(+(Y_l_val_).*(1+Y_l_val_).*t_diffuse);
-tmp_t = toc(tmp_t); if (flag_verbose); disp(sprintf(' %% Ylm_weight_yq__ (should be a precomputation): %0.2fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% Ylm_weight_yq__ (should be a precomputation): %0.2fs',tmp_t)); end;
 %%%%;
 tmp_t = tic();
 [ ...
@@ -378,20 +393,45 @@ cg_rhs_1( ...
 ,+euler_gamma_z_ ...
 );
 data_k_c_wMd__ = [ data_k_c_0__(:) , data_k_c_1__(:) , data_k_c_2__(:) ];
-tmp_t = toc(tmp_t); if (flag_verbose); disp(sprintf(' %% cg_rhs_1: %0.2fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% cg_rhs_1: %0.2fs',tmp_t)); end;
 %%%%;
+if flag_qbp_knn_vs_box3d==0;
+if (flag_verbose>0); disp(sprintf(' %% quad_n_all %d n_w*n_M %d',quad_n_all,n_w*n_M)); end;
+return;
+tmp_t = tic();
+d_req = d1_max;
+[ ...
+ index_quad_from_data_wMn__ ...
+,n_index_quad_from_data_wM_ ...
+,d2_quad_from_data_wMn__ ...
+] = ...
+box3d_S2_search_0( ...
+ quad_n_all ...
+,quad_k_c_qd__ ...
+,n_w ...
+,n_M ...
+,data_k_c_wMd__ ...
+,d_req ...
+);
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% box3d_S2_search_0 (should be a precomputation): %0.2fs',tmp_t)); end;
+end;%if flag_qbp_knn_vs_box3d==0;
+%%%%;
+if flag_qbp_knn_vs_box3d==1;
 tmp_t = tic();
 [ij_quad_from_data_wMn__,d1_quad_from_data_wMn__] = knnsearch(quad_k_c_qd__,data_k_c_wMd__,'K',n_nearest);
-tmp_t = toc(tmp_t); if (flag_verbose); disp(sprintf(' %% knnsearch (technically unnecessary): %0.2fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% knnsearch (technically unnecessary): %0.2fs',tmp_t)); end;
 tmp_t = tic();
 index_quad_from_data_wMn__ = ij_quad_from_data_wMn__ - 1;
-index_data_wMn__ = repmat(transpose(0:n_w*n_M-1),[1,n_nearest]);
 d2_quad_from_data_wMn__ = d1_quad_from_data_wMn__.^2;
+end;%if flag_qbp_knn_vs_box3d==1;
+%%%%;
+index_data_wMn__ = repmat(transpose(0:n_w*n_M-1),[1,n_nearest]);
 mollify_quad_from_data_wMn__ = 1/(2*pi)/sigma_use.^2 .* exp(-d2_quad_from_data_wMn__/(2*sigma_use^2));
-quad_from_data_qwM__ = sparse(1+index_quad_from_data_wMn__(:),1+index_data_wMn__(:),mollify_quad_from_data_wMn__(:),quad_n_all,n_w*n_M);
+tmp_index_ = efind(index_quad_from_data_wMn__>=0);
+quad_from_data_qwM__ = sparse(1+index_quad_from_data_wMn__(1+tmp_index_),1+index_data_wMn__(1+tmp_index_),mollify_quad_from_data_wMn__(1+tmp_index_),quad_n_all,n_w*n_M);
 n_quad_from_data_q_ = quad_from_data_qwM__*ones(n_w*n_M,1); %<-- effective number of data-points per quadrature-point. ;
 CTF2_k_p_q_ = quad_from_data_qwM__*abs(CTF_k_p_wM__(:)).^2;
-tmp_t = toc(tmp_t); if (flag_verbose); disp(sprintf(' %% quad_from_data_qwM__: %0.2fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% quad_from_data_qwM__: %0.2fs',tmp_t)); end;
 %%%%;
 tmp_t = tic();
 a_k_Y_lm_ = zeros(n_lm,1);
@@ -399,6 +439,6 @@ M_CTF_k_p_wM__ = M_k_p_wM__.*CTF_k_p_wM__;
 quad_from_data_M_CTF_k_p_normalized_q_ = (quad_from_data_qwM__ * M_CTF_k_p_wM__(:))./max(1e-12,CTF2_k_p_q_);
 a_k_Y_lm_ = conj(Ylm_weight_yq__)*quad_from_data_M_CTF_k_p_normalized_q_;
 a_k_Y_lm_ = a_k_Y_lm_.*deconvolve_lm_; %<-- deconvolve (i.e., unmollify). ;
-tmp_t = toc(tmp_t); if (flag_verbose); disp(sprintf(' %% a_k_Y_lm_: %0.2fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% a_k_Y_lm_: %0.2fs',tmp_t)); end;
 
 if (flag_verbose>0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;

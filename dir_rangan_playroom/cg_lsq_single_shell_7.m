@@ -36,6 +36,7 @@ cg_lsq_single_shell_7( ...
 % euler_polar_a_: real array of size n_M. polar_a used for each image ;
 % euler_azimu_b_: real array of size n_M. azimu_b used for each image ;
 % euler_gamma_z_: real array of size n_M. gamma_z used for each image ;
+% pcg_X0_: complex array of size n_lm. initialization for conjugate-gradiant in k_Y_ format. (optional). ;
 % ;
 % Output: ;
 % a_k_Y_lm_: complex array of size n_lm. output functions in k_Y_ format. ;

@@ -18,8 +18,8 @@ ylgndr_1( ...
 ,sqrt_rat3__ ...
 ,sqrt_rat4__ ...
 );
-
-% Note that this returns: ;
+%%%%%%%%;
+% This returns: ;
 % d0y_jlm___(1+nx,1+l_val,1+m_val) ; 
 % such that ;
 % y__(1+nx,1+l_val,1+m_val) == Y__(1+l_val,1+m_val)(x_(1+nx)), where: ;
@@ -29,6 +29,26 @@ ylgndr_1( ...
 % tmp_a2_ = factorial(l_val-abs(m_val_))./factorial(l_val+abs(m_val_));
 % tmp_a3_ = sqrt(tmp_a1*tmp_a2_);
 % Y__(1+l_val,:) = legendre(l_val,x,'unnorm').*tmp_a3_*sqrt(4*pi);
+%%%%%%%%;
+% Inputs: ;
+% l_max: integer maximum l_value. ;
+% x_: double array of size n_x. points to evaluate. ;
+% sqrt_2lp1_: double array of size (1+l_max), precomputation. (optional) ;
+% sqrt_2mp1_: double array of size (1+l_max), precomputation. (optional) ;
+% sqrt_rat0_: double array of size (1+l_max), precomputation. (optional) ;
+% sqrt_rat3__: double array of size (1+l_max,1+l_max), precomputation. (optional) ;
+% sqrt_rat4__: double array of size (1+l_max,1+l_max), precomputation. (optional) ;
+%%%%%%%%;
+% Outputs: ;
+% d0y_jlm___: double array of size (n_x,1+l_max,1+l_max). ;
+% sqrt_2lp1_: double array of size (1+l_max), precomputation. (optional) ;
+% sqrt_2mp1_: double array of size (1+l_max), precomputation. (optional) ;
+% sqrt_rat0_: double array of size (1+l_max), precomputation. (optional) ;
+% sqrt_rat3__: double array of size (1+l_max,1+l_max), precomputation. (optional) ;
+% sqrt_rat4__: double array of size (1+l_max,1+l_max), precomputation. (optional) ;
+% d1y_jlm___: double array of size (n_x,1+l_max,1+l_max). first-derivative with respect to x. ;
+% d2y_jlm___: double array of size (n_x,1+l_max,1+l_max). second-derivative with respect to x. ;
+%%%%%%%%;
 
 if (nargin<2);
 verbose=2; nf=0;
@@ -81,10 +101,6 @@ if (verbose>0);
 figure(1+nf);nf=nf+1;clf;figsml;
 plot(d2y_dif_jlm___(:),d2y_mid_jlm___(:),'.'); axis equal; grid on;
 end;%if (verbose>0);
-
-return;
-
-
 %%%%%%%%;
 % testing stability. ;
 %%%%%%%%;
