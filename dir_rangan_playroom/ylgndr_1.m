@@ -51,11 +51,11 @@ ylgndr_1( ...
 %%%%%%%%;
 
 if (nargin<2);
-verbose=2; nf=0;
+verbose=2; flag_disp=0; nf=0;
 if (verbose>0); disp(sprintf(' %% testing ylgndr_1')); end;
 l_max = 4; n_x = 25;
 x_ = transpose(2*rand(n_x,1)-1);
-tmp_y_fortran___ = ylgndr_1(l_max,x_);
+tmp_y_ylgndr___ = ylgndr_1(l_max,x_);
 tmp_Y_matlab___ = zeros(n_x,1+l_max,1+l_max);
 for l_val=0:l_max;
 m_val_ = transpose(0:l_val);
@@ -66,7 +66,30 @@ for nx=0:n_x-1;
 tmp_Y_matlab___(1+nx,1+l_val,1:(1+l_val)) = legendre(l_val,x_(1+nx),'unnorm').*tmp_a3_;
 end;%for nx=0:n_x-1;
 end;%for l_val=0:l_max;
-if (verbose>0); disp(sprintf(' %% l_max %d: tmp_y_fortran___ vs sqrt(4*pi)*tmp_Y_matlab___: %0.16f',l_max,fnorm(tmp_y_fortran___-sqrt(4*pi)*tmp_Y_matlab___)/fnorm(tmp_y_fortran___))); end;
+if (verbose>0); disp(sprintf(' %% l_max %d: tmp_y_ylgndr___ vs sqrt(4*pi)*tmp_Y_matlab___: %0.16f',l_max,fnorm(tmp_y_ylgndr___-sqrt(4*pi)*tmp_Y_matlab___)/fnorm(tmp_y_ylgndr___))); end;
+%%%%%%%%;
+% Matching to legendre-polynomial. ;
+%%%%%%%%;
+l_max=16; n_z = 1+1024; z_ = linspace(-1,+1,n_z); dz = 2/max(1,n_z-1);
+d0y_jlm___ = ylgndr_1(l_max,z_); d0y_jl0__ = d0y_jlm___(:,:,1+0);
+leg_jl0__ = zeros(n_z,1+l_max);
+for l_val=0:l_max;
+tmp_j_ = legendreP(l_val,z_);
+tmp_j2_ = abs(tmp_j_).^2;
+tmp_s = 0.5 * dz*(sum(tmp_j2_(2:end-1)) + 0.5*(tmp_j2_(1+0)+tmp_j2_(end)));
+tmp_j_ = tmp_j_./max(1e-12,sqrt(tmp_s));
+leg_jl0__(:,1+l_val) = tmp_j_;
+end;%for l_val=0:l_max;
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figmed;
+subplot(1,2,1);fig81s;
+imagesc(d0y_jl0__); axisnotick; 
+ylabel('z'); xlabel('degree'); title('d0y_jl0__','Interpreter','none');
+subplot(1,2,2);fig81s;
+imagesc(leg_jl0__); axisnotick; 
+ylabel('z'); xlabel('degree'); title('leg_jl0__','Interpreter','none');
+end;%if flag_disp;
+if (verbose>0); disp(sprintf(' %% leg_jl0__ vs d0y_jl0__: %0.16f',fnorm(leg_jl0__ - d0y_jl0__)/fnorm(leg_jl0__))); end;
 %%%%%%%%;
 % testing first-derivative. ;
 %%%%%%%%;
@@ -87,20 +110,20 @@ d0y_pos_jlm___ = ylgndr_1(l_max,x_+dx_);
 d0y_neg_jlm___ = ylgndr_1(l_max,x_-dx_);
 d1y_dif_jlm___ = bsxfun(@rdivide,d0y_pos_jlm___-d0y_neg_jlm___,reshape(2*dx_,[n_x,1,1]));
 if (verbose>0); disp(sprintf(' %% d1y_dif_jlm___ vs d1y_mid_jlm___: %0.16f',fnorm(d1y_dif_jlm___ - d1y_mid_jlm___)/fnorm(d1y_dif_jlm___))); end;
-if (verbose>0);
+if flag_disp;
 figure(1+nf);nf=nf+1;clf;figsml;
 plot(d1y_dif_jlm___(:),d1y_mid_jlm___(:),'.'); axis equal; grid on;
-end;%if (verbose>0);
+end;%if flag_disp;
 %%%%%%%%;
 % testing second-derivative. ;
 %%%%%%%%;
 if (verbose>0); disp(sprintf(' %% testing second-derivative')); end;
 d2y_dif_jlm___ = bsxfun(@rdivide,d0y_pos_jlm___ - 2*d0y_mid_jlm___ + d0y_neg_jlm___,reshape(dx_.^2,[n_x,1,1]));
 if (verbose>0); disp(sprintf(' %% d2y_dif_jlm___ vs d2y_mid_jlm___: %0.16f',fnorm(d2y_dif_jlm___ - d2y_mid_jlm___)/fnorm(d2y_dif_jlm___))); end;
-if (verbose>0);
+if flag_disp;
 figure(1+nf);nf=nf+1;clf;figsml;
 plot(d2y_dif_jlm___(:),d2y_mid_jlm___(:),'.'); axis equal; grid on;
-end;%if (verbose>0);
+end;%if flag_disp;
 %%%%%%%%;
 % testing stability. ;
 %%%%%%%%;
@@ -110,7 +133,7 @@ x_ = rand(n_x,1);
 %%%%;
 tmp_t = tic;
 [ ...
- tmp_y_fortran___ ...
+ tmp_y_ylgndr___ ...
 ,sqrt_2lp1_ ...
 ,sqrt_2mp1_ ...
 ,sqrt_rat0_ ...
@@ -121,11 +144,11 @@ ylgndr_1( ...
  l_max ...
 ,x_ ...
 );
-tmp_t = toc(tmp_t); if (verbose>0); disp(sprintf(' %% y_fortran___ (not precomputation) : %0.2fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (verbose>0); disp(sprintf(' %% y_ylgndr___ (not precomputation) : %0.2fs',tmp_t)); end;
 %%%%;
 tmp_t = tic;
 [ ...
- bkp_y_fortran___ ...
+ bkp_y_ylgndr___ ...
 ] = ...
 ylgndr_1( ...
  l_max ...
@@ -136,8 +159,8 @@ ylgndr_1( ...
 ,sqrt_rat3__ ...
 ,sqrt_rat4__ ...
 );
-tmp_t = toc(tmp_t); if (verbose>0); disp(sprintf(' %% y_fortran___ (yes precomputation) : %0.2fs',tmp_t)); end;
-assert(fnorm(tmp_y_fortran___-bkp_y_fortran___)<1e-12);
+tmp_t = toc(tmp_t); if (verbose>0); disp(sprintf(' %% y_ylgndr___ (yes precomputation) : %0.2fs',tmp_t)); end;
+assert(fnorm(tmp_y_ylgndr___-bkp_y_ylgndr___)<1e-12);
 %%%%;
 tmp_t = tic;
 tmp_Y_matlab___ = zeros(n_x,1+l_max,1+l_max);
@@ -150,20 +173,20 @@ tmp_Y_matlab___(:,1+l_val,1:(1+l_val)) = reshape(transpose(legendre(l_val,x_,'un
 end;%for l_val=0:l_max;
 tmp_t = toc(tmp_t); if (verbose>0); disp(sprintf(' %% Y_matlab___: %0.2fs',tmp_t)); end;
 %%%%;
-if (verbose>0); disp(sprintf(' %% l_max %d: tmp_y_fortran___ vs sqrt(4*pi)*tmp_Y_matlab___: %0.16f',l_max,fnorm(tmp_y_fortran___-sqrt(4*pi)*tmp_Y_matlab___)/fnorm(tmp_y_fortran___))); end;
-if (verbose>1);
+if (verbose>0); disp(sprintf(' %% l_max %d: tmp_y_ylgndr___ vs sqrt(4*pi)*tmp_Y_matlab___: %0.16f',l_max,fnorm(tmp_y_ylgndr___-sqrt(4*pi)*tmp_Y_matlab___)/fnorm(tmp_y_ylgndr___))); end;
+if (flag_disp>-1);
 figure(1+nf);nf=nf+1;figsml;fig81s;
 llim_ = [-16,0];
 fontsize_use = 12;
-imagesc(squeeze(mean(log10(abs(tmp_y_fortran___-sqrt(4*pi)*tmp_Y_matlab___)),1)),llim_);
+imagesc(squeeze(mean(log10(abs(tmp_y_ylgndr___-sqrt(4*pi)*tmp_Y_matlab___)),1)),llim_);
 xlabel('m_val','Interpreter','none'); xtickangle(90);
 set(gca,'XTick',1:16:1+l_max,'XTickLabel',0:16:l_max);
 ylabel('l_val','Interpreter','none');
 set(gca,'YTick',1:16:1+l_max,'YTickLabel',0:16:l_max);
-title('error=log10(abs(fortran-matlab))','Interpreter','none');
+title('error=log10(abs(ylgndr-matlab))','Interpreter','none');
 set(gca,'FontSize',fontsize_use);
 c_ = colorbar;
-end;%if (verbose>1);
+end;%if (flag_disp>-1);
 disp('returning'); return;
 end;%if (nargin<2);
 

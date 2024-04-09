@@ -44,6 +44,7 @@ rng(1);
 %%%%%%%%;
 flag_check=1;
 if flag_check;
+flag_disp = 1; nf=0;
 disp(sprintf(' %% testing %s',str_thisfunction));
 n_azimu_b = 128; n_polar_a = 65;
 azimu_b_ = transpose(linspace(0,2*pi,n_azimu_b+1)); azimu_b_ = azimu_b_(1:end-1);
@@ -81,7 +82,25 @@ l_max = 4;
 [Ylm_grid__] = get_Ylm__(1+l_max,0:l_max,n_grid,azimu_b_ba__,polar_a_ba__);
 [Ylm_scat__] = get_Ylm__(1+l_max,0:l_max,n_scat,azimu_b_scat_,polar_a_scat_);
 for n_order=[3,5,7];
-scatter_from_tensor_sba__ = shell_k_p_scatter_from_tensor_interpolate_n_5(n_order,n_azimu_b,n_polar_a,polar_a_,n_scat,azimu_b_scat_,polar_a_scat_,flag_polar_a_ascend_vs_descend);
+scatter_from_tensor_sba__ = ...
+shell_k_p_scatter_from_tensor_interpolate_n_5( ...
+ n_order ...
+,n_azimu_b ...
+,n_polar_a ...
+,polar_a_ ...
+,n_scat ...
+,azimu_b_scat_ ...
+,polar_a_scat_ ...
+,flag_polar_a_ascend_vs_descend ...
+);
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figsml;
+slim_ = max(abs(scatter_from_tensor_sba__),[],'all');
+tmp_index_ = efind(scatter_from_tensor_sba__);
+plot(sort(scatter_from_tensor_sba__(1+tmp_index_),'descend'),'.');
+xlabel('nodes sorted by weight'); ylabel('weight');
+title(sprintf('n_order %d',n_order));
+end;%if flag_disp;
 Ylm_pint__ = cell(1+l_max,1);
 for l_val=0:l_max;
 for m_val=-l_val:+l_val;
