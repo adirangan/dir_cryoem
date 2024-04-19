@@ -35,8 +35,6 @@ subplot(1,2,2); plot(z_,log(abs(leg_zl__*f_)),'o');
 % Note that different spatial-kernels correspond to different deconvolution-factors. ;
 %%%%%%%%;
 
-
-
 %%%%%%%%;
 % Now working on qbp_single_shell_9.m. ;
 %%%%%%%%;
@@ -381,18 +379,23 @@ title('kernel_crit_k_p_quad_','Interpreter','none');
 end;%if flag_disp;
 %%%%;
 %%%%%%%%;
-% Now we note that kernel_crit is *not* actually a gaussian (although it should be close). ;
+% Now we note that kernel_crit is *not* actually a gaussian (although it should have the same mode and roughly the same nearby decay). ;
 %%%%%%%%;
 kernel_crit_k_p_gaus_ = exp(-((k_c_0_shell_-0).^2 + (k_c_1_shell_-0).^2 + (k_c_2_shell_-1).^2)/(2*sigma_kernel_crit^2));
 tmp_z = sum(kernel_crit_k_p_gaus_.*weight_shell_)/(4*pi);
 kernel_crit_k_p_gaus_ = kernel_crit_k_p_gaus_/max(1e-12,tmp_z);
 tmp_z = sum(kernel_crit_k_p_gaus_.*weight_shell_)/(4*pi);
 assert(abs(tmp_z-1.0d0)<1e-6);
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figsml;
 plot(real(kernel_crit_k_p_quad_)-real(kernel_crit_k_p_gaus_),'.');
-xlabel(real(kernel_crit_k_p_quad_),'Interpreter','none');
-ylabel(real(kernel_crit_k_p_gaus_),'Interpreter','none');
+xlabel('real(kernel_crit_k_p_quad_)','Interpreter','none');
+ylabel('real(kernel_crit_k_p_gaus_)','Interpreter','none');
 title('difference between kernel_crit and gaussian','Interpreter','none');
+end;%if flag_disp;
 %%%%%%%%;
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figmed;
 %kernel_crit_lim_ = [0,prctile(kernel_crit_k_p_quad_,99.5)];
 kernel_crit_lim_ = [-0.1,+0.1];
 subplot(1,2,1);
@@ -419,26 +422,502 @@ imagesc_polar_a_azimu_b_0( ...
 ,flag_2d_vs_3d ...
 ,k_p_r_max ...
 );
+end;%if flag_disp;
+%%%%%%%%;
+
 %%%%%%%%;
 % Now try and form a kernel with a small support. ;
+% Here we use a l2-norm constraint on the coefficient-vector, ;
+% resulting in an eigenproblem. ;
 %%%%%%%%;
-L_d_ = cell(1+l_max,1);
+chebleg_d_ = cell(1+l_max,1);
 for l_val=0:l_max;
 tmp_c_ = [zeros(l_val,1);1];
-L_d_{1+l_val} = chebfun(leg2cheb(tmp_c_,'norm'),'coeffs');
+chebleg_d_{1+l_val} = chebfun(leg2cheb(tmp_c_,'norm'),'coeffs');
 end;%for l_val=0:l_max;
+%%%%;
+[leg_node_,leg_weight_] = legpts(1+l_max,[-1,+1]); %<-- This is a gaussian-quadrature, which is accurate for polynomials up to order 2*(1+l_max)-1. ;
+[che_node_,che_weight_] = chebpts(1+l_max,[-1,+1]); %<-- This is not quite a gaussian-quadrature, and will not be accurate for polynomials of order 2*(1+l_max)-1. ;
+chebleg_int_dd__ = zeros(1+l_max,1+l_max);
+chebleg_leg_dd__ = zeros(1+l_max,1+l_max);
+chebleg_che_dd__ = zeros(1+l_max,1+l_max);
+for l_val_0=0:l_max;
+for l_val_1=0:l_max;
+chebleg_int_dd__(1+l_val_0,1+l_val_1) = sum(chebleg_d_{1+l_val_0}*chebleg_d_{1+l_val_1});
+chebleg_leg_dd__(1+l_val_0,1+l_val_1) = leg_weight_*(chebleg_d_{1+l_val_0}(leg_node_).*chebleg_d_{1+l_val_1}(leg_node_));
+chebleg_che_dd__(1+l_val_0,1+l_val_1) = che_weight_*(chebleg_d_{1+l_val_0}(che_node_).*chebleg_d_{1+l_val_1}(che_node_));
+end;%for l_val_1=0:l_max;
+end;%for l_val_0=0:l_max;
+if (flag_verbose>0); disp(sprintf(' %% chebleg_leg_dd__ vs chebleg_int_dd__: %0.16f %<-- should be <1e-6 ',fnorm(chebleg_leg_dd__-chebleg_int_dd__)/fnorm(chebleg_leg_dd__))); end;
+if (flag_verbose>0); disp(sprintf(' %% chebleg_che_dd__ vs chebleg_int_dd__: %0.16f %<-- should be large',fnorm(chebleg_che_dd__-chebleg_int_dd__)/fnorm(chebleg_che_dd__))); end;
+%imagesc(chebleg_leg_dd__-chebleg_int_dd__);colorbar;
+%%%%;
 if flag_disp;
 figure(1+nf);nf=nf+1;clf;figmed;
 c_use__ = colormap_81s; n_c_use = size(c_use__,1);
 n_z = 1+1024; z_ = transpose(linspace(-1,+1,n_z));
 hold on;
 for l_val=0:l_max;
-nc_use = max(0,min(nc_use-1,floor(nc_use*l_val/l_max)));
-plot(z_,L_d_{1+l_val}(z_),'-','Color',c_use__(1+nc_use,:));
+nc_use = max(0,min(n_c_use-1,floor(n_c_use*l_val/l_max)));
+plot(z_,chebleg_d_{1+l_val}(z_),'-','Color',c_use__(1+nc_use,:));
+plot(leg_node_,chebleg_d_{1+l_val}(leg_node_),':','Color',c_use__(1+nc_use,:));
 end;%for l_val=0:l_max;
 hold off;
 xlabel('z'); ylabel('P(z)'); title('legendre polynomials'); grid on;
 end;%if flag_disp;
+%%%%;
+% Note that the distance 3*sigma_kernel_crit (i.e., 3 standard-deviations of gaussian) ;
+% corresponds to an angle of polar_a = 3*sigma_kernel_crit, implying a z-value of cos(polar_a). ;
+%%%%;
+polar_a_kernel_crit = 3*sigma_kernel_crit;
+n_a_use = 1+2*l_max + 16; %<-- Need to integrate polynomials of degree l_max^2. ;
+[a_drop_node_,a_drop_weight_] = legpts(n_a_use,[polar_a_kernel_crit,pi]);
+[a_keep_node_,a_keep_weight_] = legpts(n_a_use,[0 ,polar_a_kernel_crit]);
+leg_drop_da__ = zeros(1+l_max,n_a_use);
+for l_val=0:l_max;
+leg_drop_da__(1+l_val,:) = chebleg_d_{1+l_val}(cos(a_drop_node_));
+end;%for l_val=0:l_max;
+%%%%;
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figmed;
+c_use__ = colormap_81s; n_c_use = size(c_use__,1);
+hold on;
+for l_val=0:l_max;
+nc_use = max(0,min(n_c_use-1,floor(n_c_use*l_val/l_max)));
+plot(a_drop_node_,leg_drop_da__(1+l_val,:),'-','Color',c_use__(1+nc_use,:));
+end;%for l_val=0:l_max;
+hold off;
+xlabel('a'); ylabel('P(cos(a))'); title('legendre polynomials'); grid on;
+end;%if flag_disp;
+%%%%;
+% Note leg_drop_da__(1+l_val,1+na) evaluates legendre-polynomial of degree l_val at a_drop_node_(1+na). ;
+% The square-integral: ;
+% \int_{polar_a = 3*sigma_kernel_crit}^{1*pi} \int_{azimu_b = 0}^{2*pi} [\sum_{d} c_{d} P_{d}(cos(polar_a))]^{2} * sin(polar_a) dpolar_a dazimu_b ;
+% = 2*pi * \sum_{na} [\sum_{d0} c_{d0} P_{d0}(cos(a_drop_node_(1+na)))]*[\sum_{d1} c_{d1} P_{d1}(cos(a_drop_node_(1+na)))] * sin(a_drop_node_(1+na)) * a_drop_weight_(1+na) ;
+% = \sum_{d0,d1}  c_{d0} * [2*pi * \sum_{na} leg_drop_da__(1+d0,1+na)*leg_drop_da__(1+d1,1+na)*sin(a_drop_node_(1+na))*a_drop_weight_(1+na)] * c_{d1}  ;
+% = transpose(c_) * E_cc__ * c_ ;
+%%%%;
+E_cc__ = zeros(1+l_max,1+l_max);
+for l_val_0=0:l_max;
+for l_val_1=0:l_max;
+E_cc__(1+l_val_0,1+l_val_1) = 2*pi * a_drop_weight_*(chebleg_d_{1+l_val_0}(cos(a_drop_node_)).*chebleg_d_{1+l_val_1}(cos(a_drop_node_)).*sin(a_drop_node_));
+end;%for l_val_1=0:l_max;
+end;%for l_val_0=0:l_max;
+[U_E__,S_E__,V_E__] = svd(E_cc__); S_E_ = diag(S_E__);
+u_sml_ = U_E__(:,end);
+chebfun_kernel_crit_ = chebfun(0);
+for l_val=0:l_max;
+chebfun_kernel_crit_ = chebfun_kernel_crit_ + u_sml_(1+l_val)*chebleg_d_{1+l_val};
+end;%for l_val=0:l_max;
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figmed;
+c_use__ = colormap_81s; n_c_use = size(c_use__,1);
+subplot(1,3,[1,2]);
+n_z = 1+1024; z_ = transpose(linspace(-1,+1,n_z));
+hold on;
+for l_val=0:l_max;
+nc_use = max(0,min(n_c_use-1,floor(n_c_use*l_val/l_max)));
+plot(z_,chebleg_d_{1+l_val}(z_),'-','Color',c_use__(1+nc_use,:));
+end;%for l_val=0:l_max;
+plot(z_,chebfun_kernel_crit_(z_),'-','Color','k','LineWidth',3);
+hold off;
+xlabel('z'); ylabel('P(z)'); title('legendre polynomials'); grid on;
+subplot(1,3,3);
+l_val_ = transpose([0:l_max]);
+plot(l_val_,u_sml_,'o-');
+xlabel('l_val','Interpreter','none');
+ylabel('u_sml_','Interpreter','none');
+title('scaling factor','Interpreter','none');
+end;%if flag_disp;
+s_e = sum(2*pi*a_drop_weight_*(chebfun_kernel_crit_(cos(a_drop_node_)).^2.*sin(a_drop_node_)));
+if (flag_verbose>0); disp(sprintf(' %% min(S_E_): %0.16f',min(S_E_))); end;
+if (flag_verbose>0); disp(sprintf(' %% s_e: %0.16f',s_e)); end;
+if (flag_verbose>0); disp(sprintf(' %% min(S_E_) vs s_e: %0.16f',fnorm(min(S_E_)-s_e)/fnorm(min(S_E_)))); end;
+const_avg = ...
+  sum(2*pi*a_drop_weight_*(chebleg_d_{1+0}(cos(a_drop_node_)).^1.*sin(a_drop_node_))) ...
++ sum(2*pi*a_keep_weight_*(chebleg_d_{1+0}(cos(a_keep_node_)).^1.*sin(a_keep_node_))) ...
+;
+chebfun_kernel_crit_avg = ...
+  sum(2*pi*a_drop_weight_*(chebfun_kernel_crit_(cos(a_drop_node_)).^1.*sin(a_drop_node_))) ...
++ sum(2*pi*a_keep_weight_*(chebfun_kernel_crit_(cos(a_keep_node_)).^1.*sin(a_keep_node_))) ...
+;
+chebfun_kernel_crit_avg = chebfun_kernel_crit_avg/const_avg;
+if (flag_verbose>0); disp(sprintf(' %% chebfun_kernel_crit_avg: %0.16f',chebfun_kernel_crit_avg)); end;
+%%%%;
+
+%%%%;
+% More generally, we will need to consider the following: ;
+% l_max = largest l_val. ;
+% polar_a_kernel_crit = requested sparsity. ;
+% s_e = min(S_E_) = square-integral ignored. ;
+% factor_scaling_min = smallest scaling-factor. ;
+%%%%
+n_polar_a_kernel_crit = 1+32;
+polar_a_kernel_crit_ = sigma_kernel_crit*transpose(3.^linspace(-2,+2,n_polar_a_kernel_crit));
+s_e_keep_k_ = zeros(n_polar_a_kernel_crit,1);
+s_e_drop_k_ = zeros(n_polar_a_kernel_crit,1);
+chebfun_kernel_crit_k__ = cell(n_polar_a_kernel_crit,1);
+factor_scaling_lk__ = zeros(1+l_max,n_polar_a_kernel_crit);
+for npolar_a_kernel_crit=0:n_polar_a_kernel_crit-1;
+polar_a_kernel_crit = polar_a_kernel_crit_(1+npolar_a_kernel_crit);
+if (flag_verbose>0); disp(sprintf(' %% npolar_a_kernel_crit %.2d/%.2d polar_a_kernel_crit %0.6f',npolar_a_kernel_crit,n_polar_a_kernel_crit,polar_a_kernel_crit)); end;
+n_a_use = 1+2*l_max + 16; %<-- Need to integrate polynomials of degree l_max^2. ;
+[a_drop_node_,a_drop_weight_] = legpts(n_a_use,[polar_a_kernel_crit,pi]);
+[a_keep_node_,a_keep_weight_] = legpts(n_a_use,[0 ,polar_a_kernel_crit]);
+leg_drop_da__ = zeros(1+l_max,n_a_use);
+leg_keep_da__ = zeros(1+l_max,n_a_use);
+for l_val=0:l_max;
+leg_drop_da__(1+l_val,:) = chebleg_d_{1+l_val}(cos(a_drop_node_));
+leg_keep_da__(1+l_val,:) = chebleg_d_{1+l_val}(cos(a_keep_node_));
+end;%for l_val=0:l_max;
+%%;
+tmp_E_cc__ = zeros(1+l_max,1+l_max);
+for l_val_0=0:l_max;
+for l_val_1=0:l_max;
+tmp_E_cc__(1+l_val_0,1+l_val_1) = 2*pi * a_drop_weight_*(chebleg_d_{1+l_val_0}(cos(a_drop_node_)).*chebleg_d_{1+l_val_1}(cos(a_drop_node_)).*sin(a_drop_node_));
+end;%for l_val_1=0:l_max;
+end;%for l_val_0=0:l_max;
+[tmp_U_E__,tmp_S_E__,tmp_V_E__] = svd(tmp_E_cc__); tmp_S_E_ = diag(tmp_S_E__);
+tmp_factor_scaling_ = tmp_U_E__(:,end); tmp_factor_scaling_ = tmp_factor_scaling_*sign(tmp_factor_scaling_(1+0));
+tmp_chebfun_kernel_crit_ = chebfun(0);
+for l_val=0:l_max;
+tmp_chebfun_kernel_crit_ = tmp_chebfun_kernel_crit_ + tmp_factor_scaling_(1+l_val)*chebleg_d_{1+l_val};
+end;%for l_val=0:l_max;
+tmp_s_e_drop = sum(2*pi*a_drop_weight_*(tmp_chebfun_kernel_crit_(cos(a_drop_node_)).^2.*sin(a_drop_node_)));
+tmp_s_e_keep = sum(2*pi*a_keep_weight_*(tmp_chebfun_kernel_crit_(cos(a_keep_node_)).^2.*sin(a_keep_node_)));
+chebfun_kernel_crit_k__{1+npolar_a_kernel_crit} = tmp_chebfun_kernel_crit_;
+factor_scaling_lk__(:,1+npolar_a_kernel_crit) = tmp_factor_scaling_;
+s_e_drop_k_(1+npolar_a_kernel_crit) = tmp_s_e_drop;
+s_e_keep_k_(1+npolar_a_kernel_crit) = tmp_s_e_keep;
+%%;
+end;%for npolar_a_kernel_crit=0:n_polar_a_kernel_crit-1;
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figmed;
+subplot(1,3,1); plot(polar_a_kernel_crit_,s_e_drop_k_,'.'); xlabel('polar_a_kernel_crit_','Interpreter','none'); ylabel('s_e_drop_k_','Interpreter','none');
+subplot(1,3,2); plot(polar_a_kernel_crit_,s_e_keep_k_,'.'); xlabel('polar_a_kernel_crit_','Interpreter','none'); ylabel('s_e_keep_k_','Interpreter','none');
+subplot(1,3,3); plot(polar_a_kernel_crit_,min(factor_scaling_lk__,[],1),'.'); xlabel('polar_a_kernel_crit_','Interpreter','none'); ylabel('min(factor_scaling_lk__,[],1)','Interpreter','none');
+end;%if flag_disp;
+%%%%%%%%;
+
+%%%%%%%%;
+% Again we try and form a kernel with a small support. ;
+% Here we attempt quadratic-minimization with linear-constraints, ;
+% resulting in a quadratic-program. ;
+%%%%%%%%;
+polar_a_kernel_qpro = 3*sigma_kernel_crit;
+deconvolution_factor_max = 128;
+n_a_use = 1+2*l_max + 16; %<-- Need to integrate polynomials of degree l_max^2. ;
+[a_drop_node_,a_drop_weight_] = legpts(n_a_use,[polar_a_kernel_qpro,pi]);
+[a_keep_node_,a_keep_weight_] = legpts(n_a_use,[0 ,polar_a_kernel_qpro]);
+leg_drop_da__ = zeros(1+l_max,n_a_use);
+for l_val=0:l_max;
+leg_drop_da__(1+l_val,:) = chebleg_d_{1+l_val}(cos(a_drop_node_));
+end;%for l_val=0:l_max;
+%%%%;
+E_cc__ = zeros(1+l_max,1+l_max);
+for l_val_0=0:l_max;
+for l_val_1=0:l_max;
+E_cc__(1+l_val_0,1+l_val_1) = 2*pi * a_drop_weight_*(chebleg_d_{1+l_val_0}(cos(a_drop_node_)).*chebleg_d_{1+l_val_1}(cos(a_drop_node_)).*sin(a_drop_node_));
+end;%for l_val_1=0:l_max;
+end;%for l_val_0=0:l_max;
+lb_ = zeros(1+l_max,1); %<-- lower-bound. ;
+lb_(1+0) = sqrt(1+2*0)*sqrt(4*pi); %<-- ensure average is constant. ;
+lb_(1+[1:l_max]) = sqrt(1+2*[1:l_max])*sqrt(4*pi)./max(1e-12,deconvolution_factor_max); %<-- ensure deconvolution_factor_max. ;
+ub_ = zeros(1+l_max,1); %<-- lower-bound. ;
+ub_(1+0) = sqrt(1+2*0)*sqrt(4*pi); %<-- ensure average is constant. ;
+ub_(1+[1:l_max]) = sqrt(1+2*[1:l_max])*sqrt(4*pi).*max(1e-12,deconvolution_factor_max); %<-- ensure deconvolution_factor_max. ;
+tmp_H = E_cc__;
+tmp_f = []; tmp_A = []; tmp_b = []; tmp_Aeq = []; tmp_beq = []; tmp_lb = lb_; tmp_ub = ub_; tmp_x0 = sqrt(1+2*l_val_)*sqrt(4*pi);
+kappa_ = quadprog( ...
+ tmp_H ...
+,tmp_f ...
+,tmp_A ...
+,tmp_b ...
+,tmp_Aeq ...
+,tmp_beq ...
+,tmp_lb ...
+,tmp_ub ...
+,tmp_x0 ...
+);
+chebfun_kernel_qpro_ = chebfun(0);
+for l_val=0:l_max;
+chebfun_kernel_qpro_ = chebfun_kernel_qpro_ + kappa_(1+l_val)*chebleg_d_{1+l_val};
+end;%for l_val=0:l_max;
+const_avg = ...
+  sum(2*pi*a_drop_weight_*(chebleg_d_{1+0}(cos(a_drop_node_)).^1.*sin(a_drop_node_))) ...
++ sum(2*pi*a_keep_weight_*(chebleg_d_{1+0}(cos(a_keep_node_)).^1.*sin(a_keep_node_))) ...
+;
+chebfun_kernel_qpro_avg = ...
+  sum(2*pi*a_drop_weight_*(chebfun_kernel_qpro_(cos(a_drop_node_)).^1.*sin(a_drop_node_))) ...
++ sum(2*pi*a_keep_weight_*(chebfun_kernel_qpro_(cos(a_keep_node_)).^1.*sin(a_keep_node_))) ...
+;
+chebfun_kernel_qpro_avg = chebfun_kernel_qpro_avg/const_avg;
+if (flag_verbose>0); disp(sprintf(' %% chebfun_kernel_qpro_avg: %0.16f',chebfun_kernel_qpro_avg)); end;
+chebfun_kernel_norm_qpro_ = chebfun_kernel_qpro_ / max(1e-12,chebfun_kernel_qpro_avg) ;
+kappa_norm_ = kappa_ / max(1e-12,chebfun_kernel_qpro_avg) ;
+%%;
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figmed;
+c_use__ = colormap_81s; n_c_use = size(c_use__,1);
+subplot(1,3,[1,2]);
+n_z = 1+1024; z_ = transpose(linspace(-1,+1,n_z));
+hold on;
+for l_val=0:l_max;
+nc_use = max(0,min(n_c_use-1,floor(n_c_use*l_val/l_max)));
+plot(z_,chebleg_d_{1+l_val}(z_),'-','Color',c_use__(1+nc_use,:));
+end;%for l_val=0:l_max;
+plot(log(1.0-z_),chebfun_kernel_crit_(z_)/chebfun_kernel_crit_avg,'-','Color','k','LineWidth',3);
+plot(log(1-0-z_),chebfun_kernel_qpro_(z_)/chebfun_kernel_qpro_avg,'-','Color',0.85*[1,1,1],'LineWidth',3);
+hold off;
+xlabel('log(1-z)'); ylabel('P(z)'); title('legendre polynomials'); grid on;
+subplot(1,3,3);
+l_val_ = transpose([0:l_max]);
+hold on;
+plot(l_val_,u_sml_/chebfun_kernel_crit_avg,'o-','Color','k','LineWidth',3);
+plot(l_val_,kappa_/chebfun_kernel_qpro_avg,'x-','Color',0.85*[1,1,1],'LineWidth',3);
+hold off;
+xlabel('l_val','Interpreter','none');
+ylabel('u_sml_','Interpreter','none');
+title('scaling factor','Interpreter','none');
+end;%if flag_disp;
+s_e = sum(2*pi*a_drop_weight_*(chebfun_kernel_crit_(cos(a_drop_node_)).^2./chebfun_kernel_crit_avg.^2.*sin(a_drop_node_)));
+r_e = sum(2*pi*a_drop_weight_*(chebfun_kernel_qpro_(cos(a_drop_node_)).^2./chebfun_kernel_qpro_avg.^2.*sin(a_drop_node_)));
+if (flag_verbose>0); disp(sprintf(' %% s_e: %0.16f',s_e)); end;
+if (flag_verbose>0); disp(sprintf(' %% r_e: %0.16f',r_e)); end;
+%%%%;
+
+%%%%;
+% Now we reconstruct the kernel in k_p_ ;
+% and see how well resolved it is on polar_a_shell_ and azimu_b_shell_. ;
+%%%%;
+kernel_qpro_k_Y_form_ = zeros(n_lm,1);
+kernel_qpro_k_Y_form_(1+l_val_.^2 + l_val_) = kappa_norm_;
+[ ...
+ kernel_qpro_k_p_quad_ ...
+] = ...
+convert_spharm_to_k_p_4( ...
+ flag_verbose ...
+,n_shell ...
+,[0,n_shell] ...
+,k_p_r_shell_ ...
+,azimu_b_shell_ ...
+,polar_a_shell_ ...
+,weight_3d_k_p_r_ ...
+,weight_shell_ ...
+,n_k_p_r ...
+,k_p_r_ ...
+,weight_3d_k_p_r_ ...
+,l_max ...
+,kernel_qpro_k_Y_form_ ...
+,Ylm_uklma___ ...
+,k_p_azimu_b_sub_uka__ ...
+,k_p_polar_a_sub_uka__ ...
+,l_max_uk_ ...
+,index_nu_n_k_per_shell_from_nk_p_r_ ...
+,index_k_per_shell_uka__ ...
+);
+if (flag_verbose>0); disp(sprintf(' %% sum(kernel_qpro_k_p_quad_.*weight_shell_): %0.6f',sum(kernel_qpro_k_p_quad_.*weight_shell_))); end;
+if (flag_verbose>0); disp(sprintf(' %% sum(kernel_qpro_k_p_quad_.*weight_shell_)*chebfun_kernel_qpro_avg/(4*pi): %0.6f',sum(kernel_qpro_k_p_quad_.*weight_shell_)*chebfun_kernel_qpro_avg/(4*pi))); end;
+if (flag_verbose>0); disp(sprintf(' %% chebfun_kernel_norm_qpro_(cos(polar_a_shell_)) vs kernel_qpro_k_p_quad_*sqrt(2*pi): %0.16f',fnorm(chebfun_kernel_norm_qpro_(cos(polar_a_shell_))-kernel_qpro_k_p_quad_*sqrt(2*pi))/max(1e-12,fnorm(chebfun_kernel_norm_qpro_(cos(polar_a_shell_)))))); end;
+[ ...
+ kernel_qpro_k_Y_quad_ ...
+] = ...
+convert_k_p_to_spharm_4( ...
+ flag_verbose ...
+,n_shell ...
+,[0,n_shell] ...
+,k_p_r_shell_ ...
+,azimu_b_shell_ ...
+,polar_a_shell_ ...
+,weight_3d_k_p_r_ ...
+,weight_shell_ ...
+,n_k_p_r ...
+,k_p_r_ ...
+,weight_3d_k_p_r_ ...
+,l_max ...
+,kernel_qpro_k_p_quad_ ...
+,Ylm_uklma___ ...
+,k_p_azimu_b_sub_uka__ ...
+,k_p_polar_a_sub_uka__ ...
+,l_max_uk_ ...
+,index_nu_n_k_per_shell_from_nk_p_r_ ...
+,index_k_per_shell_uka__ ...
+);
+if (flag_verbose>0); disp(sprintf(' %% kernel_qpro_k_Y_form_ vs kernel_qpro_k_Y_quad_: %0.16f',fnorm(kernel_qpro_k_Y_form_-kernel_qpro_k_Y_quad_)/fnorm(kernel_qpro_k_Y_form_))); end;
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figsml;
+klim_ = [0,prctile(chebfun_kernel_norm_qpro_(cos(a_keep_node_)),99.5)];
+imagesc_polar_a_azimu_b_0( ...
+ polar_a_shell_ ... 
+,azimu_b_shell_ ... 
+,real(kernel_qpro_k_p_quad_) ... 
+,klim_ ... 
+,colormap_81s ... 
+,flag_2d_vs_3d ...
+,k_p_r_1 ...
+);
+title('real(kernel_qpro_k_p_quad_)','Interpreter','none');
+end;%if flag_disp;
+
+%%%%;
+% Now we place a point-source (i.e., delta-function) somewhere on the sphere, ;
+% mollify it via the kernel_qpro_, ;
+% then calculate the associated spherical-harmonics, ;
+% then compare the result with the rotated kernel. ;
+%%%%;
+% For this calculation we use a quadrature-reference grid (qref). ;
+%%%%;
+qbp_deconvolution_factor_max = deconvolution_factor_max;
+%qref_k_eq_d = sqrt(4*pi./max(1,n_lm)); %<-- older setting from qbp_6. consider changing. ;
+qref_k_eq_d = 0.5*sqrt(4*pi./max(1,n_lm)); %<-- one half the older setting from qbp_6. increased density of quadrature points. ;
+n_ring = ceil(polar_a_kernel_qpro/max(1e-12,qref_k_eq_d)); %<-- number of nearest neighbor-rings requested for each point. ;
+n_nearest = 1+6*n_ring*(n_ring+1)/2; %<-- rough number of neighbors on hexagonal grid (i.e., 1+6+12+18+...). ;
+if (flag_verbose>0); disp(sprintf(' %% qref_k_eq_d %0.6f n_nearest_k %d',qref_k_eq_d,n_nearest)); end;
+%%%%;
+tmp_t = tic();
+[ ...
+ qref_n_shell ...
+,qref_azimu_b_shell_ ...
+,qref_polar_a_shell_ ...
+,qref_weight_shell_ ...
+,qref_k_c_0_shell_ ...
+,qref_k_c_1_shell_ ...
+,qref_k_c_2_shell_ ...
+,qref_n_polar_a ...
+,qref_polar_a_ ...
+,qref_n_azimu_b_ ...
+] = ...
+sample_shell_5( ...
+ 1.0 ...
+,qref_k_eq_d ...
+,'L' ...
+) ;
+qref_k_c_qd__ = [ qref_k_c_0_shell_ , qref_k_c_1_shell_ , qref_k_c_2_shell_ ];
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% sample_shell_5 (should be a precomputation): %0.2fs',tmp_t)); end;
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figsml;
+markersize_use = 1;
+plot_sphere_grid_0;
+hold on;
+plot3(qref_k_c_0_shell_,qref_k_c_1_shell_,qref_k_c_2_shell_,'k.','MarkerSize',markersize_use);
+hold off;
+axis equal; axisnotick3d; axis vis3d;
+end;%if flag_disp;
+%%%%;
+tmp_t = tic();
+Ylm__ = get_Ylm__1(1+l_max,0:l_max,qref_n_shell,qref_azimu_b_shell_,qref_polar_a_shell_);
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% get_Ylm__1 (should be a precomputation): %0.2fs',tmp_t)); end;
+tmp_t = tic();
+Ylm_yq__ = zeros(n_lm,qref_n_shell);
+Y_l_val_ = zeros(n_lm,1);
+Y_m_val_ = zeros(n_lm,1);
+nml=0;
+for l_val=0:l_max;
+for m_val=-l_val:+l_val;
+Y_l_val_(1+nml) = l_val;
+Y_m_val_(1+nml) = m_val;
+Ylm_yq__(1+nml,:) = Ylm__{1+l_val}(1+l_val+m_val,:);
+nml=nml+1;
+end;%for m_val=-l_val:+l_val;
+end;%for l_val=0:l_max;
+Ylm_weight_yq__ = Ylm_yq__ * sparse(1:qref_n_shell,1:qref_n_shell,qref_weight_shell_,qref_n_shell,qref_n_shell);
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% Ylm_weight_yq__ (should be a precomputation): %0.2fs',tmp_t)); end;
+%%%%;
+deconvolve_lm_ = (sqrt(4*pi)*sqrt(1+2*Y_l_val_))./max(1e-12,kappa_norm_(1+Y_l_val_));
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figsml;
+linewidth_use = 3;
+plot(Y_l_val_,deconvolve_lm_,'k-','LineWidth',linewidth_use);
+xlabel('Y_l_val_','Interpreter','none');
+ylabel('deconvolve_lm_','Interpreter','none');
+grid on;
+end;%if flag_disp;
+%%%%;
+Rz = @(azimu_b) ...
+[ +cos(azimu_b) -sin(azimu_b) 0 ; ...
+  +sin(azimu_b) +cos(azimu_b) 0 ; ...
+   0             0            1 ; ...
+] ;
+Ry = @(polar_a) ...
+[ +cos(polar_a) 0 +sin(polar_a) ; ...
+   0            1  0            ; ...
+  -sin(polar_a) 0 +cos(polar_a) ; ...
+];
+tmp_I__ = eye(3,3);
+tmp_I_pole_ = tmp_I__*[0;0;1];
+tmp_I_d2_ = (qref_k_c_0_shell_ - tmp_I_pole_(1+0)).^2 + (qref_k_c_1_shell_ - tmp_I_pole_(1+1)).^2 + (qref_k_c_2_shell_ - tmp_I_pole_(1+2)).^2 ;
+tmp_I_arc_ = acos(1-tmp_I_d2_/2);
+tmp_I_ker_ = chebfun_kernel_norm_qpro_(cos(tmp_I_arc_));
+tmp_euler_a = 3*pi/8;
+tmp_euler_b = pi/12;
+tmp_euler_c = pi/4;
+tmp_R__ = Rz(tmp_euler_b)*Ry(tmp_euler_a)*Rz(tmp_euler_c);
+tmp_R_pole_ = tmp_R__*[0;0;1];
+tmp_R_d2_ = (qref_k_c_0_shell_ - tmp_R_pole_(1+0)).^2 + (qref_k_c_1_shell_ - tmp_R_pole_(1+1)).^2 + (qref_k_c_2_shell_ - tmp_R_pole_(1+2)).^2 ;
+tmp_R_arc_ = acos(1-tmp_R_d2_/2);
+tmp_R_ker_ = chebfun_kernel_norm_qpro_(cos(tmp_R_arc_));
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figmed;
+p_row = 1; p_col = 3; np=0;
+subplot(p_row,p_col,1+np);np=np+1;
+alim_ = [0,prctile(tmp_R_arc_,99.5)];
+imagesc_polar_a_azimu_b_0( ...
+ qref_polar_a_shell_ ... 
+,qref_azimu_b_shell_ ... 
+,real(tmp_R_arc_) ... 
+,alim_ ... 
+,colormap_81s ... 
+,flag_2d_vs_3d ...
+,k_p_r_1 ...
+);
+hold on;
+plot3(tmp_R_pole_(1+0),tmp_R_pole_(1+1),tmp_R_pole_(1+2),'wo','MarkerFaceColor','g');
+hold off;
+title('real(tmp_R_arc_)','Interpreter','none');
+subplot(p_row,p_col,1+np);np=np+1;
+klim_ = prctile(chebfun_kernel_norm_qpro_(cos(a_keep_node_)),75)*[-1,+1];
+imagesc_polar_a_azimu_b_0( ...
+ qref_polar_a_shell_ ... 
+,qref_azimu_b_shell_ ... 
+,real(tmp_I_ker_) ... 
+,klim_ ... 
+,colormap_80s ... 
+,flag_2d_vs_3d ...
+,k_p_r_1 ...
+);
+hold on;
+plot3(tmp_I_pole_(1+0),tmp_I_pole_(1+1),tmp_I_pole_(1+2),'wo','MarkerFaceColor','g');
+hold off;
+title('real(tmp_I_ker_)','Interpreter','none');
+subplot(p_row,p_col,1+np);np=np+1;
+klim_ = prctile(chebfun_kernel_norm_qpro_(cos(a_keep_node_)),75)*[-1,+1];
+imagesc_polar_a_azimu_b_0( ...
+ qref_polar_a_shell_ ... 
+,qref_azimu_b_shell_ ... 
+,real(tmp_R_ker_) ...
+,klim_ ... 
+,colormap_80s ... 
+,flag_2d_vs_3d ...
+,k_p_r_1 ...
+);
+hold on;
+plot3(tmp_R_pole_(1+0),tmp_R_pole_(1+1),tmp_R_pole_(1+2),'wo','MarkerFaceColor','g');
+hold off;
+title('real(tmp_R_ker_)','Interpreter','none');
+end;%if flag_disp;
+%%%%;
+a_I_I_k_Y_lm_ = conj(Ylm_weight_yq__)*tmp_I_ker_;
+a_I_R_k_Y_lm_ = conj(Ylm_weight_yq__)*tmp_R_ker_;
+tmp_euler_ = [tmp_euler_b,tmp_euler_a,tmp_euler_c];
+tmp_euler_pos_ = [tmp_euler_c,tmp_euler_a,tmp_euler_b]; tmp_euler_neg_ = -flip(tmp_euler_pos_);
+a_R_I_k_Y_lm_ = rotate_spharm_to_spharm_3(1,1,l_max,a_I_I_k_Y_lm_,tmp_euler_pos_);
+a_R_R_k_Y_lm_ = rotate_spharm_to_spharm_3(1,1,l_max,a_I_R_k_Y_lm_,tmp_euler_neg_);
+if (flag_verbose>0); disp(sprintf(' %% a_R_I_k_Y_lm_ vs a_I_R_k_Y_lm_: %0.16f',fnorm(a_R_I_k_Y_lm_ - a_I_R_k_Y_lm_)/fnorm(a_R_I_k_Y_lm_))); end;
+if (flag_verbose>0); disp(sprintf(' %% a_I_I_k_Y_lm_ vs a_R_R_k_Y_lm_: %0.16f',fnorm(a_I_I_k_Y_lm_ - a_R_R_k_Y_lm_)/fnorm(a_I_I_k_Y_lm_))); end;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+disp('returning'); return;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
 
 %%%%%%%%;

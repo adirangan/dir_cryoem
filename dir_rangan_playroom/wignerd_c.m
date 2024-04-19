@@ -157,7 +157,7 @@ m_max_ = transpose(-l_max:+l_max);
 
 flag_precomputation = isempty(V_lmm___) | isempty(V_lmm___);
 if flag_precomputation;
-if (verbose>-1); disp(sprintf(' %% flag_precomputation: %d l_max %d',flag_precomputation,l_max)); end;
+if (verbose>0); disp(sprintf(' %% flag_precomputation: %d l_max %d',flag_precomputation,l_max)); end;
 V_lmm___ = cell(1+l_max,1);
 L_lm__ = cell(1+l_max,1);
 for l_val=1:l_max;
