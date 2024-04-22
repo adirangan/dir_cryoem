@@ -66,6 +66,12 @@ str_thisfunction = 'get_Ylm__';
 verbose=0;
 if (verbose>0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
 if (nargin<6); flag_flip=0; end;
+
+flag_calc=0;
+if flag_calc;
+%%%%%%%%;
+% Note that this claculation is unstable for l_max>=88. ;
+%%%%%%%%;
 Ylm__ = cell(n_l,1);
 [polar_a_unique_,ij_unique_,ij_return_] = unique(polar_a_all_(1:n_all));
 for nl=1:n_l;
@@ -88,4 +94,11 @@ if (~flag_flip); Ylm_ = s*c*reshape(Llm_(ij_return_),1,n_all).*reshape(exp(+i*m_
 Ylm__{nl}(1+l_val+m_val,:) = Ylm_;
 end;%for m_val=-l_val:+l_val;
 end;%for nl=1:n_l;
+end;%if flag_calc;
+
+flag_calc=1;
+if flag_calc;
+[Ylm__] = get_Ylm__1(n_l,l_val_,n_all,azimu_b_all_,polar_a_all_,flag_flip);
+end;%if flag_calc;
+
 if (verbose>0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;

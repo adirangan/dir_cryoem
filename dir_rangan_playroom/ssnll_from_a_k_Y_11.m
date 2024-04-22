@@ -3,7 +3,7 @@ function ...
  parameter ...
 ,ssnll ...
 ] = ...
-ssnll_from_a_k_Y_10( ...
+ssnll_from_a_k_Y_11( ...
  parameter ...
 ,n_k_p_r ...
 ,k_p_r_ ...
@@ -25,6 +25,8 @@ ssnll_from_a_k_Y_10( ...
 ,M_k_p_wkM__ ...
 ,index_nCTF_from_nM_ ...
 ,CTF_k_p_wkC__ ...
+,index_neta_from_nM_ ...
+,eta_k_p_wke__ ...
 ,euler_polar_a_M_ ...
 ,euler_azimu_b_M_ ...
 ,euler_gamma_z_M_ ...
@@ -33,6 +35,7 @@ ssnll_from_a_k_Y_10( ...
 % Calculates ssnll (sigma*sigma*log_unlikelihood). ;
 % Accumulates across all individual shells of a_k_Y_. ;
 % Associates CTF_k_p_wkC__(:,1+index_nCTF_from_nM_(1+nM)) with image M_k_p_wkM__(:,1+nM);
+% Allows for a nonuniform sigma-squared weighting-term (see eta_k_p_wke__). ;
 % ;
 % Input: ;
 % n_k_p_r: integer number of radii (i.e., rings/shells) in the polar/spherical-grid. ;
@@ -60,6 +63,11 @@ ssnll_from_a_k_Y_10( ...
 % CTF_k_p_wkC__: complex array of size(n_w_sum,n_CTF). stack of ctf-functions in k_p_ format. ;
 %            If index_nCTF_from_nM_ is empty or set to 1, then we assume this contains only a single CTF_k_p_, ;
 %            which will then be used for all images. ;
+% index_neta_from_nM_: integer array of size n_M. index_neta_from_nM_(1+nM) is the (base 0) eta_index used for image M_k_p_wkM__(:,1+nM). ;
+%             This can be empty or set to 1, in which case the same eta_k_p_ will be used for each image. ;
+% eta_k_p_wke__: complex array of size(n_w_sum,n_eta). stack of eta-functions in k_p_ format. ;
+%            If index_neta_from_nM_ is empty or set to 1, then we assume this contains only a single eta_k_p_, ;
+%            which will then be used for all images. ;
 % euler_polar_a_M_: real array of size n_M. polar_a used for each image ;
 % euler_azimu_b_M_: real array of size n_M. azimu_b used for each image ;
 % euler_gamma_z_M_: real array of size n_M. gamma_z used for each image ;
@@ -68,7 +76,7 @@ ssnll_from_a_k_Y_10( ...
 % ssnll: double (sigma*sigma*log_unlikelihood). ;
 %%%%%%%%;
 
-str_thisfunction = 'ssnll_from_a_k_Y_10';
+str_thisfunction = 'ssnll_from_a_k_Y_11';
 
 %%%%%%%%;
 if (nargin<1);
@@ -659,16 +667,30 @@ if (flag_verbose>0); disp(sprintf(' %% I_form_ST__ vs I_quad_ST__: %0.16f',fnorm
 %%%%%%%%;
 % Now calculate ssnll. ;
 % This does not test anisotropic CTF. ;
+% Nor does this test anisotropic eta. ;
 %%%%%%%%;
-n_CTF = 3; CTF_alpha_ = [0.1;0.3;0.5];
+n_alpha = 3; CTF_alpha_ = [0.1;0.3;0.5];
+n_power = 2; eta_power_ = [0.5;0.75];
+n_CTF = n_alpha*n_power;
+n_eta = n_alpha*n_power;
 CTF_k_p_wkC__ = zeros(n_w_sum,n_CTF);
-for nCTF=0:n_CTF-1;
-CTF_alpha = CTF_alpha_(1+nCTF);
-CTF_k_p_wk_ = reshape(repmat(reshape(besselj(0,CTF_alpha*k_p_r_),[1,n_k_p_r]),[n_w_max,1]),[n_w_sum,1]);
+eta_k_p_wke__ = zeros(n_w_sum,n_eta);
+for nalpha=0:n_alpha-1;
+CTF_alpha = CTF_alpha_(1+nalpha);
+for npower=0:n_power-1;
+eta_power = eta_power_(1+npower);
+nCTF = nalpha*npower*n_alpha;
+neta = nalpha*npower*n_alpha;
+CTF_k_p_wk_ = (reshape(repmat(reshape(besselj(0,CTF_alpha*k_p_r_),[1,n_k_p_r]),[n_w_max,1]),[n_w_sum,1])).^(1-eta_power);
 CTF_k_p_wkC__(:,1+nCTF) = CTF_k_p_wk_;
-end;%for nCTF=0:n_CTF-1;
+eta_k_p_wk_ = (reshape(repmat(reshape(besselj(0,CTF_alpha*k_p_r_),[1,n_k_p_r]),[n_w_max,1]),[n_w_sum,1])).^(0+eta_power);
+eta_k_p_wke__(:,1+neta) = eta_k_p_wk_;
+end;%for npower=0:n_power-1;
+end;%for nalpha=0:n_alpha-1;
+%%%%;
 n_M = n_S; M_k_p_wkM__ = T_k_p_wkS__ ;
 index_nCTF_from_nM_ = zeros(n_M,1); for nM=0:n_M-1; index_nCTF_from_nM_(1+nM) = mod(nM,n_CTF); end;%for nM=0:n_M-1;
+index_neta_from_nM_ = zeros(n_M,1); for nM=0:n_M-1; index_neta_from_nM_(1+nM) = mod(nM,n_eta); end;%for nM=0:n_M-1;
 euler_polar_a_M_ = viewing_polar_a_S_;
 euler_azimu_b_M_ = viewing_azimu_b_S_;
 rng(0); euler_gamma_z_M_ = 2*pi*rand(n_M,1);
@@ -682,8 +704,9 @@ nS = nM;
 S_k_p_wk_ = S_k_p_wkS__(:,1+nS);
 T_k_p_wk_ = T_k_p_wkS__(:,1+nM);
 nCTF = index_nCTF_from_nM_(1+nM);
-CTF_alpha = CTF_alpha_(1+nCTF);
 CTF_k_p_wk_ = CTF_k_p_wkC__(:,1+nCTF);
+neta = index_neta_from_nM_(1+nM);
+eta_k_p_wk_ = eta_k_p_wke__(:,1+neta);
 tmp_polar_a = euler_polar_a_M_(1+nM);
 tmp_azimu_b = euler_azimu_b_M_(1+nM);
 tmp_gamma_z = 0.0;
@@ -705,7 +728,7 @@ tmp_omega_V = atan2(tmp_delta_V_(1+1),tmp_delta_V_(1+0));
 V_k_p_wk_ = V_k_p_wk_ + exp(+i*2*pi*(k_c_0_wk_*tmp_delta_V_(1+0) + k_c_1_wk_*tmp_delta_V_(1+1)));
 end;%for nsource_b=0:n_source-1;
 if (flag_verbose>1); disp(sprintf(' %% T_k_p_wk_ vs V_k_p_wk_: %0.16f',fnorm(T_k_p_wk_ - V_k_p_wk_)/fnorm(T_k_p_wk_))); end;
-ssnll_0 = ssnll_0 + 0.5*sum(abs(U_k_p_wk_.*CTF_k_p_wk_ - V_k_p_wk_).^2.*weight_2d_wk_,'all')*(4*pi^2);
+ssnll_0 = ssnll_0 + 0.5*sum(abs(U_k_p_wk_.*CTF_k_p_wk_ - V_k_p_wk_).^2.*eta_k_p_wk_.*weight_2d_wk_,'all')*(4*pi^2);
 end;%for nM=0:n_M-1;
 %%%%;
 parameter_ssnll = struct('type','parameter');
@@ -713,7 +736,7 @@ parameter_ssnll = struct('type','parameter');
  ~ ...
 ,ssnll_1 ...
 ] = ...
-ssnll_from_a_k_Y_10( ...
+ssnll_from_a_k_Y_11( ...
  parameter_ssnll ...
 ,n_k_p_r ...
 ,k_p_r_ ...
@@ -735,6 +758,8 @@ ssnll_from_a_k_Y_10( ...
 ,M_k_p_wkM__ ...
 ,index_nCTF_from_nM_ ...
 ,CTF_k_p_wkC__ ...
+,index_neta_from_nM_ ...
+,eta_k_p_wke__ ...
 ,euler_polar_a_M_ ...
 ,euler_azimu_b_M_ ...
 ,euler_gamma_z_M_ ...
@@ -747,6 +772,7 @@ if (flag_verbose>0); disp(sprintf(' %% ssnll_0 vs ssnll_1: %0.16f',fnorm(ssnll_0
 %%%%%%%%;
 n_M = 2;
 index_nCTF_from_nM_ = [1;0];
+index_neta_from_nM_ = [1;0];
 index_nS_from_nM_ = [128;512];
 M_k_p_wkM__ = zeros(n_w_sum,n_M);
 euler_polar_a_M_ = viewing_polar_a_S_(1+index_nS_from_nM_);
@@ -761,8 +787,9 @@ nS = index_nS_from_nM_(1+nM);
 S_k_p_wk_ = S_k_p_wkS__(:,1+nS);
 T_k_p_wk_ = T_k_p_wkS__(:,1+nS);
 nCTF = index_nCTF_from_nM_(1+nM);
-CTF_alpha = CTF_alpha_(1+nCTF);
 CTF_k_p_wk_ = CTF_k_p_wkC__(:,1+nCTF);
+neta = index_neta_from_nM_(1+nM);
+eta_k_p_wk_ = eta_k_p_wke__(:,1+neta);
 tmp_polar_a = euler_polar_a_M_(1+nM);
 tmp_azimu_b = euler_azimu_b_M_(1+nM);
 tmp_gamma_z = 0.0;
@@ -784,7 +811,7 @@ tmp_omega_V = atan2(tmp_delta_V_(1+1),tmp_delta_V_(1+0));
 V_k_p_wk_ = V_k_p_wk_ + exp(+i*2*pi*(k_c_0_wk_*tmp_delta_V_(1+0) + k_c_1_wk_*tmp_delta_V_(1+1)));
 end;%for nsource_b=0:n_source-1;
 if (flag_verbose>1); disp(sprintf(' %% T_k_p_wk_ vs V_k_p_wk_: %0.16f',fnorm(T_k_p_wk_ - V_k_p_wk_)/fnorm(T_k_p_wk_))); end;
-ssnll_0 = ssnll_0 + 0.5*sum(abs(U_k_p_wk_.*CTF_k_p_wk_ - V_k_p_wk_).^2.*weight_2d_wk_,'all')*(4*pi^2);
+ssnll_0 = ssnll_0 + 0.5*sum(abs(U_k_p_wk_.*CTF_k_p_wk_ - V_k_p_wk_).^2.*eta_k_p_wk_.*weight_2d_wk_,'all')*(4*pi^2);
 end;%for nM=0:n_M-1;
 %%%%;
 parameter_ssnll = struct('type','parameter');
@@ -792,7 +819,7 @@ parameter_ssnll = struct('type','parameter');
  ~ ...
 ,ssnll_1 ...
 ] = ...
-ssnll_from_a_k_Y_10( ...
+ssnll_from_a_k_Y_11( ...
  parameter_ssnll ...
 ,n_k_p_r ...
 ,k_p_r_ ...
@@ -814,6 +841,8 @@ ssnll_from_a_k_Y_10( ...
 ,M_k_p_wkM__ ...
 ,index_nCTF_from_nM_ ...
 ,CTF_k_p_wkC__ ...
+,index_neta_from_nM_ ...
+,eta_k_p_wke__ ...
 ,euler_polar_a_M_ ...
 ,euler_azimu_b_M_ ...
 ,euler_gamma_z_M_ ...
@@ -826,6 +855,7 @@ if (flag_verbose>0); disp(sprintf(' %% ssnll_0 vs ssnll_1: %0.16f',fnorm(ssnll_0
 %%%%%%%%;
 n_M = 2;
 index_nCTF_from_nM_ = [1;0];
+index_neta_from_nM_ = [1;0];
 index_nS_from_nM_ = [128;512];
 M_k_p_wkM__ = zeros(n_w_sum,n_M);
 euler_polar_a_M_ = viewing_polar_a_S_(1+index_nS_from_nM_);
@@ -841,8 +871,9 @@ for nM=0:n_M-1;
 nS = index_nS_from_nM_(1+nM);
 T_k_p_wk_ = T_k_p_wkS__(:,1+nS);
 nCTF = index_nCTF_from_nM_(1+nM);
-CTF_alpha = CTF_alpha_(1+nCTF);
 CTF_k_p_wk_ = CTF_k_p_wkC__(:,1+nCTF);
+neta = index_neta_from_nM_(1+nM);
+eta_k_p_wk_ = eta_k_p_wke__(:,1+neta);
 tmp_polar_a = euler_polar_a_M_(1+nM);
 tmp_azimu_b = euler_azimu_b_M_(1+nM);
 tmp_gamma_z = 0.0;
@@ -866,7 +897,7 @@ tmp_omega_V = atan2(tmp_delta_V_(1+1),tmp_delta_V_(1+0));
 V_k_p_wk_ = V_k_p_wk_ + exp(+i*2*pi*(k_c_0_wk_*tmp_delta_V_(1+0) + k_c_1_wk_*tmp_delta_V_(1+1)));
 end;%for nsource_b=0:n_source-1;
 if (flag_verbose>1); disp(sprintf(' %% T_k_p_wk_ vs V_k_p_wk_: %0.16f',fnorm(T_k_p_wk_ - V_k_p_wk_)/fnorm(T_k_p_wk_))); end;
-ssnll_0 = ssnll_0 + 0.5*sum(abs(U_k_p_wk_.*CTF_k_p_wk_ - V_k_p_wk_).^2.*weight_2d_wk_,'all')*(4*pi^2);
+ssnll_0 = ssnll_0 + 0.5*sum(abs(U_k_p_wk_.*CTF_k_p_wk_ - V_k_p_wk_).^2.*eta_k_p_wk_.*weight_2d_wk_,'all')*(4*pi^2);
 end;%for nM=0:n_M-1;
 %%%%;
 parameter_ssnll = struct('type','parameter');
@@ -875,7 +906,7 @@ parameter_ssnll.flag_verbose = 0; %<-- set to 2 to plot interpolation-stencil. ;
  ~ ...
 ,ssnll_1 ...
 ] = ...
-ssnll_from_a_k_Y_10( ...
+ssnll_from_a_k_Y_11( ...
  parameter_ssnll ...
 ,n_k_p_r ...
 ,k_p_r_ ...
@@ -897,6 +928,8 @@ ssnll_from_a_k_Y_10( ...
 ,M_k_p_wkM__ ...
 ,index_nCTF_from_nM_ ...
 ,CTF_k_p_wkC__ ...
+,index_neta_from_nM_ ...
+,eta_k_p_wke__ ...
 ,euler_polar_a_M_ ...
 ,euler_azimu_b_M_ ...
 ,euler_gamma_z_M_ ...
@@ -932,6 +965,8 @@ if (nargin<1+na); n_M=[]; end; na=na+1;
 if (nargin<1+na); M_k_p_wkM__=[]; end; na=na+1;
 if (nargin<1+na); index_nCTF_from_nM_=[]; end; na=na+1;
 if (nargin<1+na); CTF_k_p_wkC__=[]; end; na=na+1;
+if (nargin<1+na); index_neta_from_nM_=[]; end; na=na+1;
+if (nargin<1+na); eta_k_p_wke__=[]; end; na=na+1;
 if (nargin<1+na); euler_polar_a_M_=[]; end; na=na+1;
 if (nargin<1+na); euler_azimu_b_M_=[]; end; na=na+1;
 if (nargin<1+na); euler_gamma_z_M_=[]; end; na=na+1;
@@ -1059,6 +1094,8 @@ if isempty(euler_azimu_b_M_); euler_azimu_b_M_ = zeros(n_M,1); end;
 if isempty(euler_gamma_z_M_); euler_gamma_z_M_ = zeros(n_M,1); end;
 if isempty(index_nCTF_from_nM_); index_nCTF_from_nM_ = zeros(n_M,1); end;
 if isempty(CTF_k_p_wkC__); CTF_k_p_wkC__ = ones(n_w,1); end;
+if isempty(index_neta_from_nM_); index_neta_from_nM_ = zeros(n_M,1); end;
+if isempty(eta_k_p_wke__); eta_k_p_wke__ = ones(n_w,1); end;
 
 %%%%%%%%;
 % Not rotate each of the CTF-functions. ;
@@ -1073,6 +1110,19 @@ CTF_k_p_wk_ = CTF_k_p_wkC__(:,1+nCTF);
 CTF_k_p_wkM__(:,1+nM) = CTF_k_p_wk_;
 end;%for nM=0:n_M-1;
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% CTF_k_p_wkM__: %0.2fs',tmp_t)); end;
+%%%%%%%%;
+% Not rotate each of the eta-functions. ;
+%%%%%%%%;
+tmp_t = tic();
+eta_k_p_wkM__ = zeros(n_w_sum,n_M); %<-- eta for each image. ;
+for nM=0:n_M-1;
+euler_gamma_z = euler_gamma_z_M_(1+nM);
+neta = index_neta_from_nM_(1+nM);
+eta_k_p_wk_ = eta_k_p_wke__(:,1+neta);
+%eta_k_p_wk_ = rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,eta_k_p_wk_,+0*euler_gamma_z); %<-- Not rotate the eta-functions. ;
+eta_k_p_wkM__(:,1+nM) = eta_k_p_wk_;
+end;%for nM=0:n_M-1;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% eta_k_p_wkM__: %0.2fs',tmp_t)); end;
 %%%%%%%%;
 % Yes rotate each of the images. ;
 %%%%%%%%;
@@ -1107,7 +1157,7 @@ if (flag_verbose>0); disp(sprintf(' %% sum(flag_not_match_M_) %d',sum(flag_not_m
 ssnll = 0.0d0;
 tmp_t = tic();
 index_yes_match_M_ = efind(flag_yes_match_M_);
-ssnll = ssnll + 0.5d0 * sum(abs(S_k_p_wkS__(:,1+index_nS_from_nM_(1+index_yes_match_M_)).*CTF_k_p_wkM__(:,1+index_yes_match_M_) - N_k_p_wkM__(:,1+index_yes_match_M_)).^2 .* weight_2d_wk_,'all') * (4*pi^2); %<-- restricted to perfect matches. ;
+ssnll = ssnll + 0.5d0 * sum(abs(S_k_p_wkS__(:,1+index_nS_from_nM_(1+index_yes_match_M_)).*CTF_k_p_wkM__(:,1+index_yes_match_M_) - N_k_p_wkM__(:,1+index_yes_match_M_)).^2 .* eta_k_p_wkM__(:,1+index_yes_match_M_) .* weight_2d_wk_,'all') * (4*pi^2); %<-- restricted to perfect matches. ;
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% ssnll flag_yes_match: %0.2fs',tmp_t)); end;
 %%%%;
 tmp_t = tic();
@@ -1136,7 +1186,7 @@ nM = index_not_match_M_(1+nscatter);
 scatter_from_tensor_ba_ = scatter_from_tensor_sba__(1+nscatter,:);
 index_scatter_from_tensor_ba_ = efind(scatter_from_tensor_ba_);
 n_index_scatter_from_tensor_ba = numel(index_scatter_from_tensor_ba_);
-ssnll_ba_ = 0.5d0 * sum(bsxfun(@times,abs(bsxfun(@minus,bsxfun(@times,S_k_p_wkS__(:,1+index_scatter_from_tensor_ba_),CTF_k_p_wkM__(:,1+nM)),N_k_p_wkM__(:,1+nM))).^2,weight_2d_wk_),1) * (4*pi^2); %<-- one entry per nonzero-index in scatter_from_tensor_ba_. ;
+ssnll_ba_ = 0.5d0 * sum(bsxfun(@times,abs(bsxfun(@minus,bsxfun(@times,S_k_p_wkS__(:,1+index_scatter_from_tensor_ba_),CTF_k_p_wkM__(:,1+nM)),N_k_p_wkM__(:,1+nM))).^2,eta_k_p_wkM__(:,1+nM).*weight_2d_wk_),1) * (4*pi^2); %<-- one entry per nonzero-index in scatter_from_tensor_ba_. ;
 ssnll_interp = dot(reshape(scatter_from_tensor_ba_(1+index_scatter_from_tensor_ba_),[n_index_scatter_from_tensor_ba,1]),reshape(ssnll_ba_,[n_index_scatter_from_tensor_ba,1]));
 if (flag_verbose>1);
 disp(sprintf(' %% %% nscatter %d/%d nM %d scatter_from_tensor_ba_ (%d,%d) <-- n_index_scatter_from_tensor_ba %d',nscatter,n_scatter,nM,size(scatter_from_tensor_ba_),n_index_scatter_from_tensor_ba));
