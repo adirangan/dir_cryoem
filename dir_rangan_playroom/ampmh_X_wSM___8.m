@@ -33,6 +33,10 @@ ampmh_X_wSM___8( ...
 % X_wSM___(1+nw,1+nS,1+nM) = dot( rotate(S,+gamma_z) , transf(M,+delta_) );
 %                          = sum( conj(rotate(S,+gamma_z)) .* transf(M,+delta_) .* weight_2d_ );
 % Note that we project X_wSM___ onto its real component. ;
+%%%%%%%%;
+% Note that ampmh_X_wSM___8 assumes an isotropic CTF. ;
+% I.e., the inputs CTF_UX_S_k_q_wnS__ and CTF_UX_S_l2_ ;
+% combine an angularly-independent CTF with the templates S_k_q_wnS__. ;
 %%%%%%%%
 % If requested, the I_value is calculated as follows: ;
 % I_value = <M,S> / <M,M> ;

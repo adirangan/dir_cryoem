@@ -100,7 +100,7 @@ end;%if (verbose);
 disp('returning'); return;
 end;%if (nargin<3);
 
-verbose=2;
+verbose=1;
 ni = 4;
 if (nargin<ni); l_max = 24; end; ni = ni+1;
 if (nargin<ni); a_K = 32; end; ni = ni+1;
