@@ -108,6 +108,12 @@ if ~isfield(parameter,'flag_disp'); parameter.flag_disp=0; end;
 flag_disp=parameter.flag_disp; nf=0;
 if ~isfield(parameter,'tolerance_master'); parameter.tolerance_master=1e-2; end;
 tolerance_master=parameter.tolerance_master;
+if ~isfield(parameter,'flag_kernel_qpro_d0'); parameter.flag_kernel_qpro_d0=1; end;
+flag_kernel_qpro_d0=parameter.flag_kernel_qpro_d0;
+if ~isfield(parameter,'flag_kernel_qpro_d1'); parameter.flag_kernel_qpro_d1=0; end;
+flag_kernel_qpro_d1=parameter.flag_kernel_qpro_d1;
+if ~isfield(parameter,'flag_kernel_qpro_d2'); parameter.flag_kernel_qpro_d2=0; end;
+flag_kernel_qpro_d2=parameter.flag_kernel_qpro_d2;
 if ~isfield(parameter,'kernel_qpro_polar_a_pole_north'); parameter.kernel_qpro_polar_a_pole_north=1.0*pi/12; end;
 kernel_qpro_polar_a_pole_north=parameter.kernel_qpro_polar_a_pole_north;
 if ~isfield(parameter,'kernel_qpro_polar_a_pole_south'); parameter.kernel_qpro_polar_a_pole_south=0.5*pi/12; end;
@@ -160,10 +166,10 @@ end;%if (flag_disp>1);
 leg_drop_da__ = zeros(1+l_max,n_a_use);
 for l_val=0:l_max; leg_drop_da__(1+l_val,:) = chebleg_d_{1+l_val}(cos(a_drop_node_)); end;%for l_val=0:l_max;
 %%%%;
-E_cc__ = zeros(1+l_max,1+l_max);
+C_cc__ = zeros(1+l_max,1+l_max);
 for l_val_0=0:l_max;
 for l_val_1=0:l_max;
-E_cc__(1+l_val_0,1+l_val_1) = ...
+C_cc__(1+l_val_0,1+l_val_1) = ...
   2*pi ...
 * a_drop_weight_ ...
 * ( ...
@@ -174,13 +180,62 @@ E_cc__(1+l_val_0,1+l_val_1) = ...
 ;
 end;%for l_val_1=0:l_max;
 end;%for l_val_0=0:l_max;
+%%%%;
+if flag_kernel_qpro_d1;
+D_cc__ = zeros(1+l_max,1+l_max);
+for l_val_0=0:l_max;
+tmp_chebleg_0_ = chebleg_d_{1+l_val_0};
+tmp_dchebleg_0_ = diff(tmp_chebleg_0_);
+for l_val_1=0:l_max;
+tmp_chebleg_1_ = chebleg_d_{1+l_val_1};
+tmp_dchebleg_1_ = diff(tmp_chebleg_1_);
+D_cc__(1+l_val_0,1+l_val_1) = ...
+  2*pi ...
+* a_drop_weight_ ...
+* ( ...
+      tmp_dchebleg_0_(cos(a_drop_node_)) ...
+    .*tmp_dchebleg_1_(cos(a_drop_node_)) ...
+    .*sin(a_drop_node_) ...
+   ) ...
+;
+end;%for l_val_1=0:l_max;
+end;%for l_val_0=0:l_max;
+end;%if flag_kernel_qpro_d1;
+%%%%;
+if flag_kernel_qpro_d1;
+E_cc__ = zeros(1+l_max,1+l_max);
+for l_val_0=0:l_max;
+tmp_chebleg_0_ = chebleg_d_{1+l_val_0};
+tmp_dchebleg_0_ = diff(tmp_chebleg_0_);
+tmp_ddchebleg_0_ = diff(tmp_dchebleg_0_);
+for l_val_1=0:l_max;
+tmp_chebleg_1_ = chebleg_d_{1+l_val_1};
+tmp_dchebleg_1_ = diff(tmp_chebleg_1_);
+tmp_ddchebleg_1_ = diff(tmp_dchebleg_1_);
+E_cc__(1+l_val_0,1+l_val_1) = ...
+  2*pi ...
+* a_drop_weight_ ...
+* ( ...
+      tmp_ddchebleg_0_(cos(a_drop_node_)) ...
+    .*tmp_ddchebleg_1_(cos(a_drop_node_)) ...
+    .*sin(a_drop_node_) ...
+   ) ...
+;
+end;%for l_val_1=0:l_max;
+end;%for l_val_0=0:l_max;
+end;%if flag_kernel_qpro_d1;
+%%%%;
+H_cc__ = C_cc__;
+if flag_kernel_qpro_d1; H_cc__ = H_cc__ + D_cc__ ; end;
+if flag_kernel_qpro_d2; H_cc__ = H_cc__ + E_cc__ ; end;
+%%%%;
 lb_ = zeros(1+l_max,1); %<-- lower-bound. ;
 lb_(1+0) = sqrt(1+2*0)*sqrt(4*pi); %<-- ensure average is constant. ;
 lb_(1+[1:l_max]) = sqrt(1+2*[1:l_max])*sqrt(4*pi)./max(1e-12,kernel_qpro_deconvolution_factor_max); %<-- ensure kernel_qpro_deconvolution_factor_max. ;
 ub_ = zeros(1+l_max,1); %<-- lower-bound. ;
 ub_(1+0) = sqrt(1+2*0)*sqrt(4*pi); %<-- ensure average is constant. ;
 ub_(1+[1:l_max]) = sqrt(1+2*[1:l_max])*sqrt(4*pi).*max(1e-12,kernel_qpro_deconvolution_factor_max); %<-- ensure kernel_qpro_deconvolution_factor_max. ;
-tmp_H = E_cc__;
+tmp_H = H_cc__;
 tmp_f = []; tmp_A = []; tmp_b = []; tmp_Aeq = []; tmp_beq = []; tmp_lb = lb_; tmp_ub = ub_; tmp_x0 = sqrt(1+2*l_val_)*sqrt(4*pi);
 kernel_qpro_optimoptions = optimoptions('quadprog');
 kernel_qpro_optimoptions.MaxIterations = kernel_qpro_MaxIterations;
