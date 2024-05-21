@@ -977,14 +977,16 @@ end;%for nk_p_r=0:n_k_p_r-1;
 
 %%%%%%%%;
 % Calibrate scaling factor. ;
+% The 
 %%%%%%%%;
+term_deltafunc = sqrt(2*pi);
 term_2 = (pi*k_p_r_max^2)/(4*pi^2);
 if (flag_verbose>0); disp(sprintf(' %% sum(weight_2d_wk_) vs (pi*k_p_r_max^2)/(4*pi^2): %0.16f',fnorm(sum(weight_2d_wk_) - term_2))); end;
 term_3 = (4/3)*pi*k_p_r_max^3;
 if (flag_verbose>0); disp(sprintf(' %% sum(weight_3d_k_all_) vs (4/3)*pi*k_p_r_max^3: %0.16f',fnorm(sum(weight_3d_k_all_) - term_3))); end;
 term_3r = (4*pi^2*k_p_r_max^2);
 if (flag_verbose>0); disp(sprintf(' %% sum(weight_3d_riesz__all_) vs 4*pi^2*k_p_r_max^2: %0.16f',fnorm(sum(weight_3d_riesz_k_all_) - term_3r))); end;
-scaling_volumetric = term_3r / term_2 / sqrt(2*pi);
+scaling_volumetric = term_3r / term_2 / term_deltafunc ;
 
 %%%%%%%%;
 % Now build primitive ssnll. ;
