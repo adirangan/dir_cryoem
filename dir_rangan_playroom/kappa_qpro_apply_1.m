@@ -713,6 +713,7 @@ if index_calc==2; flag_calc = (~2|~isempty(CTF_k_p_wMk__)) & (~0|~isempty(M_k_p_
 if index_calc==3; flag_calc = (~1|~isempty(CTF_k_p_wMk__)) & (~1|~isempty(M_k_p_wMk__)); if flag_calc; N_k_p_wMk__ =     CTF_k_p_wMk__ .^1 .*     M_k_p_wMk__ .^1 ; end; end;
 if index_calc==4; flag_calc = (~0|~isempty(CTF_k_p_wMk__)) & (~2|~isempty(M_k_p_wMk__)); if flag_calc; N_k_p_wMk__ =                          abs(M_k_p_wMk__).^2 ; end; end;
 if (flag_verbose>1); disp(sprintf(' %% index_calc %d <-- N_k_p_wMk__ (%d,%d)',index_calc,size(N_k_p_wMk__))); end;
+N_k_p_wMk__  = N_k_p_wMk__ * (2*pi) / max(1,n_w_max) ; %<-- scale by number of points on image-ring. ;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 if flag_calc;
 %%%%%%%%%%%%%%%%;

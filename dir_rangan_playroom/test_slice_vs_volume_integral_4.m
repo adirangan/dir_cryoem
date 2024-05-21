@@ -109,7 +109,7 @@ disp(sprintf(' %% I_b_form vs I_b_quad %0.16f %%<-- should be <1e-6',fnorm(I_b_f
 %%%%%%%%;
 l_max_upb = round(2*pi*k_p_r_max);
 l_max_max = min(l_max_upb,1+ceil(2*pi*k_p_r_(end)));
-n_w_max = 2*(l_max_max+1); n_w_0in_ = n_w_max*ones(n_k_p_r,1);
+n_w_max = 1*1*2*(l_max_max+1); n_w_0in_ = n_w_max*ones(n_k_p_r,1);
 [ ...
  n_w_ ...
 ,weight_2d_k_p_r_ ...
@@ -144,6 +144,17 @@ I_form = I_form + h2d_(tmp_kd)/(4*pi^2) * (pi*k_p_r_max^2);
 end;%for nsource1=0:n_source-1;
 end;%for nsource0=0:n_source-1;
 disp(sprintf(' %% I_form vs I_quad %0.16f %%<-- should be <1e-2',fnorm(I_form-I_quad)/fnorm(I_form)));
+%%%%;
+if (flag_disp>1);
+figure(1+nf);nf=nf+1;clf;figmed;
+Slim_ = n_source*[-1,+1];
+subplot(1,2,1);
+imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(S_k_p_wk_),Slim_,colormap_beach());
+axis image; axisnotick; title('real(S_k_p_wk_)','Interpreter','none');
+subplot(1,2,2);
+imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(T_k_p_wk_),Slim_,colormap_beach());
+axis image; axisnotick; title('real(T_k_p_wk_)','Interpreter','none');
+end;% if flag_disp;
 %%%%%%%%;
 % Now set up spherical-harmonics. ;
 %%%%%%%%;
@@ -973,7 +984,7 @@ term_3 = (4/3)*pi*k_p_r_max^3;
 if (flag_verbose>0); disp(sprintf(' %% sum(weight_3d_k_all_) vs (4/3)*pi*k_p_r_max^3: %0.16f',fnorm(sum(weight_3d_k_all_) - term_3))); end;
 term_3r = (4*pi^2*k_p_r_max^2);
 if (flag_verbose>0); disp(sprintf(' %% sum(weight_3d_riesz__all_) vs 4*pi^2*k_p_r_max^2: %0.16f',fnorm(sum(weight_3d_riesz_k_all_) - term_3r))); end;
-scaling_volumetric = (2*pi) * term_3r / term_2 ;
+scaling_volumetric = term_3r / term_2 / sqrt(2*pi);
 
 %%%%%%%%;
 % Now build primitive ssnll. ;

@@ -157,7 +157,7 @@ if (verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(imag(a_k_Y_yk_),n_lm
 %%%%%%%%;
 viewing_k_eq_d = 1/(4*pi);
 template_k_eq_d = -1;
-n_w_max = 98; n_w_0in = n_w_max;
+n_w_max = 1*98; n_w_0in = n_w_max;
 n_w = n_w_max; n_w_ = n_w_max*ones(n_k_p_r,1); n_w_sum = sum(n_w_); n_w_csum_ = cumsum([0;n_w_]);
 %%%%%%%%;
 a_k_Y_lmk__ = zeros(n_lm_max,n_k_p_r);
@@ -872,7 +872,8 @@ n_polar_a = 3+round(n_equator/2);
 n_w = 2*n_polar_a;
 end;%if (template_k_eq_d>0);
 if (template_k_eq_d<=0);
-n_w = max(6,n_w_0in);
+%n_w = max(6,n_w_0in);
+n_w = n_w_0in; %<-- no minimum. ;
 end;%if (template_k_eq_d<=0);
 if (verbose); disp(sprintf(' %% n_w %d',n_w)); end;
 n_w_max = n_w; n_w_sum = n_w_max*n_k_p_r; n_w_ = n_w_max*ones(n_k_p_r,1); n_w_csum_ = cumsum([0;n_w_]);
