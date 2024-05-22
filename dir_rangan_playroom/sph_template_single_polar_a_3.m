@@ -857,7 +857,7 @@ d2Wdcc_caza_mkb___ = permute(reshape(xxnufft1d2(n_viewing_azimu_b,viewing_azimu_
 tmp_t = toc(tmp_t); if (verbose); disp(sprintf(' %% %% d2Wdxy_caza_mkb___: %0.2fs',tmp_t)); end;
 end;%if flag_d2;
 %%%%%%%%;
-factor_scaling = sqrt(n_w_max)/sqrt(1+2*l_max_max);
+factor_scaling = sqrt(n_w_max)/pi^2;
 %%%%%%%%;
 if flag_d0;
 tmp_t = tic();
