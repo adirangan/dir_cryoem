@@ -55,7 +55,7 @@ parameter.flag_recalc_dtau_dtau_qref_from_data=0;
 [parameter,KAPPA] = kappa_qpro_apply_1(parameter);
 %%%%%%%%;
 n_w_max = 98;
-n_M = 3;
+n_M = 13;
 rng(0);
 viewing_polar_a_M_ = 2*pi*rand(n_M,1);
 viewing_azimu_b_M_ = 2*pi*rand(n_M,1);
