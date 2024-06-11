@@ -977,7 +977,6 @@ end;%for nk_p_r=0:n_k_p_r-1;
 
 %%%%%%%%;
 % Calibrate scaling factor. ;
-% The 
 %%%%%%%%;
 term_deltafunc = sqrt(2*pi);
 term_2 = (pi*k_p_r_max^2)/(4*pi^2);

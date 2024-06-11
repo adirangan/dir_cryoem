@@ -1,8 +1,10 @@
 function ...
 [ ...
  parameter ...
+,ssnll_M_ ...
 ,ssnll ...
 ,S_k_p_wkS__ ...
+,dvol_ssnll_M_ ...
 ,dvol_ssnll ...
 ,dvol_S_k_p_wkS__ ...
 ,dvol_dvol_ssnll ...
@@ -190,13 +192,15 @@ if (flag_verbose>0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
 
 flag_ssnll = 1;
 flag_dvol_ssnll = 0; if ~isempty(dvol_a_k_Y_yk__); flag_dvol_ssnll = 1; end;
-flag_dtau_ssnll = 0; if (nargout>=1+6); flag_dtau_ssnll = 1; end;
-flag_dvol_dvol_ssnll = 0; if ~isempty(dvol_a_k_Y_yk__) & (nargout>=1+5); flag_dvol_dvol_ssnll = 1; end;
-flag_dtau_dvol_ssnll = 0; if ~isempty(dvol_a_k_Y_yk__) & (nargout>=1+9); flag_dtau_dvol_ssnll = 1; end;
-flag_dtau_dtau_ssnll = 0; if (nargout>=1+12); flag_dtau_dtau_ssnll = 1; end;
+flag_dtau_ssnll = 0; if (nargout>=1+8); flag_dtau_ssnll = 1; end;
+flag_dvol_dvol_ssnll = 0; if ~isempty(dvol_a_k_Y_yk__) & (nargout>=1+7); flag_dvol_dvol_ssnll = 1; end;
+flag_dtau_dvol_ssnll = 0; if ~isempty(dvol_a_k_Y_yk__) & (nargout>=1+11); flag_dtau_dvol_ssnll = 1; end;
+flag_dtau_dtau_ssnll = 0; if (nargout>=1+14); flag_dtau_dtau_ssnll = 1; end;
 if (flag_verbose>0); disp(sprintf(' %% flag_ssnll %d flag_dvol_ssnll %d flag_dtau_ssnll %d flag_dvol_dvol_ssnll %d flag_dtau_dvol_ssnll %d flag_dtau_dtau_ssnll %d',flag_ssnll, flag_dvol_ssnll, flag_dtau_ssnll, flag_dvol_dvol_ssnll, flag_dtau_dvol_ssnll, flag_dtau_dtau_ssnll)); end;
 
+ssnll_M_ = [];
 ssnll = [];
+dvol_ssnll_M_ = [];
 dvol_ssnll = [];
 dtau_ssnll_M3__ = [];
 dtau_ssnll = [];
@@ -395,9 +399,9 @@ sph_template_3( ...
 ,d2W_betazeta_mlma____ ...
 );
 dtau_S_k_p_wkS3___ = zeros(n_w_sum,n_S,3);
-dtau_S_k_p_wkS3___(:,:,1+0) = dtemplateda_wkS__;
-dtau_S_k_p_wkS3___(:,:,1+1) = dtemplatedb_wkS__;
-dtau_S_k_p_wkS3___(:,:,1+2) = dtemplatedc_wkS__;
+dtau_S_k_p_wkS3___(:,:,1+0) = +dtemplateda_wkS__;
+dtau_S_k_p_wkS3___(:,:,1+1) = +dtemplatedb_wkS__;
+dtau_S_k_p_wkS3___(:,:,1+2) = -dtemplatedc_wkS__;
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% sph_template_3 (first-derivative): %0.6fs',tmp_t)); end;
 %%%%%%%%;
 end;%if isempty(S_k_p_wkS__);
@@ -463,19 +467,19 @@ sph_template_3( ...
 ,d2W_betazeta_mlma____ ...
 );
 dtau_S_k_p_wkS3___ = zeros(n_w_sum,n_S,3);
-dtau_S_k_p_wkS3___(:,:,1+0) = dtemplateda_wkS__;
-dtau_S_k_p_wkS3___(:,:,1+1) = dtemplatedb_wkS__;
-dtau_S_k_p_wkS3___(:,:,1+2) = dtemplatedc_wkS__;
+dtau_S_k_p_wkS3___(:,:,1+0) = +dtemplateda_wkS__;
+dtau_S_k_p_wkS3___(:,:,1+1) = +dtemplatedb_wkS__;
+dtau_S_k_p_wkS3___(:,:,1+2) = -dtemplatedc_wkS__;
 dtau_dtau_S_k_p_wkS33____ = zeros(n_w_sum,n_S,3,3);
-dtau_dtau_S_k_p_wkS33____(:,:,1+0,1+0) = ddtemplatedaa_wkS__;
-dtau_dtau_S_k_p_wkS33____(:,:,1+0,1+1) = ddtemplatedab_wkS__;
-dtau_dtau_S_k_p_wkS33____(:,:,1+0,1+2) = ddtemplatedac_wkS__;
-dtau_dtau_S_k_p_wkS33____(:,:,1+1,1+0) = ddtemplatedab_wkS__;
-dtau_dtau_S_k_p_wkS33____(:,:,1+1,1+1) = ddtemplatedbb_wkS__;
-dtau_dtau_S_k_p_wkS33____(:,:,1+1,1+2) = ddtemplatedbc_wkS__;
-dtau_dtau_S_k_p_wkS33____(:,:,1+2,1+0) = ddtemplatedac_wkS__;
-dtau_dtau_S_k_p_wkS33____(:,:,1+2,1+1) = ddtemplatedbc_wkS__;
-dtau_dtau_S_k_p_wkS33____(:,:,1+2,1+2) = ddtemplatedcc_wkS__;
+dtau_dtau_S_k_p_wkS33____(:,:,1+0,1+0) = +ddtemplatedaa_wkS__;
+dtau_dtau_S_k_p_wkS33____(:,:,1+0,1+1) = +ddtemplatedab_wkS__;
+dtau_dtau_S_k_p_wkS33____(:,:,1+0,1+2) = -ddtemplatedac_wkS__;
+dtau_dtau_S_k_p_wkS33____(:,:,1+1,1+0) = +ddtemplatedab_wkS__;
+dtau_dtau_S_k_p_wkS33____(:,:,1+1,1+1) = +ddtemplatedbb_wkS__;
+dtau_dtau_S_k_p_wkS33____(:,:,1+1,1+2) = -ddtemplatedbc_wkS__;
+dtau_dtau_S_k_p_wkS33____(:,:,1+2,1+0) = -ddtemplatedac_wkS__;
+dtau_dtau_S_k_p_wkS33____(:,:,1+2,1+1) = -ddtemplatedbc_wkS__;
+dtau_dtau_S_k_p_wkS33____(:,:,1+2,1+2) = +ddtemplatedcc_wkS__;
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% sph_template_3 (second-derivative): %0.6fs',tmp_t)); end;
 %%%%%%%%;
 end;%if isempty(S_k_p_wkS__);
@@ -577,9 +581,9 @@ sph_template_3( ...
 ,d2W_betazeta_mlma____ ...
 );
 dtau_dvol_S_k_p_wkS3___ = zeros(n_w_sum,n_S,3);
-dtau_dvol_S_k_p_wkS3___(:,:,1+0) = dtemplateda_wkS__;
-dtau_dvol_S_k_p_wkS3___(:,:,1+1) = dtemplatedb_wkS__;
-dtau_dvol_S_k_p_wkS3___(:,:,1+2) = dtemplatedc_wkS__;
+dtau_dvol_S_k_p_wkS3___(:,:,1+0) = +dtemplateda_wkS__;
+dtau_dvol_S_k_p_wkS3___(:,:,1+1) = +dtemplatedb_wkS__;
+dtau_dvol_S_k_p_wkS3___(:,:,1+2) = -dtemplatedc_wkS__;
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% sph_template_3 (first-derivative): %0.6fs',tmp_t)); end;
 %%%%%%%%;
 end;%if isempty(dvol_S_k_p_wkS__);
@@ -665,8 +669,10 @@ index_not_match_M_ = efind(flag_not_match_M_);
 n_scatter = numel(index_not_match_M_);
 azimu_b_scatter_ = euler_azimu_b_M_(1+index_not_match_M_);
 polar_a_scatter_ = euler_polar_a_M_(1+index_not_match_M_);
-flag_polar_a_ascend_vs_descend = 0; if (viewing_polar_a_(end)> viewing_polar_a_(1+0)); flag_polar_a_ascend_vs_descend = 1; end;
 if (flag_verbose>0); disp(sprintf(' %% n_scatter %d, flag_polar_a_ascend_vs_descend %d',n_scatter,flag_polar_a_ascend_vs_descend)); end;
+scatter_from_tensor_sba__ = zeros(n_scatter,n_viewing_azimu_b*n_viewing_polar_a);
+if (n_scatter> 0);
+flag_polar_a_ascend_vs_descend = 0; if (viewing_polar_a_(end)> viewing_polar_a_(1+0)); flag_polar_a_ascend_vs_descend = 1; end;
 [ ...
  scatter_from_tensor_sba__ ...
 ] = ...
@@ -680,6 +686,7 @@ shell_k_p_scatter_from_tensor_interpolate_n_7( ...
 ,polar_a_scatter_ ...
 ,flag_polar_a_ascend_vs_descend ...
 );
+end;%if (n_scatter> 0);
 if (flag_verbose>0); disp(sprintf(' %% scatter_from_tensor_sba__ (%d,%d)',size(scatter_from_tensor_sba__))); end;
 %%%%;
 n_sum_index_scatter_from_tensor_ba = 0;

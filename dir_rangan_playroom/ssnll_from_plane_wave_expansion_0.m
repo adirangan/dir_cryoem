@@ -1,8 +1,10 @@
 function ...
 [ ...
  parameter ...
+,ssnll_M_ ...
 ,ssnll ...
 ,S_k_p_wkS__ ...
+,dvol_ssnll_M_ ...
 ,dvol_ssnll ...
 ,dvol_S_k_p_wkS__ ...
 ,dvol_dvol_ssnll ...
@@ -154,19 +156,19 @@ if  isempty(dtau_euler_azimu_b_M_); dtau_euler_azimu_b_M_ = zeros(n_M,1); end;
 if  isempty(dtau_euler_gamma_z_M_); dtau_euler_gamma_z_M_ = zeros(n_M,1); end;
 
 flag_ssnll = 1;
-flag_dvol_ssnll = 0; if (nargout>=1+3); flag_dvol_ssnll = 1; end;
-flag_dtau_ssnll = 0; if (nargout>=1+6); flag_dtau_ssnll = 1; end;
-flag_dvol_dvol_ssnll = 0; if (nargout>=1+5); flag_dvol_dvol_ssnll = 1; end;
-flag_dtau_dvol_ssnll = 0; if (nargout>=1+9); flag_dtau_dvol_ssnll = 1; end;
-flag_dtau_dtau_ssnll = 0; if (nargout>=1+12); flag_dtau_dtau_ssnll = 1; end;
+flag_dvol_ssnll = 0; if (nargout>=1+4); flag_dvol_ssnll = 1; end;
+flag_dtau_ssnll = 0; if (nargout>=1+8); flag_dtau_ssnll = 1; end;
+flag_dvol_dvol_ssnll = 0; if (nargout>=1+7); flag_dvol_dvol_ssnll = 1; end;
+flag_dtau_dvol_ssnll = 0; if (nargout>=1+11); flag_dtau_dvol_ssnll = 1; end;
+flag_dtau_dtau_ssnll = 0; if (nargout>=1+14); flag_dtau_dtau_ssnll = 1; end;
 
 if flag_ssnll;
 tmp_t = tic();
 S_k_p_wkS__ = zeros(n_w_sum,n_S);
 for nS=0:n_S-1;
-tmp_polar_a = viewing_polar_a_S_(1+nS);
-tmp_azimu_b = viewing_azimu_b_S_(1+nS);
-tmp_gamma_z = viewing_gamma_z_S_(1+nS);
+tmp_polar_a = +viewing_polar_a_S_(1+nS);
+tmp_azimu_b = +viewing_azimu_b_S_(1+nS);
+tmp_gamma_z = -viewing_gamma_z_S_(1+nS);
 tmp_R_a__ = Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
 U_k_p_wk_ = zeros(n_w_sum,1);
 for nsource_a=0:n_source_a-1;
@@ -183,13 +185,13 @@ if flag_dtau_ssnll;
 tmp_t = tic();
 dtau_S_k_p_wkS3___ = zeros(n_w_sum,n_S,3);
 for nS=0:n_S-1;
-tmp_polar_a = viewing_polar_a_S_(1+nS);
-tmp_azimu_b = viewing_azimu_b_S_(1+nS);
-tmp_gamma_z = viewing_gamma_z_S_(1+nS);
+tmp_polar_a = +viewing_polar_a_S_(1+nS);
+tmp_azimu_b = +viewing_azimu_b_S_(1+nS);
+tmp_gamma_z = -viewing_gamma_z_S_(1+nS);
 tmp_R_a__ = Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
 tmp_da_R_a__ = -Rz(-tmp_gamma_z)*dRy(-tmp_polar_a)*Rz(-tmp_azimu_b);
 tmp_db_R_a__ = -Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*dRz(-tmp_azimu_b);
-tmp_dc_R_a__ = -dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
+tmp_dc_R_a__ = +dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
 U_k_p_wk_ = zeros(n_w_sum,1);
 da_U_k_p_wk_ = zeros(n_w_sum,1);
 db_U_k_p_wk_ = zeros(n_w_sum,1);
@@ -217,21 +219,21 @@ if flag_dtau_dtau_ssnll;
 tmp_t = tic();
 dtau_dtau_S_k_p_wkS33____ = zeros(n_w_sum,n_S,3,3);
 for nS=0:n_S-1;
-tmp_polar_a = viewing_polar_a_S_(1+nS);
-tmp_azimu_b = viewing_azimu_b_S_(1+nS);
-tmp_gamma_z = viewing_gamma_z_S_(1+nS);
+tmp_polar_a = +viewing_polar_a_S_(1+nS);
+tmp_azimu_b = +viewing_azimu_b_S_(1+nS);
+tmp_gamma_z = -viewing_gamma_z_S_(1+nS);
 tmp_R_a__ = Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
 tmp_da_R_a__ = -Rz(-tmp_gamma_z)*dRy(-tmp_polar_a)*Rz(-tmp_azimu_b);
 tmp_db_R_a__ = -Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*dRz(-tmp_azimu_b);
-tmp_dc_R_a__ = -dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
+tmp_dc_R_a__ = +dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
 tmp_daa_R_a__ = +Rz(-tmp_gamma_z)*ddRy(-tmp_polar_a)*Rz(-tmp_azimu_b);
 tmp_dab_R_a__ = +Rz(-tmp_gamma_z)*dRy(-tmp_polar_a)*dRz(-tmp_azimu_b);
-tmp_dac_R_a__ = +dRz(-tmp_gamma_z)*dRy(-tmp_polar_a)*Rz(-tmp_azimu_b);
+tmp_dac_R_a__ = -dRz(-tmp_gamma_z)*dRy(-tmp_polar_a)*Rz(-tmp_azimu_b);
 tmp_dba_R_a__ = +Rz(-tmp_gamma_z)*dRy(-tmp_polar_a)*dRz(-tmp_azimu_b);
 tmp_dbb_R_a__ = +Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*ddRz(-tmp_azimu_b);
-tmp_dbc_R_a__ = +dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*dRz(-tmp_azimu_b);
-tmp_dca_R_a__ = +dRz(-tmp_gamma_z)*dRy(-tmp_polar_a)*Rz(-tmp_azimu_b);
-tmp_dcb_R_a__ = +dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*dRz(-tmp_azimu_b);
+tmp_dbc_R_a__ = -dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*dRz(-tmp_azimu_b);
+tmp_dca_R_a__ = -dRz(-tmp_gamma_z)*dRy(-tmp_polar_a)*Rz(-tmp_azimu_b);
+tmp_dcb_R_a__ = -dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*dRz(-tmp_azimu_b);
 tmp_dcc_R_a__ = +ddRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
 U_k_p_wk_ = zeros(n_w_sum,1);
 da_U_k_p_wk_ = zeros(n_w_sum,1);
@@ -301,9 +303,9 @@ if flag_dvol_ssnll;
 tmp_t = tic();
 dvol_S_k_p_wkS__ = zeros(n_w_sum,n_S);
 for nS=0:n_S-1;
-tmp_polar_a = viewing_polar_a_S_(1+nS);
-tmp_azimu_b = viewing_azimu_b_S_(1+nS);
-tmp_gamma_z = viewing_gamma_z_S_(1+nS);
+tmp_polar_a = +viewing_polar_a_S_(1+nS);
+tmp_azimu_b = +viewing_azimu_b_S_(1+nS);
+tmp_gamma_z = -viewing_gamma_z_S_(1+nS);
 tmp_R_a__ = Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
 dvol_U_k_p_wk_ = zeros(n_w_sum,1);
 for nsource_dvol_a=0:n_source_dvol_a-1;
@@ -320,13 +322,13 @@ if flag_dtau_dvol_ssnll;
 tmp_t = tic();
 dtau_dvol_S_k_p_wkS3___ = zeros(n_w_sum,n_S,3);
 for nS=0:n_S-1;
-tmp_polar_a = viewing_polar_a_S_(1+nS);
-tmp_azimu_b = viewing_azimu_b_S_(1+nS);
-tmp_gamma_z = viewing_gamma_z_S_(1+nS);
+tmp_polar_a = +viewing_polar_a_S_(1+nS);
+tmp_azimu_b = +viewing_azimu_b_S_(1+nS);
+tmp_gamma_z = -viewing_gamma_z_S_(1+nS);
 tmp_R_a__ = Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
 tmp_da_R_a__ = -Rz(-tmp_gamma_z)*dRy(-tmp_polar_a)*Rz(-tmp_azimu_b);
 tmp_db_R_a__ = -Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*dRz(-tmp_azimu_b);
-tmp_dc_R_a__ = -dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
+tmp_dc_R_a__ = +dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
 dvol_U_k_p_wk_ = zeros(n_w_sum,1);
 da_dvol_U_k_p_wk_ = zeros(n_w_sum,1);
 db_dvol_U_k_p_wk_ = zeros(n_w_sum,1);
@@ -351,7 +353,9 @@ tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% dtau_dvol_S_k_p_wkS3_
 end;%if flag_dtau_dvol_ssnll;
 
 tmp_t = tic();
+ssnll_M_ = zeros(n_M,1);
 ssnll = 0.0d0;
+dvol_ssnll_M_ = zeros(n_M,1);
 dvol_ssnll = 0.0d0;
 dvol_dvol_ssnll = 0.0d0;
 dtau_ssnll_M3__ = zeros(n_M,3);
@@ -371,21 +375,21 @@ eta_k_p_wk_ = eta_k_p_wke__(:,1+neta);
 % the nS template U_k_p_wk_ is assumed to come from volume a projected along nM euler_angle_. ;
 % (i.e., U_k_p_wk_ will change if the nM euler_angle_ changes). ;
 %%%%;
-tmp_polar_a = euler_polar_a_M_(1+nM);
-tmp_azimu_b = euler_azimu_b_M_(1+nM);
-tmp_gamma_z = euler_gamma_z_M_(1+nM);
+tmp_polar_a = +euler_polar_a_M_(1+nM);
+tmp_azimu_b = +euler_azimu_b_M_(1+nM);
+tmp_gamma_z = -euler_gamma_z_M_(1+nM);
 tmp_R_a__ = Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
 tmp_da_R_a__ = -Rz(-tmp_gamma_z)*dRy(-tmp_polar_a)*Rz(-tmp_azimu_b);
 tmp_db_R_a__ = -Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*dRz(-tmp_azimu_b);
-tmp_dc_R_a__ = -dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
+tmp_dc_R_a__ = +dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
 tmp_daa_R_a__ = +Rz(-tmp_gamma_z)*ddRy(-tmp_polar_a)*Rz(-tmp_azimu_b);
 tmp_dab_R_a__ = +Rz(-tmp_gamma_z)*dRy(-tmp_polar_a)*dRz(-tmp_azimu_b);
-tmp_dac_R_a__ = +dRz(-tmp_gamma_z)*dRy(-tmp_polar_a)*Rz(-tmp_azimu_b);
+tmp_dac_R_a__ = -dRz(-tmp_gamma_z)*dRy(-tmp_polar_a)*Rz(-tmp_azimu_b);
 tmp_dba_R_a__ = +Rz(-tmp_gamma_z)*dRy(-tmp_polar_a)*dRz(-tmp_azimu_b);
 tmp_dbb_R_a__ = +Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*ddRz(-tmp_azimu_b);
-tmp_dbc_R_a__ = +dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*dRz(-tmp_azimu_b);
-tmp_dca_R_a__ = +dRz(-tmp_gamma_z)*dRy(-tmp_polar_a)*Rz(-tmp_azimu_b);
-tmp_dcb_R_a__ = +dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*dRz(-tmp_azimu_b);
+tmp_dbc_R_a__ = -dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*dRz(-tmp_azimu_b);
+tmp_dca_R_a__ = -dRz(-tmp_gamma_z)*dRy(-tmp_polar_a)*Rz(-tmp_azimu_b);
+tmp_dcb_R_a__ = -dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*dRz(-tmp_azimu_b);
 tmp_dcc_R_a__ = +ddRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
 U_k_p_wk_ = zeros(n_w_sum,1);
 da_U_k_p_wk_ = zeros(n_w_sum,1);
@@ -457,13 +461,13 @@ dtau_dtau_U_k_p_wk33___(:,1+2,1+2) = dcc_U_k_p_wk_;
 % repeat for the perturbed volume. ;
 %%%%;
 if flag_dvol_ssnll;
-tmp_polar_a = euler_polar_a_M_(1+nM);
-tmp_azimu_b = euler_azimu_b_M_(1+nM);
-tmp_gamma_z = euler_gamma_z_M_(1+nM);
+tmp_polar_a = +euler_polar_a_M_(1+nM);
+tmp_azimu_b = +euler_azimu_b_M_(1+nM);
+tmp_gamma_z = -euler_gamma_z_M_(1+nM);
 tmp_R_a__ = Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
 tmp_da_R_a__ = -Rz(-tmp_gamma_z)*dRy(-tmp_polar_a)*Rz(-tmp_azimu_b);
 tmp_db_R_a__ = -Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*dRz(-tmp_azimu_b);
-tmp_dc_R_a__ = -dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
+tmp_dc_R_a__ = +dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
 dvol_U_k_p_wk_ = zeros(n_w_sum,1);
 da_dvol_U_k_p_wk_ = zeros(n_w_sum,1);
 db_dvol_U_k_p_wk_ = zeros(n_w_sum,1);
@@ -499,7 +503,7 @@ V_k_p_wk_ = V_k_p_wk_ + tmp_vb*planewave_wk_;
 end;%for nsource_b=0:n_source_b-1;
 %%%%;
 %ssnll = ssnll + 0.5*sum(abs(U_k_p_wk_.*CTF_k_p_wk_ - V_k_p_wk_).^2.*eta_k_p_wk_.*weight_2d_wk_,'all')*(4*pi^2);
-ssnll = ssnll ...
+ssnll_M_(1+nM) = ssnll_M_(1+nM) ...
   + 0.5 ...
   *sum( ...
 	bsxfun(@times ...
@@ -518,7 +522,7 @@ ssnll = ssnll ...
   ;
 %%%%;
 if flag_dvol_ssnll;
-dvol_ssnll = dvol_ssnll ...
+dvol_ssnll_M_(1+nM) = dvol_ssnll_M_(1+nM) ...
   + 0.5 ...
   *sum( ...
 	bsxfun(@times ...
@@ -740,6 +744,8 @@ end;%if flag_dtau_dtau_ssnll;
 end;%for nM=0:n_M-1;
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% ssnll: %0.6fs',tmp_t)); end;
 %%%%%%%%;
+ssnll = sum(ssnll_M_,[1]);
+dvol_ssnll = sum(dvol_ssnll_M_,[1]);
 dtau_M3__ = [dtau_euler_polar_a_M_,dtau_euler_azimu_b_M_,dtau_euler_gamma_z_M_];
 dtau_ssnll = sum(bsxfun(@times,dtau_ssnll_M3__,dtau_M3__),[1,2]);
 dtau_dvol_ssnll = sum(bsxfun(@times,dtau_dvol_ssnll_M3__,dtau_M3__),[1,2]);
