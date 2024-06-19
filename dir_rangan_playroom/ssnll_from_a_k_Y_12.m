@@ -184,7 +184,7 @@ if (~isfield(parameter,'viewing_k_eq_d')); parameter.viewing_k_eq_d = []; end; %
 viewing_k_eq_d = parameter.viewing_k_eq_d;
 if (~isfield(parameter,'template_k_eq_d')); parameter.template_k_eq_d = -1; end; %<-- parameter_bookmark. ;
 template_k_eq_d = parameter.template_k_eq_d;
-if (~isfield(parameter,'n_order')); parameter.n_order = 3; end; %<-- parameter_bookmark. ;
+if (~isfield(parameter,'n_order')); parameter.n_order = 5; end; %<-- parameter_bookmark. ;
 n_order = parameter.n_order;
 %%%%%%%%;
 

@@ -7,7 +7,7 @@ R_to_euler();
  %}
 
 if (nargin<1);
-e__in_ = 2*pi*rand(1,3); 
+e__in_ = [2*pi*rand(),1*pi*rand(),2*pi*rand()];
 R = euler_to_R(e__in_);
 continue_flag=1; iteration = 0; iteration_max = 4;
 while (continue_flag & iteration<iteration_max);
@@ -40,6 +40,10 @@ dg = -trace(transpose(D) * dRz(g)*Ry(b)*Rz(a));
 a = a-da*eta;
 b = b-db*eta;
 g = g-dg*eta;
+a = periodize(a,0,2*pi);
+b = periodize(b,-1*pi,1*pi);
+g = periodize(g,0,2*pi);
+if b<0; b = -b; a = periodize(a-pi,0,2*pi); g = periodize(g-pi,0,2*pi); end;
 e_ = [a,b,g];
 D = R - euler_to_R(e_);
 E = trace(transpose(D)*D);
