@@ -35,13 +35,13 @@ n_azimu_b_ = zeros(n_polar_a,1);
 index_azimu_b__ = cell(n_polar_a,1);
 for npolar_a=0:n_polar_a-1;
 polar_a = u_polar_a_(1+npolar_a);
-index_polar_a_{1+npolar_a} = find(polar_a_==polar_a) - 1;
+index_polar_a_{1+npolar_a} = efind(polar_a_==polar_a);
 u_azimu_b__{1+npolar_a} = unique(azimu_b_(1+index_polar_a_{1+npolar_a}));
 n_azimu_b_(1+npolar_a) = numel(u_azimu_b__{1+npolar_a});
 index_azimu_b__{1+npolar_a} = zeros(n_azimu_b_(1+npolar_a),1);
 for nazimu_b=0:n_azimu_b_(1+npolar_a)-1;
 azimu_b = u_azimu_b__{1+npolar_a}(1+nazimu_b);
-index_azimu_b__{1+npolar_a}(1+nazimu_b) = index_polar_a_{1+npolar_a}(1+find(azimu_b_(1+index_polar_a_{1+npolar_a})==azimu_b)-1);
+index_azimu_b__{1+npolar_a}(1+nazimu_b) = min(index_polar_a_{1+npolar_a}(1+efind(azimu_b_(1+index_polar_a_{1+npolar_a})==azimu_b)));
 end;%for nazimu_b=0:n_azimu_b_(1+npolar_a)-1;
 end;%for npolar_a=0:n_polar_a-1;
 
