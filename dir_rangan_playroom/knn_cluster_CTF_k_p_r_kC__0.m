@@ -12,7 +12,7 @@ knn_cluster_CTF_k_p_r_kC__0( ...
 ,CTF_k_p_r_kC__ ...
 );
 
-verbose=1;
+verbose=0;
 if (verbose); disp(sprintf('[entering knn_cluster_CTF_k_p_r_kC__0]')); end;
 
 if isempty(parameter); parameter = struct('type','parameter'); end;

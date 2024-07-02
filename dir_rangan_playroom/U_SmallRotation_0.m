@@ -215,8 +215,10 @@ tmp_polar_a_ori = +euler_polar_a_M_(1+nM);
 tmp_azimu_b_ori = +euler_azimu_b_M_(1+nM);
 tmp_gamma_z_ori = -euler_gamma_z_M_(1+nM);
 tmp_da_mid = +(sin(tmp_polar_a_ori)*(tmp_g*cos(tmp_azimu_b_ori) + tmp_h*sin(tmp_azimu_b_ori)))/(1 - cos(tmp_polar_a_ori)^2)^(1/2);
-tmp_db_mid = -(cos(tmp_azimu_b_ori)*(tmp_f*sin(tmp_polar_a_ori) - tmp_h*cos(tmp_polar_a_ori)*cos(tmp_azimu_b_ori) + tmp_g*cos(tmp_polar_a_ori)*sin(tmp_azimu_b_ori)))/(cos(tmp_azimu_b_ori)*sin(tmp_polar_a_ori)); %<-- remove lower order terms from denominator. ;
-tmp_dc_mid = -(cos(tmp_gamma_z_ori)*(tmp_h*cos(tmp_azimu_b_ori) - tmp_g*sin(tmp_azimu_b_ori)))/(cos(tmp_gamma_z_ori)*sin(tmp_polar_a_ori)); %<-- remove lower order terms from denominator. ;
+%tmp_db_mid = -(cos(tmp_azimu_b_ori)*(tmp_f*sin(tmp_polar_a_ori) - tmp_h*cos(tmp_polar_a_ori)*cos(tmp_azimu_b_ori) + tmp_g*cos(tmp_polar_a_ori)*sin(tmp_azimu_b_ori)))/(cos(tmp_azimu_b_ori)*sin(tmp_polar_a_ori)); %<-- remove lower order terms from denominator. ;
+tmp_db_mid = -(tmp_f*sin(tmp_polar_a_ori) - tmp_h*cos(tmp_polar_a_ori)*cos(tmp_azimu_b_ori) + tmp_g*cos(tmp_polar_a_ori)*sin(tmp_azimu_b_ori))/sin(tmp_polar_a_ori); %<-- remove lower order terms from denominator. ;
+%tmp_dc_mid = -(cos(tmp_gamma_z_ori)*(tmp_h*cos(tmp_azimu_b_ori) - tmp_g*sin(tmp_azimu_b_ori)))/(cos(tmp_gamma_z_ori)*sin(tmp_polar_a_ori)); %<-- remove lower order terms from denominator. ;
+tmp_dc_mid = -(tmp_h*cos(tmp_azimu_b_ori) - tmp_g*sin(tmp_azimu_b_ori))/sin(tmp_polar_a_ori); %<-- remove lower order terms from denominator. ;
 SmallRotation_dtau_euler_polar_a_M_(1+nM) = +tmp_da_mid;
 SmallRotation_dtau_euler_azimu_b_M_(1+nM) = +tmp_db_mid;
 SmallRotation_dtau_euler_gamma_z_M_(1+nM) = -tmp_dc_mid;
@@ -239,13 +241,9 @@ SmallRotation_Delta_ykabcs__ = cat( ...
 weight_3d_riesz_ykabc_ = cat(1,weight_3d_riesz_yk_/scaling_volumetric,ones(3*n_M,1));
 [U_SmallRotation_Delta_ykabcs__,S_SmallRotation_Delta_ss__,V_SmallRotation_Delta_ss__] = svds(bsxfun(@times,sqrt(weight_3d_riesz_ykabc_),SmallRotation_Delta_ykabcs__),n_SmallRotation);
 S_SmallRotation_Delta_s_ = diag(S_SmallRotation_Delta_ss__);
-
-ctranspose(U_SmallRotation_Delta_ykabcs__)*U_SmallRotation_Delta_ykabcs__,;
-
+%ctranspose(U_SmallRotation_Delta_ykabcs__)*U_SmallRotation_Delta_ykabcs__,;
 U_SmallRotation_Delta_ykabcs__ = bsxfun(@times,1./max(1e-12,sqrt(weight_3d_riesz_ykabc_)),U_SmallRotation_Delta_ykabcs__);
-
-ctranspose(U_SmallRotation_Delta_ykabcs__)*bsxfun(@times,weight_3d_riesz_ykabc_,U_SmallRotation_Delta_ykabcs__),;
-
+%ctranspose(U_SmallRotation_Delta_ykabcs__)*bsxfun(@times,weight_3d_riesz_ykabc_,U_SmallRotation_Delta_ykabcs__),;
 if (flag_verbose>0); disp(sprintf(' %% S_SmallRotation_Delta_s_: %s',num2str(transpose(S_SmallRotation_Delta_s_),' %+0.6f'))); end;
 
 if flag_check;

@@ -2038,6 +2038,7 @@ parameter_eig.flag_kernel_qpro_d1 = 1;
 parameter_eig.kernel_qpro_polar_a_pole_north=4.5*pi/24;
 parameter_eig.kernel_qpro_polar_a_pole_south=3.5*pi/24;
 parameter_eig.kernel_qpro_l_max_use = l_max;
+parameter_eig.lanczos_n_iteration_cur = 16;
 U_SmallRotation_Delta_ykabc3__ = U_SmallRotation_Delta_ykabcs__(:,1:3);
 a_k_Y_quad_yk_ = a_k_Y_form_yk_;
 [ ...
