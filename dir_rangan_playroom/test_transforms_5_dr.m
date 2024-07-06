@@ -636,7 +636,7 @@ tmp_t = toc(tmp_t); if (verbose); disp(sprintf(' %% W_betazeta_mlm___: %0.2fs',t
 %%%%;
 flag_check=1;
 if flag_check;
-tmp_w_ = crandn(n_m_max);
+tmp_w_ = randn(n_m_max) + i*randn(n_m_max);
 tmp_azimu_b_use_ = 2*pi*rand(n_azimu_b_use,1);
 tmp_f__ = exp(-i*(-reshape(tmp_azimu_b_use_,[n_azimu_b_use,1]))*reshape(m_max_,[1,n_m_max]));
 tmp_fw_0_ = tmp_f__*tmp_w_;

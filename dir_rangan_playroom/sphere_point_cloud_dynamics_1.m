@@ -130,6 +130,8 @@ if (nargin<1+na); azimu_b_S_=[]; end; na=na+1;
 if isempty(parameter); parameter=struct('type','parameter'); end;
 if ~isfield(parameter,'flag_verbose'); parameter.flag_verbose=0; end;
 flag_verbose=parameter.flag_verbose;
+if ~isfield(parameter,'rseed'); parameter.rseed=0; end;
+rseed=parameter.rseed; rng(rseed);
 if ~isfield(parameter,'T_MAX'); parameter.T_MAX=1.0; end;
 T_MAX=parameter.T_MAX;
 if ~isfield(parameter,'n_T'); parameter.n_T=32; end;

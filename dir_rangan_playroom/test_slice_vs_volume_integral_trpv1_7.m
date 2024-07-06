@@ -1355,7 +1355,6 @@ image_X_value_true_ = tmp_.image_X_value_Mi__(:,end-1);
 clear tmp_;
 end;%if ( exist(fname_mat,'file'));
  
-if flag_disp;
 %%%%%%%%;
 hist2dab_k_eq_d = 0.5/k_p_r_max;
 [ ...
@@ -1366,6 +1365,9 @@ hist2dab_k_eq_d = 0.5/k_p_r_max;
 ,hist2dab_k_c_0_S_ ...
 ,hist2dab_k_c_1_S_ ...
 ,hist2dab_k_c_2_S_ ...
+,n_hist2dab_polar_a ...
+,hist2dab_polar_a_ ...
+,n_hist2dab_azimu_b_ ...
 ] = ...
 sample_shell_6( ...
  1.0 ...
@@ -1394,6 +1396,7 @@ hist2d_polar_a_azimu_b_0( ...
 ,flag_loghist_vs_hist ...
 );
 %%%%;
+if flag_disp;
 fname_fig_pre = sprintf('%s_jpg/euler_tavg_FIGA',dir_ssnll);
 fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
 if (flag_replot | ~exist(fname_fig_jpg,'file'));
@@ -1406,13 +1409,68 @@ end;%if (~exist(fname_fig_jpg,'file'));
 if ( exist(fname_fig_jpg,'file'));
 disp(sprintf(' %% %s found, not creating',fname_fig_pre));
 end;%if ( exist(fname_fig_jpg,'file'));
-%%%%%%%%;
 end;%if flag_disp;
+%%%%%%%%;
 
+%%%%%%%%;
+% generate refined templates hist2dab_S_k_p_wk_ on k_p_ grid with uniform n_w_. ;
+%%%%%%%%;
+template_k_eq_d = -1;
+tmp_t = tic();
+[ ...
+ hist2dab_S_k_p_wkS__ ...
+] = ...
+pm_template_2( ...
+ 0*flag_verbose ...
+,l_max ...
+,n_k_p_r ...
+,a_k_Y_quad_yk__ ...
+,[] ...
+,-1 ...
+,n_w_max ...
+,n_hist2dab_S ...
+,hist2dab_azimu_b_S_ ...
+,hist2dab_polar_a_S_ ...
+,hist2dab_weight_S_ ...
+,n_hist2dab_polar_a ...
+,hist2dab_polar_a_ ...
+,n_hist2dab_azimu_b_ ...
+);
+hist2dab_S_k_p_wkS__ = reshape(hist2dab_S_k_p_wkS__,[n_w_sum,n_hist2dab_S]);
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% hist2dab_S_k_p_wkS__ (pm_template_2): %0.6fs',tmp_t)); end;
+%%%%%%%%;
+
+%%%%%%%%;
+rseed=0;
+n_T = 8;
+T_MAX = 1.0;
+n_synth_M = 1024;
+euler_polar_a_synth_M_ = 1*euler_polar_a_tavg_(1:n_synth_M);
+euler_azimu_b_synth_M_ = 1*euler_azimu_b_tavg_(1:n_synth_M);
+euler_gamma_z_synth_M_ = 0*euler_gamma_z_tavg_(1:n_synth_M);
+[ ...
+ ~ ...
+,euler_polar_a_synth_Mt__ ...
+,euler_azimu_b_synth_Mt__ ...
+] = ...
+sphere_point_cloud_dynamics_1( ...
+struct('type','parameter','rseed',rseed,'T_MAX',T_MAX,'n_T',n_T) ...
+,n_synth_M ...
+,euler_polar_a_synth_M_ ...
+,euler_azimu_b_synth_M_ ...
+);
+%%%%%%%%;
+
+flag_calc=1;
+if flag_calc;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+for nT=0:n_T-1;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+str_T = sprintf('T%s',num2str(floor(100*nT*T_MAX/max(n_T-1)),'%.3d'));
 %%%%%%%%;
 % Now try an eigenvalue estimate with noiseless images and empirical viewing-angles. ;
 %%%%%%%%;
-fname_mat = sprintf('%s_mat/eig_from_noiseless_SETA.mat',dir_ssnll);
+fname_mat = sprintf('%s_mat/eig_from_synth_%s.mat',dir_ssnll,str_T);
 if ( exist(fname_mat,'file'));
 disp(sprintf(' %% %s found, not creating',fname_mat));
 end;%if ( exist(fname_mat,'file'));
@@ -1431,12 +1489,22 @@ parameter_eig.lanczos_n_iteration_cur = 16;
 U_SmallRotation_Delta_ykabc3__ = [];
 S_k_p_q2d_wkS__ = S_k_p_wkS__;
 %%%%;
-n_synth_M = 1024;
-euler_polar_a_synth_M_ = max(1/(n_viewing_polar_a-1)*pi,min((n_viewing_polar_a-2)/(n_viewing_polar_a-1)*pi,1*euler_polar_a_tavg_(1:n_synth_M)));
-euler_azimu_b_synth_M_ = 1*euler_azimu_b_tavg_(1:n_synth_M);
-euler_gamma_z_synth_M_ = 0*euler_gamma_z_tavg_(1:n_synth_M);
-tmp_index_nS_from_nM_ = knnsearch([viewing_polar_a_S_,viewing_azimu_b_S_],[euler_polar_a_synth_M_,euler_azimu_b_synth_M_],'K',1)-1;
-M_synth_k_p_wkM__ = S_k_p_wkS__(:,1+tmp_index_nS_from_nM_);
+euler_polar_a_synth_M_ = euler_polar_a_synth_Mt__(:,1+nT);
+euler_azimu_b_synth_M_ = euler_azimu_b_synth_Mt__(:,1+nT);
+tmp_index_nS_from_nM_ = ...
+knnsearch( ...
+ [hist2dab_polar_a_S_,hist2dab_azimu_b_S_] ...
+,[euler_polar_a_synth_M_,euler_azimu_b_synth_M_] ...
+,'K',1)-1;
+M_synth_k_p_wkM__ = hist2dab_S_k_p_wkS__(:,1+tmp_index_nS_from_nM_);
+euler_polar_a_synth_M_ = hist2dab_polar_a_S_(1+tmp_index_nS_from_nM_);
+euler_azimu_b_synth_M_ = hist2dab_azimu_b_S_(1+tmp_index_nS_from_nM_);
+euler_gamma_z_synth_M_ = zeros(n_synth_M,1);
+%%%%;
+v_ykabci__=[];
+w_ykabc_=[];
+alph_i_=[];
+beta_i_=[];
 %%%%;
 if ~exist('KAPPA','var'); KAPPA=[]; end;
 if ~exist('Ylm_uklma___','var'); Ylm_uklma___=[]; end;
@@ -1457,14 +1525,14 @@ if ~exist('alph_i_','var'); alph_i_=[]; end;
 if ~exist('beta_i_ ','var'); beta_i_ =[]; end;
 %%%%;
 [ ...
- parameter ...
+ parameter_eig ...
 ,v_ykabci__  ...
 ,w_ykabc_  ...
 ,alph_i_ ...
 ,beta_i_ ... 
 ] = ...
 eig_ddssnll_lanczos_0( ...
- parameter ...
+ parameter_eig ...
 ,n_k_p_r ...
 ,k_p_r_ ...
 ,k_p_r_max ...
@@ -1564,6 +1632,55 @@ if ( exist(fname_mat,'file'));
 disp(sprintf(' %% %s found, not creating',fname_mat));
 tmp_ = load(fname_mat);
 end;%if ( exist(fname_mat,'file'));
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+end;%for nT=0:n_T-1;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+end;%if flag_calc;
+
+%{
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figmed;fig81s;
+markersize_use = 8;
+linewidth_sml = 0.5;
+linewidth_big = 2;
+p_row = 2; p_col = 4; np=0;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+for nT=0:n_T-1;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+str_T = sprintf('T%s',num2str(floor(100*nT*T_MAX/max(n_T-1)),'%.3d'));
+%%%%%%%%;
+% Now try an eigenvalue estimate with noiseless images and empirical viewing-angles. ;
+%%%%%%%%;
+fname_mat = sprintf('%s_mat/eig_from_synth_%s.mat',dir_ssnll,str_T);
+if ( exist(fname_mat,'file'));
+disp(sprintf(' %% %s found, not creating',fname_mat));
+tmp_ = load(fname_mat);
+tmp_.n_iteration = numel(tmp_.alph_i_); tmp_.T__ = real(spdiags([circshift(tmp_.beta_i_,-1),tmp_.alph_i_,tmp_.beta_i_],[-1,0,+1],tmp_.n_iteration,tmp_.n_iteration));
+tmp_.lambda_xi__ = -Inf*ones(tmp_.n_iteration,tmp_.n_iteration);
+for niteration=0:tmp_.n_iteration-1;
+tmp_.T_sub__ = tmp_.T__(1:1+niteration,1:1+niteration);
+tmp_.lambda_sub_ = eigs(tmp_.T_sub__,[],1+niteration);
+tmp_.lambda_xi__(1:1+niteration,1+niteration) = sort(tmp_.lambda_sub_,'ascend');
+end;%for niteration=0:tmp_.n_iteration-1;
+tmp_.S_x_ = sort(eigs(tmp_.T__,[],tmp_.n_iteration),'ascend');
+%%%%;
+subplot(p_row,p_col,1+np);np=np+1;
+hold on;
+plot(repmat([0;tmp_.n_iteration],[1,tmp_.n_iteration]),repmat(reshape(tmp_.S_x_,[1,tmp_.n_iteration]),[2,1]),'-','Color',0.85*[1,1,1],'LineWidth',linewidth_sml);
+ni_xi__ = repmat([1:tmp_.n_iteration],[tmp_.n_iteration,1]);
+tmp_index_ = efind(isfinite(tmp_.lambda_xi__));
+plot(ni_xi__(1+tmp_index_),tmp_.lambda_xi__(1+tmp_index_),'r.','MarkerSize',markersize_use);
+hold off;
+xlabel('iteration'); ylabel('sigma');
+xlim([0,1+tmp_.n_iteration]);
+ylim([min(tmp_.S_x_)-0.25,max(tmp_.S_x_)+0.25]);
+clear tmp_;
+end;%if ( exist(fname_mat,'file'));
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+end;%for nT=0:n_T-1;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+end;%if flag_disp;
+%}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 if (flag_verbose>0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;

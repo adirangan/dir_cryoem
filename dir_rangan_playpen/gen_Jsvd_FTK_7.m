@@ -105,6 +105,10 @@ ni = 4;
 if (nargin<ni); l_max = 24; end; ni = ni+1;
 if (nargin<ni); a_K = 32; end; ni = ni+1;
 if (nargin<ni); b_K = 32; end; ni = ni+1;
+
+if isempty(l_max); l_max = 24; end;
+if isempty(a_K); a_K = 32; end;
+if isempty(b_K); b_K = 32; end;
 if (verbose>1); 
 disp(sprintf(' %% [entering gen_Jsvd_FTK_7] N_pixel %0.2f l_max %d, a_K %d, b_K %d, eps_target %0.6f',N_pixel,l_max,a_K,b_K,eps_target)); 
 end;%if (verbose>1);
