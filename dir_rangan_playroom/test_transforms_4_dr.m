@@ -402,7 +402,7 @@ tmp_t = tic();
 svd_VUXM_lwnM____ = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M,M_k_q_wkM__,pm_n_UX_rank,UX_kn__,X_weight_r_);
 tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% svd_VUXM_lwnM____: %0.3fs',tmp_t)); end;
 %%%%%%%%;
-% Now calculate norms of the non-translated images. ;
+% Now calculate norms of the translated images. ;
 %%%%%%%%;
 tmp_t = tic();
 UX_M_l2_dM__ = ampmh_UX_M_l2_dM__1(FTK,n_w_,n_M,pm_n_UX_rank,svd_VUXM_lwnM____);
@@ -664,4 +664,126 @@ X2_quad_ = ifft(T_quad_q2_)*n_w_max; %<-- multiplication by n_w_max not needed i
 disp(sprintf(' %% svd_eps: %0.6f (n_svd_l %0.3d); X2_quad_ vs X0_form_: error %0.16f',svd_eps,FTK.n_svd_l,fnorm(X2_quad_-X0_form_)/fnorm(X0_form_)));
 end;%for nsvd_eps=0:n_svd_eps-1;
 
+%%%%%%%%;
+% Now compare a la carte with ampmh. ;
+%%%%%%%%;
 
+%%%%%%%%;
+% Prepare FTK. ;
+%%%%%%%%;
+delta_r_max = flag_delta_use*0.05; n_delta_v_requested = flag_delta_use*16;
+delta_r_p = 0.05;
+delta_r_s = delta_r_max/sqrt(2*log(1/delta_r_p));
+delta_r_N = delta_r_max * (2*pi*k_p_r_max) / (pi*sqrt(2));
+svd_eps = 1e-3;
+tmp_t = tic();
+FTK = ampmh_FTK_1(n_k_p_r,k_p_r_,k_p_r_max,delta_r_max,svd_eps,n_delta_v_requested);
+tmp_t = toc(tmp_t); if (flag_verbose); disp(sprintf(' %% FTK: %0.3fs',tmp_t)); end;
+disp(sprintf(' %% p-val %0.4f delta_r_max %0.6f sigma %0.4f N_pixel %0.4f --> FTK.n_svd_l %d, n_delta_v_requested %d',delta_r_p,delta_r_max,delta_r_s,delta_r_N,FTK.n_svd_l,n_delta_v_requested));
+%%%%%%%%;
+
+%%%%%%%%;
+% Prepare random image and template. ;
+%%%%%%%%;
+rng(0);
+n_S = 1;
+S_k_p_wkS__ = zeros(n_w_sum,n_S);
+for nS=0:n_S-1;
+tmp_real_ = randn(n_w_max/2,n_k_p_r); tmp_real_ = [+tmp_real_;+tmp_real_];
+tmp_imag_ = randn(n_w_max/2,n_k_p_r); tmp_imag_ = [+tmp_imag_;-tmp_imag_];
+S_k_p_wk__ = tmp_real_ + i*tmp_imag_;
+S_k_p_wkS__(:,1+nS) = S_k_p_wk__(:);
+end;%for nS=0:n_S-1;
+S_k_q_wkS__ = zeros(n_w_sum,n_S);
+for nS=0:n_S-1;
+S_k_q_wkS__(:,1+nS) = interp_p_to_q(n_k_p_r,n_w_,n_w_sum,S_k_p_wkS__(:,1+nS));
+end;%for nS=0:n_S-1;
+n_M = 1;
+M_k_p_wkM__ = zeros(n_w_sum,n_M);
+for nM=0:n_M-1;
+tmp_real_ = randn(n_w_max/2,n_k_p_r); tmp_real_ = [+tmp_real_;+tmp_real_];
+tmp_imag_ = randn(n_w_max/2,n_k_p_r); tmp_imag_ = [+tmp_imag_;-tmp_imag_];
+M_k_p_wk__ = tmp_real_ + i*tmp_imag_;
+M_k_p_wkM__(:,1+nM) = M_k_p_wk__(:);
+end;%for nM=0:n_M-1;
+M_k_q_wkM__ = zeros(n_w_sum,n_M);
+for nM=0:n_M-1;
+M_k_q_wkM__(:,1+nM) = interp_p_to_q(n_k_p_r,n_w_,n_w_sum,M_k_p_wkM__(:,1+nM));
+end;%for nM=0:n_M-1;
+%%%%;
+CTF_k_p_r_k_ = randn(n_k_p_r,1);
+CTF_k_p_r_wk_ = reshape(transpose(repmat(CTF_k_p_r_k_,[1,n_w_max])),[n_w_sum,1]);
+%%%%%%%%;
+% Skip principal-modes. ;
+%%%%%%%%;
+n_UX_rank = n_k_p_r;
+UX_kn__ = eye(n_k_p_r,n_UX_rank);
+X_weight_r_ = sqrt(weight_2d_k_p_r_);
+pm_n_UX_rank = n_UX_rank;
+%%%%%%%%;
+% Prepare quasi-images. ;
+%%%%%%%%;
+tmp_t = tic();
+svd_VUXM_lwnM____ = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M,M_k_q_wkM__,pm_n_UX_rank,UX_kn__,X_weight_r_);
+tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% svd_VUXM_lwnM____: %0.3fs',tmp_t)); end;
+%%%%%%%%;
+% Now calculate norms of the translated images. ;
+%%%%%%%%;
+tmp_t = tic();
+UX_M_l2_dM__ = ampmh_UX_M_l2_dM__1(FTK,n_w_,n_M,pm_n_UX_rank,svd_VUXM_lwnM____);
+tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% UX_M_l2_dM__: %0.3fs',tmp_t)); end;
+disp(sprintf(' %% average l2-norm of images: %0.16f ',mean(UX_M_l2_dM__(:))/(pi*k_p_r_max^2)));
+%%%%%%%%;
+% Prepare CTF_UX_S_k_q_wnS__. ;
+%%%%%%%%;
+S_k_q_wSk___ = permute(reshape(S_k_q_wkS__,[n_w_max,n_k_p_r,n_S]),[1,3,2]);
+CTF_UX_S_k_q_wnS__ = reshape(permute(reshape(reshape(S_k_q_wSk___,[n_w_max*n_S,n_k_p_r])*diag(X_weight_r_.*CTF_k_p_r_k_)*UX_kn__,[n_w_max,n_S,pm_n_UX_rank]),[1,3,2]),[n_w_max*pm_n_UX_rank,n_S]);
+CTF_UX_S_l2_S_ = sum(abs(CTF_UX_S_k_q_wnS__).^2,1)/n_w_max;
+%%%%%%%%;
+% Calculate ampmh_X_wSM___8. ;
+%%%%%%%%;
+parameter = struct('type','parameter');
+parameter.flag_compute_I_value = 0;
+tmp_t = tic();
+[ ...
+ parameter ...
+,X_dwSM_ampm____ ...
+] = ...
+ampmh_X_dwSM____8( ...
+ parameter ...
+,FTK ...
+,n_w_max ...
+,pm_n_UX_rank ...
+,n_S ...
+,CTF_UX_S_k_q_wnS__ ...
+,CTF_UX_S_l2_S_ ...
+,n_M ...
+,svd_VUXM_lwnM____ ...
+,UX_M_l2_dM__ ...
+);
+tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% X_dwSM____: %0.3fs',tmp_t)); end;
+%%%%%%%%;
+% Now compare with a la carte calculation. ;
+% Note the particular convention used for the sign of the in-plane rotation and translation. ;
+%%%%%%%%;
+nS=0; nM=0; nd=3; delta_x = FTK.delta_x_(1+nd); delta_y = FTK.delta_y_(1+nd); delta_upd_ = +[delta_x;delta_y];
+gamma_z_est = 0; delta_est_ = [0;0];
+X1_quad_ = reshape(X_dwSM_ampm____(1+nd,:,1+nS,1+nM)*sqrt(CTF_UX_S_l2_S_(1+nS))*sqrt(UX_M_l2_dM__(1+nd,1+nM)),[n_w_max,1]);
+P_M_k_p_ = M_k_p_wkM__(:,1+nM);
+P_M_k_q_ = interp_p_to_q(n_k_p_r,n_w_,n_w_sum,P_M_k_p_);
+P_N_k_q_ = transf_svd_q_to_q_FTK_6(FTK,n_k_p_r,k_p_r_,n_w_,n_w_sum,P_M_k_q_,+delta_upd_(1),+delta_upd_(2));
+P_S_k_p_ = S_k_p_wkS__(:,1+nS);
+P_C_k_p_ = CTF_k_p_r_wk_;
+P_R_k_p_ = conj(P_C_k_p_).*P_S_k_p_;
+P_R_k_p_ = rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,P_R_k_p_,-gamma_z_est);
+P_R_k_p_ = transf_p_to_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,P_R_k_p_,-delta_est_(1),-delta_est_(2));
+P_R_k_q_ = interp_p_to_q(n_k_p_r,n_w_,n_w_sum,P_R_k_p_);
+T_quad_q2_ = innerproduct_q_k_stretch_quad_0(n_k_p_r,2*pi*k_p_r_,weight_2d_k_p_r_,n_w_,n_w_sum,P_N_k_q_,P_R_k_q_)/(2*pi);
+X2_quad_ = ifft(T_quad_q2_)*n_w_max; %<-- multiplication by n_w_max not needed in fortran fftw_plan_back. ;
+X2_quad_ = X2_quad_(1+[0,[end-1:-1:1]]); %<-- reverse the direction of the in-plane rotation. ;
+figure(1);clf;figmed;
+subplot(1,2,1);plot(real(X1_quad_)); xlabel('nw'); ylabel('X'); title('ampm');
+subplot(1,2,2);plot(real(X2_quad_)); xlabel('nw'); ylabel('X'); title('a la carte');
+if (flag_verbose>0); disp(sprintf(' %% X1_quad_ vs X2_quad_: %0.16f %%<-- should be <1e-15',fnorm(X1_quad_ - X2_quad_)/max(1e-12,fnorm(X1_quad_)))); end;
+sgtitle(sprintf('delta_upd_: [%+0.4f,%+0.4f]',delta_x,delta_y'),'Interpreter','none');
+%%%%%%%%;
