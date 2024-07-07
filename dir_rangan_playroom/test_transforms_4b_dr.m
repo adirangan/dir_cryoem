@@ -110,9 +110,21 @@ tmp_t = tic();
 FTK = ampmh_FTK_1(n_k_p_r,k_p_r_,k_p_r_max,delta_r_max,svd_eps,n_delta_v_requested,[],[],32,64,65);
 tmp_t = toc(tmp_t); if (flag_verbose); disp(sprintf(' %% FTK: %0.3fs',tmp_t)); end;
 disp(sprintf(' %% p-val %0.4f delta_r_max %0.6f sigma %0.4f N_pixel %0.4f --> FTK.n_svd_l %d, n_delta_v_requested %d',delta_r_p,delta_r_max,delta_r_s,delta_r_N,FTK.n_svd_l,n_delta_v_requested));
+
+flag_pm=0;
+%%%%%%%%;
+% Skip principal-modes. ;
+%%%%%%%%;
+if flag_pm==0;
+n_UX_rank = n_k_p_r;
+UX_kn__ = eye(n_k_p_r,n_UX_rank);
+X_weight_r_ = sqrt(weight_2d_k_p_r_);
+pm_n_UX_rank = n_UX_rank;
+end;%if flag_pm==0;
 %%%%%%%%;
 % Prepare principal-modes. ;
 %%%%%%%%;
+if flag_pm==1;
 n_UX_rank = n_k_p_r-1; %<-- just to check dimensions.; 
 UX_kn__ = zeros(n_k_p_r,n_UX_rank);
 X_weight_r_ = zeros(n_k_p_r,1);
@@ -131,6 +143,7 @@ principled_marching_empirical_cost_matrix_0( ...
 [tmp_UX_kn__,tmp_SX_k__,tmp_VX_kn__] = svds(X_kk__,n_UX_rank);
 UX_kn__(:,1:n_UX_rank) = tmp_UX_kn__(:,1:n_UX_rank);
 pm_n_UX_rank = n_UX_rank; %<-- just to check dimension. ;
+end;%if flag_pm==1;
 %%%%%%%%;
 % Prepare quasi-images. ;
 %%%%%%%%;
@@ -139,7 +152,7 @@ tmp_t = tic();
 svd_VUXM_lwnM____ = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M,M_k_q_wkM__,pm_n_UX_rank,UX_kn__,X_weight_r_);
 tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% svd_VUXM_lwnM____: %0.3fs',tmp_t)); end;
 %%%%%%%%;
-% Now calculate norms of the non-translated images. ;
+% Now calculate norms of the translated images. ;
 %%%%%%%%;
 tmp_t = tic();
 UX_M_l2_dM__ = ampmh_UX_M_l2_dM__1(FTK,n_w_,n_M,pm_n_UX_rank,svd_VUXM_lwnM____);
@@ -180,6 +193,23 @@ ampmh_X_wSM___8( ...
 tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% X_wSM___: %0.3fs',tmp_t)); end;
 X_wSM_ampm___ = real(X_wSM_ampm___);
 %%%%%%%%;
+[ ...
+ parameter ...
+,X_dwSM_ampm____ ...
+] = ...
+ampmh_X_dwSM____8( ...
+ parameter ...
+,FTK ...
+,n_w_max ...
+,pm_n_UX_rank ...
+,n_S ...
+,CTF_UX_S_k_q_wnS__ ...
+,CTF_UX_S_l2_S_ ...
+,n_M ...
+,svd_VUXM_lwnM____ ...
+,UX_M_l2_dM__ ...
+);
+%%%%%%%%;
 % compare against a la carte calculation. ;
 %%%%%%%%;
 nM=2;
@@ -194,7 +224,8 @@ cc = cos(+gamma_z); sc = sin(+gamma_z);
 Rz = [+cc , -sc ; +sc , +cc];
 delta_x = delta_x_wSM___(1+nw,1+nS,1+nM);
 delta_y = delta_y_wSM___(1+nw,1+nS,1+nM);
-if (flag_verbose>0); disp(sprintf(' %% nM %.2d nS %.2d nw %.3d delta [%0.4f,%0.4f]',nM,nS,nw,delta_x,delta_y)); end;
+delta_index = intersect(efind(FTK.delta_x_==delta_x),efind(FTK.delta_y_==delta_y));
+if (flag_verbose>0); disp(sprintf(' %% nM %.2d nS %.2d nw %.3d delta [%0.4f,%0.4f] delta_index %d',nM,nS,nw,delta_x,delta_y,delta_index)); end;
 tmp_delta_d_ = [delta_x;delta_y];
 tmp_delta_d = fnorm(tmp_delta_d_);
 tmp_omega_d = atan2(delta_y,delta_x);
@@ -212,12 +243,15 @@ M_k_q_wk_ = interp_p_to_q(n_k_p_r,n_w_,n_w_sum,M_k_p_wk_);
 TM_k_q_wk_ = transf_svd_q_to_q_FTK_6(FTK,n_k_p_r,k_p_r_,n_w_,n_w_sum,M_k_q_wk_,delta_x,delta_y);
 TM_k_p_wk_ = interp_q_to_p(n_k_p_r,n_w_,n_w_sum,TM_k_q_wk_);
 tmp_RS_l2 = sum(conj(CTF_wk_.*RS_k_p_wk_).*(CTF_wk_.*RS_k_p_wk_).*weight_2d_wk_,'all')*(2*pi)^2;
+tmp_RS_ampm_l2 = CTF_UX_S_l2_S_(1+nS);
+tmp_M_l2 = sum(conj(M_k_p_wk_).*(M_k_p_wk_).*weight_2d_wk_,'all')*(2*pi)^2;
 tmp_TM_l2 = sum(conj(TM_k_p_wk_).*(TM_k_p_wk_).*weight_2d_wk_,'all')*(2*pi)^2;
+tmp_TM_ampm_l2 = UX_M_l2_dM__(1+delta_index,1+nM);
 tmp_I = plane_bessel_plane_integral_0(k_p_r_max,tmp_delta_RS,tmp_omega_RS,tmp_delta_TM,tmp_omega_TM,CTF_alpha);
-tmp_I = tmp_I/max(1e-12,sqrt(tmp_RS_l2*tmp_TM_l2));
 tmp_Q = sum(conj(CTF_wk_.*RS_k_p_wk_).*TM_k_p_wk_.*weight_2d_wk_,'all')*(2*pi)^2;
-tmp_Q = tmp_Q/max(1e-12,sqrt(tmp_RS_l2*tmp_TM_l2));
-tmp_X = X_wSM_ampm___(1+nw,1+nS,1+nM);
+tmp_X = X_wSM_ampm___(1+nw,1+nS,1+nM)*sqrt(tmp_RS_ampm_l2*tmp_TM_ampm_l2);
+tmp_Z = X_dwSM_ampm____(1+delta_index,1+nw,1+nS,1+nM)*sqrt(tmp_RS_ampm_l2*tmp_TM_ampm_l2);
+if (flag_verbose>0); disp(sprintf(' %% tmp_Z vs tmp_X: %0.16f %%<-- should be zero ',fnorm(tmp_Z-tmp_X)/max(1e-12,fnorm(tmp_Z)))); end;
 if (flag_verbose>0); disp(sprintf(' %% tmp_I vs tmp_Q: %0.16f %%<-- should be <1e-2 ',fnorm(tmp_I-tmp_Q)/max(1e-12,fnorm(tmp_I)))); end;
 if (flag_verbose>0); disp(sprintf(' %% tmp_I vs tmp_X: %0.16f %%<-- should be <1e-2 ',fnorm(tmp_I-tmp_X)/max(1e-12,fnorm(tmp_I)))); end;
 if (flag_verbose>0); disp(sprintf(' %% tmp_X vs tmp_Q: %0.16f %%<-- should be <1e-2 ',fnorm(tmp_X-tmp_Q)/max(1e-12,fnorm(tmp_X)))); end;
