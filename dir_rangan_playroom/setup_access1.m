@@ -5,6 +5,7 @@ addpath('/data/rangan/dir_cryoem/dir_EMIODist2');
 addpath('/data/rangan/dir_cryoem/dir_nufftall-1.33/');
 addpath('/data/rangan/dir_cryoem/dir_rangan_playpen/');
 addpath('/data/rangan/dir_cryoem/dir_rangan_playroom/');
+addpath('/data/rangan/dir_cryoem/dir_rangan_playroom/dir_eig_ddssnll_lanczos_local/');
 addpath('/data/rangan/dir_cryoem/dir_rangan_playhouse/');
 addpath('/data/rangan/dir_cryoem/dir_rangan_playhouse/dir_freq_march/');
 addpath('/data/rangan/dir_cryoem/dir_rangan_playground/');

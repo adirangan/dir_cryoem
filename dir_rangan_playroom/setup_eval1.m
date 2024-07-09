@@ -4,6 +4,7 @@ addpath('/home/rangan/dir_finufft/matlab');
 addpath('/home/rangan/dir_cryoem/dir_EMIODist2');
 addpath('/home/rangan/dir_cryoem/dir_rangan_playpen');
 addpath('/home/rangan/dir_cryoem/dir_rangan_playroom');
+addpath('/home/rangan/dir_cryoem/dir_rangan_playroom/dir_eig_ddssnll_lanczos_local/');
 addpath('/home/rangan/dir_cryoem/dir_rangan_playhouse');
 addpath('/home/rangan/dir_cryoem/dir_rangan_playground');
 addpath('/home/rangan/dir_bcc/dir_ukb/dir_m');

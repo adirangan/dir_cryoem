@@ -43,7 +43,7 @@ if ~isfield(parameter,'k_p_r_max'); parameter.k_p_r_max=1.0; end;
 k_p_r_max=parameter.k_p_r_max;
 if ~isfield(parameter,'c_use__'); parameter.c_use__=colormap_beach(); end;
 c_use__=parameter.c_use__; n_c_use = size(c_use__,1);
-if ~isfield(parameter,'post_r_base'); parameter.post_r_base=1.0/2*pi/16; end;
+if ~isfield(parameter,'post_r_base'); parameter.post_r_base=1.0/(2*pi)/16; end;
 post_r_base=parameter.post_r_base;
 if ~isfield(parameter,'post_h_base'); parameter.post_h_base=4.0*parameter.post_r_base; end;
 post_h_base=parameter.post_h_base;

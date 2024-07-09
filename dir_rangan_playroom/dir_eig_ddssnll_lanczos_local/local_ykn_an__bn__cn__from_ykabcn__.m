@@ -1,0 +1,14 @@
+function [tmp_dvol_ykn__,tmp_a_Mn__,tmp_b_Mn__,tmp_c_Mn__] = local_ykn_an__bn__cn__from_ykabcn__(n_k_p_r,l_max_,n_M,tmp_ykabcn__);
+n_lm_ = (l_max_+1).^2; n_lm_max = max(n_lm_); n_lm_sum = sum(n_lm_); n_lm_csum_ = cumsum([0;n_lm_]); l_max_max = max(l_max_);
+n_n = size(tmp_ykabcn__,2);
+tmp_dvol_ykn__ = zeros(n_lm_sum,n_n);
+tmp_a_Mn__ = zeros(n_M,n_n);
+tmp_b_Mn__ = zeros(n_M,n_n);
+tmp_c_Mn__ = zeros(n_M,n_n);
+for nn=0:n_n-1;
+[tmp_dvol_yk_,tmp_a_M_,tmp_b_M_,tmp_c_M_] = local_yk_a_b_c_from_ykabc_(n_k_p_r,l_max_,n_M,tmp_ykabc_);
+tmp_dvol_ykn__(:,1+nn) = tmp_dvol_yk_;
+tmp_a_Mn__(:,1+nn) = tmp_a_M_;
+tmp_b_Mn__(:,1+nn) = tmp_b_M_;
+tmp_c_Mn__(:,1+nn) = tmp_c_M_;
+end;%for nn=0:n_n-1;
