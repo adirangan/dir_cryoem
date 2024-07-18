@@ -12,7 +12,7 @@ function M_q_rwM___ = innerproduct_q_k_stretch_quad_stack__0(n_r,weight_p_r_,n_w
 %    weight_p_r_(1+nr) contains the integration weight associated with r-index nr. ;
 % n_w_ : integer-array of size n_r. ;
 %    n_w_(1+nr) contains the number of points stored on the image-ring with r-index nr. ;
-% n_M : integer number of images. ;
+% n_M : integer number of images (note that these may not be unique images, but instead shifted versions of one another). ;
 % M_q__ : complex-array of size (n_w_sum,n_M) storing the fourier-bessel coefficients of the image-stack. ;
 %    M_q__(1+nw,1+nM) contains the fourier-bessel coefficient for q-index nw and m-index nM. ;
 %    We assume that M_q_ := M_q__(:,1+nM) stores the fourier-bessel coefficients for image nM. ;

@@ -15,7 +15,7 @@ function M_k_q_rwl___ = innerproduct_q_k_stretch_quad_stack___0(n_k_p_r,n_w_,M_k
 % n_k_p_r : integer number of image-rings (i.e., number of radii in k-space). ;
 % n_w_ : integer-array of size n_k_p_r. ;
 %    n_w_(1+nk_p_r) contains the number of points stored on the image-ring with r-index nk_p_r. ;
-% M_k_q_ : complex-array of size (n_w_sum,n_M) storing the fourier-bessel coefficients of the image. ;
+% M_k_q_ : complex-array of size (n_w_sum,1) storing the fourier-bessel coefficients of the image. ;
 %    We assume that M_k_q_ is a complex-array of size n_w_sum = sum(n_w_). ;
 %    That is to say, we assume that M_k_q_ is 'unrolled', ;
 %    with the coefficients associated with each ring stored in sequence. ;
