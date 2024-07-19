@@ -1,5 +1,6 @@
 %%%%%%%%;
 % applying eig_ddssnll_lanczos_0 to trpv1. ;
+% reducing k_p_r_max to 16/(2*pi). ;
 %%%%%%%%;
 
 %%%%%%%%;
@@ -11,9 +12,10 @@ if (strcmp(platform,'eval1')); setup_eval1; string_root = 'home'; end;
 if (strcmp(platform,'rusty')); setup_rusty; string_root = 'mnt/home'; end;
 %%%%%%%%;
 
-str_thisfunction = 'test_slice_vs_volume_integral_trpv1_7';
+str_thisfunction = 'test_slice_vs_volume_integral_trpv1_8';
 
 flag_verbose=1; flag_disp=1; nf=0;
+k_int = 16;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 if (flag_verbose>0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
@@ -43,7 +45,7 @@ tolerance_master = global_parameter.tolerance_master;
 nf=0;
 %%%%%%%%;
 fname_prefix_xfix = sprintf('%s',fname_prefix);
-dir_ssnll = sprintf('/%s/rangan/dir_cryoem/dir_%s/dir_ssnll',string_root,fname_prefix_xfix);
+dir_ssnll = sprintf('/%s/rangan/dir_cryoem/dir_%s/dir_ssnll_k%d',string_root,fname_prefix_xfix,k_int);
 if (~exist(sprintf('%s_mat',dir_ssnll),'dir')); disp(sprintf(' %% mkdir %s_mat',dir_ssnll)); mkdir(sprintf('%s_mat',dir_ssnll)); end;
 if (~exist(sprintf('%s_jpg',dir_ssnll),'dir')); disp(sprintf(' %% mkdir %s_jpg',dir_ssnll)); mkdir(sprintf('%s_jpg',dir_ssnll)); end;
 dir_data_star = sprintf('/%s/rangan/dir_cryoem/dir_%s',string_root,dir_nopath_data_star);
@@ -62,7 +64,7 @@ n_x_u = size(a_x_u_load_,1);
 half_diameter_x_c = 1.0d0;
 diameter_x_c = 2.0d0*half_diameter_x_c;
 x_p_r_max = 1.0;
-n_x_u_pack = 64;
+n_x_u_pack = 32;
 n_pack = n_x_u/n_x_u_pack;
 pack_row_ij_ = zeros(n_x_u_pack,1);
 pack_col_ij_ = zeros(n_x_u_pack,1);
@@ -175,7 +177,7 @@ end;%if flag_plot;
 %%%%%%%%;
 % Now set up k-quadrature on sphere. ;
 %%%%%%%%;
-k_p_r_max = 48.0/(2*pi); k_eq_d = 1.0/(2*pi); str_T_vs_L = 'C';
+k_p_r_max = k_int/(2*pi); k_eq_d = 1.0/(2*pi); str_T_vs_L = 'C';
 flag_unif_vs_adap = 0; flag_tensor_vs_adap = 0; %<-- This is set to match test_ssnll_from_a_k_Y_12 ;
 [ ...
  n_k_all ...
@@ -1430,7 +1432,7 @@ xlabel('azimu_b','Interpreter','none');
 ylabel('polar_a','Interpreter','none');
 axisnotick;
 title('empirical $\mu(\tau)$','Interpreter','latex');
-colorbar(gca,'on');
+colorbar(gca);
 set(gca,'FontSize',fontsize_use);
 %%%%;
 sgtitle(fname_fig_pre,'Interpreter','none');
@@ -1499,8 +1501,8 @@ test_slice_vs_volume_integral_helper_eig_reco_empi_0;
 %%%%%%%%;
 
 %%%%%%%%;
-test_slice_vs_volume_integral_helper_eig_polar_cap_0;
-test_slice_vs_volume_integral_helper_eig_equa_band_0;
+%test_slice_vs_volume_integral_helper_eig_polar_cap_0;
+%test_slice_vs_volume_integral_helper_eig_equa_band_0;
 %%%%%%%%;
 
 

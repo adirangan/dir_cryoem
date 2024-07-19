@@ -2,7 +2,7 @@ n_synth_M = 1024;
 polar_cap_width = pi/8;
 flag_calc=1;
 if flag_calc;
-lanczos_n_iteration_max = 32; tmp_lanczos_n_iteration_max = 0;
+lanczos_n_iteration_max = 64; tmp_lanczos_n_iteration_max = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 % Now try an eigenvalue estimate with noiseless images and polar-cap viewing-angles. ;
 %%%%%%%%;

@@ -1,72 +1,5 @@
-
-str_M = sprintf('M%.4d',n_M_use); str_eig = sprintf('eig_from_reco_empi_%s',str_M);
-fname_mat = sprintf('%s_mat/%s.mat',dir_ssnll,str_eig);
-str_title = sprintf('reco_empi_%s',str_M);
-if (~exist(fname_mat,'file'));
-disp(sprintf(' %% Warning, %s not found',fname_mat));
-end;%if (~exist(fname_mat,'file'));
-if ( exist(fname_mat,'file'));
-disp(sprintf(' %% %s found',fname_mat));
-tmp_ = load(fname_mat);
-tmp_.n_iteration = numel(tmp_.alph_i_); tmp_.T__ = real(spdiags([circshift(tmp_.beta_i_,-1),tmp_.alph_i_,tmp_.beta_i_],[-1,0,+1],tmp_.n_iteration,tmp_.n_iteration));
-tmp_.lambda_xi__ = -Inf*ones(tmp_.n_iteration,tmp_.n_iteration);
-for niteration=0:tmp_.n_iteration-1;
-tmp_.T_sub__ = tmp_.T__(1:1+niteration,1:1+niteration);
-tmp_.lambda_sub_ = eigs(tmp_.T_sub__,[],1+niteration);
-tmp_.lambda_xi__(1:1+niteration,1+niteration) = sort(tmp_.lambda_sub_,'ascend');
-end;%for niteration=0:tmp_.n_iteration-1;
-tmp_.S_x_ = sort(eigs(tmp_.T__,[],tmp_.n_iteration),'ascend');
-n_iteration_t_(1+ntrial) = tmp_.n_iteration;
-S_x_ = tmp_.S_x_;
-S_x_min = min(S_x_min,min(tmp_.S_x_));
-S_x_max = max(S_x_max,max(tmp_.S_x_));
-lambda_xi__ = tmp_.lambda_xi__;
-T__ = tmp_.T__;
-%%%%;
-vv_ns4___ = zeros(tmp_.n_iteration,tmp_.n_iteration,4);
-for niteration=0:tmp_.n_iteration-1;
-tmp_.T_sub__ = tmp_.T__(1:1+niteration,1:1+niteration);
-[tmp_.TV_sub__,tmp_.lambda_sub__] = eigs(tmp_.T_sub__,[],1+niteration);
-tmp_.lambda_sub_ = diag(tmp_.lambda_sub__);
-[lambda_srt_,ij_srt_] = sort(tmp_.lambda_sub_,'ascend');
-for index_lambda=0:1+niteration-1;
-ij_use = ij_srt_(1+index_lambda);
-lambda_use = lambda_srt_(1+index_lambda);
-TV_min_ = tmp_.TV_sub__(:,ij_use);
-v_min_ykabc_ = tmp_.v_ykabci__(:,1:1+niteration)*TV_min_;
-if isfield(tmp_,'n_M_use'); tmp_n_M_use = tmp_.n_M_use; end;
-if isfield(tmp_,'n_synth_M'); tmp_n_M_use = tmp_.n_synth_M; end;
-[v_min_dvol_yk_,v_min_polar_a_M_use_,v_min_azimu_b_M_use_,v_min_gamma_z_M_use_] = local_yk_a_b_c_from_ykabc_(tmp_.n_k_p_r,tmp_.l_max_,tmp_n_M_use,v_min_ykabc_);
-[tmp_vv,tmp_vv_dvol,tmp_vv_a,tmp_vv_b,tmp_vv_c] = local_f_bar_dot_g_(tmp_.n_k_p_r,tmp_.weight_3d_riesz_k_p_r_,tmp_.l_max_,tmp_n_M_use,v_min_ykabc_,v_min_ykabc_);
-str_vv = sprintf('tmp_vv %0.2f,tmp_vv_dvol %0.2f,tmp_vv_a %0.2f,tmp_vv_b %0.2f,tmp_vv_c %0.2f',tmp_vv,tmp_vv_dvol,tmp_vv_a,tmp_vv_b,tmp_vv_c);
-if (flag_verbose>1); disp(sprintf(' %% %s',str_vv)); end;
-vv_ns4___(1+niteration,1+index_lambda,:) = [tmp_vv_dvol;tmp_vv_a;tmp_vv_b;tmp_vv_c];
-end;%for index_lambda=0:1+niteration-1;
-end;%for niteration=0:tmp_.n_iteration-1;
-%%%%;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
-niteration = n_iteration-1;
-index_lambda = 0; %<-- 0 is the lowest, niteration-1 is the highest. ;
-tmp_.T_sub__ = tmp_.T__(1:1+niteration,1:1+niteration);
 %%%%%%%%;
-% use T_sub__ to estimate minimum eigenvector. ;
-%%%%%%%%;
-[tmp_.TV_sub__,tmp_.lambda_sub__] = eigs(tmp_.T_sub__,[],1+niteration);
-tmp_.lambda_sub_ = diag(tmp_.lambda_sub__);
-[lambda_srt_,ij_srt_] = sort(tmp_.lambda_sub_,'ascend');
-ij_use = ij_srt_(1+index_lambda);
-lambda_use = lambda_srt_(1+index_lambda);
-TV_min_ = tmp_.TV_sub__(:,ij_use);
-v_min_ykabc_ = tmp_.v_ykabci__(:,1:1+niteration)*TV_min_;
-if isfield(tmp_,'n_M_use'); tmp_n_M_use = tmp_.n_M_use; end;
-if isfield(tmp_,'n_synth_M'); tmp_n_M_use = tmp_.n_synth_M; end;
-[v_min_dvol_yk_,v_min_polar_a_M_use_,v_min_azimu_b_M_use_,v_min_gamma_z_M_use_] = local_yk_a_b_c_from_ykabc_(tmp_.n_k_p_r,tmp_.l_max_,tmp_n_M_use,v_min_ykabc_);
-[tmp_vv,tmp_vv_dvol,tmp_vv_a,tmp_vv_b,tmp_vv_c] = local_f_bar_dot_g_(tmp_.n_k_p_r,tmp_.weight_3d_riesz_k_p_r_,tmp_.l_max_,tmp_n_M_use,v_min_ykabc_,v_min_ykabc_);
-str_vv = sprintf('tmp_vv %0.2f,tmp_vv_dvol %0.2f,tmp_vv_a %0.2f,tmp_vv_b %0.2f,tmp_vv_c %0.2f',tmp_vv,tmp_vv_dvol,tmp_vv_a,tmp_vv_b,tmp_vv_c);
-if (flag_verbose>0); disp(sprintf(' %% %s',str_vv)); end;
-%%%%%%%%;
-% Now evaluate ddssnll. ;
+% visualize the empirical fit. ;
 %%%%%%%%;
 a_k_Y_use_yk_ = a_k_Y_reco_empi_yk_;
 tmp_t = tic;
@@ -111,11 +44,126 @@ tmp_t = toc(tmp_t); disp(sprintf(' %% a_k_p_reco_ time %0.2fs',tmp_t));
 eta = pi/k_p_r_max; tmp_t = tic;
 a_x_u_use_ = xxnufft3d3(n_k_all,2*pi*k_c_0_all_*eta,2*pi*k_c_1_all_*eta,2*pi*k_c_2_all_*eta,a_k_p_use_.*(2*pi)^3.*weight_3d_k_all_,+1,1e-12,n_xxx_u,x_u_0___(:)/eta,x_u_1___(:)/eta,x_u_2___(:)/eta)/sqrt(2*pi)/sqrt(2*pi)/sqrt(2*pi);
 tmp_t = toc(tmp_t); disp(sprintf(' %% xxnufft3d3: a_x_u_use_ time %0.2fs',tmp_t));
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figbig;
+p_row = 2; p_col = 5; np=0;
+for percent_threshold=[05:10:95];
+subplot(p_row,p_col,1+np);np=np+1;cla;
+isosurface_f_x_u_1(struct('percent_threshold_',[percent_threshold]),a_x_u_use_);
+title(sprintf('p %.2f',percent_threshold));
+end;%for percent_threshold=[05:10:95];
+sgtitle('a_k_Y_reco_empi_yk_','Interpreter','none');
+end;%if flag_disp;
+%%%%%%%%;
+
+%%%%%%%%;
+str_M = sprintf('M%.4d',n_M_use); str_eig = sprintf('eig_from_reco_empi_%s',str_M);
+str_title = sprintf('reco_empi_%s',str_M);
+fname_mat = sprintf('%s_mat/%s.mat',dir_ssnll,str_eig);
+if (~exist(fname_mat,'file'));
+disp(sprintf(' %% Warning, %s not found',fname_mat));
+end;%if (~exist(fname_mat,'file'));
+if ( exist(fname_mat,'file'));
+disp(sprintf(' %% %s found',fname_mat));
+end;%if ( exist(fname_mat,'file'));
+%%%%%%%%;
+
+%%%%%%%%;
+tmp_ = load(fname_mat);
+tmp_.n_iteration = numel(tmp_.alph_i_); tmp_.T__ = real(spdiags([circshift(tmp_.beta_i_,-1),tmp_.alph_i_,tmp_.beta_i_],[-1,0,+1],tmp_.n_iteration,tmp_.n_iteration));
+tmp_.lambda_xi__ = -Inf*ones(tmp_.n_iteration,tmp_.n_iteration);
+for niteration=0:tmp_.n_iteration-1;
+tmp_.T_sub__ = tmp_.T__(1:1+niteration,1:1+niteration);
+tmp_.lambda_sub_ = eigs(tmp_.T_sub__,[],1+niteration);
+tmp_.lambda_xi__(1:1+niteration,1+niteration) = sort(tmp_.lambda_sub_,'ascend');
+end;%for niteration=0:tmp_.n_iteration-1;
+tmp_.S_x_ = sort(eigs(tmp_.T__,[],tmp_.n_iteration),'ascend');
+n_iteration = tmp_.n_iteration;
+S_x_ = tmp_.S_x_;
+S_x_min = min(tmp_.S_x_);
+S_x_max = max(tmp_.S_x_);
+lambda_xi__ = tmp_.lambda_xi__;
+T__ = tmp_.T__;
 %%%%;
+vv_ns4___ = zeros(tmp_.n_iteration,tmp_.n_iteration,4);
+for niteration=0:tmp_.n_iteration-1;
+tmp_.T_sub__ = tmp_.T__(1:1+niteration,1:1+niteration);
+[tmp_.TV_sub__,tmp_.lambda_sub__] = eigs(tmp_.T_sub__,[],1+niteration);
+tmp_.lambda_sub_ = diag(tmp_.lambda_sub__);
+[lambda_srt_,ij_srt_] = sort(tmp_.lambda_sub_,'ascend');
+for index_lambda=0:1+niteration-1;
+ij_use = ij_srt_(1+index_lambda);
+lambda_use = lambda_srt_(1+index_lambda);
+TV_eig_ = tmp_.TV_sub__(:,ij_use);
+v_eig_ykabc_ = tmp_.v_ykabci__(:,1:1+niteration)*TV_eig_;
+if isfield(tmp_,'n_M_use'); tmp_n_M_use = tmp_.n_M_use; end;
+if isfield(tmp_,'n_synth_M'); tmp_n_M_use = tmp_.n_synth_M; end;
+[v_eig_dvol_yk_,v_eig_polar_a_M_use_,v_eig_azimu_b_M_use_,v_eig_gamma_z_M_use_] = local_yk_a_b_c_from_ykabc_(tmp_.n_k_p_r,tmp_.l_max_,tmp_n_M_use,v_eig_ykabc_);
+[tmp_vv,tmp_vv_dvol,tmp_vv_a,tmp_vv_b,tmp_vv_c] = local_f_bar_dot_g_(tmp_.n_k_p_r,tmp_.weight_3d_riesz_k_p_r_,tmp_.l_max_,tmp_n_M_use,v_eig_ykabc_,v_eig_ykabc_);
+str_vv = sprintf('tmp_vv %0.2f,tmp_vv_dvol %0.2f,tmp_vv_a %0.2f,tmp_vv_b %0.2f,tmp_vv_c %0.2f',tmp_vv,tmp_vv_dvol,tmp_vv_a,tmp_vv_b,tmp_vv_c);
+if (flag_verbose>1); disp(sprintf(' %% %s',str_vv)); end;
+vv_ns4___(1+niteration,1+index_lambda,:) = [tmp_vv_dvol;tmp_vv_a;tmp_vv_b;tmp_vv_c];
+end;%for index_lambda=0:1+niteration-1;
+end;%for niteration=0:tmp_.n_iteration-1;
+%%%%%%%%;
+
+%%%%%%%%;
+if flag_disp;
+fname_fig_pre = sprintf('%s_jpg/eig_from_reco_empi_FIGA',dir_ssnll);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+fname_fig_eps = sprintf('%s.eps',fname_fig_pre);
+if (flag_replot | ~exist(fname_fig_jpg));
+figure(1+nf);nf=nf+1;clf;figmed;fig81s;
+markersize_use = 8;
+linewidth_sml = 0.5;
+linewidth_big = 2;
+%%%%;
+hold on;
+plot(repmat([0;n_iteration],[1,n_iteration]),repmat(reshape(S_x_,[1,n_iteration]),[2,1]),'-','Color',0.85*[1,1,1],'LineWidth',linewidth_sml);
+ni_xi__ = repmat([1:n_iteration],[n_iteration,1]);
+tmp_index_ = efind(isfinite(lambda_xi__));
+plot(ni_xi__(1+tmp_index_),lambda_xi__(1+tmp_index_),'r.','MarkerSize',markersize_use);
+hold off;
+xlabel('iteration'); ylabel('sigma');
+xlim([0,1+n_iteration]);
+ylim([S_x_min-0.25,S_x_max+0.25]);
+title(str_title,'Interpreter','none');
+%%%%;
+sgtitle(fname_fig_pre,'Interpreter','none');
+disp(sprintf(' %% writing %s',fname_fig_pre));
+print('-djpeg',fname_fig_jpg);
+print('-depsc',fname_fig_eps);
+end;%if (flag_replot | ~exist(fname_fig_jpg));
+end;%if flag_disp;
+%%%%%%%%;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+niteration = n_iteration-1;
+index_lambda = 4; %<-- 0 is the lowest, niteration is the highest. ;
+tmp_.T_sub__ = tmp_.T__(1:1+niteration,1:1+niteration);
+%%%%%%%%;
+% use T_sub__ to estimate minimum eigenvector. ;
+%%%%%%%%;
+[tmp_.TV_sub__,tmp_.lambda_sub__] = eigs(tmp_.T_sub__,[],1+niteration);
+tmp_.lambda_sub_ = diag(tmp_.lambda_sub__);
+[lambda_srt_,ij_srt_] = sort(tmp_.lambda_sub_,'ascend');
+ij_use = ij_srt_(1+index_lambda);
+lambda_use = lambda_srt_(1+index_lambda);
+TV_eig_ = tmp_.TV_sub__(:,ij_use);
+v_eig_ykabc_ = tmp_.v_ykabci__(:,1:1+niteration)*TV_eig_;
+if isfield(tmp_,'n_M_use'); tmp_n_M_use = tmp_.n_M_use; end;
+if isfield(tmp_,'n_synth_M'); tmp_n_M_use = tmp_.n_synth_M; end;
+[v_eig_dvol_yk_,v_eig_polar_a_M_use_,v_eig_azimu_b_M_use_,v_eig_gamma_z_M_use_] = local_yk_a_b_c_from_ykabc_(tmp_.n_k_p_r,tmp_.l_max_,tmp_n_M_use,v_eig_ykabc_);
+[tmp_vv,tmp_vv_dvol,tmp_vv_a,tmp_vv_b,tmp_vv_c] = local_f_bar_dot_g_(tmp_.n_k_p_r,tmp_.weight_3d_riesz_k_p_r_,tmp_.l_max_,tmp_n_M_use,v_eig_ykabc_,v_eig_ykabc_);
+str_vv = sprintf('tmp_vv %0.2f,tmp_vv_dvol %0.2f,tmp_vv_a %0.2f,tmp_vv_b %0.2f,tmp_vv_c %0.2f',tmp_vv,tmp_vv_dvol,tmp_vv_a,tmp_vv_b,tmp_vv_c);
+if (flag_verbose>0); disp(sprintf(' %% %s',str_vv)); end;
+%%%%%%%%;
+% Now evaluate ddssnll. ;
+%%%%%%%%;
 parameter_ddssnll = struct('type','ddssnll');
 parameter_ddssnll.flag_verbose = flag_verbose;
-parameter_ddssnll.flag_check = 0;
-parameter_ddssnll.flag_disp = 0;
+parameter_ddssnll.flag_check = 1;
+parameter_ddssnll.flag_disp = 1;
 parameter_ddssnll.flag_kernel_qpro_d0 = 1;
 parameter_ddssnll.flag_kernel_qpro_d1 = 1;
 parameter_ddssnll.kernel_qpro_polar_a_pole_north=4.5*pi/24;
@@ -135,8 +183,8 @@ M_use_k_p_wkM__(:,1+nM_use) = transf_p_to_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,M_use_k_
 end;%for nM_use=0:n_M-1;
 %%%%;
 
-[v_min_dvol_yk_,v_min_polar_a_M_use_,v_min_azimu_b_M_use_,v_min_gamma_z_M_use_] = local_yk_a_b_c_from_ykabc_(tmp_.n_k_p_r,tmp_.l_max_,tmp_n_M_use,v_min_ykabc_);
-[tmp_vv,tmp_vv_dvol,tmp_vv_a,tmp_vv_b,tmp_vv_c] = local_f_bar_dot_g_(tmp_.n_k_p_r,tmp_.weight_3d_riesz_k_p_r_,tmp_.l_max_,tmp_n_M_use,v_min_ykabc_,v_min_ykabc_);
+[v_eig_dvol_yk_,v_eig_polar_a_M_use_,v_eig_azimu_b_M_use_,v_eig_gamma_z_M_use_] = local_yk_a_b_c_from_ykabc_(tmp_.n_k_p_r,tmp_.l_max_,tmp_n_M_use,v_eig_ykabc_);
+[tmp_vv,tmp_vv_dvol,tmp_vv_a,tmp_vv_b,tmp_vv_c] = local_f_bar_dot_g_(tmp_.n_k_p_r,tmp_.weight_3d_riesz_k_p_r_,tmp_.l_max_,tmp_n_M_use,v_eig_ykabc_,v_eig_ykabc_);
 str_vv = sprintf('tmp_vv %0.2f,tmp_vv_dvol %0.2f,tmp_vv_a %0.2f,tmp_vv_b %0.2f,tmp_vv_c %0.2f',tmp_vv,tmp_vv_dvol,tmp_vv_a,tmp_vv_b,tmp_vv_c);
 if (flag_verbose>0); disp(sprintf(' %% %s',str_vv)); end;
 
@@ -160,6 +208,8 @@ if ~exist('d2W_betazeta_mlma____','var'); d2W_betazeta_mlma____=[]; end;
 ,Hv_q3d_k_Y_quad_yk__ ...
 ,Hv_q3d_k_p_quad_ ...
 ,Ht_q2d_M3__ ...
+,a_restore_C2M0_k_Y_lmk_ ...
+,a_restore_C2M0_k_p_quad_ ...
 ] = ...
 ddssnll_1( ...
  parameter_ddssnll ...
@@ -169,7 +219,7 @@ ddssnll_1( ...
 ,l_max_ ...
 ,a_k_Y_use_yk_ ...
 ,[] ...
-,v_min_dvol_yk_ ...
+,v_eig_dvol_yk_ ...
 ,[] ...
 ,n_k_all ...
 ,n_k_all_csum_ ...
@@ -205,9 +255,9 @@ ddssnll_1( ...
 ,euler_polar_a_use_M_ ...
 ,euler_azimu_b_use_M_ ...
 ,euler_gamma_z_use_M_ ...
-,v_min_polar_a_M_use_ ...
-,v_min_azimu_b_M_use_ ...
-,v_min_gamma_z_M_use_ ...
+,v_eig_polar_a_M_use_ ...
+,v_eig_azimu_b_M_use_ ...
+,v_eig_gamma_z_M_use_ ...
 ,KAPPA ...
 ,Ylm_uklma___ ...
 ,k_p_azimu_b_sub_uka__ ...
@@ -222,7 +272,124 @@ ddssnll_1( ...
 ,d2W_betazeta_mlma____ ...
 );
 
+%%%%%%%%;
+% display the rayleigh-quotients. ;
+%%%%%%%%;
+if (flag_verbose>0); disp(sprintf(' %% lambda_use = %0.6f',lambda_use)); end;
+[tmp_vv,tmp_vv_dvol,tmp_vv_a,tmp_vv_b,tmp_vv_c] = local_f_bar_dot_g_(tmp_.n_k_p_r,tmp_.weight_3d_riesz_k_p_r_,tmp_.l_max_,tmp_n_M_use,v_eig_ykabc_,v_eig_ykabc_);
+str_vv = sprintf('tmp_vv %0.2f,tmp_vv_dvol %0.2f,tmp_vv_a %0.2f,tmp_vv_b %0.2f,tmp_vv_c %0.2f',tmp_vv,tmp_vv_dvol,tmp_vv_a,tmp_vv_b,tmp_vv_c);
+if (flag_verbose>0); disp(sprintf(' %% %s',str_vv)); end;
+[tmp_hv,tmp_hv_dvol,tmp_hv_a,tmp_hv_b,tmp_hv_c] = local_f_bar_dot_g_(tmp_.n_k_p_r,tmp_.weight_3d_riesz_k_p_r_,tmp_.l_max_,tmp_n_M_use,Hvt_ykabc_,v_eig_ykabc_);
+str_hv = sprintf('tmp_hv %0.2f,tmp_hv_dvol %0.2f,tmp_hv_a %0.2f,tmp_hv_b %0.2f,tmp_hv_c %0.2f',tmp_hv,tmp_hv_dvol,tmp_hv_a,tmp_hv_b,tmp_hv_c);
+if (flag_verbose>0); disp(sprintf(' %% %s',str_hv)); end;
+if (flag_verbose>0); disp(sprintf(' %% corr(Hvt_ykabc_,v_eig_ykabc_) = %0.6f',corr(Hvt_ykabc_,v_eig_ykabc_))); end;
+if (flag_verbose>0); disp(sprintf(' %% corr(Hv_q3d_k_Y_quad_yk_,v_eig_dvol_yk_) = %0.6f',corr(Hv_q3d_k_Y_quad_yk_,v_eig_dvol_yk_))); end;
+v_eig_abc_M3__ = [v_eig_polar_a_M_use_,v_eig_azimu_b_M_use_,v_eig_gamma_z_M_use_];
+if (flag_verbose>0); disp(sprintf(' %% corr(Ht_q2d_M3__,v_eig_abc_M3__) = %0.6f',corr(Ht_q2d_M3__(:),v_eig_abc_M3__(:)))); end;
+%%%%%%%%;
 
-%%%%%%%%%%%%%%%%;
-end;%if ( exist(fname_mat,'file'));
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+%%%%%%%%;
+% visualize a_restore_C2M0_k_p_quad_;
+%%%%%%%%;
+eta = pi/k_p_r_max; tmp_t = tic;
+a_restore_C2M0_x_u_use_ = xxnufft3d3(n_k_all,2*pi*k_c_0_all_*eta,2*pi*k_c_1_all_*eta,2*pi*k_c_2_all_*eta,a_restore_C2M0_k_p_quad_.*(2*pi)^3.*weight_3d_k_all_,+1,1e-12,n_xxx_u,x_u_0___(:)/eta,x_u_1___(:)/eta,x_u_2___(:)/eta)/sqrt(2*pi)/sqrt(2*pi)/sqrt(2*pi);
+tmp_t = toc(tmp_t); disp(sprintf(' %% xxnufft3d3: a_restore_C2M0_x_u_use_ time %0.2fs',tmp_t));
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figbig;
+p_row = 2; p_col = 5; np=0;
+for percent_threshold=[05:10:95];
+subplot(p_row,p_col,1+np);np=np+1;cla;
+isosurface_f_x_u_1(struct('percent_threshold_',[percent_threshold]),a_restore_C2M0_x_u_use_);
+title(sprintf('p %.2f',percent_threshold));
+end;%for percent_threshold=[05:10:95];
+sgtitle(sprintf('v_eig_dvol_yk_: %s niteration %d lambda %0.2f = exp(%+0.2f) index_lambda %d/%d: %s ',str_title,niteration,lambda_use,log(lambda_use),index_lambda,niteration-1,str_vv),'Interpreter','none');
+end;%if flag_disp;
+%%%%;
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figbig;fig80s;
+a_restore_C2M0_x_u_use___ = reshape(a_restore_C2M0_x_u_use_,[n_x_u_pack,n_x_u_pack,n_x_u_pack]);
+subplot(1,3,1);
+imagesc(squeeze(real(a_restore_C2M0_x_u_use___(:,:,end/2))));
+axis image; axisnotick; colorbar;
+subplot(1,3,2);
+imagesc(squeeze(real(a_restore_C2M0_x_u_use___(:,end/2,:))));
+axis image; axisnotick; colorbar;
+subplot(1,3,3);
+imagesc(squeeze(real(a_restore_C2M0_x_u_use___(end/2,:,:))));
+axis image; axisnotick; colorbar;
+sgtitle(sprintf('%s a_restore_C2M0_x_u_use_',str_title));
+end;%if flag_disp;
+%%%%%%%%;
+
+%%%%%%%%;
+% visualize v_eig_dvol_yk_;
+%%%%%%%%;
+v_k_Y_use_yk_ = v_eig_dvol_yk_;
+tmp_t = tic;
+if ~exist('Ylm_uklma___','var'); Ylm_uklma___ = []; end;
+if ~exist('k_p_azimu_b_sub_uka__','var'); k_p_azimu_b_sub_uka__ = []; end;
+if ~exist('k_p_polar_a_sub_uka__','var'); k_p_polar_a_sub_uka__ = []; end;
+if ~exist('l_max_uk_','var'); l_max_uk_ = []; end;
+if ~exist('index_nu_n_k_per_shell_from_nk_p_r_','var'); index_nu_n_k_per_shell_from_nk_p_r_ = []; end;
+if ~exist('index_k_per_shell_uka__','var'); index_k_per_shell_uka__ = []; end;
+[ ...
+ v_k_p_use_ ...
+,Ylm_uklma___ ...
+,k_p_azimu_b_sub_uka__ ...
+,k_p_polar_a_sub_uka__ ...
+,l_max_uk_ ...
+,index_nu_n_k_per_shell_from_nk_p_r_ ...
+,index_k_per_shell_uka__ ...
+] = ...
+convert_spharm_to_k_p_4( ...
+ 0*flag_verbose ...
+,n_k_all ...
+,n_k_all_csum_ ...
+,k_p_r_all_ ...
+,k_p_azimu_b_all_ ...
+,k_p_polar_a_all_ ...
+,weight_3d_k_all_ ...
+,weight_shell_k_ ...
+,n_k_p_r ...
+,k_p_r_ ...
+,weight_3d_k_p_r_ ...
+,l_max_ ...
+,v_k_Y_use_yk_ ...
+,Ylm_uklma___ ...
+,k_p_azimu_b_sub_uka__ ...
+,k_p_polar_a_sub_uka__ ...
+,l_max_uk_ ...
+,index_nu_n_k_per_shell_from_nk_p_r_ ...
+,index_k_per_shell_uka__ ...
+);
+tmp_t = toc(tmp_t); disp(sprintf(' %% v_k_p_reco_ time %0.2fs',tmp_t));
+%%%%;
+eta = pi/k_p_r_max; tmp_t = tic;
+v_x_u_use_ = xxnufft3d3(n_k_all,2*pi*k_c_0_all_*eta,2*pi*k_c_1_all_*eta,2*pi*k_c_2_all_*eta,v_k_p_use_.*(2*pi)^3.*weight_3d_k_all_,+1,1e-12,n_xxx_u,x_u_0___(:)/eta,x_u_1___(:)/eta,x_u_2___(:)/eta)/sqrt(2*pi)/sqrt(2*pi)/sqrt(2*pi);
+tmp_t = toc(tmp_t); disp(sprintf(' %% xxnufft3d3: v_x_u_use_ time %0.2fs',tmp_t));
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figbig;
+p_row = 2; p_col = 5; np=0;
+for percent_threshold=[05:10:95];
+subplot(p_row,p_col,1+np);np=np+1;cla;
+isosurface_f_x_u_1(struct('percent_threshold_',[percent_threshold]),v_x_u_use_);
+title(sprintf('p %.2f',percent_threshold));
+end;%for percent_threshold=[05:10:95];
+sgtitle(sprintf('v_eig_dvol_yk_: %s niteration %d lambda %0.2f = exp(%+0.2f) index_lambda %d/%d: %s ',str_title,niteration,lambda_use,log(lambda_use),index_lambda,niteration-1,str_vv),'Interpreter','none');
+end;%if flag_disp;
+%%%%;
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figbig;fig80s;
+v_x_u_use___ = reshape(v_x_u_use_,[n_x_u_pack,n_x_u_pack,n_x_u_pack]);
+subplot(1,3,1);
+imagesc(squeeze(real(v_x_u_use___(:,:,end/2))));
+axis image; axisnotick; colorbar;
+subplot(1,3,2);
+imagesc(squeeze(real(v_x_u_use___(:,end/2,:))));
+axis image; axisnotick; colorbar;
+subplot(1,3,3);
+imagesc(squeeze(real(v_x_u_use___(end/2,:,:))));
+axis image; axisnotick; colorbar;
+sgtitle(sprintf('%s niteration %d lambda %0.2f = exp(%+0.2f) index_lambda %d/%d: %s ',str_title,niteration,lambda_use,log(lambda_use),index_lambda,niteration-1,str_vv),'Interpreter','none');
+end;%if flag_disp;
+%%%%%%%%;

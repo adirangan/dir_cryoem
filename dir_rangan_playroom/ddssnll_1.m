@@ -6,6 +6,8 @@ function ...
 ,Hv_q3d_k_Y_quad_yk__ ...
 ,Hv_q3d_k_p_quad_ ...
 ,Ht_q2d_M3__ ...
+,a_restore_C2M0_k_Y_lmk_ ...
+,a_restore_C2M0_k_p_quad_ ...
 ] = ...
 ddssnll_1( ...
  parameter ...
@@ -1046,9 +1048,9 @@ tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
 tmp_k_Y_quad_yk_(1+tmp_index_) = tmp_k_Y_quad_yk__(1:n_lm,1+nk_p_r);
 end;%for nk_p_r=0:n_k_p_r-1;
 l2_a0 = sum ((conj(tmp_k_Y_quad_yk__).*tmp_k_Y_quad_yk__)*reshape(weight_3d_riesz_k_p_r_,[n_k_p_r,1]) , 'all' )/scaling_volumetric;
-disp(sprintf(' %% l2_a0: %0.16f',l2_a0));
+disp(sprintf(' %% %s: tmp_k_Y_quad_yk__: l2_a0: %0.16f',tmp_str,l2_a0));
 l2_a0 = sum ((conj(tmp_k_p_quad_).*tmp_k_p_quad_).*weight_3d_riesz_k_all_ , 'all' )/scaling_volumetric;
-disp(sprintf(' %% l2_a0: %0.16f',l2_a0));
+disp(sprintf(' %% %s: tmp_k_p_quad_    : l2_a0: %0.16f',tmp_str,l2_a0));
 subplot(p_row,p_col,1+np);np=np+1;
 plot(Y_l_val_,abs(tmp_k_Y_quad_yk_),'k.');
 xlabel('Y_l_val_','Interpreter','none');
@@ -1161,9 +1163,9 @@ tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
 tmp_k_Y_quad_yk_(1+tmp_index_) = tmp_k_Y_quad_yk__(1:n_lm,1+nk_p_r);
 end;%for nk_p_r=0:n_k_p_r-1;
 l2_a0 = sum ((conj(tmp_k_Y_quad_yk__).*tmp_k_Y_quad_yk__)*reshape(weight_3d_riesz_k_p_r_,[n_k_p_r,1]) , 'all' )/scaling_volumetric;
-disp(sprintf(' %% l2_a0: %0.16f',l2_a0));
+disp(sprintf(' %% %s: tmp_k_Y_quad_yk__: l2_a0: %0.16f',tmp_str,l2_a0));
 l2_a0 = sum ((conj(tmp_k_p_quad_).*tmp_k_p_quad_).*weight_3d_riesz_k_all_ , 'all' )/scaling_volumetric;
-disp(sprintf(' %% l2_a0: %0.16f',l2_a0));
+disp(sprintf(' %% %s: tmp_k_p_quad_    : l2_a0: %0.16f',tmp_str,l2_a0));
 subplot(p_row,p_col,1+np);np=np+1;
 plot(Y_l_val_,abs(tmp_k_Y_quad_yk_),'k.');
 xlabel('Y_l_val_','Interpreter','none');
