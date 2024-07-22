@@ -23,10 +23,10 @@ if nargin<1;
 disp(sprintf(' %% testing %s',str_thisfunction));
 nf=0;
 l_max = 49; l_val_ = transpose([0:l_max]);
-n_pole_north = 3;
-pole_north_ = transpose(linspace(1,5,n_pole_north)*pi/24);
+n_pole_north = 4;
+pole_north_ = transpose(linspace(1,12,n_pole_north)*pi/24);
 n_pole_south = 3;
-pole_south_ = transpose(linspace(0,3,n_pole_south)*pi/24);
+pole_south_ = transpose(linspace(0,12,n_pole_south)*pi/24);
 chebleg_d_ = [];
 [pole_north_ns__,pole_south_ns__] = ndgrid(pole_north_,pole_south_);
 kappa_sparse_f_ns__ = zeros(n_pole_north,n_pole_south);
@@ -37,7 +37,9 @@ disp(sprintf(' %% npole_north %d/%d',npole_north,n_pole_north));
 for npole_south=0:n_pole_south-1;
 pole_north = pole_north_(1+npole_north);
 pole_south = pole_south_(1+npole_south);
-parameter = struct('type','parameter'); parameter.flag_verbose = 0; parameter.flag_disp = 0;
+parameter = struct('type','parameter');
+parameter.flag_verbose = 1;
+parameter.flag_disp = 1;
 parameter.kernel_qpro_polar_a_pole_north = pole_north;
 parameter.kernel_qpro_polar_a_pole_south = pole_south;
 [ ...
@@ -101,6 +103,7 @@ if (nargin<1+na); parameter=[]; end; na=na+1;
 if (nargin<1+na); l_max=[]; end; na=na+1;
 if (nargin<1+na); chebleg_d_=[]; end; na=na+1;
 
+%%%%;
 if isempty(parameter); parameter=struct('type','parameter'); end;
 if ~isfield(parameter,'flag_verbose'); parameter.flag_verbose=0; end;
 flag_verbose=parameter.flag_verbose;
@@ -115,13 +118,23 @@ flag_kernel_qpro_d1=parameter.flag_kernel_qpro_d1;
 if ~isfield(parameter,'flag_kernel_qpro_d2'); parameter.flag_kernel_qpro_d2=0; end;
 flag_kernel_qpro_d2=parameter.flag_kernel_qpro_d2;
 if ~isfield(parameter,'kernel_qpro_polar_a_pole_north'); parameter.kernel_qpro_polar_a_pole_north=1.0*pi/12; end;
-kernel_qpro_polar_a_pole_north=parameter.kernel_qpro_polar_a_pole_north;
+kernel_qpro_polar_a_pole_north=min(pi/2,parameter.kernel_qpro_polar_a_pole_north);
+parameter.kernel_qpro_polar_a_pole_north = kernel_qpro_polar_a_pole_north;
 if ~isfield(parameter,'kernel_qpro_polar_a_pole_south'); parameter.kernel_qpro_polar_a_pole_south=0.5*pi/12; end;
-kernel_qpro_polar_a_pole_south=parameter.kernel_qpro_polar_a_pole_south;
+kernel_qpro_polar_a_pole_south=min(pi/2,parameter.kernel_qpro_polar_a_pole_south);
+parameter.kernel_qpro_polar_a_pole_south = kernel_qpro_polar_a_pole_south;
 if ~isfield(parameter,'kernel_qpro_deconvolution_factor_max'); parameter.kernel_qpro_deconvolution_factor_max=1024; end;
 kernel_qpro_deconvolution_factor_max=parameter.kernel_qpro_deconvolution_factor_max;
 if ~isfield(parameter,'kernel_qpro_MaxIterations'); parameter.kernel_qpro_MaxIterations=1024; end;
 kernel_qpro_MaxIterations=parameter.kernel_qpro_MaxIterations;
+%%%%;
+if ~isfield(parameter,'flag_kernel_full'); parameter.flag_kernel_full=0; end;
+flag_kernel_full=parameter.flag_kernel_full;
+if (kernel_qpro_polar_a_pole_north + kernel_qpro_polar_a_pole_south > pi-1e-12);
+flag_kernel_full = 1;
+parameter.flag_kernel_full = flag_kernel_full;
+end;%if (kernel_qpro_polar_a_pole_north + kernel_qpro_polar_a_pole_south > pi-1e-12);
+%%%%;
 
 if (flag_verbose> 0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
 
@@ -137,6 +150,7 @@ chebleg_d_{1+l_val} = chebfun(leg2cheb(tmp_c_,'norm'),'coeffs');
 end;%for l_val=0:l_max;
 end;%if isempty(chebleg_d_);
 %%%%%%%%;
+deltafunc_formula_ = sqrt(4*pi)*sqrt(1+2*l_val_);
 
 %%%%%%%%;
 n_a_use = 1+2*l_max + 16; %<-- Need to integrate polynomials of degree l_max^2. ;
@@ -179,6 +193,12 @@ axis image; axisnotick;
 title('log10(abs(I_dd__ - eye))','Interpreter','none');
 end;%if (flag_disp>1);
 %%%%%%%%;
+
+%%%%%%%%%%%%%%%%;
+if flag_kernel_full==1; kappa_ = deltafunc_formula_; end;
+%%%%%%%%%%%%%%%%;
+if flag_kernel_full==0;
+%%%%%%%%%%%%%%%%;
 leg_drop_da__ = zeros(1+l_max,n_a_use);
 for l_val=0:l_max; leg_drop_da__(1+l_val,:) = chebleg_d_{1+l_val}(cos(a_drop_node_)); end;%for l_val=0:l_max;
 %%%%;
@@ -252,7 +272,10 @@ ub_ = zeros(1+l_max,1); %<-- lower-bound. ;
 ub_(1+0) = sqrt(1+2*0)*sqrt(4*pi); %<-- ensure average is constant. ;
 ub_(1+[1:l_max]) = sqrt(1+2*[1:l_max])*sqrt(4*pi).*max(1e-12,kernel_qpro_deconvolution_factor_max); %<-- ensure kernel_qpro_deconvolution_factor_max. ;
 tmp_H = H_cc__;
-tmp_f = []; tmp_A = []; tmp_b = []; tmp_Aeq = []; tmp_beq = []; tmp_lb = lb_; tmp_ub = ub_; tmp_x0 = sqrt(1+2*l_val_)*sqrt(4*pi);
+tmp_f = []; tmp_A = []; tmp_b = []; tmp_Aeq = []; tmp_beq = []; tmp_lb = lb_; tmp_ub = ub_; tmp_x0 = deltafunc_formula_;
+if isempty(tmp_H) | fnorm(tmp_H)==0;
+kappa_ = tmp_x0;
+else;
 kernel_qpro_optimoptions = optimoptions('quadprog');
 kernel_qpro_optimoptions.MaxIterations = kernel_qpro_MaxIterations;
 kernel_qpro_optimoptions.Display = 'off';
@@ -268,6 +291,12 @@ kappa_ = quadprog( ...
 ,tmp_x0 ...
 ,kernel_qpro_optimoptions ...
 );
+end;%if isempty(tmp_H) | fnorm(tmp_H)==0;
+%%%%%%%%%%%%%%%%;
+end;%if flag_kernel_full==0;
+%%%%%%%%%%%%%%%%;
+
+%%%%%%%%
 chebfun_kernel_qpro_ = chebfun(0);
 for l_val=0:l_max;
 chebfun_kernel_qpro_ = chebfun_kernel_qpro_ + kappa_(1+l_val)*chebleg_d_{1+l_val};
@@ -311,7 +340,6 @@ if (flag_verbose>0); disp(sprintf(' %% sum_l2_keep: %0.16f',sum_l2_keep)); end;
 %%%%%%%%;
 
 %%%%%%%%;
-deltafunc_formula_ = sqrt(4*pi)*sqrt(1+2*l_val_);
 deconvolve_l_ = deltafunc_formula_./max(1e-12,kappa_norm_(1+l_val_));
 deltafunc_from_chebfun_mollify_ = zeros(1+l_max,1);
 deltafunc_from_chebfun_crop_mollify_ = zeros(1+l_max,1);

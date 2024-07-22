@@ -184,10 +184,17 @@ if (flag_verbose>0); disp(sprintf(' %% data_k_c_wMc__ error: %0.16f',tmp_error))
 end;%if flag_check;
 %%%%%%%%;
 n_nearest_total = n_nearest_north + n_nearest_south;
-[tmp_ij_north_wMn__,tmp_d1_north_wMn__] = knnsearch(qref_k_c_qc__,+data_k_c_wMc__,'K',n_nearest_north); %<-- obtain tmp_d1_south_wMn__. ;
+tmp_ij_north_wMn__ = zeros(n_w*n_M,n_nearest_north);
+tmp_d1_north_wMn__ = zeros(n_w*n_M,n_nearest_north);
+if n_nearest_north> 0;
+[tmp_ij_north_wMn__,tmp_d1_north_wMn__] = knnsearch(qref_k_c_qc__,+data_k_c_wMc__,'K',n_nearest_north); %<-- obtain tmp_d1_north_wMn__. ;
+end;%if n_nearest_north> 0;
 tmp_distsquared_north_wMn__ = tmp_d1_north_wMn__.^2;
 %tmp_distsquared_north_wMn__ = sum(bsxfun(@minus,reshape(qref_k_c_qc__(tmp_ij_north_wMn__(:),:),[n_w*n_M,n_nearest_north,3]),reshape(+data_k_c_wMc__,[n_w*n_M,1,3])).^2,3);
+tmp_ij_south_wMn__ = zeros(n_w*n_M,n_nearest_south);
+if n_nearest_south> 0;
 [tmp_ij_south_wMn__] = knnsearch(qref_k_c_qc__,-data_k_c_wMc__,'K',n_nearest_south); %<-- cannot obtain tmp_d1_south_wMn__. ;
+end;%if n_nearest_south> 0;
 tmp_distsquared_south_wMn__ = sum(bsxfun(@minus,reshape(qref_k_c_qc__(tmp_ij_south_wMn__(:),:),[n_w*n_M,n_nearest_south,3]),reshape(+data_k_c_wMc__,[n_w*n_M,1,3])).^2,3);
 index_keep_wMn__ = [ tmp_ij_north_wMn__ , tmp_ij_south_wMn__ ] - 1;
 index_qref_from_data_wMn__ = index_keep_wMn__;

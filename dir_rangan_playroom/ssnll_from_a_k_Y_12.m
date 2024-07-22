@@ -669,10 +669,10 @@ index_not_match_M_ = efind(flag_not_match_M_);
 n_scatter = numel(index_not_match_M_);
 azimu_b_scatter_ = euler_azimu_b_M_(1+index_not_match_M_);
 polar_a_scatter_ = euler_polar_a_M_(1+index_not_match_M_);
-if (flag_verbose>0); disp(sprintf(' %% n_scatter %d, flag_polar_a_ascend_vs_descend %d',n_scatter,flag_polar_a_ascend_vs_descend)); end;
 scatter_from_tensor_sba__ = zeros(n_scatter,n_viewing_azimu_b*n_viewing_polar_a);
 if (n_scatter> 0);
 flag_polar_a_ascend_vs_descend = 0; if (viewing_polar_a_(end)> viewing_polar_a_(1+0)); flag_polar_a_ascend_vs_descend = 1; end;
+if (flag_verbose>0); disp(sprintf(' %% n_scatter %d, flag_polar_a_ascend_vs_descend %d',n_scatter,flag_polar_a_ascend_vs_descend)); end;
 [ ...
  scatter_from_tensor_sba__ ...
 ] = ...

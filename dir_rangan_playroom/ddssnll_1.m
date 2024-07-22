@@ -148,6 +148,8 @@ end;%if isempty(parameter);
 %%%%%%%%;
 if (~isfield(parameter,'flag_verbose')); parameter.flag_verbose = 0; end; %<-- parameter_bookmark. ;
 flag_verbose = parameter.flag_verbose;
+if (~isfield(parameter,'flag_surrogate')); parameter.flag_surrogate = 0; end; %<-- parameter_bookmark. ;
+flag_surrogate = parameter.flag_surrogate;
 if (~isfield(parameter,'flag_check')); parameter.flag_check = 0; end; %<-- parameter_bookmark. ;
 flag_check = parameter.flag_check;
 if (~isfield(parameter,'flag_disp')); parameter.flag_disp = 0; end; %<-- parameter_bookmark. ;
@@ -165,11 +167,22 @@ flag_kernel_qpro_d0 = parameter.flag_kernel_qpro_d0;
 if (~isfield(parameter,'flag_kernel_qpro_d1')); parameter.flag_kernel_qpro_d1 = 1; end; %<-- parameter_bookmark. ;
 flag_kernel_qpro_d1 = parameter.flag_kernel_qpro_d1;
 if (~isfield(parameter,'kernel_qpro_polar_a_pole_north')); parameter.kernel_qpro_polar_a_pole_north = 4.5*pi/24; end; %<-- parameter_bookmark. ;
-kernel_qpro_polar_a_pole_north = parameter.kernel_qpro_polar_a_pole_north;
+kernel_qpro_polar_a_pole_north = min(pi/2,parameter.kernel_qpro_polar_a_pole_north);
+parameter.kernel_qpro_polar_a_pole_north = kernel_qpro_polar_a_pole_north;
 if (~isfield(parameter,'kernel_qpro_polar_a_pole_south')); parameter.kernel_qpro_polar_a_pole_south = 3.5*pi/24; end; %<-- parameter_bookmark. ;
-kernel_qpro_polar_a_pole_south = parameter.kernel_qpro_polar_a_pole_south;
+kernel_qpro_polar_a_pole_south = min(pi/2,parameter.kernel_qpro_polar_a_pole_south);
+parameter.kernel_qpro_polar_a_pole_south = kernel_qpro_polar_a_pole_south;
+if ~isfield(parameter,'kernel_qpro_qref_k_eq_d_double'); parameter.kernel_qpro_qref_k_eq_d_double=0.5; end;
+kernel_qpro_qref_k_eq_d_double=parameter.kernel_qpro_qref_k_eq_d_double;
 if (~isfield(parameter,'kernel_qpro_l_max_use')); parameter.kernel_qpro_l_max_use = l_max; end; %<-- parameter_bookmark. ;
 kernel_qpro_l_max_use = parameter.kernel_qpro_l_max_use;
+%%%%;
+if ~isfield(parameter,'flag_kernel_full'); parameter.flag_kernel_full=0; end;
+flag_kernel_full=parameter.flag_kernel_full;
+if (kernel_qpro_polar_a_pole_north + kernel_qpro_polar_a_pole_south > pi-1e-12);
+flag_kernel_full = 1;
+parameter.flag_kernel_full = flag_kernel_full;
+end;%if (kernel_qpro_polar_a_pole_north + kernel_qpro_polar_a_pole_south > pi-1e-12);
 %%%%%%%%;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
@@ -188,6 +201,37 @@ l_max_max = max(l_max_);
 m_max_ = -l_max_max : +l_max_max;
 n_m_max = length(m_max_);
 %%%%%%%%;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+% This is used to test eig_ddssnll_lanczos_0. ;
+% The matrix is structured as follows:
+%     [ Hvv | Hvt ] ;
+% H = [ ----+---- ] ;
+%     [ Htv | Htt ] ;
+% with: ;
+% Hvv: a diagonal matrix with diagonal values given by: s21_yk_ ;
+% Hvt: a rank-1 outer-product sin((pi/2)*2*nlm_sum/n_lm_sum).^2 ;
+% s21_yk_(1+nlm_sum) = sin((pi/2)*nlm_sum/n_lm_sum).^2 ;
+% e12_yk_(1+nlm_sum) = exp(i*(pi/2)*2*nlm_sum/n_lm_sum) ;
+% c21_M3_(1+nM3) = cos((pi/2)*nM3/n_M3).^2;
+% c22_M3_(1+nM3) = cos((pi/2)*nM3/n_M3).^2;
+if flag_surrogate==1;
+if ~isfield(parameter,'surrogate_H__'); disp(sprintf(' %% Warning, surrogate_H__ not found')); end;
+Hvt_ykabc_=[];
+Hv_q3d_k_Y_quad_yk_=[];
+Hv_q3d_k_Y_quad_yk__=[];
+Hv_q3d_k_p_quad_=[];
+Ht_q2d_M3__=[];
+a_restore_C2M0_k_Y_lmk_=[];
+a_restore_C2M0_k_p_quad_=[];
+[tmp_ykabc_] = local_ykabc_from_yk_a_b_c_(n_k_p_r,l_max_,n_M,dvol_a_k_Y_quad_yk_,dtau_euler_polar_a_M_,dtau_euler_azimu_b_M_,dtau_euler_gamma_z_M_);
+Hvt_ykabc_ = parameter.surrogate_H__*tmp_ykabc_;
+end;%if flag_surrogate==1;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+if flag_surrogate==0;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
 %%%%%%%%;
 if isempty(a_k_Y_quad_yk__);
@@ -389,10 +433,12 @@ if (flag_verbose>0); disp(sprintf(' %% (4*pi)^2 * sqrt(pi/2): %+0.6f',(4*pi)^2 *
 tmp_t = tic();
 parameter_KAPPA = struct('type','KAPPA');
 parameter_KAPPA.flag_verbose = 0*flag_verbose;
+parameter_KAPP.flag_kernel_full = flag_kernel_full;
 parameter_KAPPA.flag_kernel_qpro_d0 = flag_kernel_qpro_d0;
 parameter_KAPPA.flag_kernel_qpro_d1 = flag_kernel_qpro_d1;
 parameter_KAPPA.kernel_qpro_polar_a_pole_north = kernel_qpro_polar_a_pole_north;
 parameter_KAPPA.kernel_qpro_polar_a_pole_south = kernel_qpro_polar_a_pole_south;
+parameter_KAPPA.kernel_qpro_qref_k_eq_d_double = kernel_qpro_qref_k_eq_d_double;
 parameter_KAPPA.kernel_qpro_l_max_use = kernel_qpro_l_max_use;
 [ ...
  parameter_KAPPA ...
@@ -973,6 +1019,7 @@ Htt_q3d = ...
   + 1.0 * sum( (0.5*dtau_dtau_a_restore_C0M2_k_p_quad_) .* weight_3d_riesz_k_all_ ) ...
   ;
 Htt_q3d = Htt_q3d / scaling_volumetric ;
+if (flag_verbose>0); disp(sprintf(' %% Htt_q3d: %0.16f',Htt_q3d)); end;
 if (flag_verbose>0); disp(sprintf(' %% Htt_q2d vs Htt_q3d: %0.16f',fnorm(Htt_q2d - Htt_q3d)/max(1e-12,fnorm(Htt_q2d)))); end;
 %%%%%%%%;
 Htv_q3d = ...
@@ -1217,6 +1264,10 @@ Hv_q3d_k_Y_quad_yk_(1+tmp_index_) = Hv_q3d_k_Y_quad_yk__(1:n_lm,1+nk_p_r);
 end;%for nk_p_r=0:n_k_p_r-1;
 
 Hvt_ykabc_ = cat(1,Hv_q3d_k_Y_quad_yk_,Ht_q2d_M3__(:,1+0),Ht_q2d_M3__(:,1+1),Ht_q2d_M3__(:,1+2));
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+end;%if flag_surrogate==0;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 if (flag_verbose>0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;

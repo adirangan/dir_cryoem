@@ -15,8 +15,16 @@ if (strcmp(platform,'rusty')); setup_rusty; string_root = 'mnt/home'; end;
 %%%%%%%%;
 
 str_thisfunction = 'test_slice_vs_volume_integral_5';
-
 flag_verbose=1; flag_disp=1; nf=0;
+
+k_int = 16;
+k_eq_d_double = 0.50;
+t_eq_d_double = 0.25;
+n_w_int = 1;
+KAPPA_flag_kernel_full = 1;
+KAPPA_pole_north_double = 4.5*pi/24;
+KAPPA_pole_south_double = 3.5*pi/24;
+KAPPA_qref_k_eq_d_double = 0.25;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 if (flag_verbose>0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
@@ -32,7 +40,7 @@ dh3d_ = @(kd) 12*pi*( (kd.^2/3 - 1) .* sin(kd) + (kd).*cos(kd) ) ./ kd.^4 ;
 %%%%%%%%;
 % Now set up and test k-quadrature on sphere. ;
 %%%%%%%%;
-k_p_r_max = 48.0/(2*pi); k_eq_d = 1.0/(2*pi); str_T_vs_L = 'C';
+k_p_r_max = k_int/(2*pi); k_eq_d = k_eq_d_double/(2*pi); str_T_vs_L = 'C';
 flag_unif_vs_adap = 0; flag_tensor_vs_adap = 0; %<-- This is set to match test_ssnll_from_a_k_Y_12 ;
 [ ...
  n_k_all ...
@@ -110,7 +118,7 @@ disp(sprintf(' %% I_b_form vs I_b_quad %0.16f %%<-- should be <1e-6',fnorm(I_b_f
 %%%%%%%%;
 l_max_upb = round(2*pi*k_p_r_max);
 l_max_max = min(l_max_upb,1+ceil(2*pi*k_p_r_(end)));
-n_w_max = 1*1*2*(l_max_max+1); n_w_0in_ = n_w_max*ones(n_k_p_r,1);
+n_w_max = n_w_int*2*(l_max_max+1); n_w_0in_ = n_w_max*ones(n_k_p_r,1);
 [ ...
  n_w_ ...
 ,weight_2d_k_p_r_ ...
@@ -338,7 +346,7 @@ n_lm = n_lm_(1+nk_p_r);
 tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
 a_k_Y_form_yk__(1:n_lm,1+nk_p_r) = a_k_Y_form_yk_(1+tmp_index_);
 end;%for nk_p_r=0:n_k_p_r-1;
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% a_k_Y_form_yk__: %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% a_k_Y_form_yk__: time %0.6fs',tmp_t)); end;
 %%%%;
 b_k_Y_form_yk_ = b_k_Y_form_;
 b_k_Y_form_yk__ = zeros(n_lm_max,n_k_p_r);
@@ -348,7 +356,7 @@ n_lm = n_lm_(1+nk_p_r);
 tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
 b_k_Y_form_yk__(1:n_lm,1+nk_p_r) = b_k_Y_form_yk_(1+tmp_index_);
 end;%for nk_p_r=0:n_k_p_r-1;
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% b_k_Y_form_yk__: %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% b_k_Y_form_yk__: time %0.6fs',tmp_t)); end;
 %%%%%%%%;
 % define rotations. ;
 %%%%%%%%;
@@ -367,7 +375,7 @@ Ry = @(polar_a) ...
 % generate templates. ;
 %%%%%%%%;
 tmp_t = tic();
-template_k_eq_d = 1.0/k_p_r_max;
+template_k_eq_d = t_eq_d_double/k_p_r_max;
 flag_tensor_vs_adap = 1; %<-- tensor grid. ;
 [ ...
  n_viewing_S ...
@@ -439,7 +447,7 @@ pm_template_2( ...
 ,n_viewing_azimu_b_ ...
 );
 S_k_p_wkS__ = reshape(S_k_p_wkS__,[n_w_sum,n_S]);
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% S_k_p_wkS__ (pm_template_2): %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% S_k_p_wkS__ (pm_template_2): time %0.6fs',tmp_t)); end;
 %%%%%%%%;
 tmp_t = tic();
 [ ...
@@ -462,7 +470,7 @@ sph_template_3( ...
 ,viewing_polar_a_ ...
 ,n_viewing_azimu_b_ ...
 );
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% R_k_p_wkS__ (sph_template_3): %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% R_k_p_wkS__ (sph_template_3): time %0.6fs',tmp_t)); end;
 disp(sprintf(' %% R_k_p_wkS__ vs S_k_p_wkS__: %0.16f %%<-- should be <1e-2',fnorm(R_k_p_wkS__-S_k_p_wkS__)/fnorm(R_k_p_wkS__)));
 %%%%%%%%;
 % Now step through and reconstitute the templates. ;
@@ -514,7 +522,7 @@ pm_template_2( ...
 ,n_viewing_azimu_b_ ...
 );
 T_k_p_wkS__ = reshape(T_k_p_wkS__,[n_w_sum,n_S]);
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% T_k_p_wkS__ (pm_template_2): %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% T_k_p_wkS__ (pm_template_2): time %0.6fs',tmp_t)); end;
 %%%%%%%%;
 tmp_t = tic();
 [ ...
@@ -537,7 +545,7 @@ sph_template_3( ...
 ,viewing_polar_a_ ...
 ,n_viewing_azimu_b_ ...
 );
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% R_k_p_wkS__ (sph_template_3): %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% R_k_p_wkS__ (sph_template_3): time %0.6fs',tmp_t)); end;
 disp(sprintf(' %% R_k_p_wkS__ vs T_k_p_wkS__: %0.16f %%<-- should be <1e-2',fnorm(R_k_p_wkS__-T_k_p_wkS__)/fnorm(R_k_p_wkS__)));
 %%%%%%%%;
 % Now step through and reconstitute the templates. ;
@@ -563,7 +571,7 @@ disp(sprintf(' %% R_k_p_wkS__ vs T_k_p_wkS__: %0.16f %%<-- should be <1e-2',fnor
 CTF_alpha = 0.3;
 CTF_k_p_wk_ = reshape(repmat(reshape(besselj(0,CTF_alpha*k_p_r_),[1,n_k_p_r]),[n_w_max,1]),[n_w_sum,1]);
 %%%%;
-nS = 128;
+nS = max(0,min(n_S-1,128));
 S_k_p_wk_ = S_k_p_wkS__(:,1+nS);
 tmp_azimu_b = viewing_azimu_b_S_(1+nS);
 tmp_polar_a = viewing_polar_a_S_(1+nS);
@@ -576,7 +584,7 @@ tmp_delta_U = fnorm(tmp_delta_U_(1+[0,1]));
 tmp_omega_U = atan2(tmp_delta_U_(1+1),tmp_delta_U_(1+0));
 U_k_p_wk_ = U_k_p_wk_ + exp(+i*2*pi*(k_c_0_wk_*tmp_delta_U_(1+0) + k_c_1_wk_*tmp_delta_U_(1+1)));
 %%%%;
-nT = 128;
+nT = max(0,min(n_S-1,128));
 T_k_p_wk_ = T_k_p_wkS__(:,1+nT);
 tmp_azimu_b = viewing_azimu_b_S_(1+nT);
 tmp_polar_a = viewing_polar_a_S_(1+nT);
@@ -902,7 +910,7 @@ n_lm = n_lm_(1+nk_p_r);
 tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
 dvol_a_k_Y_form_yk__(1:n_lm,1+nk_p_r) = dvol_a_k_Y_form_yk_(1+tmp_index_);
 end;%for nk_p_r=0:n_k_p_r-1;
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% dvol_a_k_Y_form_yk__: %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% dvol_a_k_Y_form_yk__: time %0.6fs',tmp_t)); end;
 %%%%%%%%;
 % generate templates. ;
 %%%%%%%%;
@@ -935,7 +943,7 @@ pm_template_2( ...
 ,n_viewing_azimu_b_ ...
 );
 dvol_S_k_p_wkS__ = reshape(dvol_S_k_p_wkS__,[n_w_sum,n_S]);
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% dvol_S_k_p_wkS__: %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% dvol_S_k_p_wkS__: time %0.6fs',tmp_t)); end;
 %%%%%%%%;
 % Now step through and reconstitute the templates. ;
 %%%%%%%%;
@@ -1219,9 +1227,11 @@ tmp_t = tic();
 parameter_KAPPA = struct('type','KAPPA');
 parameter_KAPPA.flag_kernel_qpro_d0 = 1;
 parameter_KAPPA.flag_kernel_qpro_d1 = 1;
-parameter_KAPPA.kernel_qpro_polar_a_pole_north=4.5*pi/24;
-parameter_KAPPA.kernel_qpro_polar_a_pole_south=3.5*pi/24;
+parameter_KAPPA.kernel_qpro_polar_a_pole_north=KAPPA_pole_north_double;
+parameter_KAPPA.kernel_qpro_polar_a_pole_south=KAPPA_pole_south_double;
 parameter_KAPPA.kernel_qpro_l_max_use = l_max;
+parameter_KAPPA.kernel_qpro_qref_k_eq_d_double = KAPPA_qref_k_eq_d_double;
+parameter_KAPPA.flag_kernel_full = KAPPA_flag_kernel_full;
 KAPPA = [];
 [ ...
  parameter_KAPPA ...
@@ -1265,7 +1275,7 @@ n_lm = n_lm_(1+nk_p_r);
 tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
 tmp_yk_(1+tmp_index_) = tmp_yk__(1:n_lm,1+nk_p_r);
 end;%for nk_p_r=0:n_k_p_r-1;
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% tmp_yk_: %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% tmp_yk_: time %0.6fs',tmp_t)); end;
 %%%%;
 tmp_t = tic;
 [ ...
@@ -1462,7 +1472,7 @@ n_lm = n_lm_(1+nk_p_r);
 tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
 tmp_yk_(1+tmp_index_) = tmp_yk__(1:n_lm,1+nk_p_r);
 end;%for nk_p_r=0:n_k_p_r-1;
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% tmp_yk_: %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% tmp_yk_: time %0.6fs',tmp_t)); end;
 %%%%;
 tmp_t = tic;
 [ ...
@@ -1889,6 +1899,8 @@ parameter_ddssnll.flag_kernel_qpro_d1 = parameter_KAPPA.flag_kernel_qpro_d1;
 parameter_ddssnll.kernel_qpro_polar_a_pole_north = parameter_KAPPA.kernel_qpro_polar_a_pole_north;
 parameter_ddssnll.kernel_qpro_polar_a_pole_south = parameter_KAPPA.kernel_qpro_polar_a_pole_south;
 parameter_ddssnll.kernel_qpro_l_max_use = parameter_KAPPA.kernel_qpro_l_max_use;
+parameter_ddssnll.kernel_qpro_qref_k_eq_d_double = parameter_KAPPA.kernel_qpro_qref_k_eq_d_double;
+parameter_ddssnll.flag_kernel_full = parameter_KAPPA.flag_kernel_full;
 a_k_Y_quad_yk_ = a_k_Y_form_yk_;
 a_k_Y_quad_yk__ = a_k_Y_form_yk__;
 dvol_a_k_Y_quad_yk_ = dvol_a_k_Y_form_yk_;
@@ -2172,11 +2184,11 @@ parameter_eig = struct('type','eig');
 parameter_eig.flag_verbose = flag_verbose;
 parameter_eig.flag_check = 1;
 parameter_eig.flag_disp = 1;
-parameter_eig.flag_kernel_qpro_d0 = 1;
-parameter_eig.flag_kernel_qpro_d1 = 1;
-parameter_eig.kernel_qpro_polar_a_pole_north=4.5*pi/24;
-parameter_eig.kernel_qpro_polar_a_pole_south=3.5*pi/24;
-parameter_eig.kernel_qpro_l_max_use = l_max;
+parameter_eig.flag_kernel_qpro_d0 = parameter_KAPPA.flag_kernel_qpro_d0;
+parameter_eig.flag_kernel_qpro_d1 = parameter_KAPPA.flag_kernel_qpro_d1;
+parameter_eig.kernel_qpro_polar_a_pole_north=parameter_KAPPA.kernel_qpro_polar_a_pole_north;
+parameter_eig.kernel_qpro_polar_a_pole_south=parameter_KAPPA.kernel_qpro_polar_a_pole_south;
+parameter_eig.kernel_qpro_l_max_use = parameter_KAPPA.kernel_qpro_l_max_use;
 parameter_eig.lanczos_n_iteration_cur = 16;
 U_SmallRotation_Delta_ykabc3__ = U_SmallRotation_Delta_ykabcs__(:,1:3);
 a_k_Y_quad_yk_ = a_k_Y_form_yk_;

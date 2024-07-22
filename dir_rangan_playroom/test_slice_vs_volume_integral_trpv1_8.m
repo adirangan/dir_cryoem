@@ -13,16 +13,26 @@ if (strcmp(platform,'rusty')); setup_rusty; string_root = 'mnt/home'; end;
 %%%%%%%%;
 
 str_thisfunction = 'test_slice_vs_volume_integral_trpv1_8';
-
+flag_recalc=0; flag_replot=0;
 flag_verbose=1; flag_disp=1; nf=0;
+
 k_int = 16;
+k_eq_d_double = 0.50;
+t_eq_d_double = 0.25;
+n_w_int = 2;
+KAPPA_pole_north_double = 12*pi/24;
+KAPPA_pole_south_double = 12*pi/24;
+KAPPA_qref_k_eq_d_double = 0.25;
+lanczos_n_iteration_max = 128;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 if (flag_verbose>0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
 %%%%%%%%;
-global_parameter=[];
+global_parameter=struct('type','parameter');
+global_parameter.flag_recalc = flag_recalc;
+global_parameter.flag_replot = flag_replot;
 fname_prefix='trpv1_x0';
 dir_nopath_data_star='trpv1';
 Pixel_Spacing=1.2156;
@@ -64,7 +74,7 @@ n_x_u = size(a_x_u_load_,1);
 half_diameter_x_c = 1.0d0;
 diameter_x_c = 2.0d0*half_diameter_x_c;
 x_p_r_max = 1.0;
-n_x_u_pack = 32;
+n_x_u_pack = 64;
 n_pack = n_x_u/n_x_u_pack;
 pack_row_ij_ = zeros(n_x_u_pack,1);
 pack_col_ij_ = zeros(n_x_u_pack,1);
@@ -177,7 +187,7 @@ end;%if flag_plot;
 %%%%%%%%;
 % Now set up k-quadrature on sphere. ;
 %%%%%%%%;
-k_p_r_max = k_int/(2*pi); k_eq_d = 1.0/(2*pi); str_T_vs_L = 'C';
+k_p_r_max = k_int/(2*pi); k_eq_d = k_eq_d_double/(2*pi); str_T_vs_L = 'C';
 flag_unif_vs_adap = 0; flag_tensor_vs_adap = 0; %<-- This is set to match test_ssnll_from_a_k_Y_12 ;
 [ ...
  n_k_all ...
@@ -221,7 +231,7 @@ end;%if flag_disp;
 %%%%%%%%;
 l_max_upb = round(2*pi*k_p_r_max);
 l_max_max = min(l_max_upb,1+ceil(2*pi*k_p_r_(end)));
-n_w_max = 1*1*2*(l_max_max+1); n_w_0in_ = n_w_max*ones(n_k_p_r,1);
+n_w_max = n_w_int*2*(l_max_max+1); n_w_0in_ = n_w_max*ones(n_k_p_r,1);
 [ ...
  n_w_ ...
 ,weight_2d_k_p_r_ ...
@@ -481,10 +491,8 @@ end;%if ( exist(sprintf('%s.jpg',fname_fig),'file'));
 fname_mat = sprintf('%s_mat/S_k_p_wkS__.mat',dir_ssnll);
 if (flag_recalc | ~exist(fname_mat,'file'));
 disp(sprintf(' %% %s not found, creating',fname_mat));
-template_k_eq_d = -1;
-viewing_k_eq_d = 1.0; %<-- subsample just a few templates for visualization. ;
 tmp_t = tic();
-template_k_eq_d = 1.0/k_p_r_max;
+template_k_eq_d = t_eq_d_double/k_p_r_max;
 flag_tensor_vs_adap = 1; %<-- tensor grid. ;
 [ ...
  n_viewing_S ...
@@ -537,7 +545,7 @@ pm_template_2( ...
 S_k_p_wkS__ = reshape(S_k_p_wkS__,[n_w_sum,n_S]);
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% S_k_p_wkS__ (pm_template_2): %0.6fs',tmp_t)); end;
 save(fname_mat ...
-     ,'n_w_max','template_k_eq_d','viewing_k_eq_d' ...
+     ,'n_w_max','template_k_eq_d' ...
      ,'S_k_p_wkS__' ...
      ,'n_w_' ...
      ,'weight_2d_k_p_r_' ...
@@ -1261,7 +1269,7 @@ end;%if ( exist(sprintf('%s.jpg',fname_fig),'file'));
 %%%%%%%%;
 tmp_delta_r_max = 0.030;
 tmp_delta_r_upb = 0.250;
-for flag_N_vs_M = 0:1;
+for flag_N_vs_M = 0;%for flag_N_vs_M = 0:1;
 if flag_N_vs_M==0; tmp_N_k_p_wkM__ = M_k_p_wkM__; tmp_str = 'M'; end;%if flag_N_vs_M==0; 
 if flag_N_vs_M==1; tmp_N_k_p_wkM__ = N_k_p_wkM__; tmp_str = 'N'; end;%if flag_N_vs_M==1;
 fname_mat = sprintf('%s_mat/a_k_Y_reco_from_%s__.mat',dir_ssnll,tmp_str);
@@ -1498,6 +1506,7 @@ end;%for nk_p_r=0:n_k_p_r-1;
 
 %%%%%%%%;
 test_slice_vs_volume_integral_helper_eig_reco_empi_0;
+test_slice_vs_volume_integral_helper_eig_diagnostic_0;
 %%%%%%%%;
 
 %%%%%%%%;

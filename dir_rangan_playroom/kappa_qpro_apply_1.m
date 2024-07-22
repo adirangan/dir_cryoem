@@ -570,8 +570,14 @@ end;%if flag_check;
 %%%%;
 if flag_recalc_knn;
 tmp_t=tic();
+ij_north_wMn__ = zeros(n_w*n_M,n_nearest_north);
+if n_nearest_north> 0;
 [ij_north_wMn__] = knnsearch(qref_k_c_qc__,+data_k_c_wMc__,'K',n_nearest_north);
+end;%if n_nearest_north> 0;
+ij_south_wMn__ = zeros(n_w*n_M,n_nearest_south);
+if n_nearest_south> 0;
 [ij_south_wMn__] = knnsearch(qref_k_c_qc__,-data_k_c_wMc__,'K',n_nearest_south);
+end;%if n_nearest_south> 0;
 index_qref_from_data_wMn__ = [ ij_north_wMn__ , ij_south_wMn__ ] - 1;
 index_data_wMn__ = repmat(transpose(0:n_w*n_M-1),[1,n_nearest_total]);
 qref_cwMn____ = cat( ...
