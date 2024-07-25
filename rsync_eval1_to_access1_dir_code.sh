@@ -18,3 +18,18 @@ rsync \
     --include "*.fig" \
     --exclude "*" \
     ;
+
+rsync \
+    -avum \
+    /home/rangan/dir_cryoem/dir_rangan_playroom/dir_eig_ddssnll_lanczos_local \
+    rangan@access1.cims.nyu.edu:/data/rangan/dir_cryoem/dir_rangan_playroom/ \
+    --include "/*" \
+    --include "*.m" \
+    --include "*.c" \
+    --include "*.h" \
+    --include "*.f" \
+    --include "*.txt" \
+    --include "*.sh" \
+    --include "*.fig" \
+    --exclude "*" \
+    ;

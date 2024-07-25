@@ -204,17 +204,7 @@ n_m_max = length(m_max_);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 % This is used to test eig_ddssnll_lanczos_0. ;
-% The matrix is structured as follows:
-%     [ Hvv | Hvt ] ;
-% H = [ ----+---- ] ;
-%     [ Htv | Htt ] ;
-% with: ;
-% Hvv: a diagonal matrix with diagonal values given by: s21_yk_ ;
-% Hvt: a rank-1 outer-product sin((pi/2)*2*nlm_sum/n_lm_sum).^2 ;
-% s21_yk_(1+nlm_sum) = sin((pi/2)*nlm_sum/n_lm_sum).^2 ;
-% e12_yk_(1+nlm_sum) = exp(i*(pi/2)*2*nlm_sum/n_lm_sum) ;
-% c21_M3_(1+nM3) = cos((pi/2)*nM3/n_M3).^2;
-% c22_M3_(1+nM3) = cos((pi/2)*nM3/n_M3).^2;
+%%%%%%%%;
 if flag_surrogate==1;
 if ~isfield(parameter,'surrogate_H__'); disp(sprintf(' %% Warning, surrogate_H__ not found')); end;
 Hvt_ykabc_=[];
@@ -235,21 +225,11 @@ if flag_surrogate==0;
 
 %%%%%%%%;
 if isempty(a_k_Y_quad_yk__);
-a_k_Y_quad_yk__ = zeros(n_lm_max,n_k_p_r);
-for nk_p_r=0:n_k_p_r-1;
-n_lm = n_lm_(1+nk_p_r);
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
-a_k_Y_quad_yk__(1:n_lm,1+nk_p_r) = a_k_Y_quad_yk_(1+tmp_index_);
-end;%for nk_p_r=0:n_k_p_r-1;
+a_k_Y_quad_yk__ = local_yk__from_yk_(n_k_p_r,l_max_,a_k_Y_quad_yk_);
 end;%if isempty(a_k_Y_quad_yk__);
 %%%%%%%%;
 if isempty(dvol_a_k_Y_quad_yk__);
-dvol_a_k_Y_quad_yk__ = zeros(n_lm_max,n_k_p_r);
-for nk_p_r=0:n_k_p_r-1;
-n_lm = n_lm_(1+nk_p_r);
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
-dvol_a_k_Y_quad_yk__(1:n_lm,1+nk_p_r) = dvol_a_k_Y_quad_yk_(1+tmp_index_);
-end;%for nk_p_r=0:n_k_p_r-1;
+dvol_a_k_Y_quad_yk__ = local_yk__from_yk_(n_k_p_r,l_max_,dvol_a_k_Y_quad_yk_);
 end;%if isempty(dvol_a_k_Y_quad_yk__);
 %%%%%%%%;
 if isempty(a_k_p_quad_);
@@ -490,13 +470,8 @@ if n_type==ntype; tmp_yk__ = dtau_dtau_a_restore_C2M0_k_Y_lmk__; tmp_str = 'dtau
 if n_type==ntype; tmp_yk__ = dtau_dtau_a_restore_C1M1_k_Y_lmk__; tmp_str = 'dtau_dtau_a_restore_C1M1_k_Y_lmk__'; end; ntype = ntype + 1;
 if n_type==ntype; tmp_yk__ = dtau_dtau_a_restore_C0M2_k_Y_lmk__; tmp_str = 'dtau_dtau_a_restore_C0M2_k_Y_lmk__'; end; ntype = ntype + 1;
 %%%%;
-tmp_yk_ = zeros(n_lm_sum,1);
 tmp_t = tic();
-for nk_p_r=0:n_k_p_r-1;
-n_lm = n_lm_(1+nk_p_r);
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
-tmp_yk_(1+tmp_index_) = tmp_yk__(1:n_lm,1+nk_p_r);
-end;%for nk_p_r=0:n_k_p_r-1;
+tmp_yk_ = local_yk_from_yk__(n_k_p_r,l_max_,tmp_yk__);
 %%%%;
 [ ...
  tmp_quad_ ...
@@ -567,12 +542,7 @@ convert_k_p_to_spharm_4( ...
 );
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% %s: convert_spharm_to_k_p_4: time %0.2fs',tmp_str,tmp_t)); end;
 %%%%;
-a_times_dtau_a_restore_C2M0_k_Y_lmk__ = zeros(n_lm_max,n_k_p_r);
-for nk_p_r=0:n_k_p_r-1;
-n_lm = n_lm_(1+nk_p_r);
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
-a_times_dtau_a_restore_C2M0_k_Y_lmk__(1:n_lm,1+nk_p_r) = a_times_dtau_a_restore_C2M0_k_Y_lmk_(1+tmp_index_);
-end;%for nk_p_r=0:n_k_p_r-1;
+a_times_dtau_a_restore_C2M0_k_Y_lmk__ = local_yk__from_yk_(n_k_p_r,l_max_,a_times_dtau_a_restore_C2M0_k_Y_lmk_);
 %%%%%%%%;
 
 %%%%%%%%;
@@ -606,12 +576,7 @@ convert_k_p_to_spharm_4( ...
 );
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% %s: convert_spharm_to_k_p_4: time %0.2fs',tmp_str,tmp_t)); end;
 %%%%;
-dvol_a_times_a_restore_C2M0_k_Y_lmk__ = zeros(n_lm_max,n_k_p_r);
-for nk_p_r=0:n_k_p_r-1;
-n_lm = n_lm_(1+nk_p_r);
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
-dvol_a_times_a_restore_C2M0_k_Y_lmk__(1:n_lm,1+nk_p_r) = dvol_a_times_a_restore_C2M0_k_Y_lmk_(1+tmp_index_);
-end;%for nk_p_r=0:n_k_p_r-1;
+dvol_a_times_a_restore_C2M0_k_Y_lmk__ = local_yk__from_yk_(n_k_p_r,l_max_,dvol_a_times_a_restore_C2M0_k_Y_lmk_);
 %%%%%%%%;
 
 %%%%%%%%;
@@ -682,12 +647,7 @@ convert_k_p_to_spharm_4( ...
 ,index_k_per_shell_uka__ ...
 );
 %%%%;
-a_times_a_k_Y_quad_yk__ = zeros(n_lm_max,n_k_p_r);
-for nk_p_r=0:n_k_p_r-1;
-n_lm = n_lm_(1+nk_p_r);
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
-a_times_a_k_Y_quad_yk__(1:n_lm,1+nk_p_r) = a_times_a_k_Y_quad_yk_(1+tmp_index_);
-end;%for nk_p_r=0:n_k_p_r-1;
+a_times_a_k_Y_quad_yk__ = local_yk__from_yk_(n_k_p_r,l_max_,a_times_a_k_Y_quad_yk_);
 %%%%%%%%;
 
 %%%%%%%%;
@@ -718,12 +678,7 @@ convert_k_p_to_spharm_4( ...
 ,index_k_per_shell_uka__ ...
 );
 %%%%;
-dvol_a_times_dvol_a_k_Y_quad_yk__ = zeros(n_lm_max,n_k_p_r);
-for nk_p_r=0:n_k_p_r-1;
-n_lm = n_lm_(1+nk_p_r);
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
-dvol_a_times_dvol_a_k_Y_quad_yk__(1:n_lm,1+nk_p_r) = dvol_a_times_dvol_a_k_Y_quad_yk_(1+tmp_index_);
-end;%for nk_p_r=0:n_k_p_r-1;
+dvol_a_times_dvol_a_k_Y_quad_yk__ = local_yk__from_yk_(n_k_p_r,l_max_,dvol_a_times_dvol_a_k_Y_quad_yk_);
 %%%%%%%%;
 
 %%%%%%%%;
@@ -754,12 +709,7 @@ convert_k_p_to_spharm_4( ...
 ,index_k_per_shell_uka__ ...
 );
 %%%%;
-a_times_a_restore_C2M0_k_Y_lmk__ = zeros(n_lm_max,n_k_p_r);
-for nk_p_r=0:n_k_p_r-1;
-n_lm = n_lm_(1+nk_p_r);
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
-a_times_a_restore_C2M0_k_Y_lmk__(1:n_lm,1+nk_p_r) = a_times_a_restore_C2M0_k_Y_lmk_(1+tmp_index_);
-end;%for nk_p_r=0:n_k_p_r-1;
+a_times_a_restore_C2M0_k_Y_lmk__ = local_yk__from_yk_(n_k_p_r,l_max_,a_times_a_restore_C2M0_k_Y_lmk_);
 %%%%%%%%;
 
 %%%%%%%%;
@@ -1053,31 +1003,16 @@ Hvt_q3d = ...
   ;
 Hvt_q3d = Hvt_q3d / scaling_volumetric ;
 if (flag_verbose>0); disp(sprintf(' %% Hvt_q3d: %0.16f',Hvt_q3d)); end;
-Hvt_q2d = Htv_q2d ; %<-- due to symmetry. ;
+Hvt_q2d = conj(Htv_q2d) ; %<-- due to symmetry. ;
 if (flag_verbose>0); disp(sprintf(' %% Hvt_q2d vs Hvt_q3d: %0.16f',fnorm(Hvt_q2d - Hvt_q3d)/max(1e-12,fnorm(Hvt_q2d)))); end;
 %%%%%%%%;
 
 %%%%%%%%;
-a_restore_C2M0_k_Y_lmk_ = zeros(n_lm_sum,1);
-for nk_p_r=0:n_k_p_r-1;
-n_lm = n_lm_(1+nk_p_r);
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
-a_restore_C2M0_k_Y_lmk_(1+tmp_index_) = a_restore_C2M0_k_Y_lmk__(1:n_lm,1+nk_p_r);
-end;%for nk_p_r=0:n_k_p_r-1;
+a_restore_C2M0_k_Y_lmk_ = local_yk_from_yk__(n_k_p_r,l_max_,a_restore_C2M0_k_Y_lmk__);
 %%%%%%%%;
-dtau_a_restore_C2M0_k_Y_lmk_ = zeros(n_lm_sum,1);
-for nk_p_r=0:n_k_p_r-1;
-n_lm = n_lm_(1+nk_p_r);
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
-dtau_a_restore_C2M0_k_Y_lmk_(1+tmp_index_) = dtau_a_restore_C2M0_k_Y_lmk__(1:n_lm,1+nk_p_r);
-end;%for nk_p_r=0:n_k_p_r-1;
+dtau_a_restore_C2M0_k_Y_lmk_ = local_yk_from_yk__(n_k_p_r,l_max_,dtau_a_restore_C2M0_k_Y_lmk__);
 %%%%%%%%;
-dtau_a_restore_C1M1_k_Y_lmk_ = zeros(n_lm_sum,1);
-for nk_p_r=0:n_k_p_r-1;
-n_lm = n_lm_(1+nk_p_r);
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
-dtau_a_restore_C1M1_k_Y_lmk_(1+tmp_index_) = dtau_a_restore_C1M1_k_Y_lmk__(1:n_lm,1+nk_p_r);
-end;%for nk_p_r=0:n_k_p_r-1;
+dtau_a_restore_C1M1_k_Y_lmk_ = local_yk_from_yk__(n_k_p_r,l_max_,dtau_a_restore_C1M1_k_Y_lmk__);
 %%%%%%%%;
 if (flag_disp>0);
 figure(1+nf);nf=nf+1;clf;figbig;
@@ -1088,12 +1023,7 @@ if ntype==0; tmp_k_p_quad_ = a_k_p_quad_; tmp_k_Y_quad_yk__ = a_k_Y_quad_yk__; t
 if ntype==1; tmp_k_p_quad_ = a_restore_C2M0_k_p_quad_; tmp_k_Y_quad_yk__ = a_restore_C2M0_k_Y_lmk__; tmp_str = 'a_restore_C2M0'; end;
 if ntype==2; tmp_k_p_quad_ = dtau_a_restore_C2M0_k_p_quad_; tmp_k_Y_quad_yk__ = dtau_a_restore_C2M0_k_Y_lmk__; tmp_str = 'dtau_a_restore_C2M0'; end;
 if ntype==3; tmp_k_p_quad_ = dtau_a_restore_C1M1_k_p_quad_; tmp_k_Y_quad_yk__ = dtau_a_restore_C1M1_k_Y_lmk__; tmp_str = 'dtau_a_restore_C1M1'; end;
-tmp_k_Y_quad_yk_ = zeros(n_lm_sum,1);
-for nk_p_r=0:n_k_p_r-1;
-n_lm = n_lm_(1+nk_p_r);
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
-tmp_k_Y_quad_yk_(1+tmp_index_) = tmp_k_Y_quad_yk__(1:n_lm,1+nk_p_r);
-end;%for nk_p_r=0:n_k_p_r-1;
+tmp_k_Y_quad_yk_ = local_yk_from_yk__(n_k_p_r,l_max_,tmp_k_Y_quad_yk__);
 l2_a0 = sum ((conj(tmp_k_Y_quad_yk__).*tmp_k_Y_quad_yk__)*reshape(weight_3d_riesz_k_p_r_,[n_k_p_r,1]) , 'all' )/scaling_volumetric;
 disp(sprintf(' %% %s: tmp_k_Y_quad_yk__: l2_a0: %0.16f',tmp_str,l2_a0));
 l2_a0 = sum ((conj(tmp_k_p_quad_).*tmp_k_p_quad_).*weight_3d_riesz_k_all_ , 'all' )/scaling_volumetric;
@@ -1135,12 +1065,7 @@ Hvt_q3d_k_Y_quad_yk__ = a_times_dtau_a_restore_C2M0_k_Y_lmk__ - dtau_a_restore_C
 Hv_q3d_k_p_quad_ = Hvv_q3d_k_p_quad_ + Hvt_q3d_k_p_quad_;
 Hv_q3d_k_Y_quad_yk__ = Hvv_q3d_k_Y_quad_yk__ + Hvt_q3d_k_Y_quad_yk__;
 %%%%%%%%;
-Hv_q3d_k_Y_quad_yk_ = zeros(n_lm_sum,1);
-for nk_p_r=0:n_k_p_r-1;
-n_lm = n_lm_(1+nk_p_r);
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
-Hv_q3d_k_Y_quad_yk_(1+tmp_index_) = Hv_q3d_k_Y_quad_yk__(1:n_lm,1+nk_p_r);
-end;%for nk_p_r=0:n_k_p_r-1;
+Hv_q3d_k_Y_quad_yk_ = local_yk_from_yk__(n_k_p_r,l_max_,Hv_q3d_k_Y_quad_yk__);
 %%%%%%%%;
 [ ...
  Hv_q3d_k_p_reco_ ...
@@ -1203,12 +1128,7 @@ p_row=1; p_col=2*1; np=0;
 tmp_k_p_quad_ = Hv_q3d_k_p_quad_;
 tmp_k_Y_quad_yk__ = Hv_q3d_k_Y_quad_yk__;
 tmp_str = 'Hv_q3d';
-tmp_k_Y_quad_yk_ = zeros(n_lm_sum,1);
-for nk_p_r=0:n_k_p_r-1;
-n_lm = n_lm_(1+nk_p_r);
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
-tmp_k_Y_quad_yk_(1+tmp_index_) = tmp_k_Y_quad_yk__(1:n_lm,1+nk_p_r);
-end;%for nk_p_r=0:n_k_p_r-1;
+tmp_k_Y_quad_yk_ = local_yk_from_yk__(n_k_p_r,l_max_,tmp_k_Y_quad_yk__);
 l2_a0 = sum ((conj(tmp_k_Y_quad_yk__).*tmp_k_Y_quad_yk__)*reshape(weight_3d_riesz_k_p_r_,[n_k_p_r,1]) , 'all' )/scaling_volumetric;
 disp(sprintf(' %% %s: tmp_k_Y_quad_yk__: l2_a0: %0.16f',tmp_str,l2_a0));
 l2_a0 = sum ((conj(tmp_k_p_quad_).*tmp_k_p_quad_).*weight_3d_riesz_k_all_ , 'all' )/scaling_volumetric;
@@ -1256,12 +1176,7 @@ Hv_q3d_k_p_quad_ = Hvv_q3d_k_p_quad_ + Hvt_q3d_k_p_quad_;
 Hv_q3d_k_Y_quad_yk__ = Hvv_q3d_k_Y_quad_yk__ + Hvt_q3d_k_Y_quad_yk__;
 Ht_q2d_M3__ = Htt_q2d_M3__ + Htv_q2d_M3__;
 %%%%%%%%;
-Hv_q3d_k_Y_quad_yk_ = zeros(n_lm_sum,1);
-for nk_p_r=0:n_k_p_r-1;
-n_lm = n_lm_(1+nk_p_r);
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm-1);
-Hv_q3d_k_Y_quad_yk_(1+tmp_index_) = Hv_q3d_k_Y_quad_yk__(1:n_lm,1+nk_p_r);
-end;%for nk_p_r=0:n_k_p_r-1;
+Hv_q3d_k_Y_quad_yk_ = local_yk_from_yk__(n_k_p_r,l_max_,Hv_q3d_k_Y_quad_yk__);
 
 Hvt_ykabc_ = cat(1,Hv_q3d_k_Y_quad_yk_,Ht_q2d_M3__(:,1+0),Ht_q2d_M3__(:,1+1),Ht_q2d_M3__(:,1+2));
 

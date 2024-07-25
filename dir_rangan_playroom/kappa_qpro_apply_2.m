@@ -97,10 +97,10 @@ kappa_qpro_apply_2( ...
 dtau_viewing_polar_a_M_ = 2*pi*rand(n_M,1);
 dtau_viewing_azimu_b_M_ = 2*pi*rand(n_M,1);
 dtau_viewing_gamma_z_M_ = 2*pi*rand(n_M,1);
-dtau_fnorm = fnorm([dtau_viewing_polar_a_M_ , dtau_viewing_azimu_b_M_ , dtau_viewing_gamma_z_M_]);
-dtau_viewing_polar_a_M_ = dtau_viewing_polar_a_M_/max(1e-12,dtau_fnorm);
-dtau_viewing_azimu_b_M_ = dtau_viewing_azimu_b_M_/max(1e-12,dtau_fnorm);
-dtau_viewing_gamma_z_M_ = dtau_viewing_gamma_z_M_/max(1e-12,dtau_fnorm);
+%dtau_fnorm = fnorm([dtau_viewing_polar_a_M_ , dtau_viewing_azimu_b_M_ , dtau_viewing_gamma_z_M_]);
+%dtau_viewing_polar_a_M_ = dtau_viewing_polar_a_M_/max(1e-12,dtau_fnorm);
+%dtau_viewing_azimu_b_M_ = dtau_viewing_azimu_b_M_/max(1e-12,dtau_fnorm);
+%dtau_viewing_gamma_z_M_ = dtau_viewing_gamma_z_M_/max(1e-12,dtau_fnorm);
 parameter.flag_recalc_knn=0;
 parameter.flag_recalc_qref_from_data=0;
 parameter.flag_recalc_dtau_qref_from_data=1;
