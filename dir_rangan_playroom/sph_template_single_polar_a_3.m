@@ -129,12 +129,12 @@ template_k_eq_d = -1;
 n_w_max = 1*98;
 n_w = n_w_max; n_w_ = n_w_max*ones(n_k_p_r,1); n_w_sum = sum(n_w_); n_w_csum_ = cumsum([0;n_w_]);
 %%%%%%%%;
-a_k_Y_lmk__ = zeros(n_lm_max,n_k_p_r);
+a_k_Y_yk__ = zeros(n_lm_max,n_k_p_r);
 a_k_Y_lmk___ = zeros(1+l_max_max,n_m_max,n_k_p_r);
 for nk_p_r=0:n_k_p_r-1;
 tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm_(1+nk_p_r)-1);
 tmp_a_k_Y_lm_ = a_k_Y_yk_(1+tmp_index_);
-a_k_Y_lmk__(1:n_lm_(1+nk_p_r),1+nk_p_r) = tmp_a_k_Y_lm_;
+a_k_Y_yk__(1:n_lm_(1+nk_p_r),1+nk_p_r) = tmp_a_k_Y_lm_;
 tmp_a_k_Y_lm__ = zeros(1+l_max_max,n_m_max);
 l_max = l_max_(1+nk_p_r);
 na=0;
@@ -155,7 +155,7 @@ for nk_p_r=0:n_k_p_r-1;
 l_max=l_max_(1+nk_p_r);
 for l_val=0:l_max;
 for m_val=-l_val:+l_val;
-assert(a_k_Y_yk_(1+n_lm_csum_(1+nk_p_r)+l_val*(l_val+1)+m_val)==a_k_Y_lmk__(1+l_val*(l_val+1)+m_val,1+nk_p_r));
+assert(a_k_Y_yk_(1+n_lm_csum_(1+nk_p_r)+l_val*(l_val+1)+m_val)==a_k_Y_yk__(1+l_val*(l_val+1)+m_val,1+nk_p_r));
 assert(a_k_Y_yk_(1+n_lm_csum_(1+nk_p_r)+l_val*(l_val+1)+m_val)==a_k_Y_lmk___(1+l_val,1+l_max_max+m_val,1+nk_p_r));
 na=na+1;
 end;%for m_val=-l_val:+l_val;
@@ -188,7 +188,7 @@ pm_template_2( ...
  0*verbose ...
 ,l_max ...
 ,n_k_p_r ...
-,a_k_Y_lmk__ ...
+,a_k_Y_yk__ ...
 ,viewing_k_eq_d ...
 ,template_k_eq_d ...
 ,n_w_0in ...

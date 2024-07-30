@@ -356,12 +356,12 @@ tmp_t = toc(tmp_t); disp(sprintf(' %% a_k_p_quad_ time %0.2fs',tmp_t));
 disp(sprintf(' %% a_k_Y_form_ vs a_k_Y_reco_: %0.16f %%<-- should be <1e-2',fnorm(a_k_Y_form_-a_k_Y_reco_)/fnorm(a_k_Y_form_)));
 disp(sprintf(' %% a_k_Y_quad_ vs a_k_Y_reco_: %0.16f %%<-- should be <1e-2',fnorm(a_k_Y_quad_-a_k_Y_reco_)/fnorm(a_k_Y_quad_)));
 %%%%%%%%;
-a_k_Y_form_lmk__ = zeros(n_lm_max,n_k_p_r);
-a_k_Y_form_lmk___ = zeros(1+l_max_max,n_m_max,n_k_p_r);
+a_k_Y_form_yk__ = zeros(n_lm_max,n_k_p_r);
+a_k_Y_form_yk___ = zeros(1+l_max_max,n_m_max,n_k_p_r);
 for nk_p_r=0:n_k_p_r-1;
 tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm_(1+nk_p_r)-1);
 tmp_a_k_Y_form_lm_ = a_k_Y_form_(1+tmp_index_);
-a_k_Y_form_lmk__(1:n_lm_(1+nk_p_r),1+nk_p_r) = tmp_a_k_Y_form_lm_;
+a_k_Y_form_yk__(1:n_lm_(1+nk_p_r),1+nk_p_r) = tmp_a_k_Y_form_lm_;
 tmp_a_k_Y_form_lm__ = zeros(1+l_max_max,n_m_max);
 l_max = l_max_(1+nk_p_r);
 na=0;
@@ -372,7 +372,7 @@ tmp_a_k_Y_form_lm__(1+l_val,1+l_max_max+m_val) = tmp_a_k_Y_form_lm_(1+na);
 na=na+1;
 end;%for m_val=-l_val:+l_val;
 end;%for l_val=0:l_max;
-a_k_Y_form_lmk___(:,:,1+nk_p_r) = tmp_a_k_Y_form_lm__;
+a_k_Y_form_yk___(:,:,1+nk_p_r) = tmp_a_k_Y_form_lm__;
 end;%for nk_p_r=0:n_k_p_r-1;
 %%%%;
 flag_check=1;
@@ -382,8 +382,8 @@ for nk_p_r=0:n_k_p_r-1;
 l_max=l_max_(1+nk_p_r);
 for l_val=0:l_max;
 for m_val=-l_val:+l_val;
-assert(a_k_Y_form_(1+n_lm_csum_(1+nk_p_r)+l_val*(l_val+1)+m_val)==a_k_Y_form_lmk__(1+l_val*(l_val+1)+m_val,1+nk_p_r));
-assert(a_k_Y_form_(1+n_lm_csum_(1+nk_p_r)+l_val*(l_val+1)+m_val)==a_k_Y_form_lmk___(1+l_val,1+l_max_max+m_val,1+nk_p_r));
+assert(a_k_Y_form_(1+n_lm_csum_(1+nk_p_r)+l_val*(l_val+1)+m_val)==a_k_Y_form_yk__(1+l_val*(l_val+1)+m_val,1+nk_p_r));
+assert(a_k_Y_form_(1+n_lm_csum_(1+nk_p_r)+l_val*(l_val+1)+m_val)==a_k_Y_form_yk___(1+l_val,1+l_max_max+m_val,1+nk_p_r));
 na=na+1;
 end;%for m_val=-l_val:+l_val;
 end;%for l_val=0:l_max;
@@ -391,7 +391,7 @@ end;%for nk_p_r=0:n_k_p_r-1;
 assert(na==n_lm_sum);
 end;%if flag_check;
 %%%%%%%%;
-a_k_Y_form_lkm___ = permute(a_k_Y_form_lmk___,[1,3,2]);
+a_k_Y_form_lkm___ = permute(a_k_Y_form_yk___,[1,3,2]);
 %%%%%%%%;
 
 %%%%%%%%;
@@ -425,7 +425,7 @@ pm_template_2( ...
  verbose ...
 ,l_max_max ...
 ,n_k_p_r ...
-,reshape(a_k_Y_form_lmk__,[n_lm_max,n_k_p_r]) ...
+,reshape(a_k_Y_form_yk__,[n_lm_max,n_k_p_r]) ...
 ,1.0/k_p_r_max ...
 ,-1 ...
 ,n_w_max ...
@@ -1126,7 +1126,7 @@ W_cazba = ...
 		     ,reshape(W_betazeta_mlm___(1+l_max_max+m0_val,:,:),[1+l_max_max,n_m_max]) ...
 		     ,reshape(exp(+i*m_max_*(+tmp_azimu_b)),[1,n_m_max]) ...
 		     ) ...
-	     ,reshape(a_k_Y_form_lmk___(:,:,1+nk_p_r),[1+l_max_max,n_m_max]) ...
+	     ,reshape(a_k_Y_form_yk___(:,:,1+nk_p_r),[1+l_max_max,n_m_max]) ...
 	     ) ...
       ,'all' ...
       ) ...
@@ -1242,7 +1242,7 @@ tmp_M_qk__ = M_k_q_qkM___(:,:,1+nM);
 tmp_S_qk__ = zeros(n_m_max,n_k_p_r);
 for nk_p_r=0:n_k_p_r-1;
 CTF_k_p_r = CTF_k_p_r_kC__(1+nk_p_r,1+nCTF_from_nM);
-a_k_Y_form_lm__ = a_k_Y_form_lmk___(:,:,1+nk_p_r);
+a_k_Y_form_lm__ = a_k_Y_form_yk___(:,:,1+nk_p_r);
 ba_lm_ = reshape(bsxfun(@times,reshape(exp(+i*m_max_*tmp_azimu_b),[1,n_m_max]),a_k_Y_form_lm__),[(1+l_max_max)*n_m_max,1]);
 tmp_S_qk__(:,1+nk_p_r) = (pi^2)*CTF_k_p_r*bsxfun(@times,reshape(exp(+i*m_max_*tmp_gamma_z),[n_m_max,1]),reshape( W_betazeta_mlm___,[n_m_max,(1+l_max_max)*n_m_max]) * ba_lm_ );
 clear CTF_k_p_r  a_k_Y_form_lm__ ba_lm_;

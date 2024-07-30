@@ -1501,6 +1501,8 @@ end;%for nk_p_r=0:n_k_p_r-1;
 %%%%%%%%;
 
 %%%%%%%%;
+test_slice_vs_volume_integral_helper_eig_polar_cap_1;
+test_slice_vs_volume_integral_helper_eig_equa_band_1;
 test_slice_vs_volume_integral_helper_eig_reco_empi_1;
 test_slice_vs_volume_integral_helper_eig_diagnostic_1;
 %%%%%%%%;
