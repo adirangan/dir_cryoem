@@ -18,11 +18,12 @@ flag_verbose=1; flag_disp=1; nf=0;
 
 k_int = 16;
 k_eq_d_double = 0.50;
-t_eq_d_double = 0.25;
+t_eq_d_double = 0.50;
 n_w_int = 2;
+KAPPA_flag_kernel_full = 1;
 KAPPA_pole_north_double = 12*pi/24;
 KAPPA_pole_south_double = 12*pi/24;
-KAPPA_qref_k_eq_d_double = 0.25;
+KAPPA_qref_k_eq_d_double = 0.50;
 lanczos_n_iteration_max = 128;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
@@ -1501,10 +1502,10 @@ end;%for nk_p_r=0:n_k_p_r-1;
 %%%%%%%%;
 
 %%%%%%%%;
-test_slice_vs_volume_integral_helper_eig_polar_cap_1;
-test_slice_vs_volume_integral_helper_eig_equa_band_1;
-test_slice_vs_volume_integral_helper_eig_reco_empi_1;
-test_slice_vs_volume_integral_helper_eig_diagnostic_1;
+%test_slice_vs_volume_integral_helper_eig_polar_cap_1;
+%test_slice_vs_volume_integral_helper_eig_equa_band_1;
+%test_slice_vs_volume_integral_helper_eig_reco_empi_1;
+%test_slice_vs_volume_integral_helper_eig_diagnostic_1;
 %%%%%%%%;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
