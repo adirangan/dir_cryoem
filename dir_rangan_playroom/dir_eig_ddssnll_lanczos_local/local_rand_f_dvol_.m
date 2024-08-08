@@ -1,4 +1,13 @@
-function [f_dvol_yk_,f_dvol_yk__] = local_rand_f_dvol_(n_k_p_r,weight_3d_riesz_k_p_r_,l_max_);
+function [f_dvol_yk_,f_dvol_yk__] = local_rand_f_dvol_(n_k_p_r,weight_3d_riesz_k_p_r_,l_max_,rseed);
+na=0;
+if nargin<1+na; n_k_p_r=[]; end; na=na+1;
+if nargin<1+na; weight_3d_riesz_k_p_r_=[]; end; na=na+1;
+if nargin<1+na; l_max_=[]; end; na=na+1;
+if nargin<1+na; rseed=[]; end; na=na+1;
+
+if isempty(rseed); rseed=0; end;
+rng(rseed);
+
 n_lm_ = (l_max_+1).^2; n_lm_max = max(n_lm_); n_lm_sum = sum(n_lm_); n_lm_csum_ = cumsum([0;n_lm_]); l_max_max = max(l_max_);
 scaling_volumetric = (4*pi)^2 * sqrt(pi/2);
 f_dvol_yk_ = randn(n_lm_sum,1) + i*randn(n_lm_sum,1);

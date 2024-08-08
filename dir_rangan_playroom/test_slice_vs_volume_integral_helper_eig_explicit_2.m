@@ -1121,9 +1121,10 @@ tmp_ddssnll_tt_i_ = zeros(n_trial,1);
 %%%%%%%%;
 for ntrial=0:n_trial-1;
 %%%%%%%%;
-rng(1+ntrial);
+rseed = (1+ntrial)
+rng(rseed);
 sigma_l = l_max/4;
-tmp_dvol_yk_ = local_rand_f_dvol_(n_k_p_r,weight_3d_riesz_k_p_r_,l_max_).*exp(-Y_l_val_.^2/(2*sigma_l^2)); %<-- require attenuation with respect to l otherwise the cross-terms in the hessian do not match. ;
+ tmp_dvol_yk_ = local_rand_f_dvol_(n_k_p_r,weight_3d_riesz_k_p_r_,l_max_,rseed).*exp(-Y_l_val_.^2/(2*sigma_l^2)); %<-- require attenuation with respect to l otherwise the cross-terms in the hessian do not match. ;
 tmp_abc_M3__ = randn(n_M_use,3);
 tmp_w_tilde_ykabc_ = bsxfun(@times,numerator_root_weight_3d_riesz_ykabc_,local_ykabc_from_yk_a_b_c_(n_k_p_r,l_max_,n_M_use,tmp_dvol_yk_,tmp_abc_M3__(:,1),tmp_abc_M3__(:,2),tmp_abc_M3__(:,3)));
 tmp_w_tilde_ykabc_ = local_weightless_normalize_f_(n_k_p_r,weight_3d_riesz_k_p_r_,l_max_,n_M_use,tmp_w_tilde_ykabc_);

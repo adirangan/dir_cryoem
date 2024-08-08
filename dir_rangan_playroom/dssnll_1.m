@@ -698,7 +698,7 @@ title(sprintf('abs(%s)',tmp_str),'Interpreter','none');
 tmp_abs_k_p_quad_ = abs(tmp_k_p_quad_).*sqrt(weight_3d_riesz_k_all_);
 flag_2d_vs_3d = 0; c_use__ = colormap_81s;
 nk_p_r = floor(n_k_p_r/2);
-tmp_index_ = n_k_all_csum_(1+nk_p_r+0):n_k_all_csum_(1+nk_p_r+1);
+tmp_index_ = n_k_all_csum_(1+nk_p_r+0):n_k_all_csum_(1+nk_p_r+1)-1;
 lim_ = prctile(tmp_abs_k_p_quad_(1+tmp_index_),[ 5,95]);
 subplot(p_row,p_col,1+np);np=np+1;
 imagesc_polar_a_azimu_b_0( ...

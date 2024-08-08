@@ -156,6 +156,8 @@ if (~isfield(parameter,'flag_surrogate')); parameter.flag_surrogate = 0; end; %<
 flag_surrogate = parameter.flag_surrogate;
 if (~isfield(parameter,'flag_check')); parameter.flag_check = 0; end; %<-- parameter_bookmark. ;
 flag_check = parameter.flag_check;
+if (~isfield(parameter,'dvt_check')); parameter.dvt_check = 1e-3; end; %<-- parameter_bookmark. ;
+dvt_check = parameter.dvt_check;
 if (~isfield(parameter,'flag_disp')); parameter.flag_disp = 0; end; %<-- parameter_bookmark. ;
 flag_disp = parameter.flag_disp; nf=0;
 if (~isfield(parameter,'tolerance_master')); parameter.tolerance_master = 1e-2; end; %<-- parameter_bookmark. ;
@@ -1041,7 +1043,7 @@ title(sprintf('abs(%s)',tmp_str),'Interpreter','none');
 tmp_abs_k_p_quad_ = abs(tmp_k_p_quad_).*sqrt(weight_3d_riesz_k_all_);
 flag_2d_vs_3d = 0; c_use__ = colormap_81s;
 nk_p_r = floor(n_k_p_r/2);
-tmp_index_ = n_k_all_csum_(1+nk_p_r+0):n_k_all_csum_(1+nk_p_r+1);
+tmp_index_ = n_k_all_csum_(1+nk_p_r+0):n_k_all_csum_(1+nk_p_r+1)-1;
 lim_ = prctile(tmp_abs_k_p_quad_(1+tmp_index_),[ 5,95]);
 subplot(p_row,p_col,1+np);np=np+1;
 imagesc_polar_a_azimu_b_0( ...
@@ -1146,7 +1148,7 @@ title(sprintf('abs(%s)',tmp_str),'Interpreter','none');
 tmp_abs_k_p_quad_ = abs(tmp_k_p_quad_).*sqrt(weight_3d_riesz_k_all_);
 flag_2d_vs_3d = 0; c_use__ = colormap_81s;
 nk_p_r = floor(n_k_p_r/2);
-tmp_index_ = n_k_all_csum_(1+nk_p_r+0):n_k_all_csum_(1+nk_p_r+1);
+tmp_index_ = n_k_all_csum_(1+nk_p_r+0):n_k_all_csum_(1+nk_p_r+1)-1;
 lim_ = prctile(tmp_abs_k_p_quad_(1+tmp_index_),[ 5,95]);
 subplot(p_row,p_col,1+np);np=np+1;
 imagesc_polar_a_azimu_b_0( ...
@@ -1186,6 +1188,133 @@ Hvt_q3d_k_Y_quad_yk_ = local_yk_from_yk__(n_k_p_r,l_max_,Hvt_q3d_k_Y_quad_yk__);
 Hv_q3d_k_Y_quad_yk_ = local_yk_from_yk__(n_k_p_r,l_max_,Hv_q3d_k_Y_quad_yk__);
 
 Hvt_ykabc_ = cat(1,Hv_q3d_k_Y_quad_yk_,Ht_q2d_M3__(:,1+0),Ht_q2d_M3__(:,1+1),Ht_q2d_M3__(:,1+2));
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+if flag_check;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+dvt = dvt_check;
+%%%%%%%%;
+% Calculate the gradient: ;
+%%%%%%%%;
+dvol_ssnll_q3d_k_p_quad_ = + 1.0 * ( conj(a_k_p_quad_) .* (a_restore_C2M0_k_p_quad_) - conj(a_restore_C1M1_k_p_quad_) );
+dvol_ssnll_q3d_k_Y_quad_yk__ = + 1.0 * ( conj(a_times_a_restore_C2M0_k_Y_yk__) - conj(a_restore_C1M1_k_Y_yk__) );
+dtau_ssnll_q2d_M3__ = dtau_ssnll_q2d_M3__ ;
+%%%%%%%%;
+dvol_ssnll_q3d_k_Y_quad_yk_ = local_yk_from_yk__(n_k_p_r,l_max_,dvol_ssnll_q3d_k_Y_quad_yk__);
+%%%%%%%%;
+G_ykabc_ = cat(1,dvol_ssnll_q3d_k_Y_quad_yk_,dtau_ssnll_q2d_M3__(:,1+0),dtau_ssnll_q2d_M3__(:,1+1),dtau_ssnll_q2d_M3__(:,1+2));
+G_bar_ykabc_ = conj(G_ykabc_); %<-- note here we take a conjugate to allow for standard dot-product. ;
+%%%%%%%%;
+% Now calculate the difference-quotient and compare. ;
+%%%%%%%%;
+dvt_ykabc_ = local_ykabc_from_yk_a_b_c_(n_k_p_r,l_max_,n_M,dvol_a_k_Y_quad_yk_,dtau_euler_polar_a_M_,dtau_euler_azimu_b_M_,dtau_euler_gamma_z_M_);
+dvt_ykabc_l2 = local_f_bar_dot_g_(n_k_p_r,weight_3d_riesz_k_p_r_,l_max_,n_M,dvt_ykabc_,dvt_ykabc_);
+dssnll_mid_q2d = local_f_bar_dot_g_(n_k_p_r,weight_3d_riesz_k_p_r_,l_max_,n_M,G_bar_ykabc_,dvt_ykabc_);
+%%%%;
+dvt_ = transpose(-8:+8);
+n_dvt = numel(dvt_);
+ssnll_tmp_q2d_dvt_ = zeros(n_dvt,1);
+%%%%;
+for ndvt=0:n_dvt-1;
+if (flag_verbose>0); disp(sprintf(' %% ndvt %d/%d',ndvt,n_dvt)); end;
+[ ...
+ ~ ...
+,~ ...
+,ssnll_tmp_q2d_dvt_(1+ndvt) ...
+] = ...
+ssnll_from_a_k_Y_12( ...
+ parameter_ssnll ...
+,n_k_p_r ...
+,k_p_r_ ...
+,k_p_r_max ...
+,l_max_ ...
+,a_k_Y_quad_yk__ + 1.0*dvt*dvt_(1+ndvt)*dvol_a_k_Y_quad_yk__...
+,[] ...
+,n_w_ ...
+,weight_2d_k_p_r_ ...
+,weight_2d_wk_ ...
+,n_S ...
+,[] ...
+,[] ...
+,[] ...
+,[] ...
+,[] ...
+,viewing_polar_a_S_ ...
+,viewing_azimu_b_S_ ...
+,viewing_weight_S_ ...
+,n_viewing_polar_a ...
+,viewing_polar_a_ ...
+,n_viewing_azimu_b_ ...
+,n_M ...
+,M_k_p_wkM__ ...
+,index_nCTF_from_nM_ ...
+,CTF_k_p_wkC__ ...
+,index_neta_from_nM_ ...
+,eta_k_p_wke__ ...
+,euler_polar_a_M_ + 1.0*dvt*dvt_(1+ndvt)*dtau_euler_polar_a_M_ ...
+,euler_azimu_b_M_ + 1.0*dvt*dvt_(1+ndvt)*dtau_euler_azimu_b_M_...
+,euler_gamma_z_M_ + 1.0*dvt*dvt_(1+ndvt)*dtau_euler_gamma_z_M_...
+,[] ...
+,[] ...
+,[] ...
+);
+end;%for ndvt=0:n_dvt-1;
+%%%%;
+ssnll_mid_q2d = ssnll_tmp_q2d_dvt_((1+n_dvt)/2);
+ssnll_pos_q2d = ssnll_tmp_q2d_dvt_((1+n_dvt)/2+1);
+ssnll_neg_q2d = ssnll_tmp_q2d_dvt_((1+n_dvt)/2-1);
+dssnll_dif_q2d = (ssnll_pos_q2d - ssnll_neg_q2d)/max(1e-12,2*dvt);
+if (flag_verbose>0); disp(sprintf(' %% dssnll_dif_q2d vs dssnll_mid_q2d: %0.16f',fnorm(dssnll_dif_q2d -dssnll_mid_q2d)/max(1e-12,fnorm(dssnll_dif_q2d)))); end;
+%%%%;
+tmp_x_ = dvt*dvt_;
+tmp_y_ = real(ssnll_tmp_q2d_dvt_);
+tmp_x4 = sum(tmp_x_.^4);
+tmp_x3 = sum(tmp_x_.^3);
+tmp_x2 = sum(tmp_x_.^2);
+tmp_x1 = sum(tmp_x_.^1);
+tmp_x0 = sum(tmp_x_.^0);
+tmp_yx2 = sum(tmp_y_.*tmp_x_.^2);
+tmp_yx1 = sum(tmp_y_.*tmp_x_.^1);
+tmp_yx0 = sum(tmp_y_.*tmp_x_.^0);
+tmp_lhs_ = [ ...
+ tmp_x4 tmp_x3 tmp_x2 ...
+;tmp_x3 tmp_x2 tmp_x1 ...
+;tmp_x2 tmp_x1 tmp_x0 ...
+];
+tmp_rhs_ = [ tmp_yx2 ; tmp_yx1 ; tmp_yx0 ];
+tmp_p_ = tmp_lhs_\tmp_rhs_;
+tmp_p_x_ = polyval(tmp_p_,tmp_x_);
+%%%%;
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figsml;
+markersize_use = 12;
+linewidth_use = 2;
+hold on;
+plot(tmp_x_,tmp_p_x_,'k-','LineWidth',linewidth_use);
+plot(tmp_x_,ssnll_tmp_q2d_dvt_,'ko','MarkerSize',markersize_use,'MarkerFaceColor','c');
+xlabel('dvt_','Interpreter','none');
+ylabel('ssnll_tmp_q2d_dvt_','Interpreter','none');
+end;%if flag_disp;
+%%%%;
+dssnll_lsq_q2d = 1.0*tmp_p_(1+1);
+if (flag_verbose>0); disp(sprintf(' %% dssnll_lsq_q2d vs dssnll_mid_q2d: %0.16f',fnorm(dssnll_lsq_q2d -dssnll_mid_q2d)/max(1e-12,fnorm(dssnll_lsq_q2d)))); end;
+%%%%%%%%;
+% Estimate the second-derivative. ;
+%%%%%%%%;
+ddssnll_mid_q2d = local_f_bar_dot_g_(n_k_p_r,weight_3d_riesz_k_p_r_,l_max_,n_M,Hvt_ykabc_,dvt_ykabc_);
+%%%%;
+ssnll_mid_q2d = ssnll_tmp_q2d_dvt_((1+n_dvt)/2);
+ssnll_pos_q2d = ssnll_tmp_q2d_dvt_((1+n_dvt)/2+1);
+ssnll_neg_q2d = ssnll_tmp_q2d_dvt_((1+n_dvt)/2-1);
+ddssnll_dif_q2d = (ssnll_pos_q2d - 2*ssnll_mid_q2d + ssnll_neg_q2d)/max(1e-12,dvt^2);
+if (flag_verbose>0); disp(sprintf(' %% ddssnll_dif_q2d vs ddssnll_mid_q2d: %0.16f',fnorm(ddssnll_dif_q2d -ddssnll_mid_q2d)/max(1e-12,fnorm(ddssnll_dif_q2d)))); end;
+%%%%;
+ddssnll_lsq_q2d = 2.0*tmp_p_(1+0);
+if (flag_verbose>0); disp(sprintf(' %% ddssnll_lsq_q2d vs ddssnll_mid_q2d: %0.16f',fnorm(ddssnll_lsq_q2d -ddssnll_mid_q2d)/max(1e-12,fnorm(ddssnll_lsq_q2d)))); end;
+%%%%%%%%;
+end;%if flag_check;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 end;%if flag_surrogate==0;

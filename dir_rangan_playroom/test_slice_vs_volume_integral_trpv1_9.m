@@ -17,14 +17,26 @@ flag_recalc=0; flag_replot=0;
 flag_verbose=1; flag_disp=1; nf=0;
 
 k_int = 16;
+if k_int==16;
 k_eq_d_double = 0.50;
 t_eq_d_double = 0.50;
 n_w_int = 2;
 KAPPA_flag_kernel_full = 1;
 KAPPA_pole_north_double = 12*pi/24;
 KAPPA_pole_south_double = 12*pi/24;
-KAPPA_qref_k_eq_d_double = 0.50;
+KAPPA_qref_k_eq_d_double = 1.0;
 lanczos_n_iteration_max = 128;
+end;%if k_int==16;
+if k_int==48;
+k_eq_d_double = 1.00;
+t_eq_d_double = 1.00;
+n_w_int = 1;
+KAPPA_flag_kernel_full = 1;
+KAPPA_pole_north_double = 12*pi/24;
+KAPPA_pole_south_double = 12*pi/24;
+KAPPA_qref_k_eq_d_double = 1.00;
+lanczos_n_iteration_max = 128;
+end;%if k_int==48;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 if (flag_verbose>0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;

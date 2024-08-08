@@ -19,6 +19,7 @@ for nr=0:n_r-1;
 r = grid_p_(1+nr);
 if nr==0; r_pre = grid_p_(1); else r_pre = 0.5*(grid_p_(1+nr-1) + grid_p_(1+nr)); end;
 if nr==n_r-1; r_pos = grid_p_(end); else r_pos = 0.5*(grid_p_(1+nr+1) + grid_p_(1+nr)); end;
+if n_r==1; r_pre = grid_p_(end)/4.0; r_pos = grid_p_(end); end;
 n_w = n_w_(1+nr);
 dw = 2*pi/n_w;
 for nw=0:n_w_(1+nr)-1;
