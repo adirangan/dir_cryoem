@@ -362,7 +362,7 @@ end;%if ( flag_replot | ~exist(fname_fig_jpg,'file'));
 %%%%%%%%;
 end;%if flag_disp;
 
-error('stopping early');
+%error('stopping early');
 
 flag_disp=1;
 %%%%%%%%;

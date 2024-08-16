@@ -630,9 +630,9 @@ tmp_z_abw___ = sqrt(tmp_x_abw___.^2 + tmp_y_abw___.^2);
 tmp_w_abw___ = sqrt(bsxfun(@plus,bsxfun(@times,cos(point_output_polar_a_ab__-pi/2),reshape(cos(gamma_z_),[1,1,n_w_max])).^2,reshape(sin(gamma_z_),[1,1,n_w_max]).^2));
 disp(sprintf(' %% tmp_z_abw___ vs tmp_w_abw___: %0.16f',fnorm(tmp_z_abw___ - tmp_w_abw___)/fnorm(tmp_z_abw___)));
 tmp_u_abw___ = -equa_band_dilated_amplitude*2*tmp_x_abw___.*tmp_y_abw___./max(1e-12,tmp_w_abw___.^2);
-tmp_u_ab__ = mean(tmp_u_abw___,3);
-point_pole_predilated_template_gammax_azimu_b_av2_ab__ = tmp_u_ab__;
-point_pole_predilated_template_gammax_azimu_b_av1_ab__ = periodize(point_pole_predilated_template_gammax_azimu_b_avg_ab__ - point_output_azimu_b_ab__,-pi,+pi);
+tmp_u_ab__ = mean(tmp_u_abw___,3); %<-- This is the quadrature producing the average azimuthal displacement. ;
+point_pole_predilated_template_gammax_azimu_b_av2_ab__ = tmp_u_ab__; %<-- average azimuthal displacement (quadrature) copied here. ;
+point_pole_predilated_template_gammax_azimu_b_av1_ab__ = periodize(point_pole_predilated_template_gammax_azimu_b_avg_ab__ - point_output_azimu_b_ab__,-pi,+pi); %<-- average azimuthal displacement (empirical) copied here. ;
 subplot(1,2,1);imagesc(point_pole_predilated_template_gammax_azimu_b_av1_ab__,equa_band_dilated_amplitude*[-1,+1]);
 axisnotick; xlabel('azimu_b','Interpreter','none'); ylabel('polar_a','Interpreter','none')
 title('empirical');
@@ -729,7 +729,7 @@ disp(sprintf(' %% tmp_u_ab__(:,1+nb) vs tmp_u1_a_: %0.16f',fnorm(tmp_u_ab__(:,1+
 %%%%%%%%;
 tmp_output_polar_a_a_ = transpose(linspace(-pi/2,+pi/2,n_point_a)); tmp_ca_ = cos(tmp_output_polar_a_a_-pi/2);
 tmp_u2_a_ = -equa_band_dilated_amplitude*(abs(tmp_ca_)-1)./(abs(tmp_ca_)+1);
-tmp_u2_ab__ = bsxfun(@times,tmp_u2_a_,reshape(sin(2*point_output_azimu_b_b_),[1,n_point_b]));
+tmp_u2_ab__ = bsxfun(@times,tmp_u2_a_,reshape(sin(2*point_output_azimu_b_b_),[1,n_point_b])); %<-- separable solution for average azimuthal displacement. ;
 disp(sprintf(' %% tmp_u_ab__ vs tmp_u2_ab__: %0.16f',fnorm(tmp_u_ab__ - tmp_u2_ab__)/fnorm(tmp_u_ab__))); %<-- should be order equa_band_dilated_amplitude. ;
 nb=round((n_point_b-1)/8);
 fnorm(tmp_u_ab__(:,1+nb) - tmp_u2_a_)/fnorm(tmp_u_ab__(:,1+nb));
@@ -739,7 +739,7 @@ disp(sprintf(' %% tmp_u_ab__(:,1+nb) vs tmp_u2_a_: %0.16f',fnorm(tmp_u_ab__(:,1+
 %%%%%%%%;
 figure(1+nf);nf=nf+1;clf;figmed; figbeach;
 tmp_output_polar_a_a_ = transpose(linspace(-pi/2,+pi/2,n_point_a)); tmp_ca_ = cos(tmp_output_polar_a_a_-pi/2);
-tmp_u3_a_ = equa_band_dilated_amplitude .* sqrt(1 - ((abs(tmp_ca_)-1)./(abs(tmp_ca_)+1)).^2);
+tmp_u3_a_ = equa_band_dilated_amplitude .* sqrt(1 - ((abs(tmp_ca_)-1)./(abs(tmp_ca_)+1)).^2); %<-- this is the azimuthal-radius of each collapsed-circle, equal to sqrt(2)*mean(point_pole_predilated_template_gammax_azimu_b_std_ab__,2). ;
 tmp_u2_a_ = -equa_band_dilated_amplitude*(abs(tmp_ca_)-1)./(abs(tmp_ca_)+1);
 tmp_u2_ab__ = bsxfun(@times,tmp_u2_a_,reshape(sin(2*point_output_azimu_b_b_),[1,n_point_b]));
 subplot(1,3,1);

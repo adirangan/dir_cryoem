@@ -862,7 +862,7 @@ ddssnll_1( ...
 ,k_p_r_ ...
 ,k_p_r_max ...
 ,l_max_ ...
-,a_equaband_qbp_k_Y_yk_ ...
+,a_k_Y_quad_yk_ ... %<-- use instead of a_equaband_qbp_k_Y_yk_ ;
 ,[] ...
 ,dvol_equaband_qbp_k_Y_yk_ ...
 ,[] ...
@@ -955,7 +955,7 @@ ddssnll_1( ...
 ,k_p_r_ ...
 ,k_p_r_max ...
 ,l_max_ ...
-,a_equaband_qbp_k_Y_yk_ ...
+,a_k_Y_quad_yk_ ... %<-- use instead of a_equaband_qbp_k_Y_yk_ ;
 ,[] ...
 ,dvol_randomiz_qbp_k_Y_yk_ ...
 ,[] ...
@@ -1043,7 +1043,7 @@ polish_dssnll_fpi_0( ...
 ,k_p_r_ ...
 ,k_p_r_max ...
 ,l_max_ ...
-,a_equaband_qbp_k_Y_yk_ ...
+,a_k_Y_quad_yk_ ... %<-- use instead of a_equaband_qbp_k_Y_yk_ ;
 ,[] ...
 ,n_k_all ...
 ,n_k_all_csum_ ...
@@ -1271,12 +1271,7 @@ end;%if flag_disp;
 % The original volume is optimized for the image-alignments. ;
 %%%%%%%%;
 
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
-
-%{
-flag_calc=0;
+flag_calc=1;
 if flag_calc;
 tmp_lanczos_n_iteration_max = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
@@ -1304,35 +1299,18 @@ U_SmallRotation_Delta_ykabc3__ = []; %<-- construct internally. ;
 U_tilde_SmallRotation_Delta_ykabc3__ = []; %<-- construct internally. ;
 S_k_p_q2d_wkS__ = S_k_p_wkS__;
 %%%%;
-if (~exist(fname_mat,'file'));
+if ( flag_recalc | ~exist(fname_mat,'file'));
 tmp_lanczos_n_iteration_max = 0;
 rng(0);
-euler_polar_a_M_ = (pi/2)*ones(n_M,1) + equa_band_width*0.5*(2*rand(n_M,1)-1);
-euler_azimu_b_M_ = 2*pi*rand(n_M,1);
-[euler_polar_a_M_,euler_azimu_b_M_] = periodize_polar_a_azimu_b_0(euler_polar_a_M_,euler_azimu_b_M_);
-tmp_index_nS_from_nM_ = ...
-knnsearch( ...
- [hist2dab_polar_a_S_,hist2dab_azimu_b_S_] ...
-,[euler_polar_a_M_,euler_azimu_b_M_] ...
-,'K',1)-1;
-M_k_p_wkM__ = hist2dab_S_k_p_wkS__(:,1+tmp_index_nS_from_nM_);
-euler_polar_a_M_ = hist2dab_polar_a_S_(1+tmp_index_nS_from_nM_);
-euler_azimu_b_M_ = hist2dab_azimu_b_S_(1+tmp_index_nS_from_nM_);
-euler_gamma_z_M_ = zeros(n_M,1);
 v_tilde_ykabci__=[];
 w_tilde_ykabc_=[];
 alph_tilde_i_=[];
 beta_tilde_i_=[];
 end;%if (~exist(fname_mat,'file'));
 %%%%;
-if ( exist(fname_mat,'file'));
+if (~flag_recalc &  exist(fname_mat,'file'));
 tmp_ = load(fname_mat);
 tmp_lanczos_n_iteration_max = numel(tmp_.alph_tilde_i_);
-tmp_index_nS_from_nM_ = tmp_.tmp_index_nS_from_nM_;
-M_k_p_wkM__ = hist2dab_S_k_p_wkS__(:,1+tmp_index_nS_from_nM_);
-euler_polar_a_M_ = tmp_.euler_polar_a_M_;
-euler_azimu_b_M_ = tmp_.euler_azimu_b_M_;
-euler_gamma_z_M_ = tmp_.euler_gamma_z_M_;
 U_tilde_SmallRotation_Delta_ykabc3__ = tmp_.U_tilde_SmallRotation_Delta_ykabc3__;
 v_tilde_ykabci__ = tmp_.v_tilde_ykabci__;
 w_tilde_ykabc_ = tmp_.w_tilde_ykabc_;
@@ -1383,7 +1361,7 @@ eig_ddssnll_lanczos_1( ...
 ,weight_3d_k_all_ ...
 ,weight_shell_k_ ...
 ,weight_3d_k_p_r_ ...
-,a_k_p_quad_ ...
+,a_k_p_form_ ...
 ,n_w_ ...
 ,weight_2d_k_p_r_ ...
 ,weight_2d_wk_ ...
@@ -1427,7 +1405,6 @@ eig_ddssnll_lanczos_1( ...
 ,beta_tilde_i_ ... 
 );
 save(fname_mat ...
-     ,'parameter' ...
      ,'parameter_eig' ...
      ,'n_k_p_r' ...
      ,'k_p_r_' ...
@@ -1447,6 +1424,7 @@ save(fname_mat ...
      ,'weight_2d_k_p_r_' ...
      ,'weight_2d_wk_' ...
      ,'n_S' ...
+     ,'S_k_p_wkS__' ...
      ,'viewing_polar_a_S_' ...
      ,'viewing_azimu_b_S_' ...
      ,'viewing_weight_S_' ...
@@ -1459,10 +1437,10 @@ save(fname_mat ...
      ,'alph_tilde_i_' ...
      ,'beta_tilde_i_' ... 
      ,'n_M' ...
+     ,'M_k_p_wkM__' ...
      ,'euler_polar_a_M_' ...
      ,'euler_azimu_b_M_' ...
      ,'euler_gamma_z_M_' ...
-     ,'tmp_index_nS_from_nM_' ...
      );
 %%%%%%%%;
 end;%if (flag_recalc | ~exist(fname_mat,'file') | tmp_lanczos_n_iteration_max< lanczos_n_iteration_max);
@@ -1471,4 +1449,305 @@ disp(sprintf(' %% %s found, not creating',fname_mat));
 end;%if ( exist(fname_mat,'file'));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 end;%if flag_calc;
-%}
+
+
+scaling_volumetric = (4*pi)^2 * sqrt(pi/2);
+%%%%%%%%;
+% Set up weights. ;
+%%%%%%%%;
+Y_l_val_ = zeros(n_lm_sum,1);
+Y_m_val_ = zeros(n_lm_sum,1);
+Y_k_val_ = zeros(n_lm_sum,1);
+for nk_p_r=0:n_k_p_r-1;
+l_max = l_max_(1+nk_p_r);
+tmp_l_val_ = zeros(n_lm_(1+nk_p_r),1);
+tmp_m_val_ = zeros(n_lm_(1+nk_p_r),1);
+na=0; 
+for l_val=0:l_max;
+for m_val=-l_val:+l_val;
+tmp_l_val_(1+na) = l_val;
+tmp_m_val_(1+na) = m_val;
+na=na+1;
+end;%for m_val=-l_val:+l_val;
+end;%for l_val=0:l_max;
+tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm_(1+nk_p_r)-1);
+Y_l_val_(1+tmp_index_) = tmp_l_val_;
+Y_m_val_(1+tmp_index_) = tmp_m_val_;
+Y_k_val_(1+tmp_index_) = k_p_r_(1+nk_p_r);
+end;%for nk_p_r=0:n_k_p_r-1;
+weight_Y_ = zeros(n_lm_sum,1);
+weight_3d_riesz_yk_ = zeros(n_lm_sum,1);
+for nk_p_r=0:n_k_p_r-1;
+tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm_(1+nk_p_r)-1);
+weight_Y_(1+tmp_index_) = weight_3d_k_p_r_(1+nk_p_r);
+weight_3d_riesz_yk_(1+tmp_index_) = weight_3d_riesz_k_p_r_(1+nk_p_r);
+end;%for nk_p_r=0:n_k_p_r-1;
+%%%%;
+n_ykabc = n_lm_sum + n_M*3;
+weight_3d_riesz_ykabc_ = cat(1,weight_3d_riesz_yk_/scaling_volumetric,ones(3*n_M,1));
+numerator_root_weight_3d_riesz_ykabc_ = reshape(sqrt(weight_3d_riesz_ykabc_),[n_ykabc,1]);
+denomator_root_weight_3d_riesz_ykabc_ = 1./max(1e-12,reshape(sqrt(weight_3d_riesz_ykabc_),[n_ykabc,1]));
+%%%%%%%%;
+fname_mat = sprintf('%s_mat/eig_from_synth_equa_band.mat',dir_ssnll);
+str_fname_pre = sprintf('eig_from_synth_equa_band');
+str_title = 'equa_band';
+if (~exist(fname_mat,'file'));
+disp(sprintf(' %% Warning, %s not found',fname_mat));
+end;%if (~exist(fname_mat,'file'));
+if ( exist(fname_mat,'file'));
+disp(sprintf(' %% %s found',fname_mat));
+end;%if ( exist(fname_mat,'file'));
+%%%%%%%%;
+
+%%%%%%%%;
+tmp_ = load(fname_mat);
+tmp_.n_iteration = numel(tmp_.alph_tilde_i_); tmp_.T_tilde__ = real(spdiags([circshift(tmp_.beta_tilde_i_,-1),tmp_.alph_tilde_i_,tmp_.beta_tilde_i_],[-1,0,+1],tmp_.n_iteration,tmp_.n_iteration));
+tmp_.lambda_xi__ = -Inf*ones(tmp_.n_iteration,tmp_.n_iteration);
+for niteration=0:tmp_.n_iteration-1;
+tmp_.T_tilde_sub__ = tmp_.T_tilde__(1:1+niteration,1:1+niteration);
+tmp_.lambda_sub_ = eigs(tmp_.T_tilde_sub__,[],1+niteration);
+tmp_.lambda_xi__(1:1+niteration,1+niteration) = sort(tmp_.lambda_sub_,'ascend');
+end;%for niteration=0:tmp_.n_iteration-1;
+tmp_.S_x_ = sort(eigs(tmp_.T_tilde__,[],tmp_.n_iteration),'ascend');
+n_iteration = tmp_.n_iteration;
+S_x_ = tmp_.S_x_;
+S_x_min = min(tmp_.S_x_);
+S_x_max = max(tmp_.S_x_);
+lambda_xi__ = tmp_.lambda_xi__;
+T_tilde__ = tmp_.T_tilde__;
+%%%%;
+if isfield(tmp_,'n_M'); tmp_n_M_use = tmp_.n_M; end;
+if isfield(tmp_,'n_M_use'); tmp_n_M_use = tmp_.n_M_use; end;
+if isfield(tmp_,'n_synth_M'); tmp_n_M_use = tmp_.n_synth_M; end;
+vv_n4__ = zeros(tmp_.n_iteration,4);
+ee_ns4___ = zeros(tmp_.n_iteration,tmp_.n_iteration,4);
+for niteration=0:tmp_.n_iteration-1;
+v_tilde_ykabc_ = tmp_.v_tilde_ykabci__(:,1+niteration);
+[v_tilde_dvol_yk_,v_tilde_polar_a_M_use_,v_tilde_azimu_b_M_use_,v_tilde_gamma_z_M_use_] = local_yk_a_b_c_from_ykabc_(tmp_.n_k_p_r,tmp_.l_max_,tmp_n_M_use,v_tilde_ykabc_);
+[tmp_vv,tmp_vv_dvol,tmp_vv_a,tmp_vv_b,tmp_vv_c] = local_weightless_f_bar_dot_g_(tmp_.n_k_p_r,tmp_.weight_3d_riesz_k_p_r_,tmp_.l_max_,tmp_n_M_use,v_tilde_ykabc_,v_tilde_ykabc_);
+str_vv = sprintf('tmp_vv %0.2f,tmp_vv_dvol %0.2f,tmp_vv_a %0.2f,tmp_vv_b %0.2f,tmp_vv_c %0.2f',tmp_vv,tmp_vv_dvol,tmp_vv_a,tmp_vv_b,tmp_vv_c);
+if (flag_verbose>1); disp(sprintf(' %% %s',str_vv)); end;
+vv_n4__(1+niteration,:) = [tmp_vv_dvol;tmp_vv_a;tmp_vv_b;tmp_vv_c];
+tmp_.T_tilde_sub__ = tmp_.T_tilde__(1:1+niteration,1:1+niteration);
+[tmp_.TV_tilde_sub__,tmp_.lambda_sub__] = eigs(tmp_.T_tilde_sub__,[],1+niteration);
+tmp_.lambda_sub_ = diag(tmp_.lambda_sub__);
+[lambda_srt_,ij_srt_] = sort(tmp_.lambda_sub_,'ascend');
+for index_lambda=0:1+niteration-1;
+ij_use = ij_srt_(1+index_lambda);
+lambda_use = lambda_srt_(1+index_lambda);
+TV_tilde_eig_ = tmp_.TV_tilde_sub__(:,ij_use);
+v_tilde_eig_ykabc_ = tmp_.v_tilde_ykabci__(:,1:1+niteration)*TV_tilde_eig_;
+[v_tilde_eig_dvol_yk_,v_tilde_eig_polar_a_M_use_,v_tilde_eig_azimu_b_M_use_,v_tilde_eig_gamma_z_M_use_] = local_yk_a_b_c_from_ykabc_(tmp_.n_k_p_r,tmp_.l_max_,tmp_n_M_use,v_tilde_eig_ykabc_);
+[tmp_ee,tmp_ee_dvol,tmp_ee_a,tmp_ee_b,tmp_ee_c] = local_weightless_f_bar_dot_g_(tmp_.n_k_p_r,tmp_.weight_3d_riesz_k_p_r_,tmp_.l_max_,tmp_n_M_use,v_tilde_eig_ykabc_,v_tilde_eig_ykabc_);
+str_ee = sprintf('tmp_ee %0.2f,tmp_ee_dvol %0.2f,tmp_ee_a %0.2f,tmp_ee_b %0.2f,tmp_ee_c %0.2f',tmp_ee,tmp_ee_dvol,tmp_ee_a,tmp_ee_b,tmp_ee_c);
+if (flag_verbose>1); disp(sprintf(' %% %s',str_ee)); end;
+ee_ns4___(1+niteration,1+index_lambda,:) = [tmp_ee_dvol;tmp_ee_a;tmp_ee_b;tmp_ee_c];
+end;%for index_lambda=0:1+niteration-1;
+end;%for niteration=0:tmp_.n_iteration-1;
+%%%%%%%%;
+
+%%%%%%%%;
+if flag_disp;
+fname_fig_pre = sprintf('%s_jpg/%s_FIGB',dir_ssnll,str_fname_pre);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+fname_fig_eps = sprintf('%s.eps',fname_fig_pre);
+figure(1+nf);nf=nf+1;clf;set(gcf,'Position',1+[0,0,1024*2,768]);fig80s();
+p_row = 1; p_col = 5; np=0;
+fontsize_use = 12;
+ilim_ = [-0.125,+1.125];
+%%%%;
+for pcol=0:4-1;
+subplot(p_row,p_col,1+np);np=np+1;
+imagesc(squeeze(ee_ns4___(:,:,1+pcol)),ilim_);
+xlabel('index'); ylabel('iteration'); %axisnotick;
+title(sprintf('ee_ns4___(:,:,1+%d)',pcol),'Interpreter','none');
+set(gca,'FontSize',fontsize_use);
+end;%for pcol=0:4-1;
+subplot(p_row,p_col,1+np);np=np+1;
+imagesc(vv_n4__,ilim_);
+xlabel('1-4'); ylabel('iteration'); %axisnotick;
+title('vv_n4__','Interpreter','none');
+set(gca,'FontSize',fontsize_use);
+%%%%;
+sgtitle(fname_fig_pre,'Interpreter','none');
+if (flag_replot | ~exist(fname_fig_jpg));
+disp(sprintf(' %% writing %s',fname_fig_pre));
+print('-djpeg',fname_fig_jpg);
+print('-depsc',fname_fig_eps);
+end;%if (flag_replot | ~exist(fname_fig_jpg));
+end;%if flag_disp;
+%%%%%%%%;
+
+%%%%%%%%;
+if flag_disp;
+fname_fig_pre = sprintf('%s_jpg/%s_FIGA',dir_ssnll,str_fname_pre);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+fname_fig_eps = sprintf('%s.eps',fname_fig_pre);
+figure(1+nf);nf=nf+1;clf;figmed;fig81s;
+markersize_use = 8;
+linewidth_sml = 0.5;
+linewidth_big = 2;
+%%%%;
+hold on;
+plot(repmat([0;n_iteration],[1,n_iteration]),repmat(reshape(S_x_,[1,n_iteration]),[2,1]),'-','Color',0.85*[1,1,1],'LineWidth',linewidth_sml);
+ni_xi__ = repmat([1:n_iteration],[n_iteration,1]);
+tmp_index_ = efind(isfinite(lambda_xi__));
+plot(ni_xi__(1+tmp_index_),lambda_xi__(1+tmp_index_),'r.','MarkerSize',markersize_use);
+hold off;
+xlabel('iteration'); ylabel('sigma');
+xlim([0,1+n_iteration]);
+ylim([S_x_min-0.25,S_x_max+0.25]);
+title(str_title,'Interpreter','none');
+%%%%;
+sgtitle(fname_fig_pre,'Interpreter','none');
+if (flag_replot | ~exist(fname_fig_jpg));
+disp(sprintf(' %% writing %s',fname_fig_pre));
+print('-djpeg',fname_fig_jpg);
+print('-depsc',fname_fig_eps);
+end;%if (flag_replot | ~exist(fname_fig_jpg));
+end;%if flag_disp;
+%%%%%%%%;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+niteration = n_iteration-1;
+index_lambda = 0; %<-- 0 is lowest, niteration is highest. ;
+tmp_.T_tilde_sub__ = tmp_.T_tilde__(1:1+niteration,1:1+niteration);
+%%%%%%%%;
+% use T_tilde_sub__ to estimate minimum eigenvector. ;
+%%%%%%%%;
+[tmp_.TV_tilde_sub__,tmp_.lambda_sub__] = eigs(tmp_.T_tilde_sub__,[],1+niteration);
+tmp_.lambda_sub_ = diag(tmp_.lambda_sub__);
+[lambda_srt_,ij_srt_] = sort(tmp_.lambda_sub_,'ascend');
+%[~,index_lambda] = min(abs(lambda_srt_)); index_lambda = index_lambda - 1; %<-- pick min(abs). ;
+ij_use = ij_srt_(1+index_lambda);
+lambda_use = lambda_srt_(1+index_lambda);
+TV_tilde_eig_ = tmp_.TV_tilde_sub__(:,ij_use);
+v_tilde_eig_ykabc_ = tmp_.v_tilde_ykabci__(:,1:1+niteration)*TV_tilde_eig_;
+[v_tilde_eig_dvol_yk_,v_tilde_eig_polar_a_M_use_,v_tilde_eig_azimu_b_M_use_,v_tilde_eig_gamma_z_M_use_] = local_yk_a_b_c_from_ykabc_(tmp_.n_k_p_r,tmp_.l_max_,tmp_n_M_use,v_tilde_eig_ykabc_);
+[tmp_ee,tmp_ee_dvol,tmp_ee_a,tmp_ee_b,tmp_ee_c] = local_weightless_f_bar_dot_g_(tmp_.n_k_p_r,tmp_.weight_3d_riesz_k_p_r_,tmp_.l_max_,tmp_n_M_use,v_tilde_eig_ykabc_,v_tilde_eig_ykabc_);
+str_ee = sprintf('tmp_ee %0.2f,tmp_ee_dvol %0.2f,tmp_ee_a %0.2f,tmp_ee_b %0.2f,tmp_ee_c %0.2f',tmp_ee,tmp_ee_dvol,tmp_ee_a,tmp_ee_b,tmp_ee_c);
+if (flag_verbose>0); disp(sprintf(' %% %s',str_ee)); end;
+%%%%%%%%;
+
+[v_tilde_eig_dvol_yk_,v_tilde_eig_polar_a_M_use_,v_tilde_eig_azimu_b_M_use_,v_tilde_eig_gamma_z_M_use_] = local_yk_a_b_c_from_ykabc_(tmp_.n_k_p_r,tmp_.l_max_,tmp_n_M_use,v_tilde_eig_ykabc_);
+[tmp_ee,tmp_ee_dvol,tmp_ee_a,tmp_ee_b,tmp_ee_c] = local_weightless_f_bar_dot_g_(tmp_.n_k_p_r,tmp_.weight_3d_riesz_k_p_r_,tmp_.l_max_,tmp_n_M_use,v_tilde_eig_ykabc_,v_tilde_eig_ykabc_);
+str_ee = sprintf('tmp_ee %0.2f,tmp_ee_dvol %0.2f,tmp_ee_a %0.2f,tmp_ee_b %0.2f,tmp_ee_c %0.2f',tmp_ee,tmp_ee_dvol,tmp_ee_a,tmp_ee_b,tmp_ee_c);
+if (flag_verbose>0); disp(sprintf(' %% %s',str_ee)); end;
+v_eig_ykabc_ = bsxfun(@times,denomator_root_weight_3d_riesz_ykabc_,v_tilde_eig_ykabc_);
+[v_eig_dvol_yk_,v_eig_polar_a_M_use_,v_eig_azimu_b_M_use_,v_eig_gamma_z_M_use_] = local_yk_a_b_c_from_ykabc_(tmp_.n_k_p_r,tmp_.l_max_,tmp_n_M_use,v_eig_ykabc_);
+[tmp_ee,tmp_ee_dvol,tmp_ee_a,tmp_ee_b,tmp_ee_c] = local_f_bar_dot_g_(tmp_.n_k_p_r,tmp_.weight_3d_riesz_k_p_r_,tmp_.l_max_,tmp_n_M_use,v_eig_ykabc_,v_eig_ykabc_);
+str_ee = sprintf('tmp_ee %0.2f,tmp_ee_dvol %0.2f,tmp_ee_a %0.2f,tmp_ee_b %0.2f,tmp_ee_c %0.2f',tmp_ee,tmp_ee_dvol,tmp_ee_a,tmp_ee_b,tmp_ee_c);
+if (flag_verbose>0); disp(sprintf(' %% %s',str_ee)); end;
+
+%%%%%%%%;
+% visualize v_eig_dvol_yk_;
+%%%%%%%%;
+v_k_Y_use_yk_ = v_eig_dvol_yk_;
+tmp_t = tic;
+if ~exist('Ylm_uklma___','var'); Ylm_uklma___ = []; end;
+if ~exist('k_p_azimu_b_sub_uka__','var'); k_p_azimu_b_sub_uka__ = []; end;
+if ~exist('k_p_polar_a_sub_uka__','var'); k_p_polar_a_sub_uka__ = []; end;
+if ~exist('l_max_uk_','var'); l_max_uk_ = []; end;
+if ~exist('index_nu_n_k_per_shell_from_nk_p_r_','var'); index_nu_n_k_per_shell_from_nk_p_r_ = []; end;
+if ~exist('index_k_per_shell_uka__','var'); index_k_per_shell_uka__ = []; end;
+[ ...
+ v_k_p_use_ ...
+,Ylm_uklma___ ...
+,k_p_azimu_b_sub_uka__ ...
+,k_p_polar_a_sub_uka__ ...
+,l_max_uk_ ...
+,index_nu_n_k_per_shell_from_nk_p_r_ ...
+,index_k_per_shell_uka__ ...
+] = ...
+convert_spharm_to_k_p_4( ...
+ 0*flag_verbose ...
+,n_k_all ...
+,n_k_all_csum_ ...
+,k_p_r_all_ ...
+,k_p_azimu_b_all_ ...
+,k_p_polar_a_all_ ...
+,weight_3d_k_all_ ...
+,weight_shell_k_ ...
+,n_k_p_r ...
+,k_p_r_ ...
+,weight_3d_k_p_r_ ...
+,l_max_ ...
+,v_k_Y_use_yk_ ...
+,Ylm_uklma___ ...
+,k_p_azimu_b_sub_uka__ ...
+,k_p_polar_a_sub_uka__ ...
+,l_max_uk_ ...
+,index_nu_n_k_per_shell_from_nk_p_r_ ...
+,index_k_per_shell_uka__ ...
+);
+tmp_t = toc(tmp_t); disp(sprintf(' %% v_k_p_reco_ time %0.2fs',tmp_t));
+%%%%;
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figbig;
+vlim_ = prctile(abs(v_k_p_use_),[  0,100],'all');
+c_use__ = colormap_80s;
+flag_2d_vs_3d = 0;
+p_row = 2; p_col = 2; np=0;
+markersize_use = 8;
+subplot(p_row,p_col,1+np);np=np+1;cla;
+imagesc_polar_a_azimu_b_0(k_p_polar_a_all_,k_p_azimu_b_all_,real(v_k_p_use_),vlim_,c_use__,flag_2d_vs_3d,k_p_r_max);
+if flag_2d_vs_3d==0; axisnotick3d; axis equal; axis vis3d; end;
+title('real(v_k_p_use_)','Interpreter','none');
+subplot(p_row,p_col,1+np);np=np+1;cla;
+imagesc_polar_a_azimu_b_0(k_p_polar_a_all_,k_p_azimu_b_all_,imag(v_k_p_use_),vlim_,c_use__,flag_2d_vs_3d,k_p_r_max);
+if flag_2d_vs_3d==0; axisnotick3d; axis equal; axis vis3d; end;
+title('imag(v_k_p_use_)','Interpreter','none');
+sgtitle(sprintf('v_eig_dvol_yk_: %s niteration %d lambda %0.2f = exp(%+0.2f) index_lambda %d/%d: %s ',str_title,niteration,lambda_use,log(lambda_use),index_lambda,niteration,str_ee),'Interpreter','none');
+subplot(p_row,p_col,1+np);np=np+1;cla;
+sphere_compass__0( ...
+ struct('type','sphere_compass','compass_r_base',1.0/(2*pi)/4,'flag_2d_vs_3d',1) ...
+,tmp_n_M_use ...
+,tmp_.euler_polar_a_M_ ...
+,tmp_.euler_azimu_b_M_ ...
+,real(v_eig_polar_a_M_use_) ...
+,real(v_eig_azimu_b_M_use_) ...
+);
+hold off;
+%axis equal; axis vis3d; axisnotick3d;
+xlim([0,2*pi]); xlabel('azimu_b','Interpreter','none');
+ylim([0,1*pi]); ylabel('polar_a','Interpreter','none');
+title('dtau_','Interpreter','none');
+subplot(p_row,p_col,1+np);np=np+1;cla;
+hold on;
+plot(tmp_.euler_azimu_b_M_,real(v_eig_gamma_z_M_use_),'o-','MarkerFaceColor','b','MarkerSize',markersize_use);
+plot(tmp_.euler_azimu_b_M_,real(v_eig_azimu_b_M_use_),'o-','MarkerFaceColor','g','MarkerSize',markersize_use);
+plot(tmp_.euler_azimu_b_M_,real(v_eig_polar_a_M_use_),'o-','MarkerFaceColor','r','MarkerSize',markersize_use);
+xlim([0,2*pi]); xlabel('azimu_b','Interpreter','none');
+title('dtau_','Interpreter','none');
+legend({'c','b','a'},'Location','NorthWest');
+end;%if flag_disp;
+%%%%;
+eta = pi/k_p_r_max; tmp_t = tic;
+v_x_u_use_ = xxnufft3d3(n_k_all,2*pi*k_c_0_all_*eta,2*pi*k_c_1_all_*eta,2*pi*k_c_2_all_*eta,v_k_p_use_.*(2*pi)^3.*weight_3d_k_all_,+1,1e-12,n_xxx_u,x_u_0___(:)/eta,x_u_1___(:)/eta,x_u_2___(:)/eta)/sqrt(2*pi)/sqrt(2*pi)/sqrt(2*pi);
+tmp_t = toc(tmp_t); disp(sprintf(' %% xxnufft3d3: v_x_u_use_ time %0.2fs',tmp_t));
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figbig;
+p_row = 2; p_col = 5; np=0;
+for percent_threshold=[05:10:95];
+subplot(p_row,p_col,1+np);np=np+1;cla;
+isosurface_f_x_u_1(struct('percent_threshold_',[percent_threshold]),v_x_u_use_);
+title(sprintf('p %.2f',percent_threshold));
+end;%for percent_threshold=[05:10:95];
+sgtitle(sprintf('v_eig_dvol_yk_: %s niteration %d lambda %0.2f = exp(%+0.2f) index_lambda %d/%d: %s ',str_title,niteration,lambda_use,log(lambda_use),index_lambda,niteration,str_ee),'Interpreter','none');
+end;%if flag_disp;
+%%%%;
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figbig;fig80s;
+v_x_u_use___ = reshape(v_x_u_use_,[n_x_u_pack,n_x_u_pack,n_x_u_pack]);
+subplot(1,3,1);
+imagesc(squeeze(real(v_x_u_use___(:,:,end/2))));
+axis image; axisnotick; colorbar;
+subplot(1,3,2);
+imagesc(squeeze(real(v_x_u_use___(:,end/2,:))));
+axis image; axisnotick; colorbar;
+subplot(1,3,3);
+imagesc(squeeze(real(v_x_u_use___(end/2,:,:))));
+axis image; axisnotick; colorbar;
+sgtitle(sprintf('%s niteration %d lambda %0.2f = exp(%+0.2f) index_lambda %d/%d: %s ',str_title,niteration,lambda_use,log(lambda_use),index_lambda,niteration,str_ee),'Interpreter','none');
+end;%if flag_disp;
+%%%%%%%%;

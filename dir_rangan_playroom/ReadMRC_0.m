@@ -41,7 +41,7 @@ function [map,s,hdr,extraHeader]=ReadMRC_0(filename,startSlice, numSlices,test);
 % s.err=1 means the header was read, but not enough data;
 % s.err=2 means the file didn't even contain a complete header. ;
 % Default returned values ;
-verbose=1 ;
+verbose=0 ;
 hdr=[];
 extraHeader=[];
 s=struct;

@@ -518,7 +518,7 @@ save(fname_mat ...
 end;%if (flag_recalc | ~exist(fname_mat,'file'));
 %%%%%%%%;
 if ( exist(fname_mat,'file'));
-disp(sprintf(' %% %s found, not creating',fname_fig));
+disp(sprintf(' %% %s found, not creating',fname_mat));
 load(fname_mat);
 end;%if ( exist(fname_mat,'file'));
 %%%%%%%%;

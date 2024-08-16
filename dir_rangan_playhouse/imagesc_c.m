@@ -1,8 +1,21 @@
 function imagesc_c(n_x,x_,n_y,y_,S_c_,clim,cra_);
 % cartesian imagesc;
 % assumes S_c_(nx,ny) = S_c_(nx + ny*n_x);
-if (nargin<6); clim = []; end;
-if (nargin<7); cra_ = []; end;
+na=0;
+if (nargin<1+na); n_x=[]; end; na=na+1;
+if (nargin<1+na); x_=[]; end; na=na+1;
+if (nargin<1+na); n_y=[]; end; na=na+1;
+if (nargin<1+na); y_=[]; end; na=na+1;
+if (nargin<1+na); S_c_=[]; end; na=na+1;
+if (nargin<1+na); clim=[]; end; na=na+1;
+if (nargin<1+na); cra_=[]; end; na=na+1;
+
+if isempty(S_c_); S_c_ = zeros(2,2); end;
+if isempty(n_x); if size(S_c_,2)>1; n_x = size(S_c_,1); else; n_x = fix(sqrt(numel(S_c_))); end; end;
+if isempty(n_y); if size(S_c_,2)>1; n_y = size(S_c_,2); else; n_x = fix(numel(S_c_)/n_x); end; end;
+if isempty(x_); x_ = linspace(-1,+1,n_x); end;
+if isempty(y_); y_ = linspace(-1,+1,n_y); end;
+
 if isempty(clim); 
 clim = mean(S_c_(:)) + std(S_c_(:))*2.5*[-1,1]; 
 end;%if isempty(clim);

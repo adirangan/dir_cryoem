@@ -70,6 +70,7 @@ parameter = struct('type','parameter');
 end;%if isempty(parameter);
 %%%%%%%%;
 if (~isfield(parameter,'tolerance_master')); parameter.tolerance_master = 1e-2; end; %<-- parameter_bookmark. ;
+if (~isfield(parameter,'flag_recalc')); parameter.flag_recalc = 0; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'fname_align_a_k_Y_pre')); parameter.fname_align_a_k_Y_pre = []; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'tolerance_pm')); parameter.tolerance_pm = parameter.tolerance_master; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'rseed')); parameter.rseed = 0; end; %<-- parameter_bookmark. ;
@@ -80,6 +81,7 @@ if (~isfield(parameter,'n_delta_v_requested')); parameter.n_delta_v_requested = 
 if (~isfield(parameter,'flag_MS_vs_SM')); parameter.flag_MS_vs_SM = 0; end; %<-- parameter_bookmark. ;
 if (~isfield(parameter,'template_viewing_k_eq_d')); parameter.template_viewing_k_eq_d = 1.0/max(1e-12,k_p_r_max); end; %<-- parameter_bookmark. ;
 %%%%%%%%;
+flag_recalc = parameter.flag_recalc;
 tolerance_master = parameter.tolerance_master;
 tolerance_pm = parameter.tolerance_pm;
 rseed = parameter.rseed;
@@ -102,6 +104,37 @@ n_lm_max = max(n_lm_);
 n_lm_sum = sum(n_lm_);
 n_lm_csum_ = cumsum([0;n_lm_]);
 %%%%%%%%;
+
+if isempty(n_cluster) | isempty(index_ncluster_from_nCTF_);
+%%%%%%%%;
+% First cluster the CTF based on tolerance_cluster. ;
+%%%%%%%%;
+tmp_parameter = struct('type','parameter');
+tmp_parameter.tolerance_master = tolerance_master;
+[ ...
+ ~ ...
+,index_ncluster_from_nCTF_ ...
+] = ...
+knn_cluster_CTF_k_p_r_kC__0( ...
+ tmp_parameter ...
+,n_k_p_r ...
+,k_p_r_ ...
+,weight_2d_k_p_r_ ...
+,n_CTF ...
+,CTF_k_p_r_kC__ ...
+);
+%%%%%%%%;
+n_cluster = 1+max(index_ncluster_from_nCTF_);
+index_ncluster_from_nM_ = index_ncluster_from_nCTF_(1+index_nCTF_from_nM_);
+index_nM_from_ncluster__ = cell(n_cluster,1);
+n_index_nM_from_ncluster_ = zeros(n_cluster,1);
+for ncluster=0:n_cluster-1;
+index_nM_from_ncluster__{1+ncluster} = efind(index_ncluster_from_nM_==ncluster);
+n_index_nM_from_ncluster_(1+ncluster) = numel(index_nM_from_ncluster__{1+ncluster});
+end;%for ncluster=0:n_cluster-1;
+%%%%%%%%;
+end;%if isempty(n_cluster) | isempty(index_ncluster_from_nCTF_);
+
 n_cluster = 1+max(index_ncluster_from_nCTF_);
 index_ncluster_from_nM_ = index_ncluster_from_nCTF_(1+index_nCTF_from_nM_);
 index_nM_from_ncluster__ = cell(n_cluster,1);
@@ -126,7 +159,7 @@ end;%for nCTF=0:n_CTF-1;
 flag_found=0;
 if (~isempty(parameter.fname_align_a_k_Y_pre));
 tmp_fname_mat = sprintf('%s.mat',parameter.fname_align_a_k_Y_pre);
-if  exist(tmp_fname_mat,'file');
+if ~flag_recalc &  exist(tmp_fname_mat,'file');
 disp(sprintf(' %% %s found, loading',tmp_fname_mat));
 load(tmp_fname_mat ...
      ,'a_k_Y_reco_yki__' ...
@@ -144,7 +177,7 @@ load(tmp_fname_mat ...
      ,'image_S_index_Mi__' ...
     );
 flag_found=1;
-end;%if  exist(tmp_fname_mat,'file');
+end;%if ~flag_recalc &  exist(tmp_fname_mat,'file');
 end;%if (~isempty(parameter.fname_align_a_k_Y_pre));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
