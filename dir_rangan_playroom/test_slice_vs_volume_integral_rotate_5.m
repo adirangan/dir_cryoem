@@ -1768,7 +1768,8 @@ tmp_azimu_b_neg = atan2(+tmp_Combi_R_neg__(1+2,1+1),+tmp_Combi_R_neg__(1+2,1+0))
 tmp_gamma_z_neg = atan2(+tmp_Combi_R_neg__(1+1,1+2),-tmp_Combi_R_neg__(1+0,1+2));
 tmp_euler_neg_ = -[tmp_azimu_b_neg,tmp_polar_a_neg,tmp_gamma_z_neg]; %tmp_euler_neg_ = R_to_euler_0(euler_to_R(tmp_euler_ori_)*(eye(3)-dtau*tmp_Delta_R_mid__));
 tmp_deuler_dif_ = (tmp_euler_pos_ - tmp_euler_neg_)/max(1e-12,2*dtau);
-tmp_da_mid = +(sin(tmp_polar_a_ori)*(tmp_g*cos(tmp_azimu_b_ori) + tmp_h*sin(tmp_azimu_b_ori)))/(1 - cos(tmp_polar_a_ori)^2)^(1/2);
+%tmp_da_mid = +(sin(tmp_polar_a_ori)*(tmp_g*cos(tmp_azimu_b_ori) + tmp_h*sin(tmp_azimu_b_ori)))/(1 - cos(tmp_polar_a_ori)^2)^(1/2); %<-- cancel out. ;
+tmp_da_mid = +(tmp_g*cos(tmp_azimu_b_ori) + tmp_h*sin(tmp_azimu_b_ori));
 tmp_db_mid = -(cos(tmp_azimu_b_ori)*(tmp_f*sin(tmp_polar_a_ori) - tmp_h*cos(tmp_polar_a_ori)*cos(tmp_azimu_b_ori) + tmp_g*cos(tmp_polar_a_ori)*sin(tmp_azimu_b_ori)))/(cos(tmp_azimu_b_ori)*sin(tmp_polar_a_ori)); %<-- remove lower order terms from denominator. ;
 tmp_dc_mid = -(cos(tmp_gamma_z_ori)*(tmp_h*cos(tmp_azimu_b_ori) - tmp_g*sin(tmp_azimu_b_ori)))/(cos(tmp_gamma_z_ori)*sin(tmp_polar_a_ori)); %<-- remove lower order terms from denominator. ;
 tmp_deuler_mid_ = [tmp_db_mid,tmp_da_mid,tmp_dc_mid];

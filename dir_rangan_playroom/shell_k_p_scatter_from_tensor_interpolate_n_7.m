@@ -190,17 +190,23 @@ if (nargin<1+na); polar_a_scatter_=[]; end; na=na+1;
 if (nargin<1+na); flag_polar_a_ascend_vs_descend=[]; end; na=na+1;
 if isempty(flag_polar_a_ascend_vs_descend); flag_polar_a_ascend_vs_descend = 1; end;
 
-if abs(min(polar_a_)-0)> 1e-12; disp(sprintf(' %% Warning, expecting polar_a_ to begin at 0 in %s (try str_T_vs_L = ''C'' when generating grid) ',str_thisfunction)); end;
-if abs(max(polar_a_)-pi)> 1e-12; disp(sprintf(' %% Warning, expecting polar_a_ to end at pi in %s (try str_T_vs_L = ''C'' when generating grid) ',str_thisfunction)); end;
+azimu_b_ = linspace(0,2*pi,n_azimu_b+1); azimu_b_ = transpose(azimu_b_(1:n_azimu_b));
+[azimu_ba__,polar_ba__] = ndgrid(azimu_b_,polar_a_); n_grid = n_azimu_b*n_polar_a;
+
+if abs(min(polar_a_)-0)> 1e-12;
+[tmp_ij_,tmp_d_] = knnsearch([polar_ba__(:),azimu_ba__(:)],[polar_a_scatter_,azimu_b_scatter_],'K',1);
+[tmp_d,tmp_ij] = max(tmp_d_);
+if tmp_d>1e-6;
+disp(sprintf(' %% Warning, interpolation out of range by %0.6f at index %d: expecting polar_a_ to begin at 0 and end at pi in %s (try str_T_vs_L = ''C'' when generating grid) ',tmp_d,tmp_ij-1,str_thisfunction));
+end;%if tmp_d>1e-6;
+end;%if abs(min(polar_a_)-0)> 1e-12;
+
 %if var(diff(polar_a_))> 1e-12; disp(sprintf(' %% Warning, expecting polar_a_ to be equispaced in %s (try str_T_vs_L = ''C'' when generating grid) ',str_thisfunction)); end;
 %if mod(n_azimu_b,2)==1; disp(sprintf(' %% Warning, expecting n_azimu_b to be even in %s',str_thisfunction)); end;
 if mod(n_order,2)==0; disp(sprintf(' %% Warning, expecting n_order to be odd in %s',str_thisfunction)); end;
 
 if (n_order>min(n_azimu_b,n_polar_a)); disp(sprintf(' %% Warning, n_order %d > n_azimu_b %d n_polar_a %d',n_order,n_azimu_b,n_polar_a)); end;
 n_order = min(n_order,min(n_azimu_b,n_polar_a));
-
-azimu_b_ = linspace(0,2*pi,n_azimu_b+1); azimu_b_ = transpose(azimu_b_(1:n_azimu_b));
-[azimu_ba__,polar_ba__] = ndgrid(azimu_b_,polar_a_); n_grid = n_azimu_b*n_polar_a;
 
 %%%%%%%%;
 % periodize azimu_b_scatter_ (standard). ;

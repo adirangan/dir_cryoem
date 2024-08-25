@@ -41,6 +41,7 @@ if (nargin<1+na);,CTF_k_p_r_xcor_kk__=[]; end; na=na+1;
 if (nargin<1+na);,delta_sigma=[]; end; na=na+1;
 if (nargin<1+na);,pm_delta_integral_tolerance=[]; end; na=na+1;
 
+if isempty(CTF_k_p_r_xcor_kk__); CTF_k_p_r_xcor_kk__ = ones(n_k_p_r,n_k_p_r); end;
 if isempty(delta_sigma); delta_sigma = 0; end;
 if isempty(pm_delta_integral_tolerance); pm_delta_integral_tolerance = 1e-2; end;
 if (pm_delta_integral_tolerance<=0); pm_delta_integral_tolerance = 1e-2; end;

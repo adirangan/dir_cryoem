@@ -12,6 +12,19 @@ function ...
 ,Hvt_q3d_k_Y_quad_yk_ ...
 ,Htv_q2d_M3__ ...
 ,Htt_q2d_M3__ ...
+,dtau_euler_polar_a_M_ ...
+,dtau_euler_azimu_b_M_ ...
+,dtau_euler_gamma_z_M_ ...
+,n_dvt ... 
+,dvt_ ... 
+,dvt ... 
+,ssnll_tmp_q2d_dvt_ ... 
+,dssnll_mid_q2d ... 
+,dssnll_dif_q2d ... 
+,dssnll_lsq_q2d ... 
+,ddssnll_mid_q2d ... 
+,ddssnll_dif_q2d ... 
+,ddssnll_lsq_q2d ... 
 ] = ...
 ddssnll_2( ...
  parameter ...
@@ -45,7 +58,7 @@ ddssnll_2( ...
 ,viewing_polar_a_ ...
 ,n_viewing_azimu_b_ ...
 ,n_M ...
-,weight_image_M_ ...
+,weight_imagecount_M_ ...
 ,M_k_p_wkM__ ...
 ,n_CTF ...
 ,index_nCTF_from_nM_ ...
@@ -119,7 +132,7 @@ if (nargin<1+na); n_viewing_polar_a=[]; end; na=na+1;
 if (nargin<1+na); viewing_polar_a_=[]; end; na=na+1;
 if (nargin<1+na); n_viewing_azimu_b_=[]; end; na=na+1;
 if (nargin<1+na); n_M=[]; end; na=na+1;
-if (nargin<1+na); weight_image_M_=[]; end; na=na+1;
+if (nargin<1+na); weight_imagecount_M_=[]; end; na=na+1;
 if (nargin<1+na); M_k_p_wkM__=[]; end; na=na+1;
 if (nargin<1+na); n_CTF=[]; end; na=na+1;
 if (nargin<1+na); index_nCTF_from_nM_=[]; end; na=na+1;
@@ -168,7 +181,7 @@ if (~isfield(parameter,'viewing_k_eq_d')); parameter.viewing_k_eq_d = []; end; %
 viewing_k_eq_d = parameter.viewing_k_eq_d;
 if (~isfield(parameter,'template_k_eq_d')); parameter.template_k_eq_d = -1; end; %<-- parameter_bookmark. ;
 template_k_eq_d = parameter.template_k_eq_d;
-if (~isfield(parameter,'n_order')); parameter.n_order = 3; end; %<-- parameter_bookmark. ;
+if (~isfield(parameter,'n_order')); parameter.n_order = 5; end; %<-- parameter_bookmark. ;
 n_order = parameter.n_order;
 if (~isfield(parameter,'flag_kernel_qpro_d0')); parameter.flag_kernel_qpro_d0 = 1; end; %<-- parameter_bookmark. ;
 flag_kernel_qpro_d0 = parameter.flag_kernel_qpro_d0;
@@ -184,6 +197,8 @@ if ~isfield(parameter,'kernel_qpro_qref_k_eq_d_double'); parameter.kernel_qpro_q
 kernel_qpro_qref_k_eq_d_double=parameter.kernel_qpro_qref_k_eq_d_double;
 if (~isfield(parameter,'kernel_qpro_l_max_use')); parameter.kernel_qpro_l_max_use = l_max; end; %<-- parameter_bookmark. ;
 kernel_qpro_l_max_use = parameter.kernel_qpro_l_max_use;
+if (~isfield(parameter,'tolerance_pinv')); parameter.tolerance_pinv = 1e-6; end; %<-- parameter_bookmark. ;
+tolerance_pinv = parameter.tolerance_pinv;
 %%%%;
 if ~isfield(parameter,'flag_kernel_full'); parameter.flag_kernel_full=0; end;
 flag_kernel_full=parameter.flag_kernel_full;
@@ -197,7 +212,7 @@ end;%if (kernel_qpro_polar_a_pole_north + kernel_qpro_polar_a_pole_south > pi-1e
 if (flag_verbose>0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
-if isempty(weight_image_M_); weight_image_M_ = ones(n_M,1); end;
+if isempty(weight_imagecount_M_); weight_imagecount_M_ = ones(n_M,1); end;
 
 %%%%%%%%;
 n_w_max = max(n_w_);
@@ -217,7 +232,7 @@ n_m_max = length(m_max_);
 %%%%%%%%;
 if flag_surrogate==1;
 if ~isfield(parameter,'surrogate_H__'); disp(sprintf(' %% Warning, surrogate_H__ not found')); end;
-if fnorm(weight_image_M_-ones(n_M,1))>1e-12; disp(sprintf(' %% Warning, expecting trivial weight_iamge_M_ in %s',str_thisfunction)); end;
+if fnorm(weight_imagecount_M_-ones(n_M,1))>1e-12; disp(sprintf(' %% Warning, expecting trivial weight_iamge_M_ in %s',str_thisfunction)); end;
 Hvt_ykabc_=[];
 Hv_q3d_k_Y_quad_yk_=[];
 Hv_q3d_k_Y_quad_yk__=[];
@@ -303,7 +318,7 @@ end;%if isempty(dvol_a_k_p_quad_);
 %%%%%%%%;
 
 %%%%%%%%;
-% Calculate derivative using ssnll_from_a_k_Y_12. ;
+% Calculate derivative using ssnll_from_a_k_Y_13. ;
 %%%%%%%%;
 dvol_S_k_p_q2d_wkS__=[];
 dtau_S_k_p_q2d_wkS3___=[];
@@ -364,7 +379,7 @@ ssnll_from_a_k_Y_13( ...
 ,viewing_polar_a_ ...
 ,n_viewing_azimu_b_ ...
 ,n_M ...
-,weight_image_M_ ...
+,weight_imagecount_M_ ...
 ,M_k_p_wkM__ ...
 ,index_nCTF_from_nM_ ...
 ,CTF_k_p_wkC__ ...
@@ -384,6 +399,62 @@ ssnll_from_a_k_Y_13( ...
 );
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% ssnll_from_a_k_Y_13: time %0.2fs',tmp_t)); end;
 %%%%%%%%;
+
+%%%%%%%%;
+% Determine critical dtau. ;
+%%%%%%%%;
+n_3 = 3;
+dtau_dtau_ssnll_q2d_33M___ = permute(dtau_dtau_ssnll_q2d_M33___,[2,3,1]);
+dtau_dtau_inv_ssnll_q2d_33M___ = zeros(n_3,n_3,n_M);
+for nM=0:n_M-1;
+dtau_dtau_inv_ssnll_q2d_33M___(:,:,1+nM) = pinv(sqrt(weight_imagecount_M_(1+nM))*squeeze(dtau_dtau_ssnll_q2d_33M___(:,:,1+nM))*sqrt(weight_imagecount_M_(1+nM)),tolerance_pinv);
+end;%for nM=0:n_M-1;
+dtau_dvol_ssnll_q2d_3M__ = permute(dtau_dvol_ssnll_q2d_M3__,[2,1]);
+dtau_firstorder_3M__ = zeros(n_3,n_M);
+dtau_firstorder_3M__ = reshape(pagemtimes(-real(dtau_dtau_inv_ssnll_q2d_33M___),reshape(real(bsxfun(@times,dtau_dvol_ssnll_q2d_3M__,transpose(weight_imagecount_M_))),[n_3,1,n_M])),[n_3,n_M]);
+dtau_firstorder_M3__ = permute(dtau_firstorder_3M__,[2,1]);
+%%%%;
+if flag_check;
+tmp_H = @(dtau_3M__) dvol_dvol_ssnll_q2d + 2*real(sum(bsxfun(@times,dtau_3M__,transpose(weight_imagecount_M_)).*dtau_dvol_ssnll_q2d_3M__,'all')) + sum(bsxfun(@times,reshape(conj(bsxfun(@times,dtau_3M__,transpose(sqrt(weight_imagecount_M_)))),[n_3,1,n_M]),bsxfun(@times,reshape(bsxfun(@times,dtau_3M__,transpose(sqrt(weight_imagecount_M_))),[1,n_3,n_M]),real(dtau_dtau_ssnll_q2d_33M___))),'all');
+if (flag_disp>1);
+figure(1+nf);nf=nf+1;clf;figmed;
+subplot(1,3,1)
+dtau_randn_3M__ = randn(n_3,n_M);
+hold on;
+for ntmp=-20:+20;
+plot(ntmp,tmp_H(dtau_firstorder_3M__ + dtau_randn_3M__*ntmp/20),'ko');
+end;%for ntmp=-20:+20;
+xlabel('abitrary step'); ylabel('value of tmp_H','Interpreter','none');
+title('criticality of dtau_firstorder_3M__','Interpreter','none');
+subplot(1,3,2);
+hold on;
+plot(1:n_M,dtau_firstorder_M3__(:,1+0),'ro');
+plot(1:n_M,dtau_firstorder_M3__(:,1+1),'go');
+plot(1:n_M,dtau_firstorder_M3__(:,1+2),'bo');
+hold off;
+xlim([0,n_M+1]); xlabel('nM','Interpreter','none');
+ylabel('dtau_firstorder_M3__','Interpreter','none');
+title('dtau_firstorder_M3__','Interpreter','none');
+subplot(1,3,3);
+hold on;
+plot(euler_polar_a_M_,dtau_firstorder_M3__(:,1+0),'ro');
+plot(euler_polar_a_M_,dtau_firstorder_M3__(:,1+1),'go');
+plot(euler_polar_a_M_,dtau_firstorder_M3__(:,1+2),'bo');
+hold off;
+xlim([0,pi]); xlabel('euler_polar_a_M_','Interpreter','none');
+ylabel('dtau_firstorder_M3__','Interpreter','none');
+title('dtau_firstorder_M3__','Interpreter','none');
+drawnow();
+end;%if (flag_disp>1);
+end;%if flag_check;
+%%%%%%%%;
+
+%%%%%%%%;
+% Now if dtau is empty we fill dtau with dtau_firstorder. ;
+%%%%%%%%;
+if isempty(dtau_euler_polar_a_M_); dtau_euler_polar_a_M_ = real(dtau_firstorder_M3__(:,1+0)); end;
+if isempty(dtau_euler_azimu_b_M_); dtau_euler_azimu_b_M_ = real(dtau_firstorder_M3__(:,1+1)); end;
+if isempty(dtau_euler_gamma_z_M_); dtau_euler_gamma_z_M_ = real(dtau_firstorder_M3__(:,1+2)); end;
 
 %%%%%%%%;
 % We construct the riesz integration-weights on the sphere. ;
@@ -450,7 +521,7 @@ kappa_qpro_apply_3( ...
 ,KAPPA ...
 ,n_w_max ...
 ,n_M ...
-,weight_image_M_ ...
+,weight_imagecount_M_ ...
 ,euler_polar_a_M_ ...
 ,euler_azimu_b_M_ ...
 ,euler_gamma_z_M_ ...
@@ -841,7 +912,7 @@ if (flag_verbose>0); disp(sprintf(' %% dtau_dtau_ssnll_q2d vs dtau_dtau_ssnll_q3
   ssnll_q3d = ssnll_q3d / scaling_volumetric ;
   % where we assume: ;
   % 1. dvol_ is a perturbation of the form dvol_k_p_quad_, ;
-  % 2. dtau_ is a perturbation of the form dtau_M3__, ;
+  % 2. dtau_ is a perturbation of the form dtau_M3__, not accounting for weight_imagecount_M_, ;
   % 3. dtau_CXMX_ is a jacobian (i.e., of the form dtau_CXMX_M3__), and ;
   % 4. dtau_dtau_CXMX__ is a hessian (i.e., of the form dtau_dtau_CXMX_M33__). ;
   % Using this notation, we can expand and retain terms of order 2 and lower: ;
@@ -909,6 +980,7 @@ if (flag_verbose>0); disp(sprintf(' %% dtau_dtau_ssnll_q2d vs dtau_dtau_ssnll_q3
       - 1.0 * real(sum( [ conj(a_).*dtau_C1M1_ - 0.5*conj(a_).*a_.*dtau_C2M0_ - 0.5*dtau_C0M2_ ] * (dtau_) .* w_ )) ...
     ;
   Gradient of ssnll_q3d = Gradient of ssnll_q3d / scaling_volumetric ;
+  % Note that again we have not accounted for weight_imagecount_M_. ;
   % Similarly, we can extract the hessian as a quadratic-kernel acting on [dvol_;dtau_]: ;
   Hessian of ssnll_q3d = ...
     [ctranspose(dvol_) , ctranspose(dtau_)] * [ H ] * [dvol_;dtau_] ...
@@ -926,6 +998,7 @@ if (flag_verbose>0); disp(sprintf(' %% dtau_dtau_ssnll_q2d vs dtau_dtau_ssnll_q3
     + 1.0 * sum( (0.5*ctranspose(dtau_)*dtau_dtau_C0M2__*(dtau_)) .* w_ ) ...
     ;
   Htt = Htt / scaling_volumetric ;
+  % Note that again we have not accounted for weight_imagecount_M_. ;
   % Note that, via ssnll_from_a_k_Y_12, Htt can be rewritten in the simpler form: ;
   Htt = sum( dtau_M3__(1+nM,1+ntau0) * dtau_dtau_ssnll_q2d_M33___(1+nM,1+ntau0,1+ntau1) * dtau_M3__(1+nM,1+ntau1) ). ;
   % The operator Hvt has a domain compatible with dtau_ and a range compatible with dvol_. ;
@@ -972,9 +1045,9 @@ Hvv_q3d = Hvv_q3d / scaling_volumetric ;
 if (flag_verbose>0); disp(sprintf(' %% Hvv_q3d: %0.16f',Hvv_q3d)); end;
 %%%%%%%%;
 dtau_M33___ = bsxfun(@times,reshape(dtau_M3__,[n_M,3,1]),reshape(dtau_M3__,[n_M,1,3]));
-Htt_q2d = sum( dtau_dtau_ssnll_q2d_M33___ .* dtau_M33___ , 'all' ) ;
+Htt_q2d = sum( bsxfun(@times,dtau_dtau_ssnll_q2d_M33___.*dtau_M33___,weight_imagecount_M_) , 'all' ) ;
 if (flag_verbose>0); disp(sprintf(' %% Htt_q2d: %0.16f',Htt_q2d)); end;
-Htt_q2d = sum( dtau_M3__ .* sum(bsxfun(@times,dtau_dtau_ssnll_q2d_M33___,reshape(dtau_M3__,[n_M,1,3])),[3]) , 'all' ) ;
+Htt_q2d = sum( bsxfun(@times,dtau_M3__,weight_imagecount_M_) .* sum(bsxfun(@times,dtau_dtau_ssnll_q2d_M33___,reshape(dtau_M3__,[n_M,1,3])),[3]) , 'all' ) ;
 if (flag_verbose>0); disp(sprintf(' %% Htt_q2d: %0.16f',Htt_q2d)); end;
 Htt_q3d = ...
   + 1.0 * sum( conj(a_k_p_quad_) .* (a_k_p_quad_ ) .* (0.5*dtau_dtau_a_restore_C2M0_k_p_quad_) .* weight_3d_riesz_k_all_ ) ...
@@ -991,7 +1064,7 @@ Htv_q3d = ...
   - 1.0 * sum( conj(dtau_a_restore_C1M1_k_p_quad_) .* (dvol_a_k_p_quad_) .* weight_3d_riesz_k_all_ ) ...
   ;
 Htv_q3d = Htv_q3d / scaling_volumetric ;
-Htv_q2d = sum( dtau_M3__ .* dtau_dvol_ssnll_q2d_M3__ , 'all' );
+Htv_q2d = sum( bsxfun(@times,dtau_M3__,weight_imagecount_M_) .* dtau_dvol_ssnll_q2d_M3__ , 'all' );
 if (flag_verbose>0); disp(sprintf(' %% Htv_q2d vs Htv_q3d: %0.16f',fnorm(Htv_q2d - Htv_q3d)/max(1e-12,fnorm(Htv_q2d)))); end;
 %%%%%%%%;
 Hvt_q3d = ...
@@ -1028,7 +1101,7 @@ dtau_a_restore_C2M0_k_Y_yk_ = local_yk_from_yk__(n_k_p_r,l_max_,dtau_a_restore_C
 %%%%%%%%;
 dtau_a_restore_C1M1_k_Y_yk_ = local_yk_from_yk__(n_k_p_r,l_max_,dtau_a_restore_C1M1_k_Y_yk__);
 %%%%%%%%;
-if (flag_disp>0);
+if (flag_disp>1);
 figure(1+nf);nf=nf+1;clf;figbig;
 p_row=2; p_col=2*2; np=0;
 %%%%;
@@ -1065,7 +1138,7 @@ imagesc_polar_a_azimu_b_0( ...
 axis equal; axis vis3d; axisnotick3d;
 title(sprintf('abs(%s)',tmp_str),'Interpreter','none');
 end;%for ntype=0:4-1;
-end;%if (flag_disp>0);
+end;%if (flag_disp>1);
 %%%%%%%%;
 
 %%%%%%%%;
@@ -1135,7 +1208,7 @@ convert_k_p_to_spharm_4( ...
 if (flag_verbose>0); disp(sprintf(' %% Hv_q3d_k_Y_quad_yk_ vs Hv_q3d_k_Y_reco_yk_: %0.16f',fnorm(Hv_q3d_k_Y_quad_yk_ - Hv_q3d_k_Y_reco_yk_)/max(1e-12,fnorm(Hv_q3d_k_Y_quad_yk_)))); end;
 end;%if flag_check;
 %%%%%%%%;
-if (flag_disp>0);
+if (flag_disp>1);
 figure(1+nf);nf=nf+1;clf;figmed;
 p_row=1; p_col=2*1; np=0;
 %%%%;
@@ -1169,7 +1242,7 @@ imagesc_polar_a_azimu_b_0( ...
 );
 axis equal; axis vis3d; axisnotick3d;
 title(sprintf('abs(%s)',tmp_str),'Interpreter','none');
-end;%if (flag_disp>0);
+end;%if (flag_disp>1);
 %%%%%%%%;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
@@ -1196,6 +1269,16 @@ Hv_q3d_k_Y_quad_yk_ = local_yk_from_yk__(n_k_p_r,l_max_,Hv_q3d_k_Y_quad_yk__);
 
 Hvt_ykabc_ = cat(1,Hv_q3d_k_Y_quad_yk_,Ht_q2d_M3__(:,1+0),Ht_q2d_M3__(:,1+1),Ht_q2d_M3__(:,1+2));
 
+dvt = [];
+dvt_ = [];
+n_dvt = [];
+ssnll_tmp_q2d_dvt_ = [];
+dssnll_mid_q2d = [];
+dssnll_dif_q2d = [];
+dssnll_lsq_q2d = [];
+ddssnll_mid_q2d = [];
+ddssnll_dif_q2d = [];
+ddssnll_lsq_q2d = [];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 if flag_check;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
@@ -1215,8 +1298,8 @@ G_bar_ykabc_ = conj(G_ykabc_); %<-- note here we take a conjugate to allow for s
 % Now calculate the difference-quotient and compare. ;
 %%%%%%%%;
 dvt_ykabc_ = local_ykabc_from_yk_a_b_c_(n_k_p_r,l_max_,n_M,dvol_a_k_Y_quad_yk_,dtau_euler_polar_a_M_,dtau_euler_azimu_b_M_,dtau_euler_gamma_z_M_);
-dvt_ykabc_l2 = local_f_bar_dot_g_(n_k_p_r,weight_3d_riesz_k_p_r_,l_max_,n_M,dvt_ykabc_,dvt_ykabc_);
-dssnll_mid_q2d = local_f_bar_dot_g_(n_k_p_r,weight_3d_riesz_k_p_r_,l_max_,n_M,G_bar_ykabc_,dvt_ykabc_);
+dvt_ykabc_l2 = local_imagecount_f_bar_dot_g_(n_k_p_r,weight_3d_riesz_k_p_r_,l_max_,n_M,weight_imagecount_M_,dvt_ykabc_,dvt_ykabc_);
+dssnll_mid_q2d = local_imagecount_f_bar_dot_g_(n_k_p_r,weight_3d_riesz_k_p_r_,l_max_,n_M,weight_imagecount_M_,G_bar_ykabc_,dvt_ykabc_);
 %%%%;
 dvt_ = transpose(-8:+8);
 n_dvt = numel(dvt_);
@@ -1224,12 +1307,17 @@ ssnll_tmp_q2d_dvt_ = zeros(n_dvt,1);
 %%%%;
 for ndvt=0:n_dvt-1;
 if (flag_verbose>0); disp(sprintf(' %% ndvt %d/%d',ndvt,n_dvt)); end;
+tmp_euler_polar_a_M_ = euler_polar_a_M_ + 1.0*dvt*dvt_(1+ndvt)*dtau_euler_polar_a_M_;
+tmp_euler_azimu_b_M_ = euler_azimu_b_M_ + 1.0*dvt*dvt_(1+ndvt)*dtau_euler_azimu_b_M_;
+tmp_euler_gamma_z_M_ = euler_gamma_z_M_ + 1.0*dvt*dvt_(1+ndvt)*dtau_euler_gamma_z_M_;
+[tmp_euler_polar_a_M_,tmp_euler_azimu_b_M_] = periodize_polar_a_azimu_b_0(tmp_euler_polar_a_M_,tmp_euler_azimu_b_M_);
+tmp_euler_gamma_z_M_ = periodize(tmp_euler_gamma_z_M_,0,2*pi);
 [ ...
  ~ ...
 ,~ ...
 ,ssnll_tmp_q2d_dvt_(1+ndvt) ...
 ] = ...
-ssnll_from_a_k_Y_12( ...
+ssnll_from_a_k_Y_13( ...
  parameter_ssnll ...
 ,n_k_p_r ...
 ,k_p_r_ ...
@@ -1253,14 +1341,15 @@ ssnll_from_a_k_Y_12( ...
 ,viewing_polar_a_ ...
 ,n_viewing_azimu_b_ ...
 ,n_M ...
+,weight_imagecount_M_ ...
 ,M_k_p_wkM__ ...
 ,index_nCTF_from_nM_ ...
 ,CTF_k_p_wkC__ ...
 ,index_neta_from_nM_ ...
 ,eta_k_p_wke__ ...
-,euler_polar_a_M_ + 1.0*dvt*dvt_(1+ndvt)*dtau_euler_polar_a_M_ ...
-,euler_azimu_b_M_ + 1.0*dvt*dvt_(1+ndvt)*dtau_euler_azimu_b_M_...
-,euler_gamma_z_M_ + 1.0*dvt*dvt_(1+ndvt)*dtau_euler_gamma_z_M_...
+,tmp_euler_polar_a_M_ ...
+,tmp_euler_azimu_b_M_ ...
+,tmp_euler_gamma_z_M_ ...
 ,[] ...
 ,[] ...
 ,[] ...
@@ -1292,7 +1381,7 @@ tmp_rhs_ = [ tmp_yx2 ; tmp_yx1 ; tmp_yx0 ];
 tmp_p_ = tmp_lhs_\tmp_rhs_;
 tmp_p_x_ = polyval(tmp_p_,tmp_x_);
 %%%%;
-if flag_disp;
+if (flag_disp>1);
 figure(1+nf);nf=nf+1;clf;figsml;
 markersize_use = 12;
 linewidth_use = 2;
@@ -1301,14 +1390,14 @@ plot(tmp_x_,tmp_p_x_,'k-','LineWidth',linewidth_use);
 plot(tmp_x_,ssnll_tmp_q2d_dvt_,'ko','MarkerSize',markersize_use,'MarkerFaceColor','c');
 xlabel('dvt_','Interpreter','none');
 ylabel('ssnll_tmp_q2d_dvt_','Interpreter','none');
-end;%if flag_disp;
+end;%if (flag_disp>1);
 %%%%;
 dssnll_lsq_q2d = 1.0*tmp_p_(1+1);
 if (flag_verbose>0); disp(sprintf(' %% dssnll_lsq_q2d vs dssnll_mid_q2d: %0.16f',fnorm(dssnll_lsq_q2d -dssnll_mid_q2d)/max(1e-12,fnorm(dssnll_lsq_q2d)))); end;
 %%%%%%%%;
 % Estimate the second-derivative. ;
 %%%%%%%%;
-ddssnll_mid_q2d = local_f_bar_dot_g_(n_k_p_r,weight_3d_riesz_k_p_r_,l_max_,n_M,Hvt_ykabc_,dvt_ykabc_);
+ddssnll_mid_q2d = local_imagecount_f_bar_dot_g_(n_k_p_r,weight_3d_riesz_k_p_r_,l_max_,n_M,weight_imagecount_M_,Hvt_ykabc_,dvt_ykabc_);
 %%%%;
 ssnll_mid_q2d = ssnll_tmp_q2d_dvt_((1+n_dvt)/2);
 ssnll_pos_q2d = ssnll_tmp_q2d_dvt_((1+n_dvt)/2+1);
@@ -1318,10 +1407,18 @@ if (flag_verbose>0); disp(sprintf(' %% ddssnll_dif_q2d vs ddssnll_mid_q2d: %0.16
 %%%%;
 ddssnll_lsq_q2d = 2.0*tmp_p_(1+0);
 if (flag_verbose>0); disp(sprintf(' %% ddssnll_lsq_q2d vs ddssnll_mid_q2d: %0.16f',fnorm(ddssnll_lsq_q2d -ddssnll_mid_q2d)/max(1e-12,fnorm(ddssnll_lsq_q2d)))); end;
+%%%%;
+if (flag_verbose>0);
+disp(sprintf(' %% dssnll_mid_q2d:  %+0.16f',dssnll_mid_q2d));
+disp(sprintf(' %% dssnll_dif_q2d:  %+0.16f',dssnll_dif_q2d));
+disp(sprintf(' %% dssnll_lsq_q2d:  %+0.16f',dssnll_lsq_q2d));
+disp(sprintf(' %% ddssnll_mid_q2d: %+0.16f',ddssnll_mid_q2d));
+disp(sprintf(' %% ddssnll_dif_q2d: %+0.16f',ddssnll_dif_q2d));
+disp(sprintf(' %% ddssnll_lsq_q2d: %+0.16f',ddssnll_lsq_q2d));
+end;%if (flag_verbose>0);
 %%%%%%%%;
 end;%if flag_check;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 end;%if flag_surrogate==0;

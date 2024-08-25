@@ -653,6 +653,7 @@ end;%for nk_p_r=0:n_k_p_r-1;
 
 %%%%%%%%;
 % test_slice_vs_volume_integral_helper_eig_equa_band_3;
+% test_slice_vs_volume_integral_helper_eig_imagecount_4;
 %%%%%%%%;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;

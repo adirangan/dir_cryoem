@@ -47,7 +47,7 @@ ssnll_from_a_k_Y_13( ...
 ,viewing_polar_a_ ...
 ,n_viewing_azimu_b_ ...
 ,n_M ...
-,weight_image_M_ ...
+,weight_imagecount_M_ ...
 ,M_k_p_wkM__ ...
 ,index_nCTF_from_nM_ ...
 ,CTF_k_p_wkC__ ...
@@ -97,7 +97,7 @@ ssnll_from_a_k_Y_13( ...
 % viewing_polar_a_: real array of size n_viewing_polar_a; polar_a used for viewing-angles on tensor-grid. ;
 % n_viewing_azimu_b_: integer array of size n_viewing_polar_a; number of azimu_b for each polar_a on tensor-grid (should be uniform). ;
 % n_M: integer number of images. ;
-% weight_image_M_: double array of size n_M. weight (i.e., number) for each image. ;
+% weight_imagecount_M_: double array of size n_M. weight (i.e., number) for each image. ;
 % M_k_p_wkM__: complex array of size (n_w_sum,n_M). stack of images on ring in k_p_ format. ;
 % index_nCTF_from_nM_: integer array of size n_M. index_nCTF_from_nM_(1+nM) is the (base 0) CTF_index used for image M_k_p_wkM__(:,1+nM). ;
 %             This can be empty or set to 1, in which case the same CTF_k_p_ will be used for each image. ;
@@ -158,7 +158,7 @@ if (nargin<1+na); n_viewing_polar_a=[]; end; na=na+1;
 if (nargin<1+na); viewing_polar_a_=[]; end; na=na+1;
 if (nargin<1+na); n_viewing_azimu_b_=[]; end; na=na+1;
 if (nargin<1+na); n_M=[]; end; na=na+1;
-if (nargin<1+na); weight_image_M_=[]; end; na=na+1;
+if (nargin<1+na); weight_imagecount_M_=[]; end; na=na+1;
 if (nargin<1+na); M_k_p_wkM__=[]; end; na=na+1;
 if (nargin<1+na); index_nCTF_from_nM_=[]; end; na=na+1;
 if (nargin<1+na); CTF_k_p_wkC__=[]; end; na=na+1;
@@ -596,7 +596,7 @@ end;%if  flag_dvol_ssnll &  flag_dtau_dvol_ssnll ;
 %%%%%%%%%%%%%%%%;
 
 if (flag_verbose>0); disp(sprintf(' %% filling in default zeros ')); end;
-if isempty(weight_image_M_); weight_image_M_ = ones(n_M,1); end;
+if isempty(weight_imagecount_M_); weight_imagecount_M_ = ones(n_M,1); end;
 if isempty(euler_polar_a_M_); euler_polar_a_M_ = zeros(n_M,1); end;
 if isempty(euler_azimu_b_M_); euler_azimu_b_M_ = zeros(n_M,1); end;
 if isempty(euler_gamma_z_M_); euler_gamma_z_M_ = zeros(n_M,1); end;
@@ -768,7 +768,7 @@ ssnll_s_ = ...
   * (4*pi^2) ...
   ; %<-- includes both perfect matches and off-grid images. ;
 ssnll_M_ = collate_stack_Ms__ * reshape(ssnll_s_,[n_stack,1]);
-ssnll = sum(ssnll_M_.*weight_image_M_,'all');
+ssnll = sum(ssnll_M_.*weight_imagecount_M_,'all');
 end;%if flag_ssnll;
 if flag_dvol_ssnll;
 dvol_ssnll_s_ = ...
@@ -825,7 +825,7 @@ dvol_ssnll_s_ = ...
   * (4*pi^2) ...
   ; %<-- includes both perfect matches and off-grid images. ;
 dvol_ssnll_M_ = collate_stack_Ms__ * reshape(dvol_ssnll_s_,[n_stack,1]);
-dvol_ssnll = sum(dvol_ssnll_M_.*weight_image_M_,'all');
+dvol_ssnll = sum(dvol_ssnll_M_.*weight_imagecount_M_,'all');
 end;%if flag_dvol_ssnll;
 if flag_dvol_dvol_ssnll;
 dvol_dvol_ssnll_s_ = ...
@@ -854,7 +854,7 @@ dvol_dvol_ssnll_s_ = ...
   * (4*pi^2) ...
   ; %<-- includes both perfect matches and off-grid images. ;
 dvol_dvol_ssnll_M_ = collate_stack_Ms__ * reshape(dvol_dvol_ssnll_s_,[n_stack,1]);
-dvol_dvol_ssnll = sum(dvol_dvol_ssnll_M_.*weight_image_M_,'all');
+dvol_dvol_ssnll = sum(dvol_dvol_ssnll_M_.*weight_imagecount_M_,'all');
 end;%if flag_dvol_dvol_ssnll;
 if flag_dtau_ssnll;
 dtau_ssnll_s3__ = ...
@@ -914,7 +914,7 @@ dtau_ssnll_s3__ = ...
 	     ) ...
   ; %<-- includes both perfect matches and off-grid images. ;
 dtau_ssnll_M3__ = collate_stack_Ms__ * reshape(dtau_ssnll_s3__,[n_stack,3]) ;
-dtau_ssnll = sum(bsxfun(@times,bsxfun(@times,dtau_ssnll_M3__,dtau_euler_M3__),weight_image_M_),'all');
+dtau_ssnll = sum(bsxfun(@times,bsxfun(@times,dtau_ssnll_M3__,dtau_euler_M3__),weight_imagecount_M_),'all');
 end;%if flag_dtau_ssnll;
 if flag_dtau_dvol_ssnll;
 dtau_dvol_ssnll_s3__ = ...
@@ -1019,7 +1019,7 @@ dtau_dvol_ssnll_s3__ = ...
 	     ) ...
   ; %<-- includes both perfect matches and off-grid images. ;
 dtau_dvol_ssnll_M3__ = collate_stack_Ms__ * reshape(dtau_dvol_ssnll_s3__,[n_stack,3]) ;
-dtau_dvol_ssnll = sum(bsxfun(@times,bsxfun(@times,dtau_dvol_ssnll_M3__,dtau_euler_M3__),weight_image_M_),'all');
+dtau_dvol_ssnll = sum(bsxfun(@times,bsxfun(@times,dtau_dvol_ssnll_M3__,dtau_euler_M3__),weight_imagecount_M_),'all');
 end;%if flag_dtau_dvol_ssnll;
 if flag_dtau_dtau_ssnll;
 dtau_dtau_ssnll_s33___ = ...
@@ -1124,7 +1124,7 @@ dtau_dtau_ssnll_s33___ = ...
 	     ) ...
   ; %<-- includes both perfect matches and off-grid images. ;
 dtau_dtau_ssnll_M33___ = reshape(collate_stack_Ms__*reshape(dtau_dtau_ssnll_s33___,[n_stack,3*3]),[n_M,3,3]) ; %<-- sparse multiplication not supported via pagemtimes. ;
-dtau_dtau_ssnll = sum(bsxfun(@times,bsxfun(@times,dtau_dtau_ssnll_M33___,dtau_dtau_euler_M33___),weight_image_M_),'all');
+dtau_dtau_ssnll = sum(bsxfun(@times,bsxfun(@times,dtau_dtau_ssnll_M33___,dtau_dtau_euler_M33___),weight_imagecount_M_),'all');
 end;%if flag_dtau_ssnll;
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% ssnll: %0.2fs',tmp_t)); end;
 %%%%%%%%;
