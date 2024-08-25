@@ -83,7 +83,7 @@ hold off;
 xlabel('x0');
 ylabel('x1');
 zlabel('x2');
-axis equal; axis vis3d;
+axis equal; axis vis3d; axisnotick3d;
 %%%%;
 subplot(1,2,2);
 parameter.flag_2d_vs_3d = 1;
