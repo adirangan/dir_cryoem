@@ -199,6 +199,7 @@ c___(1,1+npatch,:) = c__(1+nc,:);
 end;%for npatch=0:n_patch-1;
 end;%if isempty(lim_use_);
 
+if flag_2d_vs_3d==0 | flag_2d_vs_3d==1;
 colormap(c__);
 %%%%%%%%;
 if flag_2d_vs_3d==1;
@@ -216,7 +217,7 @@ end;%if flag_2d_vs_3d==0;
 %%%%%%%%;
 tmp_c_ = colorbar;
 set(tmp_c_,'Ticks',[0,1],'TickLabels',lim_use_);
-
+end;%if flag_2d_vs_3d==0 | flag_2d_vs_3d==1;
 
 
 

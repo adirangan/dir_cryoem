@@ -592,6 +592,11 @@ CTF_k_p_wkM__ = reshape(permute(repmat(CTF_k_p_r_kC__(:,1+index_nCTF_from_nM_),[
 end;%if ~isempty(n_M) & ~isempty(n_k_p_r);
 tmp_t=toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% CTF_k_p_wkM__: %0.6fs',tmp_t)); end;
 
+flag_dtau = ~isempty(dtau_viewing_polar_a_M_) | ~isempty(dtau_viewing_azimu_b_M_) | ~isempty(dtau_viewing_gamma_z_M_) ;
+if isempty(dtau_viewing_polar_a_M_); dtau_viewing_polar_a_M_ = zeros(n_M,1); end;
+if isempty(dtau_viewing_azimu_b_M_); dtau_viewing_azimu_b_M_ = zeros(n_M,1); end;
+if isempty(dtau_viewing_gamma_z_M_); dtau_viewing_gamma_z_M_ = zeros(n_M,1); end;
+
 if isempty(KAPPA);
 tmp_t=tic();
 parameter.flag_verbose = 0; parameter.flag_disp = 0; parameter.flag_check = 0;
@@ -634,8 +639,8 @@ if ~isfield(KAPPA,'dtau_viewing_azimu_b_M_'); KAPPA.dtau_viewing_azimu_b_M_ = dt
 if ~isfield(KAPPA,'dtau_viewing_gamma_z_M_'); KAPPA.dtau_viewing_gamma_z_M_ = dtau_viewing_gamma_z_M_; end;
 
 flag_d0 = nargout>=1+2;
-flag_d1 = nargout>=1+2+3;
-flag_d2 = nargout>=1+2+3+3;
+flag_d1 = (flag_dtau & nargout>=1+2+3);
+flag_d2 = (flag_dtau & nargout>=1+2+3+3);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 if flag_recalc_knn | flag_recalc_qref_from_data | flag_recalc_dtau_qref_from_data | flag_recalc_dtau_dtau_qref_from_data;

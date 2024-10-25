@@ -85,6 +85,10 @@ if isempty(delta_polar_a); delta_polar_a = -0.15; end;
 if isempty(delta_azimu_b); delta_azimu_b = +0.20; end;
 if isempty(delta_gamma_z); delta_gamma_z = -0.50; end;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+if compass_r_base> 1e-4;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+
 pointer_template_s2__ = [ ...
   -0.85 , +0.00 ...
 ; -0.85 , +0.25 ...
@@ -112,12 +116,12 @@ Rx__ = [ cos(delta_xx_omega) , -sin(delta_xx_omega) ; +sin(delta_xx_omega) , cos
 compass_base_3s__ = zeros(3,compass_n_side_base);
 for compass_nside_base=0:compass_n_side_base-1+1;
 compass_w = (2*pi*compass_nside_base)/max(1,compass_n_side_base);
-compass_b_ = [ compass_r_base*cos(compass_w) ; compass_r_base*sin(compass_w) ; sqrt(1-compass_r_base.^2) * 1.0 ] ;
+compass_b_ = [ compass_r_base*cos(compass_w) ; compass_r_base*sin(compass_w) ; sqrt(max(0,1-compass_r_base.^2)) * 1.0 ];
 compass_base_3s__(:,1+compass_nside_base) = compass_b_;
 end;%for compass_nside_base=0:compass_n_side_base-1+1;
 %%%%;
 compass_pointer_2s__ = compass_r_base * Rx__ * pointer_template_2s__;
-compass_pointer_3s__ = [ compass_pointer_2s__ ; sqrt(1-sum(compass_pointer_2s__.^2,1)) ];
+compass_pointer_3s__ = [ compass_pointer_2s__ ; sqrt(max(0,1-sum(compass_pointer_2s__.^2,1))) ];
 %%%%;
 
 %%%%;
@@ -186,6 +190,10 @@ set(p,'LineStyle','-','EdgeColor',compass_pointer_linecolor,'LineWidth',compass_
 end;%if ~flag_border;
 %%%%;
 end;%if flag_2d_vs_3d==1;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+end;%if compass_r_base> 1e-4;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
 if (flag_verbose> 0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;
 

@@ -10,6 +10,7 @@ sphere_compass__0( ...
 ,delta_polar_a_S_ ...
 ,delta_azimu_b_S_ ...
 ,delta_gamma_z_S_ ...
+,c_use__ ...
 );
 
 str_thisfunction = 'sphere_compass__0';
@@ -115,10 +116,15 @@ if (nargin<1+na); azimu_b_S_=[]; end; na=na+1;
 if (nargin<1+na); delta_polar_a_S_=[]; end; na=na+1;
 if (nargin<1+na); delta_azimu_b_S_=[]; end; na=na+1;
 if (nargin<1+na); delta_gamma_z_S_=[]; end; na=na+1;
+if (nargin<1+na); c_use__=[]; end; na=na+1;
 
 if isempty(parameter); parameter=struct('type','parameter'); end;
 if ~isfield(parameter,'flag_verbose'); parameter.flag_verbose=0; end;
 flag_verbose=parameter.flag_verbose;
+if ~isfield(parameter,'flag_normalize'); parameter.flag_normalize=0; end;
+flag_normalize=parameter.flag_normalize;
+if ~isfield(parameter,'compass_r_base'); parameter.compass_r_base=1.0/(2*pi)/2; end;
+compass_r_base=parameter.compass_r_base;
 
 if (flag_verbose> 0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
 
@@ -128,16 +134,34 @@ if isempty(azimu_b_S_); azimu_b_S_ = zeros(n_S,1); end;
 if isempty(delta_polar_a_S_); delta_polar_a_S_ = zeros(n_S,1); end;
 if isempty(delta_azimu_b_S_); delta_azimu_b_S_ = zeros(n_S,1); end;
 if isempty(delta_gamma_z_S_); delta_gamma_z_S_ = zeros(n_S,1); end;
+if isempty(c_use__); c_use__ = flipud(colormap_81s); end;
+n_c_use = size(c_use__,1);
+
+delta_euler_S3__ = [ 1*delta_polar_a_S_(:) , 1*delta_azimu_b_S_(:) , 0*delta_gamma_z_S_(:) ];
+delta_euler_fnorm_S_ = sqrt(sum(abs(delta_euler_S3__).^2,2));
+delta_euler_fnorm_max = max(delta_euler_fnorm_S_);
+delta_euler_norm_S3__ = bsxfun(@rdivide,delta_euler_S3__,max(1e-12,delta_euler_fnorm_max));
+delta_polar_a_norm_S_ = delta_euler_norm_S3__(:,1+0);
+delta_azimu_b_norm_S_ = delta_euler_norm_S3__(:,1+1);
+delta_gamma_z_norm_S_ = delta_euler_norm_S3__(:,1+2);
 
 for nS=0:n_S-1;
-parameter = ...
+parameter_sub = parameter;
+tmp_d = 1.0;
+if flag_normalize;
+tmp_d = sqrt(delta_polar_a_norm_S_(1+nS).^2 + delta_azimu_b_norm_S_(1+nS).^2);
+parameter_sub.compass_r_base = compass_r_base * sqrt(tmp_d);
+end;%  if flag_normalize;
+nc_use = max(0,min(n_c_use-1,floor(n_c_use*tmp_d/1.0)));
+parameter_sub.compass_pointer_patchcolor = c_use__(1+nc_use,:);
+parameter_sub = ...
 sphere_compass_0( ...
- parameter ...
+ parameter_sub ...
 ,polar_a_S_(1+nS) ...
 ,azimu_b_S_(1+nS) ...
-,delta_polar_a_S_(1+nS) ...
-,delta_azimu_b_S_(1+nS) ...
-,delta_gamma_z_S_(1+nS) ...
+,delta_polar_a_norm_S_(1+nS) ...
+,delta_azimu_b_norm_S_(1+nS) ...
+,delta_gamma_z_norm_S_(1+nS) ...
 );
 end;%for nS=0:n_S-1;
 

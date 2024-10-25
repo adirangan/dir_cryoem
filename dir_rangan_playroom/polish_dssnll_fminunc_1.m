@@ -234,7 +234,7 @@ if isempty(a_k_Y_quad_yk_) & isempty(a_k_Y_quad_yk__);
 tmp_t = tic();
 parameter_KAPPA = struct('type','KAPPA');
 parameter_KAPPA.flag_verbose = 0*flag_verbose;
-parameter_KAPP.flag_kernel_full = flag_kernel_full;
+parameter_KAPPA.flag_kernel_full = flag_kernel_full;
 parameter_KAPPA.flag_kernel_qpro_d0 = flag_kernel_qpro_d0;
 parameter_KAPPA.flag_kernel_qpro_d1 = flag_kernel_qpro_d1;
 parameter_KAPPA.kernel_qpro_polar_a_pole_north = kernel_qpro_polar_a_pole_north;

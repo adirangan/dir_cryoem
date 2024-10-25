@@ -3,6 +3,12 @@
 % limiting to principal-modes. ;
 %%%%%%%%;
 
+[~,str_hostname] = system('hostname');
+flag_256G = 0 ...
+| ~isempty(strfind(str_hostname,'crunchy')) ...
+| ~isempty(strfind(str_hostname,'linserv')) ...
+;
+
 n_3 = 3;
 if ~exist('KAPPA','var'); KAPPA=[]; end;
 if ~exist('Ylm_uklma___','var'); Ylm_uklma___=[]; end;
@@ -120,13 +126,13 @@ a_k_Y_diff_yk_ = a_k_Y_quad_yk_ - a_k_Y_reco_yk_;
 [~,~,a_k_Y_diff_l3] = spharm_normalize_2(n_k_p_r,k_p_r_,weight_3d_k_p_r_,l_max_,a_k_Y_diff_yk_,0);
 [~,~,a_k_Y_quad_l2] = spharm_normalize_2(n_k_p_r,k_p_r_,weight_2d_k_p_r_,l_max_,a_k_Y_quad_yk_,0);
 [~,~,a_k_Y_reco_l2] = spharm_normalize_2(n_k_p_r,k_p_r_,weight_2d_k_p_r_,l_max_,a_k_Y_reco_yk_,0);
-[~,~,pm_a_k_Y_quad_l2] = spharm_normalize_2(pm_n_k_p_r,pm_k_p_r_,pm_weight_3d_k_p_r_,pm_l_max_,pm_a_k_Y_quad_yk_,0);
+[~,~,pm_a_k_Y_quad_l3] = spharm_normalize_2(pm_n_k_p_r,pm_k_p_r_,pm_weight_3d_k_p_r_,pm_l_max_,pm_a_k_Y_quad_yk_,0);
 if (flag_verbose>0); disp(sprintf(' %% a_k_Y_quad_yk_ vs a_k_Y_reco_yk_: %0.16f %%<-- will not be small if tolerance_pm> 0',a_k_Y_diff_l3/max(1e-12,a_k_Y_quad_l3))); end;
 if (flag_verbose>0); disp(sprintf(' %% a_k_Y_quad_l3 %0.6f',a_k_Y_quad_l3)); end;
 if (flag_verbose>0); disp(sprintf(' %% a_k_Y_reco_l3 %0.6f',a_k_Y_reco_l3)); end;
 if (flag_verbose>0); disp(sprintf(' %% a_k_Y_quad_l2 %0.6f',a_k_Y_quad_l2)); end;
 if (flag_verbose>0); disp(sprintf(' %% a_k_Y_reco_l2 %0.6f',a_k_Y_reco_l2)); end;
-if (flag_verbose>0); disp(sprintf(' %% pm_a_k_Y_quad_l2 %0.6f',pm_a_k_Y_quad_l2)); end;
+if (flag_verbose>0); disp(sprintf(' %% pm_a_k_Y_quad_l3 %0.6f',pm_a_k_Y_quad_l3)); end;
 end;%if flag_check;
 %%%%%%%%;
 % Check cost for each principal-mode. ;
@@ -144,7 +150,7 @@ fname_fig_pre = sprintf('%s_jpg/X_2d_x1_d0_kk__FIGA',dir_ssnll);
 fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
 if (flag_replot | ~exist(fname_fig_jpg,'file'));
 disp(sprintf(' %% %s not found, creating',fname_fig_pre));
-clf;
+figure(1+nf);nf=nf+1;clf;
 colormap(colormap_beach());
 subplot(1,2,1); imagesc(log10(abs(UX_kn__)),[-3,0]); xlabel('rank'); ylabel('shell'); title('log10(abs(UX)) [-3,0]'); 
 subplot(1,2,2); plot(log10(abs(SX_k_)),'ko'); xlabel('rank'); ylabel('log10(\sigma)'); title('log10(SX)');
@@ -162,7 +168,7 @@ fname_fig_pre = sprintf('%s_jpg/X_2d_x1_d0_kk__FIGB',dir_ssnll);
 fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
 if (flag_replot | ~exist(fname_fig_jpg,'file'));
 disp(sprintf(' %% %s not found, creating',fname_fig_pre));
-clf;
+figure(1+nf);nf=nf+1;clf;
 %%%%%%%%;
 % First set up a tensor-product spherical grid (in k_p_ space). ;
 %%%%%%%%;
@@ -286,7 +292,6 @@ end;%if ( exist(fname_fig_jpg,'file'));
 %%%%%%%%;
 end;%if flag_check;
 
-
 %%%%%%%%;
 % Use a_x1_UX_Y_quad_yn_ to generate pm_S_use_k_p_wkS__ := S_x1_UX_k_p_wnS__. ;
 % Note that poles are included for subsequent interpolation (when estimating ddssnll_lsq). ;
@@ -402,10 +407,8 @@ euler_azimu_b_M_use_ = viewing_azimu_b_S_use_(1+tmp_index_);
 euler_gamma_z_M_use_ = zeros(n_M_use,1);
 %%%%%%%%;
 
-flag_calc=1;
-if flag_calc;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
-lsigma_dist_ = -3:0.5:+3; n_lsigma_dist = numel(lsigma_dist_);
+lsigma_dist_ = [NaN,-3:0.5:+3]; n_lsigma_dist = numel(lsigma_dist_);
 factor_imagecount_Ms__ = zeros(n_M_use,n_lsigma_dist);
 for nlsigma_dist=0:n_lsigma_dist-1;
 lsigma_dist = lsigma_dist_(1+nlsigma_dist);
@@ -417,15 +420,33 @@ end;%if lsigma_dist< 0;
 if lsigma_dist> 0;
 factor_imagecount_M_use_ = 1/sqrt(2*pi)^2/sigma_dist^2*exp(-(euler_polar_a_M_use_-pi/2).^2/(2*sigma_dist^2));
 end;%if lsigma_dist> 0;
+if ~isfinite(lsigma_dist);
+[ ...
+ tmp_h_raw_ab_ ...
+ tmp_h_w3d_ab_ ...
+] = ...
+hist2d_polar_a_azimu_b_0( ...
+ euler_polar_a_M_use_ ...
+,euler_azimu_b_M_use_ ...
+,viewing_weight_M_use_ ...
+,euler_polar_a_tavg_(:) ...
+,euler_azimu_b_tavg_(:) ...
+,[] ...
+,[] ...
+,-1 ...
+);
+factor_imagecount_M_use_ = tmp_h_w3d_ab_;
+end;%if ~isfinite(lsigma_dist);
 tmp_f = sum(factor_imagecount_M_use_.*viewing_weight_M_use_);
 factor_imagecount_M_use_ = factor_imagecount_M_use_./max(1e-12,tmp_f);
 factor_imagecount_Ms__(:,1+nlsigma_dist) = factor_imagecount_M_use_;
 end;%for nlsigma_dist=0:n_lsigma_dist-1;
 %%%%;
+if flag_disp;
 figure(1+nf);nf=nf+1;clf;figbig;
 p_row = 4; p_col = ceil(n_lsigma_dist/p_row); np=0;
 %flim_ = prctile(factor_imagecount_Ms__,[  0,100],'all');
-flim_ = [0,2.0/(4*pi)];
+flim_ = 4.0*[0,2.0/(4*pi)];
 flag_2d_vs_3d=0;
 for nlsigma_dist=0:n_lsigma_dist-1;
 lsigma_dist = lsigma_dist_(1+nlsigma_dist);
@@ -443,6 +464,11 @@ axisnotick3d; axis equal; axis vis3d;
 title(sprintf('lsigma %0.2f',lsigma_dist),'Interpreter','none');
 end;%for nlsigma_dist=0:n_lsigma_dist-1;
 drawnow();
+close(gcf);
+end;%if flag_disp;
+
+flag_calc=flag_256G;
+if flag_calc;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 for nlsigma_dist=0:n_lsigma_dist-1;
 for flag_implicit_dtau = 1;
@@ -450,6 +476,7 @@ for flag_implicit_dtau = 1;
 lsigma_dist = lsigma_dist_(1+nlsigma_dist);
 factor_imagecount_M_use_ = factor_imagecount_Ms__(:,1+nlsigma_dist);
 weight_imagecount_M_use_ = viewing_weight_M_use_ .* factor_imagecount_M_use_ ;
+if ~isfinite(lsigma_dist); str_infix = sprintf('p_empirical'); end;
 if lsigma_dist< -1e-12; str_infix = sprintf('lsigma_n%.3d',fix(100*abs(lsigma_dist))); end;
 if lsigma_dist>=-1e-12; str_infix = sprintf('lsigma_p%.3d',fix(100*abs(lsigma_dist))); end;
 if (flag_verbose>0); disp(sprintf(' %% nlsigma_dist %.2d/%.2d %+0.2f %s',nlsigma_dist,n_lsigma_dist,lsigma_dist,str_infix)); end;
@@ -458,7 +485,11 @@ str_dir_jpg = sprintf('%s_jpg',dir_ssnll);
 if flag_implicit_dtau==0; str_fname_nopath_prefix = sprintf('eig_from_synth_%s_%s',str_tolerance_pm,str_infix); end;
 if flag_implicit_dtau==1; str_fname_nopath_prefix = sprintf('eig_i1_from_synth_%s_%s',str_tolerance_pm,str_infix); end;
 %%%%;
-fname_mat = sprintf('%s/%s.mat',str_dir_mat,str_fname_nopath_prefix);
+fname_pre = sprintf('%s/%s',str_dir_mat,str_fname_nopath_prefix);
+[flag_skip,fname_mat] = open_fname_tmp(fname_pre);
+%%%%%%%%%%%%%%%%;
+if flag_recalc | ~flag_skip
+%%%%%%%%%%%%%%%%;
 tmp_lanczos_n_iteration_max = 0;
 if ( exist(fname_mat,'file'));
 tmp_ = load(fname_mat);
@@ -630,8 +661,12 @@ save(fname_mat ...
      ,'euler_azimu_b_M_use_' ...
      ,'euler_gamma_z_M_use_' ...
      );
+close_fname_tmp(fname_pre);
 %%%%%%%%;
 end;%if (flag_recalc | ~exist(fname_mat,'file') | tmp_lanczos_n_iteration_max< lanczos_n_iteration_max);
+%%%%%%%%%%%%%%%%;
+end;%if flag_recalc | ~flag_skip
+%%%%%%%%%%%%%%%%;
 if ( exist(fname_mat,'file'));
 disp(sprintf(' %% %s found, not creating',fname_mat));
 end;%if ( exist(fname_mat,'file'));
@@ -644,6 +679,7 @@ end;%if flag_calc;
 
 %disp(sprintf(' %% returning before diagnostic')); return;
 
+if flag_calc;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 for nlsigma_dist=0:n_lsigma_dist-1;
 for flag_implicit_dtau = 1;
@@ -651,6 +687,7 @@ for flag_implicit_dtau = 1;
 lsigma_dist = lsigma_dist_(1+nlsigma_dist);
 factor_imagecount_M_use_ = factor_imagecount_Ms__(:,1+nlsigma_dist);
 weight_imagecount_M_use_ = viewing_weight_M_use_ .* factor_imagecount_M_use_ ;
+if ~isfinite(lsigma_dist); str_infix = sprintf('p_empirical'); end;
 if lsigma_dist< -1e-12; str_infix = sprintf('lsigma_n%.3d',fix(100*abs(lsigma_dist))); end;
 if lsigma_dist>=-1e-12; str_infix = sprintf('lsigma_p%.3d',fix(100*abs(lsigma_dist))); end;
 if (flag_verbose>0); disp(sprintf(' %% nlsigma_dist %.2d/%.2d %+0.2f %s',nlsigma_dist,n_lsigma_dist,lsigma_dist,str_infix)); end;
@@ -680,9 +717,10 @@ if ~exist('pm_U_tilde_SmallRotation_Delta_ykabc3__','var'); pm_U_tilde_SmallRota
 parameter_eig_diagnostic = struct('type','eig_diagnostic');
 parameter_eig_diagnostic.flag_verbose = flag_verbose;
 parameter_eig_diagnostic.flag_implicit_dtau = flag_implicit_dtau;
+parameter_eig_diagnostic.flag_recalc = 0;
 parameter_eig_diagnostic.flag_check = 1;
 parameter_eig_diagnostic.flag_disp = 1;
-parameter_eig_diagnostic.flag_replot = 1;
+parameter_eig_diagnostic.flag_replot = 0;
 parameter_eig_diagnostic.flag_kernel_qpro_d0 = 1;
 parameter_eig_diagnostic.flag_kernel_qpro_d1 = 1;
 parameter_eig_diagnostic.kernel_qpro_polar_a_pole_north=KAPPA_pole_north_double;
@@ -690,7 +728,7 @@ parameter_eig_diagnostic.kernel_qpro_polar_a_pole_south=KAPPA_pole_south_double;
 parameter_eig_diagnostic.kernel_qpro_qref_k_eq_d_double=KAPPA_qref_k_eq_d_double;
 parameter_eig_diagnostic.kernel_qpro_l_max_use = pm_l_max_max;
 parameter_eig_diagnostic.lanczos_n_iteration_max = lanczos_n_iteration_max;
-eig_ddssnll_lanczos_diagnostic_3( ...
+eig_ddssnll_lanczos_diagnostic_4( ...
  parameter_eig_diagnostic ...
 ,pm_n_k_p_r ...
 ,pm_k_p_r_ ...
@@ -752,6 +790,7 @@ eig_ddssnll_lanczos_diagnostic_3( ...
 ,weight_shell_k_ ...
 ,n_k_p_r ...
 ,k_p_r_ ...
+,k_p_r_max ...
 ,weight_3d_k_p_r_ ...
 ,l_max_ ...
 ,Ylm_uklma___ ...
@@ -778,41 +817,7 @@ end;%if  exist(fname_mat,'file');
 end;%for flag_implicit_dtau = 1;
 end;%for nlsigma_dist=0:n_lsigma_dist-1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+end;%if flag_calc;
 
 disp(sprintf(' %% returning after diagnostic')); return;
 
-%{
-
-  platform = 'rusty';
-  if (exist('platform.type','file')); fp=fopen('platform.type'); platform = fscanf(fp,'%s'); fclose(fp); end;
-  if (strcmp(platform,'access1')); setup_access1; string_root = 'data'; end;
-  if (strcmp(platform,'OptiPlex')); setup_OptiPlex; string_root = 'home'; end;
-  if (strcmp(platform,'eval1')); setup_eval1; string_root = 'home'; end;
-  if (strcmp(platform,'rusty')); setup_rusty; string_root = 'mnt/home'; end;
-  str_dir_mat = sprintf('/%s/rangan/dir_cryoem/dir_trpv1_x0/dir_ssnll_k16_mat',string_root);
-  str_dir_jpg = sprintf('/%s/rangan/dir_cryoem/dir_trpv1_x0/dir_ssnll_k16_jpg',string_root);
-  lsigma_ = -3:0.5:+3; n_lsigma = numel(lsigma_);
-  for nlsigma=0:0;%for nlsigma=0:n_lsigma-1;
-  lsigma = lsigma_(1+nlsigma);
-  if lsigma< -1e-12; str_infix = sprintf('lsigma_n%.3d',fix(100*abs(lsigma))); end;
-  if lsigma>=-1e-12; str_infix = sprintf('lsigma_p%.3d',fix(100*abs(lsigma))); end;
-  str_fname_nopath_prefix = sprintf('eig_i1_from_synth_%s_%s',str_tolerance_pm,str_infix);
-  str_dir_sub = sprintf('%s/dir_%s',str_dir_mat,str_fname_nopath_prefix);
-  disp(sprintf(' %% %.2d/%.2d: %s',nlsigma,n_lsigma,str_fname_nopath_prefix));
-  lanczos_n_iteration_max = 32;
-  for index_lambda=0:lanczos_n_iteration_max-1;
-  str_fname_nopath_sub_prefix = sprintf('%s_i%.3dl%.3d',str_fname_nopath_prefix,lanczos_n_iteration_max-1,index_lambda);
-  tmp_fname_sub_mat = sprintf('%s/%s.mat',str_dir_sub,str_fname_nopath_sub_prefix);
-  if ~exist(tmp_fname_sub_mat,'file');
-  disp(sprintf(' %% Warning, %s not found',tmp_fname_sub_mat));
-  end;%if ~exist(tmp_fname_sub_mat,'file');
-  if  exist(tmp_fname_sub_mat,'file');
-  tmp_ = load(tmp_fname_sub_mat);
-  disp(sprintf(' %% %% %s: mid %+16.4f dif %+16.4f lsq %+16.4f',str_fname_nopath_sub_prefix,tmp_.tmp_ddssnll_mid_q2d,tmp_.tmp_ddssnll_dif_q2d,tmp_.tmp_ddssnll_lsq_q2d));
-  clear tmp_;
-  end;%if  exist(tmp_fname_sub_mat,'file');
-  end;%for index_lambda=0:lanczos_n_iteration_max-1;
-  disp(sprintf(' %% '));
-  end;% for nlsigma=0:n_lsigma-1;
- 
-  %}

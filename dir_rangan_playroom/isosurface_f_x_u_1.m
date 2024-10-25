@@ -33,6 +33,8 @@ if ~isfield(parameter,'vlim_'); parameter.vlim_ = prctile(real(f_x_u___(:)), [1,
 vlim_ = parameter.vlim_;
 if ~isfield(parameter,'c_use__'); parameter.c_use__ = flipud(colormap('spring')); end;
 c_use__ = parameter.c_use__; n_c_use = size(c_use__,1);
+if ~isfield(parameter,'flag_solid'); parameter.flag_solid = 1; end;
+flag_solid = parameter.flag_solid;
 
 if (flag_verbose> 0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
 
@@ -96,14 +98,14 @@ isonormals(x_0___,x_1___,x_2___,permute(f_x_u___,[2,1,3]),hpatch);
 nc_use = max(0,min(n_c_use-1,floor(n_c_use*(vval-min(vlim_))/max(1e-12,diff(vlim_)))));
 hpatch.FaceColor = c_use__(1+nc_use,:); 
 hpatch.EdgeColor = 'none'; 
-hpatch.FaceAlpha = max(0.0,min(1.0,(nvval/(n_vval-1)).^4 * 1.0));
+if ~flag_solid; hpatch.FaceAlpha = max(0.0,min(1.0,(nvval/(n_vval-1)).^4 * 1.0)); end;
 xlim(x_0_lim_); ylim(x_1_lim_); zlim(x_2_lim_);
 xlabel('x0');ylabel('x1');zlabel('x2');
 set(gca,'XTick',[],'YTick',[],'ZTick',[]); grid on;
 view([-65,20]); 
 axis vis3d;
 end;%for nvval=n_vval-1:-1:0;
-if (n_vval<=1);camlight left; lighting gouraud; end;
+if (flag_solid | n_vval<=1);camlight left; lighting gouraud; end;
 hold off;
 figbig;
 

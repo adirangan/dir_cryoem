@@ -423,8 +423,8 @@ end;%for percent_threshold=[05:10:95];
 sgtitle(fname_fig_pre,'Interpreter','none');
 disp(sprintf(' %% writing %s',fname_fig_jpg));
 print('-djpeg',fname_fig_jpg);
-close(gcf);
 end;%if flag_replot | ~exist(fname_fig_jpg,'file');
+close(gcf);
 end;%if (flag_disp>0);
 %%%%%%%%;
 

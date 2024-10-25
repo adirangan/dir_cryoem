@@ -12,11 +12,11 @@ if (strcmp(platform,'eval1')); setup_eval1; string_root = 'home'; end;
 if (strcmp(platform,'rusty')); setup_rusty; string_root = 'mnt/home'; end;
 %%%%%%%%;
 
-str_thisfunction = 'test_slice_vs_volume_integral_trpv1_9';
+str_thisfunction = 'test_slice_vs_volume_integral_trpv1_11';
 flag_recalc=0; flag_replot=0;
 flag_verbose=1; flag_disp=1; nf=0;
 
-k_int = 48;
+if ~exist('k_int','var'); k_int = 48; end;
 if k_int==16;
 k_eq_d_double = 0.50;
 t_eq_d_double = 0.50;
@@ -72,6 +72,19 @@ dir_ssnll = sprintf('/%s/rangan/dir_cryoem/dir_%s/dir_ssnll_k%d',string_root,fna
 if (~exist(sprintf('%s_mat',dir_ssnll),'dir')); disp(sprintf(' %% mkdir %s_mat',dir_ssnll)); mkdir(sprintf('%s_mat',dir_ssnll)); end;
 if (~exist(sprintf('%s_jpg',dir_ssnll),'dir')); disp(sprintf(' %% mkdir %s_jpg',dir_ssnll)); mkdir(sprintf('%s_jpg',dir_ssnll)); end;
 dir_data_star = sprintf('/%s/rangan/dir_cryoem/dir_%s',string_root,dir_nopath_data_star);
+%%%%%%%%;
+
+%%%%%%%%;
+% We can examine the volume avg and std as follows: ;
+%%%%%%%%;
+fname_emd = sprintf('%s/%s',dir_data_star,fname_nopath_volume);
+a_x_u_load_ = cast(ReadMRC(fname_emd),'double');
+n_x_u = size(a_x_u_load_,1);
+if (flag_verbose>0); disp(sprintf(' %% sqrt(sum(max(0,a_x_u_load_.^2))): %+0.6f',sqrt(sum(max(0,a_x_u_load_.^2),'all')))); end;
+if (flag_verbose>0); disp(sprintf(' %% sqrt(sum(max(0,a_x_u_load_).^2)): %+0.6f',sqrt(sum(max(0,a_x_u_load_).^2,'all')))); end;
+if (flag_verbose>0); disp(sprintf(' %% sum(max(0,a_x_u_load_)): %+0.6f',sum(max(0,a_x_u_load_),'all'))); end;
+if (flag_verbose>0); disp(sprintf(' %% sum(a_x_u_load_): %+0.6f',sum(a_x_u_load_,'all'))); end;
+clear a_x_u_load_;
 %%%%%%%%;
 
 %%%%%%%%;
@@ -180,6 +193,10 @@ disp(sprintf(' %% %s found, not creating',fname_mat));
 load(fname_mat);
 end;%if ( exist(fname_mat,'file'));
 %%%%%%%%;
+dx_pack = diameter_x_c/n_x_u_pack; %dx_pack = mean(diff(x_u_0_));
+[x_u_0__,x_u_1__] = ndgrid(x_u_0_,x_u_1_);
+dxx_pack = dx_pack*dx_pack;%dxx_pack = mean(diff(x_u_0_))*mean(diff(x_u_1_));
+dxxx_pack = dx_pack*dx_pack*dx_pack;%dxxx_pack = mean(diff(x_u_0_))*mean(diff(x_u_1_))*mean(diff(x_u_2_));
 
 %%%%%%%%;
 % simple visualization of a_base. ;
@@ -271,7 +288,7 @@ get_weight_2d_2( ...
 ,k_p_r_max ...
 ,-1 ...
 ,n_w_0in_ ...
-); %<-- sum(weight_2d_k_p_r_) = pi*k_p_r_max^2/(4*pi^2) ;
+); %<-- sum(weight_2d_k_p_r_) = pi*k_p_r_max^2, sum(weight_2d_wk_) = pi*k_p_r_max^2/(4*pi^2) ;
 n_w_sum = sum(n_w_); n_w_csum_ = cumsum([0;n_w_]);
 %%%%%%%%;
 % Now set up spherical-harmonics. ;
@@ -1430,6 +1447,16 @@ end;%for flag_N_vs_M = 0:1;
 flag_N_vs_M = flag_center_image;
 if flag_N_vs_M==0; tmp_N_k_p_wkM__ = M_k_p_wkM__; tmp_str = 'M'; end;%if flag_N_vs_M==0; 
 if flag_N_vs_M==1; tmp_N_k_p_wkM__ = N_k_p_wkM__; tmp_str = 'N'; end;%if flag_N_vs_M==1;
+%%%%;
+if flag_center_image==1; 
+M_k_p_wkM__ = N_k_p_wkM__;
+M_k_q_wkM__ = N_k_q_wkM__;
+end;%if flag_center_image==1; 
+if flag_center_image==0;
+N_k_p_wkM__ = M_k_p_wkM__;
+N_k_q_wkM__ = M_k_q_wkM__;
+end;%if flag_center_image==0;
+%%%%%%%%;
 fname_mat = sprintf('%s_mat/a_k_Y_reco_from_%s__.mat',dir_ssnll,tmp_str);
 if ( exist(fname_mat,'file'));
 disp(sprintf(' %% %s found, not creating',fname_mat));
@@ -1453,6 +1480,238 @@ a_k_Y_reco_empi_yk_ = tmp_.a_k_Y_reco_yki__(:,end);
 image_X_value_empi_ = tmp_.image_X_value_Mi__(:,end-1);
 clear tmp_;
 end;%if ( exist(fname_mat,'file'));
+
+%%%%%%%%;
+a_k_Y_reco_empi_yk__ = local_yk__from_yk_(n_k_p_r,l_max_,a_k_Y_reco_empi_yk_);
+tmp_t = tic();
+[ ...
+ S_k_p_wkS___ ...
+,~ ...
+,n_S ...
+,viewing_azimu_b_S_ ...
+,viewing_polar_a_S_ ...
+,viewing_weight_S_ ...
+,n_viewing_polar_a ...
+,viewing_polar_a_ ...
+,n_viewing_azimu_b_ ...
+] = ...
+pm_template_2( ...
+ 0*flag_verbose ...
+,l_max ...
+,n_k_p_r ...
+,a_k_Y_reco_empi_yk__ ...
+,[] ...
+,-1 ...
+,n_w_max ...
+,n_viewing_S ...
+,viewing_azimu_b_S_ ...
+,viewing_polar_a_S_ ...
+,viewing_weight_S_ ...
+,n_viewing_polar_a ...
+,viewing_polar_a_ ...
+,n_viewing_azimu_b_ ...
+);
+S_k_p_wkS__ = reshape(S_k_p_wkS___,[n_w_sum,n_S]);
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% S_k_p_wkS__ (pm_template_2): %0.6fs',tmp_t)); end;
+%%%%%%%%
+
+fname_mat = sprintf('%s_mat/X_TM_A_TM_.mat',dir_ssnll);
+if (flag_recalc | ~exist(fname_mat,'file'));
+disp(sprintf(' %% %s not found, creating',fname_mat));
+%%%%%%%%;
+% Now measure X_TM_. ;
+%%%%%%%%;
+X_TM_M_ = zeros(n_M,1); %<-- cos(theta) = real(tmp_TM)/sqrt(tmp_TT*tmp_MM);
+A_TM_M_ = zeros(n_M,1); %<-- dosage = a*T in M = tmp_TM/tmp_TT;
+TM_M_ = zeros(n_M,1); %<-- innerproduct of T and M = tmp_TM;
+TT_l2_M_ = zeros(n_M,1); %<-- norm-squared of T = tmp_TT;
+MM_l2_M_ = zeros(n_M,1); %<-- norm-squared of M = tmp_MM;
+T_k_p_wkM__ = zeros(n_w_sum,n_M);
+flag_plot=0;
+if (flag_plot); 
+figure(1+nf);nf=nf+1;clf;figbig;
+end;%if (flag_plot); 
+%%%%%%%%;
+for nM=0:n_M-1;
+if (flag_verbose>0); if (mod(nM,1024)==0); disp(sprintf(' %% nM %d/%d',nM,n_M)); end; end;
+tmp_euler_polar_a = +euler_polar_a_empi_(1+nM);
+tmp_euler_azimu_b = +euler_azimu_b_empi_(1+nM);
+tmp_euler_gamma_z = +euler_gamma_z_empi_(1+nM);
+tmp_image_delta_x = +1.0*image_delta_x_empi_(1+nM);
+tmp_image_delta_y = +1.0*image_delta_y_empi_(1+nM);
+M_k_p_ = M_k_p_wkM__(:,1+nM);
+tmp_k_c_0 = sin(tmp_euler_polar_a)*cos(tmp_euler_azimu_b);
+tmp_k_c_1 = sin(tmp_euler_polar_a)*sin(tmp_euler_azimu_b);
+tmp_k_c_2 = cos(tmp_euler_polar_a);
+nS = knnsearch([viewing_k_c_0_S_,viewing_k_c_1_S_,viewing_k_c_2_S_],[tmp_k_c_0,tmp_k_c_1,tmp_k_c_2]) - 1;
+S_k_p_ = S_k_p_wkS__(:,1+nS);
+T_k_p_ = rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,S_k_p_,+tmp_euler_gamma_z);
+T_k_p_ = transf_p_to_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,T_k_p_,-tmp_image_delta_x,-tmp_image_delta_y);
+T_k_p_ = sparse(1:n_w_sum,1:n_w_sum,CTF_k_p_wkC__(:,1+index_nCTF_from_nM_(1+nM)),n_w_sum,n_w_sum)*T_k_p_;
+T_x_c_ = interp_k_p_to_x_c_xxnufft(n_x_u_pack,diameter_x_c,n_x_u_pack,diameter_x_c,n_k_p_r,k_p_r_,n_w_,T_k_p_.*weight_2d_wk_*(2*pi)^2)*sqrt(n_x_u_pack^2) * n_w_sum;
+M_x_c_ = interp_k_p_to_x_c_xxnufft(n_x_u_pack,diameter_x_c,n_x_u_pack,diameter_x_c,n_k_p_r,k_p_r_,n_w_,M_k_p_.*weight_2d_wk_*(2*pi)^2)*sqrt(n_x_u_pack^2) * n_w_sum;
+tmp_TT = innerproduct_p_quad(n_k_p_r,k_p_r_,weight_2d_k_p_r_/(2*pi),n_w_,n_w_sum,T_k_p_,T_k_p_);
+tmp_MM = innerproduct_p_quad(n_k_p_r,k_p_r_,weight_2d_k_p_r_/(2*pi),n_w_,n_w_sum,M_k_p_,M_k_p_);
+tmp_TM = innerproduct_p_quad(n_k_p_r,k_p_r_,weight_2d_k_p_r_/(2*pi),n_w_,n_w_sum,T_k_p_,M_k_p_);
+TM_M_(1+nM) = tmp_TM;
+TT_l2_M_(1+nM) = tmp_TT;
+MM_l2_M_(1+nM) = tmp_MM;
+X_TM_M_(1+nM) = real(tmp_TM)/max(1e-12,sqrt(tmp_TT*tmp_MM));
+A_TM_M_(1+nM) = real(tmp_TM)/max(1e-12,tmp_TT);
+T_k_p_wkM__(:,1+nM) = T_k_p_;
+%%%%;
+if flag_plot;
+tmp_M_k_p_ = interp_x_c_to_k_p_xxnufft(n_x_u_pack,diameter_x_c,n_x_u_pack,diameter_x_c,M_x_c_,n_k_p_r,k_p_r_,n_w_)*sqrt(n_x_u_pack^2)*dxx_pack ;
+tmp_M_x_c_ = interp_k_p_to_x_c_xxnufft(n_x_u_pack,diameter_x_c,n_x_u_pack,diameter_x_c,n_k_p_r,k_p_r_,n_w_,tmp_M_k_p_.*weight_2d_wk_*(2*pi)^2)*sqrt(n_x_u_pack^2) * n_w_sum;
+tmp_T_k_p_ = interp_x_c_to_k_p_xxnufft(n_x_u_pack,diameter_x_c,n_x_u_pack,diameter_x_c,T_x_c_,n_k_p_r,k_p_r_,n_w_)*sqrt(n_x_u_pack^2)*dxx_pack ;
+tmp_T_x_c_ = interp_k_p_to_x_c_xxnufft(n_x_u_pack,diameter_x_c,n_x_u_pack,diameter_x_c,n_k_p_r,k_p_r_,n_w_,tmp_T_k_p_.*weight_2d_wk_*(2*pi)^2)*sqrt(n_x_u_pack^2) * n_w_sum;
+tmp_tmp_TT = innerproduct_p_quad(n_k_p_r,k_p_r_,weight_2d_k_p_r_/(2*pi),n_w_,n_w_sum,tmp_T_k_p_,tmp_T_k_p_);
+tmp_tmp_MM = innerproduct_p_quad(n_k_p_r,k_p_r_,weight_2d_k_p_r_/(2*pi),n_w_,n_w_sum,tmp_M_k_p_,tmp_M_k_p_);
+if abs(tmp_tmp_TT - tmp_TT)/max(1e-12,tmp_TT)>0.5; disp(sprintf(' %% Warning, T_k_p_ nM %d poorly resolved',nM)); end;
+if abs(tmp_tmp_MM - tmp_MM)/max(1e-12,tmp_MM)>0.5; disp(sprintf(' %% Warning, M_k_p_ nM %d poorly resolved',nM)); end;
+figbeach();
+subplot(2,3,1); imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(M_k_p_),[],colormap_beach());
+set(gca,'XTick',[],'YTick',[]); axis image; title('real(M(k))');
+subplot(2,3,2); imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,imag(M_k_p_),[],colormap_beach());
+set(gca,'XTick',[],'YTick',[]); axis image; title('imag(M(k))');
+subplot(2,3,3); imagesc_c(n_x_u_pack,x_u_0_,n_x_u_pack,x_u_1_,real(M_x_c_),[],colormap_80s);
+set(gca,'XTick',[],'YTick',[]); axis image; title('real(M(x))');
+subplot(2,3,4); imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(T_k_p_),[],colormap_beach());
+set(gca,'XTick',[],'YTick',[]); axis image; title('real(T(k))');
+subplot(2,3,5); imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,imag(T_k_p_),[],colormap_beach());
+set(gca,'XTick',[],'YTick',[]); axis image; title('imag(T(k))');
+subplot(2,3,6); imagesc_c(n_x_u_pack,x_u_0_,n_x_u_pack,x_u_1_,real(T_x_c_),[],colormap_80s);
+set(gca,'XTick',[],'YTick',[]); axis image; title('real(T(x))');
+drawnow;
+end;%if flag_plot;
+%%%%;
+end;%for nM=0:n_M-1;
+clear tmp_euler_polar_a tmp_euler_azimu_b tmp_euler_gamma_z tmp_image_delta_x tmp_image_delta_y ;
+clear tmp_k_c_0 tmp_k_c_1 tmp_k_c_2 ;
+clear M_k_p_ M_x_c_ tmp_M_k_p_ tmp_M_x_c_ S_k_p_ T_k_p_ T_x_c_ tmp_T_k_p_ tmp_T_x_c_ tmp_TT tmp_MM tmp_tmp_TT tmp_tmp_MM tmp_TM ;
+%%%%%%%%;
+save(fname_mat,'TM_M_','X_TM_M_','A_TM_M_','TT_l2_M_','MM_l2_M_');
+end;%if (flag_recalc | ~exist(fname_mat,'file'));
+if  exist(fname_mat,'file');
+if (flag_verbose>0); disp(sprintf(' %% %s found, not creating',fname_mat)); end;
+load(fname_mat);
+end;%if  exist(fname_mat,'file');
+%%%%%%%%;
+if (flag_verbose>0); disp(sprintf(' %% mean(A_TM_M_): %0.6f',mean(A_TM_M_))); end;
+
+%%%%%%%%;
+% Simple low-accuracy check of transformations (note imperfectly matched spatial grid). ;
+%%%%%%%%;
+flag_check=1;
+if flag_check;
+T_x_c_ = exp(-(x_u_0__.^2 + x_u_1__.^2)/(2*(half_diameter_x_c/6).^2)); T_x_c_ = T_x_c_/max(1e-12,sqrt(sum(abs(T_x_c_).^2,'all')*dxx_pack));
+T_x_c_l2 = sum(abs(T_x_c_).^2,'all')*dxx_pack;
+T_k_p_ = interp_x_c_to_k_p_xxnufft(n_x_u_pack,diameter_x_c,n_x_u_pack,diameter_x_c,T_x_c_,n_k_p_r,k_p_r_,n_w_)*sqrt(n_x_u_pack^2)*dxx_pack ;
+T_k_p_l2 = innerproduct_p_quad(n_k_p_r,k_p_r_,weight_2d_k_p_r_/(2*pi),n_w_,n_w_sum,T_k_p_,T_k_p_);
+tmp_T_x_c_ = interp_k_p_to_x_c_xxnufft(n_x_u_pack,diameter_x_c,n_x_u_pack,diameter_x_c,n_k_p_r,k_p_r_,n_w_,T_k_p_.*weight_2d_wk_*(2*pi)^2)*sqrt(n_x_u_pack^2) * n_w_sum;
+tmp_T_x_c_l2 = sum(abs(tmp_T_x_c_).^2,'all')*dxx_pack;
+tmp_T_k_p_ = interp_x_c_to_k_p_xxnufft(n_x_u_pack,diameter_x_c,n_x_u_pack,diameter_x_c,tmp_T_x_c_,n_k_p_r,k_p_r_,n_w_)*sqrt(n_x_u_pack^2)*dxx_pack ;
+innerproduct_p_quad(n_k_p_r,k_p_r_,weight_2d_k_p_r_/(2*pi),n_w_,n_w_sum,tmp_T_k_p_,tmp_T_k_p_);
+tmp_T_k_p_l2 = innerproduct_p_quad(n_k_p_r,k_p_r_,weight_2d_k_p_r_/(2*pi),n_w_,n_w_sum,tmp_T_k_p_,tmp_T_k_p_);
+if (flag_verbose>0); disp(sprintf(' %% T_x_c_l2: %0.6f',T_x_c_l2)); end;
+if (flag_verbose>0); disp(sprintf(' %% T_k_p_l2: %0.6f',T_k_p_l2)); end;
+if (flag_verbose>0); disp(sprintf(' %% tmp_T_x_c_l2: %0.6f',tmp_T_x_c_l2)); end;
+if (flag_verbose>0); disp(sprintf(' %% tmp_T_k_p_l2: %0.6f',tmp_T_k_p_l2)); end;
+end;%if flag_check;
+%%%%%%%%;
+% Now the reconstruction a_k_Y_reco_empi_yk_ is designed so that the average 'dosage' a:=TM/TT is 1.0. ;
+% That is to say, there is (on average) one aligned-template hidden inside each image. ;
+% If we assume that the dosage a is TM/TT for each image, then the residual-norm is: ;
+% RR = <M-aT,M-aT> = MM - 2*a*MT + a*a*TT = MM - 2*MT*MT/TT + MT*MT/TT = MM-MT*MT/TT. ;
+% If, on the other hand, we assume that a = abar = 1.0, then the residual-norm is: ;
+% RR = MM - 2*MT + TT. ;
+%%%%%%%%;
+A_avg = mean(A_TM_M_,'all');
+RR_opt_M_ = MM_l2_M_ - (TM_M_).^2./max(1e-12,TT_l2_M_);
+RR_opt = mean(RR_opt_M_,'all');
+MM_bar = mean(MM_l2_M_,'all');
+RR_bar_M_ = MM_l2_M_ - 2*TM_M_ + TT_l2_M_;
+RR_bar = mean(RR_bar_M_,'all');
+R_opt = mean(sqrt(RR_opt_M_),'all');
+R_bar = mean(sqrt(RR_bar_M_),'all');
+TT_bar = mean(TT_l2_M_);
+T_bar = mean(sqrt(TT_l2_M_));
+if (flag_verbose>0); disp(sprintf(' %% A_avg: %0.6f',A_avg)); end;
+if (flag_verbose>0); disp(sprintf(' %% RR_opt: %0.6f',RR_opt)); end;
+if (flag_verbose>0); disp(sprintf(' %% R_opt: %0.6f',R_opt)); end;
+if (flag_verbose>0); disp(sprintf(' %% RR_bar: %0.6f',RR_bar)); end;
+if (flag_verbose>0); disp(sprintf(' %% R_bar: %0.6f',R_bar)); end;
+if (flag_verbose>0); disp(sprintf(' %% TT_bar: %0.6f',TT_bar)); end;
+if (flag_verbose>0); disp(sprintf(' %% T_bar: %0.6f',T_bar)); end;
+%%%%%%%%;
+% This RR_bar is the typical l2-norm for the residual image. ;
+% Let us assume that the overall molecular mass is 400kDa. ;
+% Also assume that the molecule is roughly encased within a box of ~1/2 side-length. ;
+% This means that the number of pixels holding the signal is ~n_x_u_pack^2/4 = 1000. ;
+% Thus, there should be roughly 400kDa/1000 = 400Da of 'signal' packed into each of 1000 pixelx in a synthetic image. ;
+% Assuming each pixel is roughly 1AA, or 1 square-angstrom, we have 400 Da/AA packed into each pixel of the sythetic image support. ;
+% Thus, the norm-squared of a typical template is roughly 1000AA*[400Da/AA]^2 = 16e7 DD/AA %<-- Daltons^2 per Angstrom^2. ;
+% Now TT_bar=0.0042 corresponds to roughly 16e7 DD/AA. ;
+% For the noise, we expect individual pixel-values of sigma_D/AA (with sigma_D ~ sigma*N(0,1) in Daltons). ;
+% Now the norm-squared for the noise should be n_x_u_pack^2 AA * [sigma_D/AA]^2 = n_x_u_pack^2 * sigma^2 DD/AA. ;
+% Thus RR_bar corresponds to 4e3 sigma^2 DD/AA. ;
+% In this case RR_bar=0.054~13*TT_bar corresponds to 4e3 sigma^2 DD/AA. ;
+% Thus, 13*16e7 DD/AA = 4e3 * sigma^2 DD/AA, implying that sigma^2 is about 52e4, or sigma_D is about 700 Daltons. ;
+% This corresponds to a per-pixel snr of about 0.5 or so at this resolution. ;
+% In our 'image-driven' units, sigma^2 is about RR_bar/n_x_u_pack^2 = 0.000013 = 1.3e-5 --> 1/sigma^2 = 7.7e4. ;
+%%%%%%%%;
+% Thus, in our 'image-driven' units (which have determined the magnitude of a_k_Y_reco_empi_yk_), ;
+% we have a typical template with l2-norm of TT_bar=0.0042, corresponding to 16e7 DD/AA. ;
+% Meanwhile,a  typical noise-image has l2-norm of RR_bar=0.054, corresponding to 13*16e7 DD/AA. ;
+% The different between the l2-norm of a poorly-aligned image (say, MM_bar) and a well-aligned image (say, RR_bar) is ~0.058-0.054 = 0.004, ;
+% which is obviously the l2-norm of a typical template (i.e., TT_bar~0.004). ;
+% So a typical noise-level (sigma-squared) of 52e4 implies that the log-relative-likelihood between an aligned- and unaligned-image is: ;
+% 16e7/52e4 ~ 300, which is tremendous. ;
+%%%%%%%%;
+% So now if we multiply any particular dvol (e.g., v_eig_dvol_k_Y_yk_) by a constant "A", ;
+% then the formula: ;
+% ddssnll(a + delta*dvol) = ddssnll(a) + 0.5* H(a;dvol) * delta^2 ;
+% becomes: ;
+% ddssnll(a + (delta/A)*A*dvol) = ddssnll(a) + 0.5* H(a;dvol)*A^2 * (delta/A)^2 ;
+% implying that the hessian H is multiplied by A^2. ;
+% So if we shrink dvol by multiplying by a small A, then the hessian decreases by A^2. ;
+% I.e.: H(a;A*dvol) = A^2*H(a;dvol). ;
+%%%%%%%%;
+% Now, as an example for trpv1, we can examine nlsigma=4; index_lambda=2. ;
+% In this case we have: ;
+% lambda_dif = 0.36, lambda_lsq = 0.27. ;
+% [~,~,tmp_v_std] = spharm_normalize_2(pm_n_k_p_r,pm_k_p_r_,pm_weight_3d_k_p_r_,pm_l_max_,pm_v_eig_dvol_yk_) --> 14.06. ;
+% [~,~,tmp_a_std] = spharm_normalize_2(pm_n_k_p_r,pm_k_p_r_,pm_weight_3d_k_p_r_,pm_l_max_,pm_a_k_Y_quad_yk_) --> 0.156. ;
+% tmp_v_std/tmp_a_std --> 90. ;
+% similarly: ;
+% fnorm(v_x_u_reco_)/fnorm(tmp_a_x_u_reco_) --> 72. ;
+% similarly: ;
+% [pm_a_k_Y_quad_lr] = sqrt(local_f_bar_dot_g_(pm_n_k_p_r,pm_weight_3d_riesz_k_p_r_,pm_l_max_,0,pm_a_k_Y_quad_yk_,pm_a_k_Y_quad_yk_)) --> 0.0144 ;
+% [pm_v_tilde_eig_dvol_lr] = sqrt(local_weightless_f_bar_dot_g_(pm_n_k_p_r,pm_l_max_,0,pm_v_tilde_eig_dvol_yk_,pm_v_tilde_eig_dvol_yk_)) --> 1.00 ;
+% [pm_v_eig_dvol_lr] = sqrt(local_f_bar_dot_g_(pm_n_k_p_r,pm_weight_3d_riesz_k_p_r_,pm_l_max_,0,pm_v_eig_dvol_yk_,pm_v_eig_dvol_yk_)) --> 1.00 ;
+% pm_v_eig_dvol_lr/pm_a_k_Y_quad_lr --> 69. ;
+% So we can imagine multiplying pm_v_eig_dvol_yk_ by (1/90) to produce something with equivalent norm to pm_a_k_Y_quad_yk_. ;
+% This then multiplies the value of H by (1/90^2) --> lambda_lsq*(tmp_a_std/tmp_v_std)^2 --> 3.4e-5 (in image-driven units). ;
+% Note that sum(weight_imagecount_M_use_) --> 1.0, ;
+% so our likelihood takes the form of:
+% ssnll(a+delta*dvol) - ssnll(a) = N_image * (0.5 * 3.4e-5 * delta^2) ; %<-- here a and dvol have comparable l2-norm. ;
+% nll(a+delta*dvol) - nll(a) = sigma^2 * N_image * (0.5 * 3.4e-5 * delta^2) ; %<-- delta could be thought of as dimensionless. ;
+% nll(a+delta*dvol) - nll(a) = 7.7e4 * N_image * (0.5 * 3.4e-5 * delta^2) ;
+% nll(a+delta*dvol) - nll(a) = 1.3 [bits/image] * N_image * delta^2 ;
+% log(20) [bits] = 1.3 [bits/image] * [1000 images] * delta^2 --> 0.0023 = delta^2 --> 0.048 = delta. ;
+% Meaning that about 0.048 (or 1/21) of the volume dvol can be added onto a before the new hypothesis can be rejected in favor of the data. ;
+% Now, noting that a and dvol are basically perpendicular: ;
+% [pm_a_dot_v_lr] = local_f_bar_dot_g_(pm_n_k_p_r,pm_weight_3d_riesz_k_p_r_,pm_l_max_,0,pm_a_k_Y_quad_yk_,pm_v_eig_dvol_yk_) --> 1.4e-5. ;
+% pm_a_dot_v_lr/max(1e-12,pm_a_k_Y_quad_lr*pm_v_eig_dvol_lr) --> 1e-3. ;
+% we can conclude that delta = 0.048 corresponds to a shift (on a unit-sphere encompassing pm_a_k_Y_quad_yk_ and pm_v_eig_dvol_yk_) of sin(theta) = 0.048. ;
+% Thus, cos(theta) is roughly 1-0.5*delta^2 = 1-0.0023/2 = 0.9989 --> a loss of about 0.001 of the projection onto the full volume. ;
+% By contrast, the minimal eigenvector in the 'empirically-sampled' or 'uniformly-sampled' case is about 10, ;
+% meaning that an analogous calculation results in: ;
+% nll(a+delta*dvol) - nll(a) = 7.7e4 * N_image * (0.5 * lambda_lsq / 90^2 * delta^2). ;
+% 3.0 [bits] = 4 [bits/image/lambda] * [1000 images] * lambda_lsq * delta^2. ;
+% sqrt(3/4e3/lambda_lsq) = delta --> 0.05 for lambda_lsq=0.27, but 0.0087 for lambda_lsq=10 ;
+% Similarly, we get delta ~ 0.11 for lambda_lsq=0.06. ;
+%%%%%%%%;
  
 %%%%%%%%;
 hist2dab_k_eq_d = 0.5/k_p_r_max;
@@ -1589,6 +1848,12 @@ if (flag_verbose> 1); disp(sprintf(' %% k_p_r %0.6f: sum(weight_3d_riesz_k_all_(
 end;%for nk_p_r=0:n_k_p_r-1;
 %%%%%%%%;
 
+[~,str_hostname] = system('hostname');
+flag_256G = 0 ...
+| ~isempty(strfind(str_hostname,'crunchy')) ...
+| ~isempty(strfind(str_hostname,'linserv')) ...
+;
+if flag_256G;
 %%%%%%%%;
 %test_slice_vs_volume_integral_helper_eig_polar_cap_1;
 %test_slice_vs_volume_integral_helper_eig_equa_band_1;
@@ -1602,6 +1867,12 @@ end;%for nk_p_r=0:n_k_p_r-1;
 % Use noiseless templates and synthetic viewing-angle distribution and principal-modes. ;
 %%%%%%%%;
 test_slice_vs_volume_integral_helper_eig_imagecount_6;
+%%%%%%%%;
+% Use empirical images. ;
+%%%%%%%%;
+%test_slice_vs_volume_integral_helper_eig_reco_empi_7;
+%%%%%%%%;
+end;%if flag_256G;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 if (flag_verbose>0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;

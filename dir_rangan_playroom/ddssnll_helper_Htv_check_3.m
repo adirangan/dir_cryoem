@@ -1,0 +1,9 @@
+%%%%%%%%;
+Htv_q3d = ...
+  + 1.0 * sum( conj(dtau_a_restore_C2M0_k_p_quad_) .* conj(a_k_p_quad_) .* (dvol_a_k_p_quad_) .* weight_3d_riesz_k_all_ ) ...
+  - 1.0 * sum( conj(dtau_a_restore_C1M1_k_p_quad_) .* (dvol_a_k_p_quad_) .* weight_3d_riesz_k_all_ ) ...
+  ;
+Htv_q3d = Htv_q3d / scaling_volumetric ;
+Htv_q2d = sum( bsxfun(@times,dtau_M3__,weight_imagecount_M_) .* dtau_dvol_ssnll_q2d_M3__ , 'all' );
+fnorm_disp(flag_verbose,'Htv_q2d',Htv_q2d,'Htv_q3d',Htv_q3d);
+%%%%%%%%;
