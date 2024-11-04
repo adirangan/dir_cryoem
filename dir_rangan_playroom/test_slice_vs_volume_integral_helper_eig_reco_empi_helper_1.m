@@ -1,3 +1,58 @@
+%{
+%%%%%%%%;
+% Note, may have to reset tolerance_pm = 1e-3;
+%%%%%%%%;
+tolerance_pm = 1e-3;
+%%%%%%%%;
+% recalculate idealized principal-modes. ;
+%%%%%%%%;
+n_3 = 3;
+if ~exist('KAPPA','var'); KAPPA=[]; end;
+if ~exist('Ylm_uklma___','var'); Ylm_uklma___=[]; end;
+if ~exist('k_p_azimu_b_sub_uka__','var'); k_p_azimu_b_sub_uka__=[]; end;
+if ~exist('k_p_polar_a_sub_uka__','var'); k_p_polar_a_sub_uka__=[]; end;
+if ~exist('l_max_uk_','var'); l_max_uk_=[]; end;
+if ~exist('index_nu_n_k_per_shell_from_nk_p_r_','var'); index_nu_n_k_per_shell_from_nk_p_r_=[]; end;
+if ~exist('index_k_per_shell_uka__','var'); index_k_per_shell_uka__=[]; end;
+if ~exist('V_lmm___','var'); V_lmm___=[]; end;
+if ~exist('L_lm__','var'); L_lm__=[]; end;
+if ~exist('d0W_betazeta_mlma____','var'); d0W_betazeta_mlma____=[]; end;
+if ~exist('d1W_betazeta_mlma____','var'); d1W_betazeta_mlma____=[]; end;
+if ~exist('d2W_betazeta_mlma____','var'); d2W_betazeta_mlma____=[]; end;
+
+%%%%%%%%;
+% If necessary, calculate the idealized principal-modes for unit CTF. ;
+%%%%%%%%;
+if ~exist('X_2d_x1_d0_kk__','var');
+[X_2d_x1_d0_kk__,X_2d_x1_d0_weight_r_] = principled_marching_cost_matrix_6(n_k_p_r,k_p_r_,weight_2d_k_p_r_,l_max_,[],[],a_k_Y_quad_yk_);
+end;%if ~exist('X_2d_x1_d0_kk__','var');
+%%%%%%%%;
+% Now determine principal-modes. ;
+%%%%%%%%;
+if ~exist('tolerance_pm','var'); tolerance_pm = 1e-3; end;
+n_UX_rank = n_k_p_r-1; %<-- just to check dimensions. ;
+X_kk__ = X_2d_x1_d0_kk__;
+[tmp_UX__,tmp_SX__,tmp_VX__] = svds(X_kk__,n_UX_rank); tmp_SX_ = diag(tmp_SX__);
+pm_n_UX_rank = max(find(tmp_SX_/max(tmp_SX_)> tolerance_pm));
+UX_kn__ = zeros(n_k_p_r,n_UX_rank); SX_k_ = zeros(n_UX_rank,1);
+UX_kn__(:,:) = tmp_UX__(:,1+[0:n_UX_rank-1]);
+SX_k_(:) = tmp_SX_(1+[0:n_UX_rank-1]);
+nlt = -log10(tolerance_pm);
+str_tolerance_pm = sprintf('nlt%.2dpm%d',10*nlt,pm_n_UX_rank);
+if (flag_verbose>0); disp(sprintf(' %% tolerance_pm %0.6f: pm_n_UX_rank %d/%d --> %s',tolerance_pm,pm_n_UX_rank,n_UX_rank,str_tolerance_pm)); end;
+%%%%%%%%;
+%}
+
+%%%%%%%%;
+tolerance_pm = 0; pm_n_UX_rank = n_k_p_r;
+n_UX_rank = n_k_p_r; %<-- just to check dimensions. ;
+X_kk__ = eye(n_UX_rank);
+UX_kn__ = eye(n_UX_rank);
+nlt = -log10(tolerance_pm);
+str_tolerance_pm = sprintf('nlt%.2dpm%d',10*nlt,pm_n_UX_rank);
+if (flag_verbose>0); disp(sprintf(' %% tolerance_pm %0.6f: pm_n_UX_rank %d/%d --> %s',tolerance_pm,pm_n_UX_rank,n_UX_rank,str_tolerance_pm)); end;
+%%%%%%%%;
+
 %%%%%%%%;
 % First collect/collate data. ;
 %%%%%%%%;
@@ -115,11 +170,43 @@ tmp_t = toc(tmp_t); disp(sprintf(' %% xxnufft3d3: tmp_a_x_u_reco_frompm_ time %0
 lambda_cut = 3.5;
 %%%%%%%%;
 % Run through each single example and try to visualize the alignment perturbation. ;
+%%%%%%%%;
+if strcmp(dir_nopath_data_star,'rib80s');
+val_zoom_use = 1.50;
+prct_use = 98.00;
 npick_ = { ...
   ,[15] ...
   ,[16] ...
   ,[17] ...
 };
+end;%if strcmp(dir_nopath_data_star,'rib80s');
+if strcmp(dir_nopath_data_star,'trpv1');
+val_zoom_use = 2.00;
+prct_use = 98.75;
+npick_ = { ...
+  ,[15] ...
+  ,[16] ...
+  ,[17] ...
+};
+end;%if strcmp(dir_nopath_data_star,'trpv1');
+if strcmp(dir_nopath_data_star,'ISWINCP');
+val_zoom_use = 1.85;
+prct_use = 99.25;
+npick_ = { ...
+  ,[15] ...
+  ,[16] ...
+  ,[17] ...
+};
+end;%if strcmp(dir_nopath_data_star,'ISWINCP');
+if strcmp(dir_nopath_data_star,'MlaFEDB');
+val_zoom_use = 1.75;
+prct_use = 99.00;
+npick_ = { ...
+  ,[15] ...
+  ,[16] ...
+  ,[17] ...
+};
+end;%if strcmp(dir_nopath_data_star,'MlaFEDB');
 n_pick = numel(npick_);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 for npick=0:n_pick-1;
@@ -274,10 +361,10 @@ if flag_disp;
 % Make frames for perturbation movie. ;
 %%%%%%%%;
 dvol_ = tmp_dvol_mag*[-1:0.5:+1]; n_dvol = numel(dvol_);
-prct_ = [98.75]; prct = prct_(1+0);
+prct_ = [prct_use]; prct = prct_(1+0);
 vval = prctile(real(tmp_a_x_u_reco_fnrm_(:)),prct);
 vlim_g_ = prctile(real(v_x_u_reco_(:)),[0.25,99.75]);
-val_zoom = 2.0;
+val_zoom = val_zoom_use;
 for ndvol=0:n_dvol-1;
 dvol = dvol_(1+ndvol);
 figure(1+nf);nf=nf+1;clf;figsml;
@@ -312,7 +399,7 @@ end;%for ndvol=0:n_dvol-1;
 %%%%%%%%;
 end;%if flag_disp;
 
-flag_disp=0;
+flag_disp=1;
 if flag_disp;
 %%%%%%%%;
 % Make splash figure (i.e., summary). ;
@@ -356,9 +443,9 @@ axisnotick3d; axis equal; axis vis3d;
 set(gca,'FontSize',fontsize_use);
 %%%%;
 subplot(1,2,[2]);
-prct_ = [98.75]; prct = prct_(1+0);
+prct_ = [prct_use]; prct = prct_(1+0);
 vval = prctile(real(tmp_a_x_u_reco_fnrm_(:)),prct);
-val_zoom = 2.0;
+val_zoom = val_zoom_use;
 isosurface_f_x_u_1( ...
  struct('vval_',[vval]) ...
 ,a_x_u_from_a_x_u_zoom_0(struct('val_zoom',val_zoom),tmp_a_x_u_reco_fnrm_) ...
@@ -387,7 +474,7 @@ close(gcf);
 %%%%%%%%;  
 end;%if flag_disp;
 
-flag_disp=0;
+flag_disp=1;
 if flag_disp;
 %%%%%%%%;
 % Make splash figure (i.e., summary). ;
@@ -422,7 +509,7 @@ set(gca,'FontSize',fontsize_use);
 end;%for np=0:1;
 %%%%;
 subplot(1,2,[2]);
-prct = 98.5;
+prct = prct_use;
 isosurface_f_x_u_1(struct('percent_threshold_',[100-prct,prct],'c_use__',colormap_pm),v_x_u_reco_);
 xlabel(''); ylabel(''); zlabel('');
 title(sprintf('$\\Delta \\hat{F}$'),'Interpreter','latex');
@@ -448,7 +535,7 @@ close(gcf);
 %%%%%%%%;  
 end;%if flag_disp;
 
-flag_disp=0;
+flag_disp=1;
 if flag_disp;
 %%%%%%%%;
 % Make splash figure (i.e., summary). ;
@@ -483,7 +570,7 @@ title('$\Delta\tau$: equatorial','Interpreter','latex');
 set(gca,'FontSize',fontsize_use);
 %%%%;
 subplot(1,3,[3]);
-prct = 98.5;
+prct = prct_use;
 isosurface_f_x_u_1(struct('percent_threshold_',[100-prct,prct],'c_use__',colormap_pm),v_x_u_reco_);
 xlabel(''); ylabel(''); zlabel('');
 title(sprintf('$\\Delta \\hat{F}$'),'Interpreter','latex');
@@ -509,7 +596,7 @@ end;%if flag_replot | ~exist(fname_fig_jpg,'file');
 close(gcf);
 end;%if flag_disp;
 
-flag_disp=0;
+flag_disp=1;
 if flag_disp;
 %%%%%%%%;
 % Make splash figure (i.e., summary). ;
@@ -518,10 +605,10 @@ figure(1+nf);nf=nf+1;clf;figbig;
 fontsize_use = 16;
 %%%%;
 dvol_ = tmp_dvol_mag*[-1:2.0:+1]; n_dvol = numel(dvol_);
-prct_ = [98.75]; prct = prct_(1+0);
+prct_ = [prct_use]; prct = prct_(1+0);
 vval = prctile(real(tmp_a_x_u_reco_fnrm_(:)),prct);
 vlim_g_ = prctile(real(v_x_u_reco_(:)),[0.25,99.75]);
-val_zoom = 2.0;
+val_zoom = val_zoom_use;
 for ndvol=0:n_dvol-1;
 %if ndvol==0; subplot(2,5,[ 2, 3, 7, 8]); end;
 %if ndvol==1; subplot(2,5,[ 4, 5, 9,10]); end;
@@ -570,10 +657,10 @@ interp_k = 1;
 %%%%;
 dvol_ = tmp_dvol_mag*[-1:2.0:+1]; n_dvol = numel(dvol_);
 tmp_tmp_a_x_u_reco_mini_ = min(tmp_a_x_u_reco_fnrm_ + min(dvol_)*v_x_u_reco_fnrm_,tmp_a_x_u_reco_fnrm_ + max(dvol_)*v_x_u_reco_fnrm_);
-prct_ = [98.75]; prct = prct_(1+0);
+prct_ = [prct_use]; prct = prct_(1+0);
 vval = prctile(real(tmp_a_x_u_reco_fnrm_(:)),prct);
 vlim_g_ = prctile(real(v_x_u_reco_(:)),[0.25,99.75]);
-val_zoom = 2.0;
+val_zoom = val_zoom_use;
 for ndvol=0:n_dvol-1;
 %if ndvol==0; subplot(2,5,[ 2, 3, 7, 8]); end;
 %if ndvol==1; subplot(2,5,[ 4, 5, 9,10]); end;
@@ -614,6 +701,144 @@ print('-djpeg',fname_fig_stripped_jpg);
 end;%if flag_replot | ~exist(fname_fig_jpg,'file');
 %%%%%%%%;  
 close(gcf);
+end;%if flag_disp;
+
+flag_disp=1;
+if flag_disp;
+%%%%%%%%;
+% Make splash figure (i.e., summary). ;
+%%%%%%%%;
+interp_k = 1;
+dvol_ = tmp_dvol_mag*[-1:2.0:+1]; n_dvol = numel(dvol_);
+prct_ = [prct_use]; prct = prct_(1+0);
+vval = prctile(real(tmp_a_x_u_reco_fnrm_(:)),prct);
+vlim_g_ = [0,2.5e-3];
+val_zoom = val_zoom_use;
+dvol = max(dvol_);
+tmp_tmp_a_x_u_reco_fnrm_ = tmp_a_x_u_reco_fnrm_ + dvol*v_x_u_reco_fnrm_;
+figure(1+nf);nf=nf+1;clf;figsml;
+[~,d_v_] = ...
+isosurface_f_x_u_3( ...
+ struct('vval_',[vval],'vlim_g_',vlim_g_,'flag_plot',0) ...
+,a_x_u_from_a_x_u_zoom_0(struct('val_zoom',val_zoom) ...
+			 ,interp3(reshape(tmp_tmp_a_x_u_reco_fnrm_,[n_x_u_pack,n_x_u_pack,n_x_u_pack]),interp_k,'spline') ...
+			 ) ...
+,a_x_u_from_a_x_u_zoom_0(struct('val_zoom',val_zoom) ...
+			 ,interp3(reshape(tmp_a_x_u_reco_fnrm_,[n_x_u_pack,n_x_u_pack,n_x_u_pack]),interp_k,'spline') ...
+			 ) ...
+);
+close(gcf);
+vlim_g_ = [0,prctile(d_v_,90)];
+%%%%%%%%;
+figure(1+nf);nf=nf+1;clf;figbig;
+fontsize_use = 16;
+%%%%;
+val_zoom = val_zoom_use;
+for ndvol=0:n_dvol-1;
+%if ndvol==0; subplot(2,5,[ 2, 3, 7, 8]); end;
+%if ndvol==1; subplot(2,5,[ 4, 5, 9,10]); end;
+if ndvol==0; subplot(1,2,[1]); end;
+if ndvol==1; subplot(1,2,[2]); end;
+dvol = dvol_(1+ndvol);
+tmp_tmp_a_x_u_reco_fnrm_ = tmp_a_x_u_reco_fnrm_ + dvol*v_x_u_reco_fnrm_;
+isosurface_f_x_u_3( ...
+ struct('vval_',[vval],'vlim_g_',vlim_g_) ...
+,a_x_u_from_a_x_u_zoom_0(struct('val_zoom',val_zoom) ...
+			 ,interp3(reshape(tmp_tmp_a_x_u_reco_fnrm_,[n_x_u_pack,n_x_u_pack,n_x_u_pack]),interp_k,'spline') ...
+			 ) ...
+,a_x_u_from_a_x_u_zoom_0(struct('val_zoom',val_zoom) ...
+			 ,interp3(reshape(tmp_a_x_u_reco_fnrm_,[n_x_u_pack,n_x_u_pack,n_x_u_pack]),interp_k,'spline') ...
+			 ) ...
+);
+xlabel(''); ylabel(''); zlabel('');
+title(sprintf('$\\Delta \\hat{F}$: $%+0.3f$, $J$%: $%d$',dvol,tmp_N_image),'Interpreter','latex');
+set(gca,'FontSize',fontsize_use);
+end;%for ndvol=0:n_dvol-1;
+%%%%;
+set(gcf,'Position',1+[0,0,1024*1.0,512]);
+%%%%;
+fname_fig_pre = sprintf('%s/%s_FIGQ',str_dir_sub_jpg,str_fname_nopath_sub_prefix);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+fname_fig_eps = sprintf('%s.eps',fname_fig_pre);
+fname_fig_stripped_pre = sprintf('%s/%s_FIGQ_stripped',str_dir_jpg_stripped,str_fname_nopath_sub_prefix);
+fname_fig_stripped_jpg = sprintf('%s.jpg',fname_fig_stripped_pre);
+fname_fig_stripped_eps = sprintf('%s.eps',fname_fig_stripped_pre);
+if flag_replot | ~exist(fname_fig_jpg,'file');
+disp(sprintf(' %% writing %s',fname_fig_pre));
+sgtitle(fname_fig_pre,'Interpreter','none');
+print('-djpeg',fname_fig_jpg);
+disp(sprintf(' %% writing %s',fname_fig_stripped_pre));
+sgtitle('');
+print('-djpeg',fname_fig_stripped_jpg);
+end;%if flag_replot | ~exist(fname_fig_jpg,'file');
+%%%%%%%%;  
+close(gcf);
+end;%if flag_disp;
+
+flag_disp=0;
+if flag_disp;
+%%%%%%%%;
+% Make frames for perturbation movie. ;
+%%%%%%%%;
+interp_k = 1;
+dvol_ = tmp_dvol_mag*[-1:0.5:+1]; n_dvol = numel(dvol_);
+prct_ = [prct_use]; prct = prct_(1+0);
+vval = prctile(real(tmp_a_x_u_reco_fnrm_(:)),prct);
+vlim_g_ = [0,2.5e-3];
+val_zoom = val_zoom_use;
+dvol = max(dvol_);
+tmp_tmp_a_x_u_reco_fnrm_ = tmp_a_x_u_reco_fnrm_ + dvol*v_x_u_reco_fnrm_;
+figure(1+nf);nf=nf+1;clf;figsml;
+[~,d_v_] = ...
+isosurface_f_x_u_3( ...
+ struct('vval_',[vval],'vlim_g_',vlim_g_,'flag_plot',0) ...
+,a_x_u_from_a_x_u_zoom_0(struct('val_zoom',val_zoom) ...
+			 ,interp3(reshape(tmp_tmp_a_x_u_reco_fnrm_,[n_x_u_pack,n_x_u_pack,n_x_u_pack]),interp_k,'spline') ...
+			 ) ...
+,a_x_u_from_a_x_u_zoom_0(struct('val_zoom',val_zoom) ...
+			 ,interp3(reshape(tmp_a_x_u_reco_fnrm_,[n_x_u_pack,n_x_u_pack,n_x_u_pack]),interp_k,'spline') ...
+			 ) ...
+);
+close(gcf);
+vlim_g_ = [0,prctile(d_v_,90)];
+%%%%%%%%;
+for ndvol=0:n_dvol-1;
+dvol = dvol_(1+ndvol);
+figure(1+nf);nf=nf+1;clf;figsml;
+fontsize_use = 16;
+interp_k = 2;
+tmp_tmp_a_x_u_reco_fnrm_ = tmp_a_x_u_reco_fnrm_ + dvol*v_x_u_reco_fnrm_;
+isosurface_f_x_u_3( ...
+ struct('vval_',[vval],'vlim_g_',vlim_g_) ...
+,a_x_u_from_a_x_u_zoom_0(struct('val_zoom',val_zoom) ...
+			 ,interp3(reshape(tmp_tmp_a_x_u_reco_fnrm_,[n_x_u_pack,n_x_u_pack,n_x_u_pack]),interp_k,'spline') ...
+			 ) ...
+,a_x_u_from_a_x_u_zoom_0(struct('val_zoom',val_zoom) ...
+			 ,interp3(reshape(tmp_a_x_u_reco_fnrm_,[n_x_u_pack,n_x_u_pack,n_x_u_pack]),interp_k,'spline') ...
+			 ) ...
+);
+xlabel(''); ylabel(''); zlabel('');
+title(sprintf('prct %5.2f dvol %+.04f',prct,dvol),'Interpreter','latex');
+set(gcf,'Position',1+[0,0,1024*2,2*(768-128)]);
+set(gca,'FontSize',fontsize_use);
+str_sgtitle = sprintf('%s index_lambda %d lambda_dif %0.4f tmp_dvol_mag %0.6f tmp_N_image %d',str_fname_nopath_prefix,index_lambda,lambda_dif,tmp_dvol_mag,tmp_N_image);
+sgtitle(str_sgtitle,'Interpreter','none');
+str_subplot = sprintf('p%.4d_dvol%d',100*prct,ndvol);
+fname_fig_pre = sprintf('%s/%s_FIGK2_%s',str_dir_sub_jpg,str_fname_nopath_sub_prefix,str_subplot);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+fname_fig_eps = sprintf('%s.eps',fname_fig_pre);
+fname_fig_stripped_pre = sprintf('%s/%s_FIGK2_%s_stripped',str_dir_jpg_stripped,str_fname_nopath_sub_prefix,str_subplot);
+fname_fig_stripped_jpg = sprintf('%s.jpg',fname_fig_stripped_pre);
+fname_fig_stripped_eps = sprintf('%s.eps',fname_fig_stripped_pre);
+if flag_replot | ~exist(fname_fig_jpg,'file');
+disp(sprintf(' %% writing %s',fname_fig_pre));
+print('-djpeg',fname_fig_jpg);
+sgtitle('');
+print('-djpeg',fname_fig_stripped_jpg);
+end;%if flag_replot | ~exist(fname_fig_jpg,'file');
+close(gcf);
+end;%for ndvol=0:n_dvol-1;
+%%%%%%%%;
 end;%if flag_disp;
 
 %%%%;

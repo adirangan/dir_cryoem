@@ -1,13 +1,13 @@
-if  isempty(a_restore_C0M2_k_Y_yk__) & ~isempty(a_restore_C0M2_k_Y_yk_);
-a_restore_C0M2_k_Y_yk__ = local_yk__from_yk_(n_k_p_r,l_max_,a_restore_C0M2_k_Y_yk_);
-end;%if  isempty(a_restore_C0M2_k_Y_yk__) & ~isempty(a_restore_C0M2_k_Y_yk_);
+if  isempty(a_restore_C0M2_k_Y_quad_yk__) & ~isempty(a_restore_C0M2_k_Y_quad_yk_);
+a_restore_C0M2_k_Y_quad_yk__ = local_yk__from_yk_(n_k_p_r,l_max_,a_restore_C0M2_k_Y_quad_yk_);
+end;%if  isempty(a_restore_C0M2_k_Y_quad_yk__) & ~isempty(a_restore_C0M2_k_Y_quad_yk_);
 %%%%;
-if  isempty(a_restore_C0M2_k_Y_yk_) & ~isempty(a_restore_C0M2_k_Y_yk__);
-a_restore_C0M2_k_Y_yk_ = local_yk_from_yk__(n_k_p_r,l_max_,a_restore_C0M2_k_Y_yk__);
-end;%if  isempty(a_restore_C0M2_k_Y_yk_) & ~isempty(a_restore_C0M2_k_Y_yk__);
+if  isempty(a_restore_C0M2_k_Y_quad_yk_) & ~isempty(a_restore_C0M2_k_Y_quad_yk__);
+a_restore_C0M2_k_Y_quad_yk_ = local_yk_from_yk__(n_k_p_r,l_max_,a_restore_C0M2_k_Y_quad_yk__);
+end;%if  isempty(a_restore_C0M2_k_Y_quad_yk_) & ~isempty(a_restore_C0M2_k_Y_quad_yk__);
 %%%%;
-if  isempty(a_restore_C0M2_k_p_quad_) & ~isempty(a_restore_C0M2_k_Y_yk_);
-tmp_yk_ = a_restore_C0M2_k_Y_yk_; tmp_str = 'a_restore_C0M2_k_Y_yk_';
+if  isempty(a_restore_C0M2_k_p_quad_) & ~isempty(a_restore_C0M2_k_Y_quad_yk_);
+tmp_yk_ = a_restore_C0M2_k_Y_quad_yk_; tmp_str = 'a_restore_C0M2_k_Y_quad_yk_';
 %%%%;
 tmp_t = tic();
 %%%%;
@@ -43,5 +43,5 @@ convert_spharm_to_k_p_4( ...
 );
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% a_restore_C0M2: convert_spharm_to_k_p_4: time %0.2fs',tmp_t)); end;
 a_restore_C0M2_k_p_quad_ = tmp_quad_;
-end;%if  isempty(a_restore_C0M2_k_p_quad_) & ~isempty(a_restore_C0M2_k_Y_yk_);
+end;%if  isempty(a_restore_C0M2_k_p_quad_) & ~isempty(a_restore_C0M2_k_Y_quad_yk_);
 %%%%;

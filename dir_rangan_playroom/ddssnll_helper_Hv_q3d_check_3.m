@@ -1,10 +1,10 @@
 %%%%%%%%;
 Hvv_q3d_k_p_quad_ = dvol_a_k_p_quad_.*a_restore_C2M0_k_p_quad_;
-Hvv_q3d_k_Y_quad_yk_ = dvol_a_times_a_restore_C2M0_k_Y_yk_;
-Hvv_q3d_k_Y_quad_yk__ = dvol_a_times_a_restore_C2M0_k_Y_yk__;
+Hvv_q3d_k_Y_quad_yk_ = dvol_a_times_a_restore_C2M0_k_Y_quad_yk_;
+Hvv_q3d_k_Y_quad_yk__ = dvol_a_times_a_restore_C2M0_k_Y_quad_yk__;
 Hvt_q3d_k_p_quad_ = a_k_p_quad_.*dtau_a_restore_C2M0_k_p_quad_ - dtau_a_restore_C1M1_k_p_quad_;
-Hvt_q3d_k_Y_quad_yk_ = a_times_dtau_a_restore_C2M0_k_Y_yk_ - dtau_a_restore_C1M1_k_Y_yk_;
-Hvt_q3d_k_Y_quad_yk__ = a_times_dtau_a_restore_C2M0_k_Y_yk__ - dtau_a_restore_C1M1_k_Y_yk__;
+Hvt_q3d_k_Y_quad_yk_ = a_times_dtau_a_restore_C2M0_k_Y_quad_yk_ - dtau_a_restore_C1M1_k_Y_quad_yk_;
+Hvt_q3d_k_Y_quad_yk__ = a_times_dtau_a_restore_C2M0_k_Y_quad_yk__ - dtau_a_restore_C1M1_k_Y_quad_yk__;
 %%%%%%%%;
 Hv_q3d_k_p_quad_ = Hvv_q3d_k_p_quad_ + Hvt_q3d_k_p_quad_;
 Hv_q3d_k_Y_quad_yk__ = Hvv_q3d_k_Y_quad_yk__ + Hvt_q3d_k_Y_quad_yk__;

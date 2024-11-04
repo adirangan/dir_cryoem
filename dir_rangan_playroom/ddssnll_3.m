@@ -6,7 +6,7 @@ function ...
 ,Hv_q3d_k_Y_quad_yk__ ...
 ,Hv_q3d_k_p_quad_ ...
 ,Ht_q2d_M3__ ...
-,a_restore_C2M0_k_Y_yk_ ...
+,a_restore_C2M0_k_Y_quad_yk_ ...
 ,a_restore_C2M0_k_p_quad_ ...
 ,Hvv_q3d_k_Y_quad_yk_ ...
 ,Hvt_q3d_k_Y_quad_yk_ ...
@@ -213,15 +213,15 @@ end;%if (kernel_qpro_polar_a_pole_north + kernel_qpro_polar_a_pole_south > pi-1e
 if (flag_verbose>0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
-a_restore_C2M0_k_Y_yk_ = []; a_restore_C2M0_k_Y_yk__ = []; a_restore_C2M0_k_p_quad_ = [];
-a_restore_C1M1_k_Y_yk_ = []; a_restore_C1M1_k_Y_yk__ = []; a_restore_C1M1_k_p_quad_ = [];
-a_restore_C0M2_k_Y_yk_ = []; a_restore_C0M2_k_Y_yk__ = []; a_restore_C0M2_k_p_quad_ = [];
-dtau_a_restore_C2M0_k_Y_yk_ = []; dtau_a_restore_C2M0_k_Y_yk__ = []; dtau_a_restore_C2M0_k_p_quad_ = [];
-dtau_a_restore_C1M1_k_Y_yk_ = []; dtau_a_restore_C1M1_k_Y_yk__ = []; dtau_a_restore_C1M1_k_p_quad_ = [];
-dtau_a_restore_C0M2_k_Y_yk_ = []; dtau_a_restore_C0M2_k_Y_yk__ = []; dtau_a_restore_C0M2_k_p_quad_ = [];
-dtau_dtau_a_restore_C2M0_k_Y_yk_ = []; dtau_dtau_a_restore_C2M0_k_Y_yk__ = []; dtau_dtau_a_restore_C2M0_k_p_quad_ = [];
-dtau_dtau_a_restore_C1M1_k_Y_yk_ = []; dtau_dtau_a_restore_C1M1_k_Y_yk__ = []; dtau_dtau_a_restore_C1M1_k_p_quad_ = [];
-dtau_dtau_a_restore_C0M2_k_Y_yk_ = []; dtau_dtau_a_restore_C0M2_k_Y_yk__ = []; dtau_dtau_a_restore_C0M2_k_p_quad_ = [];
+a_restore_C2M0_k_Y_quad_yk_ = []; a_restore_C2M0_k_Y_quad_yk__ = []; a_restore_C2M0_k_p_quad_ = [];
+a_restore_C1M1_k_Y_quad_yk_ = []; a_restore_C1M1_k_Y_quad_yk__ = []; a_restore_C1M1_k_p_quad_ = [];
+a_restore_C0M2_k_Y_quad_yk_ = []; a_restore_C0M2_k_Y_quad_yk__ = []; a_restore_C0M2_k_p_quad_ = [];
+dtau_a_restore_C2M0_k_Y_quad_yk_ = []; dtau_a_restore_C2M0_k_Y_quad_yk__ = []; dtau_a_restore_C2M0_k_p_quad_ = [];
+dtau_a_restore_C1M1_k_Y_quad_yk_ = []; dtau_a_restore_C1M1_k_Y_quad_yk__ = []; dtau_a_restore_C1M1_k_p_quad_ = [];
+dtau_a_restore_C0M2_k_Y_quad_yk_ = []; dtau_a_restore_C0M2_k_Y_quad_yk__ = []; dtau_a_restore_C0M2_k_p_quad_ = [];
+dtau_dtau_a_restore_C2M0_k_Y_quad_yk_ = []; dtau_dtau_a_restore_C2M0_k_Y_quad_yk__ = []; dtau_dtau_a_restore_C2M0_k_p_quad_ = [];
+dtau_dtau_a_restore_C1M1_k_Y_quad_yk_ = []; dtau_dtau_a_restore_C1M1_k_Y_quad_yk__ = []; dtau_dtau_a_restore_C1M1_k_p_quad_ = [];
+dtau_dtau_a_restore_C0M2_k_Y_quad_yk_ = []; dtau_dtau_a_restore_C0M2_k_Y_quad_yk__ = []; dtau_dtau_a_restore_C0M2_k_p_quad_ = [];
 dtau_ssnll_q2d_M3__ = []; dtau_ssnll_q2d_3M__ = [];
 dtau_dtau_ssnll_q2d_M33___ = []; dtau_dtau_ssnll_q2d_33M___ = [];
 dtau_dvol_ssnll_q2d_M3__ = []; dtau_dvol_ssnll_q2d_3M__ = [];
@@ -235,6 +235,9 @@ n_3 = 3;
 ddssnll_helper_n_w_3; %<-- set indices. ;
 ddssnll_helper_Y_lmk_3; %<-- set indices. ;
 ddssnll_helper_weight_3d_riesz_3; %<-- set weights. ;
+%ddssnll_helper_hires_3; %<-- set up k_hires_p_quad grid. ;
+%disp('returning'); return;
+
 ddssnll_helper_reconfigure_a_3; %<-- reconfigure a. ;
 
 if  flag_dtau &  flag_dvol;
@@ -264,9 +267,11 @@ ddssnll_helper_reconfigure_dtau_3; %<-- reconfigure dtau. ;
 ddssnll_helper_a_restore_from_kappa_3; %<-- use kappa_qpro_apply to construct a_restore. ;
 ddssnll_helper_convert_a_restore_C2M0_3; %<-- Needed for Hvv_q3d. ;
 ddssnll_helper_convert_a_restore_C1M1_3;
+ddssnll_helper_convert_a_restore_C0M2_3;
 ddssnll_helper_convert_dtau_a_restore_C2M0_3;
 ddssnll_helper_convert_dtau_a_restore_C1M1_3;
-ddssnll_helper_convert_dvol_firstorder_from_dtau_3;
+ddssnll_helper_convert_dtau_a_restore_C0M2_3;
+ddssnll_helper_convert_dvol_firstorder_from_dtau_3; %<-- find critical dvol_a, given dtau. ;
 ddssnll_helper_dvol_from_dvol_firstorder_3; %<-- if dvol is empty. ;
 ddssnll_helper_reconfigure_dvol_a_3; %<-- reconfigure dvol_a. ;
 ddssnll_helper_reconfigure_dtau_3; %<-- reconfigure dtau. ;
@@ -303,10 +308,9 @@ ddssnll_helper_convert_a_times_a_3;
 ddssnll_helper_convert_dvol_a_times_dvol_a_3;
 ddssnll_helper_convert_a_times_a_restore_C2M0_3;
 
-%ddssnll_helper_reconstruct_check_3; return;
-
 ddssnll_helper_dtau_criticality_check_3;
 ddssnll_helper_dvol_criticality_check_3;
+ddssnll_helper_reconstruct_check_3;
 ddssnll_helper_ssnll_check_3;
 ddssnll_helper_dtau_ssnll_check_3;
 ddssnll_helper_dtau_dtau_ssnll_check_3;
@@ -326,10 +330,10 @@ end;%if flag_check;
 % Now we calculate the left-hand-side: ;
 %%%%%%%%;
 Hvv_q3d_k_p_quad_ = dvol_a_k_p_quad_.*a_restore_C2M0_k_p_quad_;
-Hvv_q3d_k_Y_quad_yk__ = dvol_a_times_a_restore_C2M0_k_Y_yk__;
+Hvv_q3d_k_Y_quad_yk__ = dvol_a_times_a_restore_C2M0_k_Y_quad_yk__;
 Htv_q2d_M3__ = dtau_dvol_ssnll_q2d_M3__;
 Hvt_q3d_k_p_quad_ = (a_k_p_quad_.*dtau_a_restore_C2M0_k_p_quad_ - dtau_a_restore_C1M1_k_p_quad_);
-Hvt_q3d_k_Y_quad_yk__ = (a_times_dtau_a_restore_C2M0_k_Y_yk__ - dtau_a_restore_C1M1_k_Y_yk__);
+Hvt_q3d_k_Y_quad_yk__ = (a_times_dtau_a_restore_C2M0_k_Y_quad_yk__ - dtau_a_restore_C1M1_k_Y_quad_yk__);
 Htt_q2d_M3__ = sum(bsxfun(@times,dtau_dtau_ssnll_q2d_M33___,reshape(dtau_M3__,[n_M,1,3])),[3]);
 %%%%%%%%;
 Hv_q3d_k_p_quad_ = Hvv_q3d_k_p_quad_ + Hvt_q3d_k_p_quad_;

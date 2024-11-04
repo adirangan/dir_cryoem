@@ -6,7 +6,7 @@ dvt = dvt_check;
 % Calculate the gradient: ;
 %%%%%%%%;
 dvol_ssnll_q3d_k_p_quad_ = + 1.0 * ( conj(a_k_p_quad_) .* (a_restore_C2M0_k_p_quad_) - conj(a_restore_C1M1_k_p_quad_) );
-dvol_ssnll_q3d_k_Y_quad_yk__ = + 1.0 * ( conj(a_times_a_restore_C2M0_k_Y_yk__) - conj(a_restore_C1M1_k_Y_yk__) );
+dvol_ssnll_q3d_k_Y_quad_yk__ = + 1.0 * ( conj(a_times_a_restore_C2M0_k_Y_quad_yk__) - conj(a_restore_C1M1_k_Y_quad_yk__) );
 dtau_ssnll_q2d_M3__ = dtau_ssnll_q2d_M3__ ;
 %%%%%%%%;
 dvol_ssnll_q3d_k_Y_quad_yk_ = local_yk_from_yk__(n_k_p_r,l_max_,dvol_ssnll_q3d_k_Y_quad_yk__);

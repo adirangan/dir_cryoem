@@ -82,6 +82,7 @@ hold off;
 xlim([0,pi]); xlabel('euler_polar_a_M_','Interpreter','none');
 ylabel('tmp_dtau_M3__','Interpreter','none');
 title('tmp_dtau_M3__','Interpreter','none');
+sgtitle(sprintf('flag_dtau %d flag_dvol %d (critical only if ~flag_dtau)',flag_dtau,flag_dvol),'Interpreter','none');
 drawnow();
 end;%if (flag_disp>1);
 end;%if flag_check;

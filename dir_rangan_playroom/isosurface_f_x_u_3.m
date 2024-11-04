@@ -1,28 +1,28 @@
 function ...
 [ ...
  parameter ...
-,v_ ...
+,d_v_ ...
 ] = ...
-isosurface_f_x_u_2( ...
+isosurface_f_x_u_3( ...
  parameter ...
 ,f_x_u___ ...
 ,g_x_u___ ...
 );
 
-str_thisfunction = 'isosurface_f_x_u_2';
+str_thisfunction = 'isosurface_f_x_u_3';
 
 na=0;
 if (nargin<1+na); parameter=[]; end; na=na+1;
 if (nargin<1+na); f_x_u___=[]; end; na=na+1;
 if (nargin<1+na); g_x_u___=[]; end; na=na+1;
 
-flag_multicolor = ~isempty(g_x_u___);
-
 if isempty(parameter); parameter = struct('type','parameter'); end;
 if ~isfield(parameter,'tolerance_master'); parameter.tolerance_master = 1e-2; end;
 tolerance_master = parameter.tolerance_master;
 if ~isfield(parameter,'flag_verbose'); parameter.flag_verbose = 0; end;
 flag_verbose = parameter.flag_verbose;
+if ~isfield(parameter,'flag_plot'); parameter.flag_plot = 1; end;
+flag_plot = parameter.flag_plot;
 if ~isfield(parameter,'flag_projection'); parameter.flag_projection = 0; end;
 flag_projection = parameter.flag_projection;
 if ~isfield(parameter,'flag_collapse'); parameter.flag_collapse = 1; end;
@@ -43,11 +43,11 @@ if ~isfield(parameter,'vlim_'); parameter.vlim_ = prctile(real(f_x_u___(:)), [1,
 vlim_ = parameter.vlim_;
 if ~isfield(parameter,'v_alpha'); parameter.v_alpha = 1; end;
 v_alpha = parameter.v_alpha;
-if ~isfield(parameter,'c_use__'); parameter.c_use__ = flipud(colormap('spring')); end;
+if ~isfield(parameter,'c_use__'); parameter.c_use__ = colormap('spring'); parameter.c_use__ = flipud(parameter.c_use__); end;
 c_use__ = parameter.c_use__; n_c_use = size(c_use__,1);
 if ~isfield(parameter,'vlim_g_'); parameter.vlim_g_ = []; end;
 vlim_g_ = parameter.vlim_g_;
-if ~isfield(parameter,'c_use_g__'); parameter.c_use_g__ = flipud(colormap_pm); end;
+if ~isfield(parameter,'c_use_g__'); parameter.c_use_g__ = colormap_81s; parameter.c_use_g__ = flipud(parameter.c_use_g__); end;
 c_use_g__ = parameter.c_use_g__; n_c_use_g = size(c_use_g__,1);
 
 if (flag_verbose> 0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
@@ -70,7 +70,6 @@ x_2_ = transpose(linspace(min(x_2_lim_),max(x_2_lim_),1+n_x_2)); x_2_ = x_2_(1:e
 [x_0___,x_1___,x_2___] = meshgrid(x_0_,x_1_,x_2_); %<-- note that isosurface requires meshgrid, not ndgrid. ;
 
 %%%%%%%%;
-if flag_multicolor;
 if (ndims(g_x_u___)~=3);
 n_d = round(numel(g_x_u___).^(1/3));
 if (numel(g_x_u___)~=n_d^3); disp(sprintf(' %% Warning, improper dimension in %s',str_thisfunction)); end;
@@ -85,10 +84,9 @@ x_g_0_ = transpose(linspace(min(x_0_lim_),max(x_0_lim_),1+n_x_g_0)); x_g_0_ = x_
 x_g_1_ = transpose(linspace(min(x_1_lim_),max(x_1_lim_),1+n_x_g_1)); x_g_1_ = x_g_1_(1:end-1); dx_g_1 = mean(diff(x_g_1_));
 x_g_2_ = transpose(linspace(min(x_2_lim_),max(x_2_lim_),1+n_x_g_2)); x_g_2_ = x_g_2_(1:end-1); dx_g_2 = mean(diff(x_g_2_));
 [x_g_0___,x_g_1___,x_g_2___] = meshgrid(x_g_0_,x_g_1_,x_g_2_); %<-- note that isosurface requires meshgrid, not ndgrid. ;
-if isempty(vlim_g_); vlim_g_ = prctile(real(g_x_u___(:)), [1,99]); end;
-end;%if flag_multicolor;
+if isempty(vlim_g_); vlim_g_ = [0,0.5]; end;
 
-if  flag_projection;
+if  flag_plot &  flag_projection;
 %%%%%%%%;
 f_x_u_01__ = mean(f_x_u___,1+2);
 nc_01__ = max(0,min(n_c_use-1,floor(n_c_use*(f_x_u_01__(:)-min(vlim_))/max(1e-12,diff(vlim_)))));
@@ -123,49 +121,84 @@ hold on;
 patch(tmp_x_0__,tmp_x_1__,tmp_x_2__,tmp_c___,'LineStyle','none','EdgeColor','none');
 hold off;
 %%%%%%%%;
-end;%if  flag_projection;
+end;%if  flag_plot &  flag_projection;
 
+d_v_ = [];
 %%%%%%%%;
+if  flag_plot;
 hold on;
 if flag_boxgrid; plot_box_grid_0; end;% if flag_collapse
+end;%if  flag_plot;
 %%%%%%%%;
 n_vval = numel(vval_);
 for nvval=n_vval-1:-1:0;
 vval = vval_(1+nvval);
-[tmp_faces_,tmp_vertices_] = isosurface(x_0___,x_1___,x_2___,permute(f_x_u___,[2,1,3]),vval);
-n_face = size(tmp_faces_,1);
-n_vertex = size(tmp_vertices_,1);
-if ~flag_multicolor;
-nc_f = max(0,min(n_c_use-1,floor(n_c_use*(vval-min(vlim_))/max(1e-12,diff(vlim_)))));
-tmp_cdata_f_ = repmat(c_use__(1+nc_f,:),[n_face,1]);
-tmp_cdata_v_ = repmat(c_use__(1+nc_f,:),[n_vertex,1]);
-end;%if ~flag_multicolor;
-if  flag_multicolor;
-nc_use_g = max(0,min(n_c_use_g-1,floor(n_c_use_g*(vval-min(vlim_g_))/max(1e-12,diff(vlim_g_)))));
-face_center_0_v_ = mean(reshape(tmp_vertices_(tmp_faces_(:),1+0),[n_face,3]),2);
-face_center_1_v_ = mean(reshape(tmp_vertices_(tmp_faces_(:),1+1),[n_face,3]),2);
-face_center_2_v_ = mean(reshape(tmp_vertices_(tmp_faces_(:),1+2),[n_face,3]),2);
-g_f_ = interp3(x_g_0___,x_g_1___,x_g_2___,g_x_u___,face_center_0_v_,face_center_1_v_,face_center_2_v_);
-nc_f_ = max(0,min(n_c_use_g-1,floor(n_c_use_g*(g_f_-min(vlim_g_))/max(1e-12,diff(vlim_g_)))));
-tmp_cdata_f_ = reshape(c_use_g__(1+nc_f_,:),[n_face,3]);
-g_v_ = interp3(x_g_0___,x_g_1___,x_g_2___,g_x_u___,tmp_vertices_(:,1+0),tmp_vertices_(:,1+1),tmp_vertices_(:,1+2));
-nc_v_ = max(0,min(n_c_use_g-1,floor(n_c_use_g*(g_v_-min(vlim_g_))/max(1e-12,diff(vlim_g_)))));
-tmp_cdata_v_ = reshape(c_use_g__(1+nc_v_,:),[n_vertex,3]);
-end;%if  flag_multicolor;
+[tmp_faces_f_,tmp_vertices_f_] = isosurface(x_0___,x_1___,x_2___,permute(f_x_u___,[2,1,3]),vval);
+[tmp_faces_g_,tmp_vertices_g_] = isosurface(x_g_0___,x_g_1___,x_g_2___,permute(g_x_u___,[2,1,3]),vval);
+n_face_f = size(tmp_faces_f_,1);
+n_vertex_f = size(tmp_vertices_f_,1);
+%%%%;
+
+max(tmp_faces_f_(:)),;
+n_vertex_f,;
+tmp_faces_f_(2,:),
+tmp_vertices_f_(2,:),
+
+[ij_v8__,d_v8__] = knnsearch(tmp_vertices_g_,tmp_vertices_f_,'K',8);
+a0_v_ = tmp_vertices_g_(ij_v8__(:,1+0),:);
+a1_v_ = tmp_vertices_g_(ij_v8__(:,1+1),:);
+a2_v_ = tmp_vertices_g_(ij_v8__(:,1+2),:);
+a3_v_ = tmp_vertices_g_(ij_v8__(:,1+3),:);
+a4_v_ = tmp_vertices_g_(ij_v8__(:,1+4),:);
+a5_v_ = tmp_vertices_g_(ij_v8__(:,1+5),:);
+a6_v_ = tmp_vertices_g_(ij_v8__(:,1+6),:);
+a7_v_ = tmp_vertices_g_(ij_v8__(:,1+7),:);
+abar_v_ = (a0_v_ + a1_v_ + a2_v_)/3.0;
+d01_v_ = a0_v_ - a1_v_;
+d12_v_ = a1_v_ - a2_v_;
+d20_v_ = a2_v_ - a0_v_;
+dperp012_v_ = cross(d01_v_,d12_v_,2);
+dperp012_v_l2_ = sqrt(sum(abs(dperp012_v_).^2,2));
+dperp120_v_ = cross(d12_v_,d20_v_,2);
+dperp120_v_l2_ = sqrt(sum(abs(dperp120_v_).^2,2));
+dperp201_v_ = cross(d20_v_,d01_v_,2);
+dperp201_v_l2_ = sqrt(sum(abs(dperp201_v_).^2,2));
+%%%%;
+dperp_v_ = dperp012_v_ ;
+dperp_v_l2_ = dperp012_v_l2_ ;
+tmp_index_ = efind(dperp120_v_l2_>dperp_v_l2_);
+dperp_v_(1+tmp_index_,:) = dperp120_v_(1+tmp_index_,:) ;
+dperp_v_l2_(1+tmp_index_) = dperp120_v_l2_(1+tmp_index_,:) ;
+tmp_index_ = efind(dperp201_v_l2_>dperp_v_l2_);
+dperp_v_(1+tmp_index_,:) = dperp201_v_(1+tmp_index_,:) ;
+dperp_v_l2_(1+tmp_index_) = dperp201_v_l2_(1+tmp_index_,:) ;
+%%%%;
+dperp_v_ = bsxfun(@rdivide,dperp_v_,max(1e-12,dperp_v_l2_));
+d_v_ = abs(sum((tmp_vertices_f_ - abar_v_).*dperp_v_,2));
+subplot(1,2,1);
+plot(dperp_v_l2_,'o');
+subplot(1,2,2);
+plot(d_v8__(:,1),d_v_,'o');
+return;
+
+%d_v_ = d_v8__(:,1);
+nc_use_v_ = max(0,min(n_c_use_g-1,floor(n_c_use_g*(d_v_-min(vlim_g_))/diff(vlim_g_))));
+tmp_cdata_v_ = reshape(c_use_g__(1+nc_use_v_,:),[n_vertex_f,3]);
 %%%%%%%%;
-if flag_collapse;
-tmp_vertices_0_ = bsxfun(@plus,[max(x_0_lim_),0,0],bsxfun(@times,[+1e-3,-1,+1],tmp_vertices_));
-spatch = patch('Faces',tmp_faces_,'Vertices',tmp_vertices_0_,'FaceVertexCData',tmp_cdata_v_,'EdgeColor','none','FaceColor','interp');
+if  flag_plot &  flag_collapse;
+tmp_vertices_f_0_ = bsxfun(@plus,[max(x_0_lim_),0,0],bsxfun(@times,[+1e-3,-1,+1],tmp_vertices_f_));
+spatch = patch('Faces',tmp_faces_f_,'Vertices',tmp_vertices_f_0_,'FaceVertexCData',tmp_cdata_v_,'EdgeColor','none','FaceColor','interp');
 alpha(spatch,v_alpha);
-tmp_vertices_1_ = bsxfun(@plus,[0,max(x_1_lim_),0],bsxfun(@times,[-1,+1e-3,+1],tmp_vertices_));
-spatch = patch('Faces',tmp_faces_,'Vertices',tmp_vertices_1_,'FaceVertexCData',tmp_cdata_v_,'EdgeColor','none','FaceColor','interp');
+tmp_vertices_f_1_ = bsxfun(@plus,[0,max(x_1_lim_),0],bsxfun(@times,[-1,+1e-3,+1],tmp_vertices_f_));
+spatch = patch('Faces',tmp_faces_f_,'Vertices',tmp_vertices_f_1_,'FaceVertexCData',tmp_cdata_v_,'EdgeColor','none','FaceColor','interp');
 alpha(spatch,v_alpha);
-tmp_vertices_2_ = bsxfun(@plus,[0,0,min(x_0_lim_)],bsxfun(@times,[+1,+1,-1e-3],tmp_vertices_));
-spatch = patch('Faces',tmp_faces_,'Vertices',tmp_vertices_2_,'FaceVertexCData',tmp_cdata_v_,'EdgeColor','none','FaceColor','interp');
+tmp_vertices_f_2_ = bsxfun(@plus,[0,0,min(x_0_lim_)],bsxfun(@times,[+1,+1,-1e-3],tmp_vertices_f_));
+spatch = patch('Faces',tmp_faces_f_,'Vertices',tmp_vertices_f_2_,'FaceVertexCData',tmp_cdata_v_,'EdgeColor','none','FaceColor','interp');
 alpha(spatch,v_alpha);
-end;%if flag_collapse;
+end;%if  flag_plot &  flag_collapse;
 %%%%%%%%;
-hpatch = patch('Faces',tmp_faces_,'Vertices',tmp_vertices_,'FaceVertexCData',tmp_cdata_v_,'EdgeColor','none','FaceColor','interp');
+if  flag_plot;
+hpatch = patch('Faces',tmp_faces_f_,'Vertices',tmp_vertices_f_,'FaceVertexCData',tmp_cdata_v_,'EdgeColor','none','FaceColor','interp');
 alpha(hpatch,v_alpha);
 isonormals(x_0___,x_1___,x_2___,permute(f_x_u___,[2,1,3]),hpatch);
 xlim(x_0_lim_); ylim(x_1_lim_); zlim(x_2_lim_);
@@ -177,6 +210,7 @@ end;%for nvval=n_vval-1:-1:0;
 if (n_vval<=1);camlight left; lighting gouraud; end;
 hold off;
 figbig;
+end;%if  flag_plot;
 %%%%%%%%;
 
 if (flag_verbose> 0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;

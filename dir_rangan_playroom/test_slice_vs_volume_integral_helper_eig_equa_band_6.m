@@ -21,6 +21,17 @@ flag_calc = flag_128G;
 if flag_calc;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
+%%%%%%%%;
+% degree-limit. ;
+%%%%%%%%;
+l_band = l_max_max;%l_band = floor(l_max_max/2);
+if (flag_verbose>0); disp(sprintf(' %% l_band %d l_max_max %d',l_band,l_max_max)); end;
+n_lm_band = (l_band + 1)^2;
+a_k_Y_band_yk__ = local_yk__from_yk_(n_k_p_r,l_max_,a_k_Y_quad_yk_);
+tmp_index_ = setdiff(0:n_lm_sum-1,[0:n_lm_band-1]);
+a_k_Y_band_yk__(1+tmp_index_,:) = 0;
+a_k_Y_band_yk_ = local_yk_from_yk__(n_k_p_r,l_max_,a_k_Y_band_yk__);
+
 %%%%;
 n_3 = 3;
 if ~exist('KAPPA','var'); KAPPA=[]; end;
@@ -54,7 +65,7 @@ if ~exist('pm_d2W_betazeta_mlma____','var'); pm_d2W_betazeta_mlma____=[]; end;
 % If necessary, calculate the idealized principal-modes for unit CTF. ;
 %%%%%%%%;
 if ~exist('X_2d_x1_d0_kk__','var');
-[X_2d_x1_d0_kk__,X_2d_x1_d0_weight_r_] = principled_marching_cost_matrix_6(n_k_p_r,k_p_r_,weight_2d_k_p_r_,l_max_,[],[],a_k_Y_quad_yk_);
+[X_2d_x1_d0_kk__,X_2d_x1_d0_weight_r_] = principled_marching_cost_matrix_6(n_k_p_r,k_p_r_,weight_2d_k_p_r_,l_max_,[],[],a_k_Y_band_yk_);
 end;%if ~exist('X_2d_x1_d0_kk__','var');
 %%%%%%%%;
 % Now determine principal-modes. ;
@@ -128,13 +139,13 @@ for nk_p_r=0:n_k_p_r-1;
 tmp_l_max = l_max_(1+nk_p_r);
 tmp_n_lm = (tmp_l_max+1).^2;
 tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:tmp_n_lm-1);
-a_x1_UX_Y_quad_yn__(1:tmp_n_lm,1+nUX_rank) = a_x1_UX_Y_quad_yn__(1:tmp_n_lm,1+nUX_rank) + UX_kn__(1+nk_p_r,1+nUX_rank)*X_weight_r_(1+nk_p_r)*a_k_Y_quad_yk_(1+tmp_index_);
+a_x1_UX_Y_quad_yn__(1:tmp_n_lm,1+nUX_rank) = a_x1_UX_Y_quad_yn__(1:tmp_n_lm,1+nUX_rank) + UX_kn__(1+nk_p_r,1+nUX_rank)*X_weight_r_(1+nk_p_r)*a_k_Y_band_yk_(1+tmp_index_);
 end;%for nk_p_r=0:n_k_p_r-1;
 end;%for nUX_rank=0:pm_n_UX_rank-1;
 a_x1_UX_Y_quad_yn_ = local_yk_from_yk__(pm_n_k_p_r,pm_l_max_,a_x1_UX_Y_quad_yn__);
 if (flag_verbose>0); disp(sprintf(' %% a_x1_UX_Y_quad_yn_ vs a_x1_UX_Y_quad_yn__(:): %0.16f',fnorm(a_x1_UX_Y_quad_yn_-a_x1_UX_Y_quad_yn__(:)))); end;
-pm_a_k_Y_quad_yk__ = a_x1_UX_Y_quad_yn__;
-pm_a_k_Y_quad_yk_ = a_x1_UX_Y_quad_yn_;
+pm_a_k_Y_band_yk__ = a_x1_UX_Y_quad_yn__;
+pm_a_k_Y_band_yk_ = a_x1_UX_Y_quad_yn_;
 %%%%;
 flag_check=1;
 if flag_check;
@@ -147,14 +158,14 @@ tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:tmp_n_lm-1);
 a_k_Y_reco_yk_(1+tmp_index_) = a_k_Y_reco_yk_(1+tmp_index_) + UX_kn__(1+nk_p_r,1+nUX_rank)/max(1e-12,X_weight_r_(1+nk_p_r))*a_x1_UX_Y_quad_yn__(1:tmp_n_lm,1+nUX_rank);
 end;%for nk_p_r=0:n_k_p_r-1;
 end;%for nUX_rank=0:pm_n_UX_rank-1;
-a_k_Y_diff_yk_ = a_k_Y_quad_yk_ - a_k_Y_reco_yk_;
-[~,~,a_k_Y_quad_l3] = spharm_normalize_2(n_k_p_r,k_p_r_,weight_3d_k_p_r_,l_max_,a_k_Y_quad_yk_,0);
+a_k_Y_diff_yk_ = a_k_Y_band_yk_ - a_k_Y_reco_yk_;
+[~,~,a_k_Y_quad_l3] = spharm_normalize_2(n_k_p_r,k_p_r_,weight_3d_k_p_r_,l_max_,a_k_Y_band_yk_,0);
 [~,~,a_k_Y_reco_l3] = spharm_normalize_2(n_k_p_r,k_p_r_,weight_3d_k_p_r_,l_max_,a_k_Y_reco_yk_,0);
 [~,~,a_k_Y_diff_l3] = spharm_normalize_2(n_k_p_r,k_p_r_,weight_3d_k_p_r_,l_max_,a_k_Y_diff_yk_,0);
-[~,~,a_k_Y_quad_l2] = spharm_normalize_2(n_k_p_r,k_p_r_,weight_2d_k_p_r_,l_max_,a_k_Y_quad_yk_,0);
+[~,~,a_k_Y_quad_l2] = spharm_normalize_2(n_k_p_r,k_p_r_,weight_2d_k_p_r_,l_max_,a_k_Y_band_yk_,0);
 [~,~,a_k_Y_reco_l2] = spharm_normalize_2(n_k_p_r,k_p_r_,weight_2d_k_p_r_,l_max_,a_k_Y_reco_yk_,0);
-[~,~,pm_a_k_Y_quad_l3] = spharm_normalize_2(pm_n_k_p_r,pm_k_p_r_,pm_weight_3d_k_p_r_,pm_l_max_,pm_a_k_Y_quad_yk_,0);
-if (flag_verbose>0); disp(sprintf(' %% a_k_Y_quad_yk_ vs a_k_Y_reco_yk_: %0.16f %%<-- will not be small if tolerance_pm> 0',a_k_Y_diff_l3/max(1e-12,a_k_Y_quad_l3))); end;
+[~,~,pm_a_k_Y_quad_l3] = spharm_normalize_2(pm_n_k_p_r,pm_k_p_r_,pm_weight_3d_k_p_r_,pm_l_max_,pm_a_k_Y_band_yk_,0);
+if (flag_verbose>0); disp(sprintf(' %% a_k_Y_band_yk_ vs a_k_Y_reco_yk_: %0.16f %%<-- will not be small if tolerance_pm> 0',a_k_Y_diff_l3/max(1e-12,a_k_Y_quad_l3))); end;
 if (flag_verbose>0); disp(sprintf(' %% a_k_Y_quad_l3 %0.6f',a_k_Y_quad_l3)); end;
 if (flag_verbose>0); disp(sprintf(' %% a_k_Y_reco_l3 %0.6f',a_k_Y_reco_l3)); end;
 if (flag_verbose>0); disp(sprintf(' %% a_k_Y_quad_l2 %0.6f',a_k_Y_quad_l2)); end;
@@ -232,7 +243,7 @@ end;%if ( exist(fname_fig_jpg,'file'));
 
 flag_check=1;
 if flag_check;
-fname_fig_pre = sprintf('%s_jpg/pm_a_k_Y_quad_yk__reco_FIGC',dir_ssnll);
+fname_fig_pre = sprintf('%s_jpg/pm_a_k_Y_band_yk__reco_FIGC',dir_ssnll);
 fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
 if (flag_replot | ~exist(fname_fig_jpg,'file'));
 disp(sprintf(' %% %s not found, creating',fname_fig_pre));
@@ -254,7 +265,7 @@ tmp_n_lm = (tmp_l_max+1).^2;
 tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:tmp_n_lm-1);
 pm_tmp_n_lm = (pm_tmp_l_max+1).^2;
 pm_tmp_index_ = pm_n_lm_csum_(1+pm_nk_p_r) + (0:pm_tmp_n_lm-1);
-a_k_Y_reco_yk_(1+tmp_index_) = a_k_Y_reco_yk_(1+tmp_index_) + UX_kn__(1+nk_p_r,1+pm_nk_p_r)/max(1e-12,X_weight_r_(1+nk_p_r))*pm_a_k_Y_quad_yk__(1:tmp_n_lm,1+pm_nk_p_r);
+a_k_Y_reco_yk_(1+tmp_index_) = a_k_Y_reco_yk_(1+tmp_index_) + UX_kn__(1+nk_p_r,1+pm_nk_p_r)/max(1e-12,X_weight_r_(1+nk_p_r))*pm_a_k_Y_band_yk__(1:tmp_n_lm,1+pm_nk_p_r);
 end;%for nk_p_r=0:n_k_p_r-1;
 %%%%;
 tmp_a_k_p_reco_ = zeros(n_k_all,1);
@@ -484,9 +495,27 @@ if (flag_verbose>0); disp(sprintf(' %% pm_M_hir_k_p_wkM__ vs pm_M_lor_k_p_wkM__:
 %%%%%%%%;
 % set up alignment perturbation. ;
 %%%%%%%%;
+flag_rand_vs_equa=0;
+if flag_rand_vs_equa==0;
+if (flag_verbose>0); disp(sprintf(' %% setting equa_band viewing-angles')); end;
 dtau_euler_polar_a_M_hir_ = zeros(n_M_hir,1);
 dtau_euler_azimu_b_M_hir_ = sin(2*euler_azimu_b_M_hir_);
 dtau_euler_gamma_z_M_hir_ = zeros(n_M_hir,1);
+end;%if flag_rand_vs_equa==0;
+if flag_rand_vs_equa==1;
+if (flag_verbose>0); disp(sprintf(' %% setting random viewing-angles')); end;
+dtau_euler_polar_a_M_hir_ = randn(n_M_hir,1);
+dtau_euler_azimu_b_M_hir_ = randn(n_M_hir,1);
+dtau_euler_gamma_z_M_hir_ = randn(n_M_hir,1);
+n_S_hir = [];
+pm_S_hir_k_p_wkS__ = [];
+viewing_polar_a_S_hir_ = [];
+viewing_azimu_b_S_hir_ = [];
+viewing_weight_S_hir_ = [];
+n_viewing_polar_a_hir = [];
+viewing_polar_a_hir_ = [];
+n_viewing_azimu_b_hir_ = [];
+end;%if flag_rand_vs_equa==1;
 
 %%%%%%%%;
 % Now call ddssnll_3. ;
@@ -518,8 +547,8 @@ parameter_ddssnll.flag_kernel_full = KAPPA_flag_kernel_full;
 ,Hvt_q3d_k_Y_quad_yk_ ...
 ,Htv_q2d_M3__ ...
 ,Htt_q2d_M3__ ...
-,dvol_a_k_Y_quad_yk_ ...
-,dvol_a_k_Y_quad_yk__ ...
+,dvol_a_k_Y_band_yk_ ...
+,dvol_a_k_Y_band_yk__ ...
 ,dvol_a_k_p_quad_ ...
 ,dtau_euler_polar_a_M_hir_ ...
 ,dtau_euler_azimu_b_M_hir_ ...
@@ -541,8 +570,8 @@ ddssnll_3( ...
 ,pm_k_p_r_ ...
 ,pm_k_p_r_max ...
 ,pm_l_max_ ...
-,pm_a_k_Y_quad_yk_ ...
-,pm_a_k_Y_quad_yk__ ...
+,[] ...
+,pm_a_k_Y_band_yk__ ...
 ,[] ...
 ,[] ...
 ,pm_n_k_all ...

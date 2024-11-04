@@ -34,7 +34,7 @@ table_data__ = { ...
 n_experiment = size(table_data__,1);
 %%%%%%%%;
 tmp_ = clock;rng(tmp_(end));
-for nexperiment=2;%for nexperiment=(randperm(n_experiment)-1);
+for nexperiment=[0,1,2,3];%for nexperiment=(randperm(n_experiment)-1);
 na=0;
 fname_prefix = table_data__{1+nexperiment,1+na}; na=na+1;
 dir_nopath_data_star = table_data__{1+nexperiment,1+na}; na=na+1;
@@ -65,8 +65,9 @@ end;%for nexperiment=0:n_experiment-1;
 disp('returning');return;
 end;%if (nargin<1);
 
-% fname_prefix = 'rib80s_x0'; dir_nopath_data_star = 'rib80s'; Pixel_Spacing = 1.34; fname_nopath_volume = 'emd_2660.mrc'; fname_nopath_star = 'shiny_2sets.star'; n_M_star = 1024; global_parameter = struct('type','parameter');
 % fname_prefix = 'ISWINCP_x0'; dir_nopath_data_star = 'ISWINCP'; Pixel_Spacing = 1.07; fname_nopath_volume = 'emd_9718.map'; fname_nopath_star = 'ADPBeF.star'; n_M_star = 1024; global_parameter = struct('type','parameter');
+% fname_prefix = 'trpv1_x0'; dir_nopath_data_star = 'trpv1'; Pixel_Spacing = 1.2156; fname_nopath_volume = 'emd_5778.mrc'; fname_nopath_star = 'tv1_relion_data.star'; n_M_star = 1024*8; global_parameter = struct('type','parameter');
+% fname_prefix = 'rib80s_x0'; dir_nopath_data_star = 'rib80s'; Pixel_Spacing = 1.34; fname_nopath_volume = 'emd_2660.mrc'; fname_nopath_star = 'shiny_2sets.star'; n_M_star = 1024; global_parameter = struct('type','parameter');
 % fname_prefix = 'MlaFEDB_x0'; dir_nopath_data_star = 'MlaFEDB'; Pixel_Spacing = 0.832; fname_nopath_volume = 'emd_22116.map'; fname_nopath_star = 'Empiar_10536_00_to_23.star'; n_M_star = 1024; global_parameter = struct('type','parameter');
 
 %%%%%%%%;
@@ -90,6 +91,7 @@ KAPPA_flag_kernel_full = 1;
 KAPPA_pole_north_double = 12*pi/24;
 KAPPA_pole_south_double = 12*pi/24;
 KAPPA_qref_k_eq_d_double = 1.0;
+pm_n_UX_rank_max = +Inf;
 lanczos_n_iteration_max = 32;
 end;%if k_int==16;
 if k_int==48;
@@ -100,6 +102,7 @@ KAPPA_flag_kernel_full = 1;
 KAPPA_pole_north_double = 12*pi/24;
 KAPPA_pole_south_double = 12*pi/24;
 KAPPA_qref_k_eq_d_double = 1.00;
+pm_n_UX_rank_max = +Inf;
 lanczos_n_iteration_max = 32;
 end;%if k_int==48;
 
@@ -1848,8 +1851,10 @@ end;%for nk_p_r=0:n_k_p_r-1;
 %%%%%%%%;
 
 %%%%%%%%;
-test_slice_vs_volume_integral_helper_eig_imagecount_6;
-test_slice_vs_volume_integral_helper_eig_reco_empi_7;
+test_slice_vs_volume_integral_helper_eig_imagecount_6; %<-- afterwards run test_slice_vs_volume_integral_helper_eig_imagecount_helper_0;
+test_slice_vs_volume_integral_helper_eig_imagecount_helper_0;
+test_slice_vs_volume_integral_helper_eig_reco_empi_7; %<-- afterwards run test_slice_vs_volume_integral_helper_eig_reco_empi_helper_1;
+test_slice_vs_volume_integral_helper_eig_reco_empi_helper_1;
 %%%%%%%%;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;

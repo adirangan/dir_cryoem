@@ -16,16 +16,18 @@ if nargin<1;
 disp(sprintf(' %% testing %s',str_thisfunction));
 parameter = struct('type','parameter');
 parameter.flag_verbose = 0; parameter.flag_disp = 0;
-parameter.kernel_l_max_use = 49;
-parameter.kernel_l_max_ext = ceil(1.25*49);
-parameter.flag_kernel_full = 1; %<-- if set to 1 then use full brute-force kernel. ;
-parameter.kernel_qpro_polar_a_pole_north=1*pi/24;
-parameter.kernel_qpro_polar_a_pole_south=1*pi/24;
+parameter.kernel_qpro_l_max_use = 49;
+parameter.kernel_qpro_l_max_ext = ceil(1.25*49);
+parameter.kernel_qpro_l_max_band = floor(parameter.kernel_qpro_l_max_use/2)-1;
+parameter.flag_kernel_full = 0; %<-- if set to 1 then use full brute-force kernel. ;
+parameter.kernel_qpro_polar_a_pole_north=5*pi/24;
+parameter.kernel_qpro_polar_a_pole_south=3*pi/24;
 parameter.kernel_qpro_qref_k_eq_d_double = 0.25;
 [~,KAPPA] = kappa_qpro_1(parameter);
 %%%%%%%%;
 flag_verbose = 1; flag_disp = 1; nf=0;
 l_max = KAPPA.l_max_use;
+l_max_band = KAPPA.l_max_band;
 Rz = KAPPA.Rz;
 dRz = KAPPA.dRz;
 Ry = KAPPA.Ry;
@@ -54,6 +56,16 @@ chebfun_kernel_norm_qpro_ = KAPPA.chebfun_kernel_norm_qpro_;
 Y_l_val_ = KAPPA.Y_l_val_use_;
 Y_m_val_ = KAPPA.Y_m_val_use_;
 Ylm_weight_yq__ = KAPPA.Ylm_use_weight_yq__;
+if (flag_verbose>0);
+  disp(sprintf(' %% KAPPA.qref_k_eq_d %+0.6f',KAPPA.qref_k_eq_d));
+  disp(sprintf(' %% KAPPA.n_ring_north %+0.6f',KAPPA.n_ring_north));
+  disp(sprintf(' %% KAPPA.n_nearest_north %+0.6f',KAPPA.n_nearest_north));
+  disp(sprintf(' %% KAPPA.n_ring_south %+0.6f',KAPPA.n_ring_south));
+  disp(sprintf(' %% KAPPA.n_nearest_south %+0.6f',KAPPA.n_nearest_south));
+  disp(sprintf(' %% KAPPA.n_nearest_total %+0.6f',KAPPA.n_nearest_total));
+  disp(sprintf(' %% KAPPA.qref_n_shell %+0.6f',KAPPA.qref_n_shell));
+  disp(sprintf(' %% KAPPA.qref_n_polar_a %+0.6f',KAPPA.qref_n_polar_a));
+end;%if (flag_verbose>0);
 %%%%;
 % build grid on shell. ;
 %%%%;
@@ -100,7 +112,7 @@ weight_3d_k_p_r_ = 4*pi;
 %%%%;
 % build delta-function on shell. ;
 %%%%;
-a_deltafunct_I_I_k_Y_lm_ = sqrt(2*pi)*sqrt(4*pi)*sqrt(1+2*Y_l_val_).*(Y_m_val_==0);
+a_deltafunct_band_I_I_k_Y_lm_ = sqrt(2*pi)*sqrt(4*pi)*sqrt(1+2*Y_l_val_).*(Y_m_val_==0).*(Y_l_val_<=l_max_band);
 if ~exist('Ylm_uklma___','var'); Ylm_uklma___=[]; end;
 if ~exist('k_p_azimu_b_sub_uka__','var'); k_p_azimu_b_sub_uka__ = []; end;
 if ~exist('k_p_polar_a_sub_uka__','var'); k_p_polar_a_sub_uka__ = []; end;
@@ -108,7 +120,7 @@ if ~exist('l_max_uk_','var'); l_max_uk_ = []; end;
 if ~exist('index_nu_n_k_per_shell_from_nk_p_r_','var'); index_nu_n_k_per_shell_from_nk_p_r_ = []; end;
 if ~exist('index_k_per_shell_uka__','var'); index_k_per_shell_uka__ = []; end;
 [ ...
- a_deltafunct_I_I_k_p_quad_ ...
+ a_deltafunct_band_I_I_k_p_quad_ ...
 ,Ylm_uklma___ ...
 ,k_p_azimu_b_sub_uka__ ...
 ,k_p_polar_a_sub_uka__ ...
@@ -129,7 +141,7 @@ convert_spharm_to_k_p_4( ...
 ,k_p_r_ ...
 ,weight_3d_k_p_r_ ...
 ,l_max ...
-,a_deltafunct_I_I_k_Y_lm_ ...
+,a_deltafunct_band_I_I_k_Y_lm_ ...
 ,Ylm_uklma___ ...
 ,k_p_azimu_b_sub_uka__ ...
 ,k_p_polar_a_sub_uka__ ...
@@ -142,7 +154,7 @@ convert_spharm_to_k_p_4( ...
 %%%%;
 kernel_qpro_k_Y_form_ = zeros(n_lm,1);
 kernel_qpro_k_Y_form_(1+l_val_.^2 + l_val_) = kappa_norm_(1+l_val_);
-deconvolve_lm_ = (sqrt(4*pi)*sqrt(1+2*Y_l_val_))./max(1e-12,kappa_norm_(1+Y_l_val_));
+deconvolve_lm_ = (sqrt(4*pi)*sqrt(1+2*Y_l_val_).*(Y_l_val_<=l_max_band))./max(1e-12,kappa_norm_(1+Y_l_val_));
 if flag_disp;
 figure(1+nf);nf=nf+1;clf;figsml;
 linewidth_use = 3;
@@ -358,26 +370,26 @@ if (flag_verbose>0); disp(sprintf(' %% a_I_I_crop_k_Y_lm_ vs a_R_R_crop_k_Y_lm_:
 %%%%;
 tmp_euler_ = [tmp_euler_b,tmp_euler_a,tmp_euler_c];
 tmp_euler_pos_ = [tmp_euler_c,tmp_euler_a,tmp_euler_b]; tmp_euler_neg_ = -flip(tmp_euler_pos_);
-a_deltafunct_R_I_k_Y_lm_ = rotate_spharm_to_spharm_3(1,1,l_max,a_deltafunct_I_I_k_Y_lm_,tmp_euler_pos_);
-a_deltafunct_I_R_k_Y_lm_ = a_deltafunct_R_I_k_Y_lm_; %<-- use formula. ;
-a_deltafunct_R_R_k_Y_lm_ = rotate_spharm_to_spharm_3(1,1,l_max,a_deltafunct_I_R_k_Y_lm_,tmp_euler_neg_);
-if (flag_verbose>0); disp(sprintf(' %% a_deltafunct_I_I_k_Y_lm_ vs a_deltafunct_R_R_k_Y_lm_: %0.16f',fnorm(a_deltafunct_I_I_k_Y_lm_ - a_deltafunct_R_R_k_Y_lm_)/fnorm(a_deltafunct_I_I_k_Y_lm_))); end;
+a_deltafunct_band_R_I_k_Y_lm_ = rotate_spharm_to_spharm_3(1,1,l_max,a_deltafunct_band_I_I_k_Y_lm_,tmp_euler_pos_);
+a_deltafunct_band_I_R_k_Y_lm_ = a_deltafunct_band_R_I_k_Y_lm_; %<-- use formula. ;
+a_deltafunct_band_R_R_k_Y_lm_ = rotate_spharm_to_spharm_3(1,1,l_max,a_deltafunct_band_I_R_k_Y_lm_,tmp_euler_neg_);
+if (flag_verbose>0); disp(sprintf(' %% a_deltafunct_band_I_I_k_Y_lm_ vs a_deltafunct_band_R_R_k_Y_lm_: %0.16f',fnorm(a_deltafunct_band_I_I_k_Y_lm_ - a_deltafunct_band_R_R_k_Y_lm_)/fnorm(a_deltafunct_band_I_I_k_Y_lm_))); end;
 a_deconvolve_I_I_k_Y_lm_ = a_I_I_k_Y_lm_.*deconvolve_lm_;
 a_deconvolve_I_R_k_Y_lm_ = a_I_R_k_Y_lm_.*deconvolve_lm_;
 a_deconvolve_R_I_k_Y_lm_ = a_R_I_k_Y_lm_.*deconvolve_lm_;
 a_deconvolve_R_R_k_Y_lm_ = a_R_R_k_Y_lm_.*deconvolve_lm_;
-if (flag_verbose>0); disp(sprintf(' %% a_deltafunct_I_I_k_Y_lm_ vs a_deconvolve_I_I_k_Y_lm_: %0.16f',fnorm(a_deltafunct_I_I_k_Y_lm_ - a_deconvolve_I_I_k_Y_lm_)/fnorm(a_deltafunct_I_I_k_Y_lm_))); end;
-if (flag_verbose>0); disp(sprintf(' %% a_deltafunct_I_R_k_Y_lm_ vs a_deconvolve_I_R_k_Y_lm_: %0.16f',fnorm(a_deltafunct_I_R_k_Y_lm_ - a_deconvolve_I_R_k_Y_lm_)/fnorm(a_deltafunct_I_R_k_Y_lm_))); end;
-if (flag_verbose>0); disp(sprintf(' %% a_deltafunct_R_I_k_Y_lm_ vs a_deconvolve_R_I_k_Y_lm_: %0.16f',fnorm(a_deltafunct_R_I_k_Y_lm_ - a_deconvolve_R_I_k_Y_lm_)/fnorm(a_deltafunct_R_I_k_Y_lm_))); end;
-if (flag_verbose>0); disp(sprintf(' %% a_deltafunct_R_R_k_Y_lm_ vs a_deconvolve_R_R_k_Y_lm_: %0.16f',fnorm(a_deltafunct_R_R_k_Y_lm_ - a_deconvolve_R_R_k_Y_lm_)/fnorm(a_deltafunct_R_R_k_Y_lm_))); end;
+if (flag_verbose>0); disp(sprintf(' %% a_deltafunct_band_I_I_k_Y_lm_ vs a_deconvolve_I_I_k_Y_lm_: %0.16f',fnorm(a_deltafunct_band_I_I_k_Y_lm_ - a_deconvolve_I_I_k_Y_lm_)/fnorm(a_deltafunct_band_I_I_k_Y_lm_))); end;
+if (flag_verbose>0); disp(sprintf(' %% a_deltafunct_band_I_R_k_Y_lm_ vs a_deconvolve_I_R_k_Y_lm_: %0.16f',fnorm(a_deltafunct_band_I_R_k_Y_lm_ - a_deconvolve_I_R_k_Y_lm_)/fnorm(a_deltafunct_band_I_R_k_Y_lm_))); end;
+if (flag_verbose>0); disp(sprintf(' %% a_deltafunct_band_R_I_k_Y_lm_ vs a_deconvolve_R_I_k_Y_lm_: %0.16f',fnorm(a_deltafunct_band_R_I_k_Y_lm_ - a_deconvolve_R_I_k_Y_lm_)/fnorm(a_deltafunct_band_R_I_k_Y_lm_))); end;
+if (flag_verbose>0); disp(sprintf(' %% a_deltafunct_band_R_R_k_Y_lm_ vs a_deconvolve_R_R_k_Y_lm_: %0.16f',fnorm(a_deltafunct_band_R_R_k_Y_lm_ - a_deconvolve_R_R_k_Y_lm_)/fnorm(a_deltafunct_band_R_R_k_Y_lm_))); end;
 a_deconvolve_I_I_crop_k_Y_lm_ = a_I_I_crop_k_Y_lm_.*deconvolve_lm_;
 a_deconvolve_I_R_crop_k_Y_lm_ = a_I_R_crop_k_Y_lm_.*deconvolve_lm_;
 a_deconvolve_R_I_crop_k_Y_lm_ = a_R_I_crop_k_Y_lm_.*deconvolve_lm_;
 a_deconvolve_R_R_crop_k_Y_lm_ = a_R_R_crop_k_Y_lm_.*deconvolve_lm_;
-if (flag_verbose>0); disp(sprintf(' %% a_deltafunct_I_I_k_Y_lm_ vs a_deconvolve_I_I_crop_k_Y_lm_: %0.16f',fnorm(a_deltafunct_I_I_k_Y_lm_ - a_deconvolve_I_I_crop_k_Y_lm_)/fnorm(a_deltafunct_I_I_k_Y_lm_))); end;
-if (flag_verbose>0); disp(sprintf(' %% a_deltafunct_I_R_k_Y_lm_ vs a_deconvolve_I_R_crop_k_Y_lm_: %0.16f',fnorm(a_deltafunct_I_R_k_Y_lm_ - a_deconvolve_I_R_crop_k_Y_lm_)/fnorm(a_deltafunct_I_R_k_Y_lm_))); end;
-if (flag_verbose>0); disp(sprintf(' %% a_deltafunct_R_I_k_Y_lm_ vs a_deconvolve_R_I_crop_k_Y_lm_: %0.16f',fnorm(a_deltafunct_R_I_k_Y_lm_ - a_deconvolve_R_I_crop_k_Y_lm_)/fnorm(a_deltafunct_R_I_k_Y_lm_))); end;
-if (flag_verbose>0); disp(sprintf(' %% a_deltafunct_R_R_k_Y_lm_ vs a_deconvolve_R_R_crop_k_Y_lm_: %0.16f',fnorm(a_deltafunct_R_R_k_Y_lm_ - a_deconvolve_R_R_crop_k_Y_lm_)/fnorm(a_deltafunct_R_R_k_Y_lm_))); end;
+if (flag_verbose>0); disp(sprintf(' %% a_deltafunct_band_I_I_k_Y_lm_ vs a_deconvolve_I_I_crop_k_Y_lm_: %0.16f',fnorm(a_deltafunct_band_I_I_k_Y_lm_ - a_deconvolve_I_I_crop_k_Y_lm_)/fnorm(a_deltafunct_band_I_I_k_Y_lm_))); end;
+if (flag_verbose>0); disp(sprintf(' %% a_deltafunct_band_I_R_k_Y_lm_ vs a_deconvolve_I_R_crop_k_Y_lm_: %0.16f',fnorm(a_deltafunct_band_I_R_k_Y_lm_ - a_deconvolve_I_R_crop_k_Y_lm_)/fnorm(a_deltafunct_band_I_R_k_Y_lm_))); end;
+if (flag_verbose>0); disp(sprintf(' %% a_deltafunct_band_R_I_k_Y_lm_ vs a_deconvolve_R_I_crop_k_Y_lm_: %0.16f',fnorm(a_deltafunct_band_R_I_k_Y_lm_ - a_deconvolve_R_I_crop_k_Y_lm_)/fnorm(a_deltafunct_band_R_I_k_Y_lm_))); end;
+if (flag_verbose>0); disp(sprintf(' %% a_deltafunct_band_R_R_k_Y_lm_ vs a_deconvolve_R_R_crop_k_Y_lm_: %0.16f',fnorm(a_deltafunct_band_R_R_k_Y_lm_ - a_deconvolve_R_R_crop_k_Y_lm_)/fnorm(a_deltafunct_band_R_R_k_Y_lm_))); end;
 %%%%%%%%;
 [ ...
  a_deconvolve_I_I_crop_k_p_quad_ ...
@@ -406,21 +418,21 @@ convert_spharm_to_k_p_4( ...
 if (flag_disp);
 figure(1+nf);nf=nf+1;clf;figmed;
 p_row = 1; p_col = 3; np=0;
-deltafunct_lim_ = [0,prctile(a_deltafunct_I_I_k_p_quad_,99.5)];
+deltafunct_band_lim_ = [0,prctile(a_deltafunct_band_I_I_k_p_quad_,99.5)];
 subplot(p_row,p_col,1+np);np=np+1;
 flag_2d_vs_3d = 0;
 k_p_r_max = 1;
 imagesc_polar_a_azimu_b_0( ...
  polar_a_shell_ ... 
 ,azimu_b_shell_ ... 
-,a_deltafunct_I_I_k_p_quad_ ... 
-,deltafunct_lim_ ... 
+,a_deltafunct_band_I_I_k_p_quad_ ... 
+,deltafunct_band_lim_ ... 
 ,colormap_81s ... 
 ,flag_2d_vs_3d ...
 ,k_p_r_max ...
 );
 axisnotick3d; axis vis3d;
-title('deltafunct_I_I_k_p_form_','Interpreter','none');
+title('deltafunct_band_I_I_k_p_form_','Interpreter','none');
 subplot(p_row,p_col,1+np);np=np+1;
 flag_2d_vs_3d = 0;
 k_p_r_max = 1;
@@ -428,7 +440,7 @@ imagesc_polar_a_azimu_b_0( ...
  polar_a_shell_ ... 
 ,azimu_b_shell_ ... 
 ,real(a_deconvolve_I_I_crop_k_p_quad_) ... 
-,deltafunct_lim_ ... 
+,deltafunct_band_lim_ ... 
 ,colormap_81s ... 
 ,flag_2d_vs_3d ...
 ,k_p_r_max ...
@@ -436,7 +448,7 @@ imagesc_polar_a_azimu_b_0( ...
 axisnotick3d; axis vis3d;
 title('deconvolve_I_I_crop_k_p_form_','Interpreter','none');
 subplot(p_row,p_col,1+np);np=np+1;
-plot(Y_l_val_,log10(abs(a_deltafunct_I_R_k_Y_lm_-a_deconvolve_I_R_crop_k_Y_lm_)./abs(a_deltafunct_I_R_k_Y_lm_)),'.');
+plot(Y_l_val_,log10(abs(a_deltafunct_band_I_R_k_Y_lm_-a_deconvolve_I_R_crop_k_Y_lm_)./abs(a_deltafunct_band_I_R_k_Y_lm_)),'.');
 xlabel('Y_l_val_','Interpreter','none'); xlim([0,l_max+1]);
 ylabel('log10(abs(delta-decon)./abs(delta)))','Interpreter','none');
 grid on;
@@ -832,6 +844,8 @@ if ~isfield(parameter,'kernel_qpro_l_max_use'); parameter.kernel_qpro_l_max_use=
 kernel_qpro_l_max_use=parameter.kernel_qpro_l_max_use;
 if ~isfield(parameter,'kernel_qpro_l_max_ext'); parameter.kernel_qpro_l_max_ext=ceil(1.25*kernel_qpro_l_max_use); end;
 kernel_qpro_l_max_ext=parameter.kernel_qpro_l_max_ext;
+if ~isfield(parameter,'kernel_qpro_l_max_band'); parameter.kernel_qpro_l_max_band=+Inf; end;
+kernel_qpro_l_max_band=parameter.kernel_qpro_l_max_band;
 if ~isfield(parameter,'flag_kernel_qpro_d0'); parameter.flag_kernel_qpro_d0=1; end;
 flag_kernel_qpro_d0=parameter.flag_kernel_qpro_d0;
 if ~isfield(parameter,'flag_kernel_qpro_d1'); parameter.flag_kernel_qpro_d1=0; end;
@@ -931,6 +945,12 @@ l_max_use = kernel_qpro_l_max_use;
 KAPPA.l_max_use = l_max_use;
 end;%if ~isfield(KAPPA,'l_max_use');
 l_max_use = KAPPA.l_max_use;
+%%%%;
+if ~isfield(KAPPA,'l_max_band');
+l_max_band = kernel_qpro_l_max_band;
+KAPPA.l_max_band = l_max_band;
+end;%if ~isfield(KAPPA,'l_max_band');
+l_max_band = KAPPA.l_max_band;
 %%%%;
 if ~isfield(KAPPA,'l_val_use_');
 l_val_use_ = transpose([0:l_max_use]);

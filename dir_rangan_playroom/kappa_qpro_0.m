@@ -117,6 +117,8 @@ if ~isfield(parameter,'flag_kernel_qpro_d1'); parameter.flag_kernel_qpro_d1=0; e
 flag_kernel_qpro_d1=parameter.flag_kernel_qpro_d1;
 if ~isfield(parameter,'flag_kernel_qpro_d2'); parameter.flag_kernel_qpro_d2=0; end;
 flag_kernel_qpro_d2=parameter.flag_kernel_qpro_d2;
+if ~isfield(parameter,'kernel_qpro_l_max_band'); parameter.kernel_qpro_l_max_band=+Inf; end;
+kernel_qpro_l_max_band=parameter.kernel_qpro_l_max_band;
 if ~isfield(parameter,'kernel_qpro_polar_a_pole_north'); parameter.kernel_qpro_polar_a_pole_north=1.0*pi/12; end;
 kernel_qpro_polar_a_pole_north=min(pi/2,parameter.kernel_qpro_polar_a_pole_north);
 parameter.kernel_qpro_polar_a_pole_north = kernel_qpro_polar_a_pole_north;
@@ -142,6 +144,8 @@ if (flag_verbose> 0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
 if isempty(l_max); l_max = 49; end;
 l_val_ = transpose([0:l_max]);
 %%%%%%%%;
+l_max_band = min(l_max,kernel_qpro_l_max_band);
+%%%%%%%%;
 if isempty(chebleg_d_);
 chebleg_d_ = cell(1+l_max,1);
 for l_val=0:l_max;
@@ -151,6 +155,8 @@ end;%for l_val=0:l_max;
 end;%if isempty(chebleg_d_);
 %%%%%%%%;
 deltafunc_formula_ = sqrt(4*pi)*sqrt(1+2*l_val_);
+deltafunc_band_formula_ = deltafunc_formula_;
+if isfinite(l_max_band); tmp_index_ = efind(l_val_> l_max_band); deltafunc_band_formula_(1+tmp_index_) = 0; end;
 
 %%%%%%%%;
 n_a_use = 1+2*l_max + 16; %<-- Need to integrate polynomials of degree l_max^2. ;
@@ -195,16 +201,16 @@ end;%if (flag_disp>1);
 %%%%%%%%;
 
 %%%%%%%%%%%%%%%%;
-if flag_kernel_full==1; kappa_ = deltafunc_formula_; end;
+if flag_kernel_full==1; kappa_ = deltafunc_band_formula_; end;
 %%%%%%%%%%%%%%%%;
 if flag_kernel_full==0;
 %%%%%%%%%%%%%%%%;
 leg_drop_da__ = zeros(1+l_max,n_a_use);
-for l_val=0:l_max; leg_drop_da__(1+l_val,:) = chebleg_d_{1+l_val}(cos(a_drop_node_)); end;%for l_val=0:l_max;
+for l_val=0:l_max_band; leg_drop_da__(1+l_val,:) = chebleg_d_{1+l_val}(cos(a_drop_node_)); end;%for l_val=0:l_max_band;
 %%%%;
 C_cc__ = zeros(1+l_max,1+l_max);
-for l_val_0=0:l_max;
-for l_val_1=0:l_max;
+for l_val_0=0:l_max_band;
+for l_val_1=0:l_max_band;
 C_cc__(1+l_val_0,1+l_val_1) = ...
   2*pi ...
 * a_drop_weight_ ...
@@ -214,15 +220,15 @@ C_cc__(1+l_val_0,1+l_val_1) = ...
     .*sin(a_drop_node_) ...
    ) ...
 ;
-end;%for l_val_1=0:l_max;
-end;%for l_val_0=0:l_max;
+end;%for l_val_1=0:l_max_band;
+end;%for l_val_0=0:l_max_band;
 %%%%;
 if flag_kernel_qpro_d1;
 D_cc__ = zeros(1+l_max,1+l_max);
-for l_val_0=0:l_max;
+for l_val_0=0:l_max_band;
 tmp_chebleg_0_ = chebleg_d_{1+l_val_0};
 tmp_dchebleg_0_ = diff(tmp_chebleg_0_);
-for l_val_1=0:l_max;
+for l_val_1=0:l_max_band;
 tmp_chebleg_1_ = chebleg_d_{1+l_val_1};
 tmp_dchebleg_1_ = diff(tmp_chebleg_1_);
 D_cc__(1+l_val_0,1+l_val_1) = ...
@@ -234,17 +240,17 @@ D_cc__(1+l_val_0,1+l_val_1) = ...
     .*sin(a_drop_node_) ...
    ) ...
 ;
-end;%for l_val_1=0:l_max;
-end;%for l_val_0=0:l_max;
+end;%for l_val_1=0:l_max_band;
+end;%for l_val_0=0:l_max_band;
 end;%if flag_kernel_qpro_d1;
 %%%%;
 if flag_kernel_qpro_d1;
 E_cc__ = zeros(1+l_max,1+l_max);
-for l_val_0=0:l_max;
+for l_val_0=0:l_max_band;
 tmp_chebleg_0_ = chebleg_d_{1+l_val_0};
 tmp_dchebleg_0_ = diff(tmp_chebleg_0_);
 tmp_ddchebleg_0_ = diff(tmp_dchebleg_0_);
-for l_val_1=0:l_max;
+for l_val_1=0:l_max_band;
 tmp_chebleg_1_ = chebleg_d_{1+l_val_1};
 tmp_dchebleg_1_ = diff(tmp_chebleg_1_);
 tmp_ddchebleg_1_ = diff(tmp_dchebleg_1_);
@@ -257,8 +263,8 @@ E_cc__(1+l_val_0,1+l_val_1) = ...
     .*sin(a_drop_node_) ...
    ) ...
 ;
-end;%for l_val_1=0:l_max;
-end;%for l_val_0=0:l_max;
+end;%for l_val_1=0:l_max_band;
+end;%for l_val_0=0:l_max_band;
 end;%if flag_kernel_qpro_d1;
 %%%%;
 H_cc__ = C_cc__;
@@ -267,12 +273,12 @@ if flag_kernel_qpro_d2; H_cc__ = H_cc__ + E_cc__ ; end;
 %%%%;
 lb_ = zeros(1+l_max,1); %<-- lower-bound. ;
 lb_(1+0) = sqrt(1+2*0)*sqrt(4*pi); %<-- ensure average is constant. ;
-lb_(1+[1:l_max]) = sqrt(1+2*[1:l_max])*sqrt(4*pi)./max(1e-12,kernel_qpro_deconvolution_factor_max); %<-- ensure kernel_qpro_deconvolution_factor_max. ;
+lb_(1+[1:l_max]) = deltafunc_band_formula_(1+[1:l_max])./max(1e-12,kernel_qpro_deconvolution_factor_max); %<-- ensure kernel_qpro_deconvolution_factor_max. ;
 ub_ = zeros(1+l_max,1); %<-- lower-bound. ;
 ub_(1+0) = sqrt(1+2*0)*sqrt(4*pi); %<-- ensure average is constant. ;
-ub_(1+[1:l_max]) = sqrt(1+2*[1:l_max])*sqrt(4*pi).*max(1e-12,kernel_qpro_deconvolution_factor_max); %<-- ensure kernel_qpro_deconvolution_factor_max. ;
+ub_(1+[1:l_max]) = deltafunc_band_formula_(1+[1:l_max]).*max(1e-12,kernel_qpro_deconvolution_factor_max); %<-- ensure kernel_qpro_deconvolution_factor_max. ;
 tmp_H = H_cc__;
-tmp_f = []; tmp_A = []; tmp_b = []; tmp_Aeq = []; tmp_beq = []; tmp_lb = lb_; tmp_ub = ub_; tmp_x0 = deltafunc_formula_;
+tmp_f = []; tmp_A = []; tmp_b = []; tmp_Aeq = []; tmp_beq = []; tmp_lb = lb_; tmp_ub = ub_; tmp_x0 = deltafunc_band_formula_;
 if isempty(tmp_H) | fnorm(tmp_H)==0;
 kappa_ = tmp_x0;
 else;
@@ -340,20 +346,20 @@ if (flag_verbose>0); disp(sprintf(' %% sum_l2_keep: %0.16f',sum_l2_keep)); end;
 %%%%%%%%;
 
 %%%%%%%%;
-deconvolve_l_ = deltafunc_formula_./max(1e-12,kappa_norm_(1+l_val_));
-deltafunc_from_chebfun_mollify_ = zeros(1+l_max,1);
-deltafunc_from_chebfun_crop_mollify_ = zeros(1+l_max,1);
+deconvolve_l_ = deltafunc_band_formula_./max(1e-12,kappa_norm_(1+l_val_));
+deltafunc_band_from_chebfun_mollify_ = zeros(1+l_max,1);
+deltafunc_band_from_chebfun_crop_mollify_ = zeros(1+l_max,1);
 for l_val=0:l_max;
 tmp_I = sum(2*pi*a_full_weight_*(chebfun_kernel_norm_qpro_(cos(a_full_node_)).*chebleg_d_{1+l_val}(cos(a_full_node_)).*sin(a_full_node_)));
-deltafunc_from_chebfun_mollify_(1+l_val) = tmp_I;
+deltafunc_band_from_chebfun_mollify_(1+l_val) = tmp_I;
 tmp_I = sum(2*pi*a_keep_weight_*(chebfun_kernel_norm_qpro_(cos(a_keep_node_)).*chebleg_d_{1+l_val}(cos(a_keep_node_)).*sin(a_keep_node_)));
-deltafunc_from_chebfun_crop_mollify_(1+l_val) = tmp_I;
+deltafunc_band_from_chebfun_crop_mollify_(1+l_val) = tmp_I;
 end;%for l_val=0:l_max;
-deltafunc_from_chebfun_restore_ = deltafunc_from_chebfun_mollify_ .* deconvolve_l_ ;
-%figure(1);clf;plot(deltafunc_from_chebfun_restore_- 2*pi*deltafunc_formula_ , '.');return;
-deltafunc_from_chebfun_crop_restore_ = deltafunc_from_chebfun_crop_mollify_ .* deconvolve_l_ ;
-relative_error_full_ = abs(deltafunc_formula_ - deltafunc_from_chebfun_restore_/(2*pi))./abs(deltafunc_formula_);
-relative_error_crop_ = abs(deltafunc_formula_ - deltafunc_from_chebfun_crop_restore_/(2*pi))./abs(deltafunc_formula_);
+deltafunc_band_from_chebfun_restore_ = deltafunc_band_from_chebfun_mollify_ .* deconvolve_l_ ;
+%figure(1);clf;plot(deltafunc_band_from_chebfun_restore_- 2*pi*deltafunc_band_formula_ , '.');return;
+deltafunc_band_from_chebfun_crop_restore_ = deltafunc_band_from_chebfun_crop_mollify_ .* deconvolve_l_ ;
+relative_error_full_ = abs(deltafunc_band_formula_ - deltafunc_band_from_chebfun_restore_/(2*pi))./abs(deltafunc_band_formula_);
+relative_error_crop_ = abs(deltafunc_band_formula_ - deltafunc_band_from_chebfun_crop_restore_/(2*pi))./abs(deltafunc_band_formula_);
 %%%%%%%%;
 if flag_disp;
 figure(1+nf);nf=nf+1;clf;figsml;
