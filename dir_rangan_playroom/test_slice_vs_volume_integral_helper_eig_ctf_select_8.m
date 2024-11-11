@@ -1,6 +1,7 @@
 %%%%%%%%;
 % intended for use with test_slice_vs_volume_integral_trpv1_11.m ;
-% limiting to principal-modes. ;
+% and test_slice_vs_volume_integral_12.m ;
+% not limiting to principal-modes. ;
 %%%%%%%%;
 
 [~,str_hostname] = system('hostname');
@@ -30,69 +31,107 @@ if ~exist('d1W_betazeta_mlma____','var'); d1W_betazeta_mlma____=[]; end;
 if ~exist('d2W_betazeta_mlma____','var'); d2W_betazeta_mlma____=[]; end;
 
 %%%%%%%%;
-% If necessary, calculate the idealized principal-modes for unit CTF. ;
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figmed;
+c_use__ = colormap_beach(); n_c_use = size(c_use__,1); 
+subplot(1,2,1);
+hold on;
+for nCTF=0:n_CTF-1;
+nc_use = max(0,min(n_c_use-1,floor(n_c_use*(DefocusV_CTF_(1+nCTF)-min(DefocusV_CTF_))/(max(DefocusV_CTF_)-min(DefocusV_CTF_)))));
+plot(k_p_r_,CTF_k_p_r_kC__(:,1+nCTF),'-','Color',c_use__(1+nc_use,:));
+end;%for nCTF=0:n_CTF-1;
+hold off;
+xlim([0,k_p_r_max]); xlabel('k'); ylabel('CTF');
+title('colored by DefocusV_CTF_','Interpreter','none');
+subplot(1,2,2);
+hold on;
+for nCTF=0:n_CTF-1;
+nc_use = max(0,min(n_c_use-1,floor(n_c_use*(DefocusU_CTF_(1+nCTF)-min(DefocusU_CTF_))/(max(DefocusU_CTF_)-min(DefocusU_CTF_)))));
+plot(k_p_r_,CTF_k_p_r_kC__(:,1+nCTF),'-','Color',c_use__(1+nc_use,:));
+end;%for nCTF=0:n_CTF-1;
+hold off;
+xlim([0,k_p_r_max]); xlabel('k'); ylabel('CTF');
+title('colored by DefocusU_CTF_','Interpreter','none');
+end;%if flag_disp;
 %%%%%%%%;
-if ~exist('X_2d_x1_d0_kk__','var');
-[X_2d_x1_d0_kk__,X_2d_x1_d0_weight_r_] = principled_marching_cost_matrix_6(n_k_p_r,k_p_r_,weight_2d_k_p_r_,l_max_,[],[],a_k_Y_quad_yk_);
-end;%if ~exist('X_2d_x1_d0_kk__','var');
+
 %%%%%%%%;
-% Now determine principal-modes. ;
+n_ctf_select = 3; n_ctf_per = 2;
+[~,tmp_ij_] = sort(DefocusV_CTF_,'ascend');
+tmp_ij_use__ = zeros(n_ctf_per,n_ctf_select);
+tmp_ij_use__(1,:) = max(1,floor(linspace(1,n_CTF-n_ctf_per,n_ctf_select)));
+for nctf_per=1:n_ctf_per-1;
+tmp_ij_use__(1+nctf_per,:) = tmp_ij_use__(1+nctf_per-1,:)+1;
+end;%for nctf_per=0:n_ctf_per-1;
+n_CTF_select_s_ = n_ctf_per*ones(n_ctf_select,1);
+DefocusV_CTF_select_Cs__ = zeros(n_ctf_per,n_ctf_select);
+CTF_select_k_p_r_kCs___ = zeros(n_k_p_r,n_ctf_per,n_ctf_select);
+CTF_select_k_p_wkCs___ = zeros(n_w_sum,n_ctf_per,n_ctf_select);
+for nctf_select=0:n_ctf_select-1;
+for nctf_per=0:n_ctf_per-1;
+tmp_ij_use = tmp_ij_use__(1+nctf_per,1+nctf_select);
+DefocusV_CTF_select_Cs__(1+nctf_per,1+nctf_select) = DefocusV_CTF_(tmp_ij_use);
+CTF_select_k_p_r_kCs___(:,1+nctf_per,1+nctf_select) = CTF_k_p_r_kC__(:,tmp_ij_use);
+CTF_select_k_p_wkCs___(:,1+nctf_per,1+nctf_select) = CTF_k_p_wkC__(:,tmp_ij_use);
+end;%for nctf_per=0:n_ctf_per-1;
+end;%for nctf_select=0:n_ctf_select-1;
 %%%%%%%%;
-if ~exist('tolerance_pm','var'); tolerance_pm = 1e-3; end;
-n_UX_rank = n_k_p_r-1; %<-- just to check dimensions. ;
-X_kk__ = X_2d_x1_d0_kk__;
-[tmp_UX__,tmp_SX__,tmp_VX__] = svds(X_kk__,n_UX_rank); tmp_SX_ = diag(tmp_SX__);
-pm_n_UX_rank = max(find(tmp_SX_/max(tmp_SX_)> tolerance_pm));
-if pm_n_UX_rank_max < pm_n_UX_rank;
-tolerance_pm_max = sqrt(tmp_SX_(pm_n_UX_rank_max)/max(tmp_SX_) * tmp_SX_(min(n_UX_rank,pm_n_UX_rank_max+1))/max(tmp_SX_));
-disp(sprintf(' %% raising tolerance_pm %0.6f to tolerance_pm_max %0.6f',tolerance_pm,tolerance_pm_max));
-tolerance_pm = tolerance_pm_max;
-pm_n_UX_rank = max(find(tmp_SX_/max(tmp_SX_)> tolerance_pm));
-end;%if pm_n_UX_rank_max < pm_n_UX_rank;
-UX_kn__ = zeros(n_k_p_r,n_UX_rank); SX_k_ = zeros(n_UX_rank,1);
-UX_kn__(:,:) = tmp_UX__(:,1+[0:n_UX_rank-1]);
-SX_k_(:) = tmp_SX_(1+[0:n_UX_rank-1]);
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figmed;
+p_row = 1;p_col = n_ctf_select; np=0;
+for nctf_select=0:n_ctf_select-1;
+subplot(p_row,p_col,1+np);np=np+1;
+plot(k_p_r_,CTF_select_k_p_r_kCs___(:,:,1+nctf_select),'k-','LineWidth',2);
+xlim([0,k_p_r_max]); xlabel('k'); ylabel('CTF'); ylim([-1,+1]);
+title(sprintf('nctf_select %d',nctf_select),'Interpreter','none');
+end;%for nctf_select=0:n_ctf_select-1;
+fname_fig_pre = sprintf('%s_jpg/ctf_select_FIGA',dir_ssnll);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+fname_fig_eps = sprintf('%s.eps',fname_fig_pre);
+if (flag_replot | ~exist(fname_fig_jpg,'file'));
+disp(sprintf(' %% %s not found, creating',fname_fig_pre));
+disp(sprintf(' %% writing %s',fname_fig_pre));
+sgtitle(fname_fig_pre,'Interpreter','none');
+print('-djpeg',fname_fig_jpg);
+print('-depsc',fname_fig_eps);
+end;%if (~exist(fname_fig_jpg,'file'));
+close(gcf);
+end;%if flag_disp;
+%%%%%%%%;
+
+%%%%%%%%;
+% not limiting to principal-modes. ;
+%%%%%%%%;
+X_weight_r_ = ones(n_k_p_r,1);
+n_UX_rank = n_k_p_r;
+pm_n_UX_rank = n_UX_rank;
+pm_n_k_all = n_k_all; pm_n_k_all_csum_ = n_k_all_csum_;
+pm_k_p_r_all_ = k_p_r_all_; pm_k_p_azimu_b_all_ = k_p_azimu_b_all_; pm_k_p_polar_a_all_ = k_p_polar_a_all_;
+pm_weight_3d_k_all_ = weight_3d_k_all_; pm_weight_shell_k_ = weight_shell_k_;
+pm_n_k_p_r = n_k_p_r; pm_k_p_r_ = k_p_r_; pm_k_p_r_max = k_p_r_max;
+pm_weight_3d_k_p_r_ = weight_3d_k_p_r_;
+pm_l_max_ = l_max_;
+pm_Ylm_uklma___ = Ylm_uklma___;
+pm_k_p_azimu_b_sub_uka__ = k_p_azimu_b_sub_uka__;
+pm_k_p_polar_a_sub_uka__ = k_p_polar_a_sub_uka__;
+pm_l_max_uk_ = l_max_uk_;
+pm_index_nu_n_k_per_shell_from_nk_p_r_ = index_nu_n_k_per_shell_from_nk_p_r_;
+pm_index_k_per_shell_uka__ = index_k_per_shell_uka__;
+pm_X_weight_r_ = X_weight_r_;
+pm_n_w_ = n_w_; pm_n_w_max = n_w_max; pm_n_w_sum = n_w_sum; pm_n_w_csum_ = n_w_csum_;
+pm_weight_2d_k_p_r_ = weight_2d_k_p_r_; pm_weight_2d_wk_ = weight_2d_wk_;
+
+%%%%%%%%;
+% Use identity for principal-modes. ;
+%%%%%%%%;
+X_kk__ = eye(n_k_p_r,n_k_p_r);
+UX_kn__ = eye(n_k_p_r,n_k_p_r);
+SX_k_ = ones(n_k_p_r,1);
+tolerance_pm = 0;
 nlt = -log10(tolerance_pm);
-str_tolerance_pm = sprintf('nlt%.2dpm%d',round(10*nlt),pm_n_UX_rank);
+str_tolerance_pm = sprintf('nltInfpm%d',pm_n_UX_rank);
 if (flag_verbose>0); disp(sprintf(' %% tolerance_pm %0.6f: pm_n_UX_rank %d/%d --> %s',tolerance_pm,pm_n_UX_rank,n_UX_rank,str_tolerance_pm)); end;
 %%%%%%%%;
-[ ...
- ~ ...
-,pm_n_k_p_r ...
-,pm_k_p_r_ ...
-,pm_k_p_r_max ...
-,pm_l_max_ ...
-,pm_n_k_all ...
-,pm_n_k_all_csum_ ...
-,pm_k_p_r_all_ ...
-,pm_k_p_azimu_b_all_ ...
-,pm_k_p_polar_a_all_ ...
-,pm_weight_3d_k_all_ ...
-,pm_weight_shell_k_ ...
-,pm_weight_3d_k_p_r_ ...
-,pm_n_w_ ...
-,pm_weight_2d_k_p_r_ ...
-,pm_weight_2d_wk_ ...
-] = ...
-get_weight_pm_3( ...
- parameter ...
-,pm_n_UX_rank ...
-,n_k_p_r ...
-,k_p_r_ ...
-,k_p_r_max ...
-,l_max_ ...
-,n_k_all ...
-,n_k_all_csum_ ...
-,k_p_r_all_ ...
-,k_p_azimu_b_all_ ...
-,k_p_polar_a_all_ ...
-,weight_3d_k_all_ ...
-,weight_shell_k_ ...
-,weight_3d_k_p_r_ ...
-,n_w_ ...
-,weight_2d_k_p_r_ ...
-,weight_2d_wk_ ...
-);
 pm_n_w_max = max(pm_n_w_);
 pm_n_w_sum = sum(pm_n_w_);
 pm_n_w_csum_ = cumsum([0;pm_n_w_]);
@@ -104,210 +143,53 @@ pm_l_max_max = max(pm_l_max_);
 %%%%%%%%;
 
 %%%%%%%%;
-% Now form a_x1_UX_Y_quad_yn__ ;
+% Now form a_x1_UX_Y_reco_empi_yn__ ;
 %%%%%%%%;
-X_weight_r_ = X_2d_x1_d0_weight_r_;
-a_x1_UX_Y_quad_yn__ = zeros(n_lm_max,pm_n_UX_rank);
+a_x1_UX_Y_reco_empi_yn__ = zeros(n_lm_max,pm_n_UX_rank);
 for nUX_rank=0:pm_n_UX_rank-1;
 for nk_p_r=0:n_k_p_r-1;
 tmp_l_max = l_max_(1+nk_p_r);
 tmp_n_lm = (tmp_l_max+1).^2;
 tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:tmp_n_lm-1);
-a_x1_UX_Y_quad_yn__(1:tmp_n_lm,1+nUX_rank) = a_x1_UX_Y_quad_yn__(1:tmp_n_lm,1+nUX_rank) + UX_kn__(1+nk_p_r,1+nUX_rank)*X_weight_r_(1+nk_p_r)*a_k_Y_quad_yk_(1+tmp_index_);
+a_x1_UX_Y_reco_empi_yn__(1:tmp_n_lm,1+nUX_rank) = a_x1_UX_Y_reco_empi_yn__(1:tmp_n_lm,1+nUX_rank) + UX_kn__(1+nk_p_r,1+nUX_rank)*X_weight_r_(1+nk_p_r)*a_k_Y_reco_empi_yk_(1+tmp_index_);
 end;%for nk_p_r=0:n_k_p_r-1;
 end;%for nUX_rank=0:pm_n_UX_rank-1;
-a_x1_UX_Y_quad_yn_ = local_yk_from_yk__(pm_n_k_p_r,pm_l_max_,a_x1_UX_Y_quad_yn__);
-if (flag_verbose>0); disp(sprintf(' %% a_x1_UX_Y_quad_yn_ vs a_x1_UX_Y_quad_yn__(:): %0.16f',fnorm(a_x1_UX_Y_quad_yn_-a_x1_UX_Y_quad_yn__(:)))); end;
-pm_a_k_Y_quad_yk__ = a_x1_UX_Y_quad_yn__;
-pm_a_k_Y_quad_yk_ = a_x1_UX_Y_quad_yn_;
+a_x1_UX_Y_reco_empi_yn_ = local_yk_from_yk__(pm_n_k_p_r,pm_l_max_,a_x1_UX_Y_reco_empi_yn__);
+pm_a_k_Y_reco_empi_yk__ = a_x1_UX_Y_reco_empi_yn__;
+pm_a_k_Y_reco_empi_yk_ = a_x1_UX_Y_reco_empi_yn_;
 %%%%;
 flag_check=1;
 if flag_check;
-a_k_Y_reco_yk_ = zeros(n_lm_sum,1);
+a_k_Y_reco_frompm_yk_ = zeros(n_lm_sum,1);
 for nUX_rank=0:pm_n_UX_rank-1;
 for nk_p_r=0:n_k_p_r-1;
 tmp_l_max = l_max_(1+nk_p_r);
 tmp_n_lm = (tmp_l_max+1).^2;
 tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:tmp_n_lm-1);
-a_k_Y_reco_yk_(1+tmp_index_) = a_k_Y_reco_yk_(1+tmp_index_) + UX_kn__(1+nk_p_r,1+nUX_rank)/max(1e-12,X_weight_r_(1+nk_p_r))*a_x1_UX_Y_quad_yn__(1:tmp_n_lm,1+nUX_rank);
+a_k_Y_reco_frompm_yk_(1+tmp_index_) = a_k_Y_reco_frompm_yk_(1+tmp_index_) + UX_kn__(1+nk_p_r,1+nUX_rank)/max(1e-12,X_weight_r_(1+nk_p_r))*a_x1_UX_Y_reco_empi_yn__(1:tmp_n_lm,1+nUX_rank);
 end;%for nk_p_r=0:n_k_p_r-1;
 end;%for nUX_rank=0:pm_n_UX_rank-1;
-a_k_Y_diff_yk_ = a_k_Y_quad_yk_ - a_k_Y_reco_yk_;
-[~,~,a_k_Y_quad_l3] = spharm_normalize_2(n_k_p_r,k_p_r_,weight_3d_k_p_r_,l_max_,a_k_Y_quad_yk_,0);
-[~,~,a_k_Y_reco_l3] = spharm_normalize_2(n_k_p_r,k_p_r_,weight_3d_k_p_r_,l_max_,a_k_Y_reco_yk_,0);
-[~,~,a_k_Y_diff_l3] = spharm_normalize_2(n_k_p_r,k_p_r_,weight_3d_k_p_r_,l_max_,a_k_Y_diff_yk_,0);
-[~,~,a_k_Y_quad_l2] = spharm_normalize_2(n_k_p_r,k_p_r_,weight_2d_k_p_r_,l_max_,a_k_Y_quad_yk_,0);
-[~,~,a_k_Y_reco_l2] = spharm_normalize_2(n_k_p_r,k_p_r_,weight_2d_k_p_r_,l_max_,a_k_Y_reco_yk_,0);
-[~,~,pm_a_k_Y_quad_l3] = spharm_normalize_2(pm_n_k_p_r,pm_k_p_r_,pm_weight_3d_k_p_r_,pm_l_max_,pm_a_k_Y_quad_yk_,0);
-if (flag_verbose>0); disp(sprintf(' %% a_k_Y_quad_yk_ vs a_k_Y_reco_yk_: %0.16f %%<-- will not be small if tolerance_pm> 0',a_k_Y_diff_l3/max(1e-12,a_k_Y_quad_l3))); end;
-if (flag_verbose>0); disp(sprintf(' %% a_k_Y_quad_l3 %0.6f',a_k_Y_quad_l3)); end;
-if (flag_verbose>0); disp(sprintf(' %% a_k_Y_reco_l3 %0.6f',a_k_Y_reco_l3)); end;
-if (flag_verbose>0); disp(sprintf(' %% a_k_Y_quad_l2 %0.6f',a_k_Y_quad_l2)); end;
-if (flag_verbose>0); disp(sprintf(' %% a_k_Y_reco_l2 %0.6f',a_k_Y_reco_l2)); end;
-if (flag_verbose>0); disp(sprintf(' %% pm_a_k_Y_quad_l3 %0.6f',pm_a_k_Y_quad_l3)); end;
+a_k_Y_diff_empi_yk_ = a_k_Y_reco_empi_yk_ - a_k_Y_reco_frompm_yk_;
+[~,~,a_k_Y_reco_empi_l3] = spharm_normalize_2(n_k_p_r,k_p_r_,weight_3d_k_p_r_,l_max_,a_k_Y_reco_empi_yk_,0);
+[~,~,a_k_Y_reco_frompm_l3] = spharm_normalize_2(n_k_p_r,k_p_r_,weight_3d_k_p_r_,l_max_,a_k_Y_reco_frompm_yk_,0);
+[~,~,a_k_Y_diff_empi_l3] = spharm_normalize_2(n_k_p_r,k_p_r_,weight_3d_k_p_r_,l_max_,a_k_Y_diff_empi_yk_,0);
+[~,~,a_k_Y_reco_empi_l2] = spharm_normalize_2(n_k_p_r,k_p_r_,weight_2d_k_p_r_,l_max_,a_k_Y_reco_empi_yk_,0);
+[~,~,a_k_Y_reco_frompm_l2] = spharm_normalize_2(n_k_p_r,k_p_r_,weight_2d_k_p_r_,l_max_,a_k_Y_reco_frompm_yk_,0);
+[~,~,pm_a_k_Y_reco_empi_l2] = spharm_normalize_2(pm_n_k_p_r,pm_k_p_r_,pm_weight_3d_k_p_r_,pm_l_max_,pm_a_k_Y_reco_empi_yk_,0);
+if (flag_verbose>0); disp(sprintf(' %% a_k_Y_reco_empi_yk_ vs a_k_Y_reco_frompm_yk_: %0.16f %%<-- will not be small if tolerance_pm> 0',a_k_Y_diff_empi_l3/max(1e-12,a_k_Y_reco_empi_l3))); end;
+if (flag_verbose>0); disp(sprintf(' %% a_k_Y_reco_empi_l3 %0.6f',a_k_Y_reco_empi_l3)); end;
+if (flag_verbose>0); disp(sprintf(' %% a_k_Y_reco_frompm_l3 %0.6f',a_k_Y_reco_frompm_l3)); end;
+if (flag_verbose>0); disp(sprintf(' %% a_k_Y_reco_empi_l2 %0.6f',a_k_Y_reco_empi_l2)); end;
+if (flag_verbose>0); disp(sprintf(' %% a_k_Y_reco_frompm_l2 %0.6f',a_k_Y_reco_frompm_l2)); end;
+if (flag_verbose>0); disp(sprintf(' %% pm_a_k_Y_reco_empi_l2 %0.6f',pm_a_k_Y_reco_empi_l2)); end;
 end;%if flag_check;
-%%%%%%%%;
-% Check cost for each principal-mode. ;
-%%%%%%%%;
-flag_check=0;
-if flag_check;
-for nUX_rank=0:min(n_UX_rank-1,pm_n_UX_rank-1);%for nUX_rank=0:n_UX_rank-1;
-[tmp_X,tmp_X_ori,tmp_X_tau,tmp_weight_so3] = principled_marching_cost_0(verbose,n_m_max,l_max_max,a_x1_UX_Y_quad_yn__(:,1+nUX_rank),a_x1_UX_Y_quad_yn__(:,1+nUX_rank));
-tmp_Z = transpose(UX_kn__(:,1+nUX_rank))*X_kk__*(UX_kn__(:,1+nUX_rank));
-disp(sprintf(' %% mode %.3d/%.3d: tmp_Z %+0.6f tmp_X %+0.6f tmp_X_ori*tmp_weight_so3 %+0.6f tmp_X_tau %+0.6f ratio %+0.6f',nUX_rank,n_UX_rank,tmp_Z,tmp_X,tmp_X_ori*tmp_weight_so3,tmp_X_tau,(tmp_X_ori*tmp_weight_so3)/tmp_X_tau));
-end;%for nUX_rank=0:n_UX_rank-1;
-end;%if flag_check;
-%%%%%%%%;
-fname_fig_pre = sprintf('%s_jpg/X_2d_x1_d0_kk__FIGA',dir_ssnll);
-fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
-if (flag_replot | ~exist(fname_fig_jpg,'file'));
-disp(sprintf(' %% %s not found, creating',fname_fig_pre));
-figure(1+nf);nf=nf+1;clf;
-colormap(colormap_beach());
-subplot(1,2,1); imagesc(log10(abs(UX_kn__)),[-3,0]); xlabel('rank'); ylabel('shell'); title('log10(abs(UX)) [-3,0]'); 
-subplot(1,2,2); plot(log10(abs(SX_k_)),'ko'); xlabel('rank'); ylabel('log10(\sigma)'); title('log10(SX)');
-figbig;
-disp(sprintf(' %% writing %s',fname_fig_pre));
-sgtitle(fname_fig_pre,'Interpreter','none');
-print('-djpeg',fname_fig_jpg);
-close(gcf);
-end;%if (~exist(fname_fig_jpg,'file'));
-if ( exist(fname_fig_jpg,'file'));
-disp(sprintf(' %% %s found, not creating',fname_fig_pre));
-end;%if ( exist(fname_fig_jpg,'file'));
-%%%%%%%%;
-fname_fig_pre = sprintf('%s_jpg/X_2d_x1_d0_kk__FIGB',dir_ssnll);
-fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
-if (flag_replot | ~exist(fname_fig_jpg,'file'));
-disp(sprintf(' %% %s not found, creating',fname_fig_pre));
-figure(1+nf);nf=nf+1;clf;
-%%%%%%%%;
-% First set up a tensor-product spherical grid (in k_p_ space). ;
-%%%%%%%%;
-k_u_res = 64;
-k_u_polar_a_ = linspace(0,pi,k_u_res);
-k_u_azimu_b_ = linspace(0,2*pi,2*k_u_res);
-[K_u_polar_a_,K_u_azimu_b_] = ndgrid(k_u_polar_a_,k_u_azimu_b_); n_K_u = k_u_res*2*k_u_res;
-K_u_weight_ = sin(K_u_polar_a_);
-%%%%%%%%;
-% Now look at the functions on each shell associated with these 'principal-modes'. ;
-%%%%%%%%;
-n_plot = min(6,pm_n_UX_rank);
-%plot_nk_p_r_ = max(1,min(n_k_p_r,round(linspace(1,n_k_p_r,n_plot))));
-plot_nk_p_r_ = 0:n_plot-1;
-quad_lim_ = 0.5 * abs(a_x1_UX_Y_quad_yn__(1,1)) * [-1,+1];
-for nplot=0:n_plot-1;
-nk_p_r = plot_nk_p_r_(1+nplot);
-[b_k_p_quad_] = reshape(convert_spharm_to_k_p_1(verbose,n_K_u,0,ones(n_K_u,1),K_u_azimu_b_(:),K_u_polar_a_(:),K_u_weight_(:),K_u_weight_(:),1,1,1,l_max_max,a_x1_UX_Y_quad_yn__(:,1+nk_p_r)),k_u_res,2*k_u_res);
-subplot(3,n_plot,1 + nplot + 0*n_plot); imagesc(real(b_k_p_quad_),quad_lim_); axisnotick; title(sprintf('real nk_p_r: %d, real(quad)',nk_p_r),'Interpreter','none');
-subplot(3,n_plot,1 + nplot + 1*n_plot); imagesc(imag(b_k_p_quad_),quad_lim_); axisnotick; title(sprintf('imag nk_p_r: %d, imag(quad)',nk_p_r),'Interpreter','none');
-subplot(3,n_plot,1 + nplot + 2*n_plot); imagesc( abs(b_k_p_quad_),quad_lim_); axisnotick; title(sprintf(' abs nk_p_r: %d,  abs(quad)',nk_p_r),'Interpreter','none');
-end;%for nplot=0:n_plot-1;
-colormap(colormap_beach());
-figbig;
-disp(sprintf(' %% writing %s',fname_fig_pre));
-sgtitle(fname_fig_pre,'Interpreter','none');
-print('-djpeg',fname_fig_jpg);
-close(gcf);
-end;%if (~exist(fname_fig_jpg,'file'));
-if ( exist(fname_fig_jpg,'file'));
-disp(sprintf(' %% %s found, not creating',fname_fig_pre));
-end;%if ( exist(fname_fig_jpg,'file'));
 %%%%%%%%;
 
-flag_check=1;
-if flag_check;
-fname_fig_pre = sprintf('%s_jpg/pm_a_k_Y_quad_yk__reco_FIGC',dir_ssnll);
-fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
-if (flag_replot | ~exist(fname_fig_jpg,'file'));
-disp(sprintf(' %% %s not found, creating',fname_fig_pre));
 %%%%%%%%;
-% Now check real-space reconstructions from principal-modes. ;
-%%%%%%%%;
-if flag_disp;
-figure(1+nf);nf=nf+1;clf;figbig;
-p_row = 2; p_col = ceil((1+pm_n_UX_rank)/p_row); np=0;
-subplot(p_row,p_col,1+np);np=np+1;
-isosurface_f_x_u_1([],a_x_u_reco_); title(sprintf('a_x_u_reco_'),'Interpreter','none');
-end;%if flag_disp;
-a_k_Y_reco_yk_ = zeros(n_lm_sum,1);
-for pm_nk_p_r=0:pm_n_k_p_r-1;
-for nk_p_r=0:n_k_p_r-1;
-tmp_l_max = l_max_(1+nk_p_r);
-pm_tmp_l_max = pm_l_max_(1+pm_nk_p_r);
-tmp_n_lm = (tmp_l_max+1).^2;
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:tmp_n_lm-1);
-pm_tmp_n_lm = (pm_tmp_l_max+1).^2;
-pm_tmp_index_ = pm_n_lm_csum_(1+pm_nk_p_r) + (0:pm_tmp_n_lm-1);
-a_k_Y_reco_yk_(1+tmp_index_) = a_k_Y_reco_yk_(1+tmp_index_) + UX_kn__(1+nk_p_r,1+pm_nk_p_r)/max(1e-12,X_weight_r_(1+nk_p_r))*pm_a_k_Y_quad_yk__(1:tmp_n_lm,1+pm_nk_p_r);
-end;%for nk_p_r=0:n_k_p_r-1;
-%%%%;
-tmp_a_k_p_reco_ = zeros(n_k_all,1);
-tmp_t = tic;
-if ~exist('Ylm_uklma___','var'); Ylm_uklma___ = []; end;
-if ~exist('k_p_azimu_b_sub_uka__','var'); k_p_azimu_b_sub_uka__ = []; end;
-if ~exist('k_p_polar_a_sub_uka__','var'); k_p_polar_a_sub_uka__ = []; end;
-if ~exist('l_max_uk_','var'); l_max_uk_ = []; end;
-if ~exist('index_nu_n_k_per_shell_from_nk_p_r_','var'); index_nu_n_k_per_shell_from_nk_p_r_ = []; end;
-if ~exist('index_k_per_shell_uka__','var'); index_k_per_shell_uka__ = []; end;
-[ ...
- tmp_a_k_p_reco_ ...
-,Ylm_uklma___ ...
-,k_p_azimu_b_sub_uka__ ...
-,k_p_polar_a_sub_uka__ ...
-,l_max_uk_ ...
-,index_nu_n_k_per_shell_from_nk_p_r_ ...
-,index_k_per_shell_uka__ ...
-] = ...
-convert_spharm_to_k_p_4( ...
- 0*flag_verbose ...
-,n_k_all ...
-,n_k_all_csum_ ...
-,k_p_r_all_ ...
-,k_p_azimu_b_all_ ...
-,k_p_polar_a_all_ ...
-,weight_3d_k_all_ ...
-,weight_shell_k_ ...
-,n_k_p_r ...
-,k_p_r_ ...
-,weight_3d_k_p_r_ ...
-,l_max_ ...
-,a_k_Y_reco_yk_ ...
-,Ylm_uklma___ ...
-,k_p_azimu_b_sub_uka__ ...
-,k_p_polar_a_sub_uka__ ...
-,l_max_uk_ ...
-,index_nu_n_k_per_shell_from_nk_p_r_ ...
-,index_k_per_shell_uka__ ...
-);
-tmp_t = toc(tmp_t); disp(sprintf(' %% tmp_a_k_p_reco_ time %0.2fs',tmp_t));
-%%%%;
-eta = pi/k_p_r_max; tmp_t = tic;
-tmp_a_x_u_reco_ = xxnufft3d3(n_k_all,2*pi*k_c_0_all_*eta,2*pi*k_c_1_all_*eta,2*pi*k_c_2_all_*eta,tmp_a_k_p_reco_.*(2*pi)^3.*weight_3d_k_all_,+1,1e-12,n_xxx_u,x_u_0___(:)/eta,x_u_1___(:)/eta,x_u_2___(:)/eta)/sqrt(2*pi)/sqrt(2*pi)/sqrt(2*pi);
-tmp_t = toc(tmp_t); disp(sprintf(' %% xxnufft3d3: tmp_a_x_u_reco_ time %0.2fs',tmp_t));
-if flag_disp;
-subplot(p_row,p_col,1+np);np=np+1;
-isosurface_f_x_u_1([],tmp_a_x_u_reco_); title(sprintf('pm_nk_p_r %d/%d',pm_nk_p_r,pm_n_k_p_r),'Interpreter','none');
-drawnow();
-end;%if flag_disp;
-%%;
-end;%for pm_nk_p_r=0:pm_n_k_p_r-1;
-%%%%;
-disp(sprintf(' %% writing %s',fname_fig_pre));
-sgtitle(fname_fig_pre,'Interpreter','none');
-print('-djpeg',fname_fig_jpg);
-close(gcf);
-end;%if (~exist(fname_fig_jpg,'file'));
-if ( exist(fname_fig_jpg,'file'));
-disp(sprintf(' %% %s found, not creating',fname_fig_pre));
-end;%if ( exist(fname_fig_jpg,'file'));
-%%%%%%%%;
-end;%if flag_check;
-
-%%%%%%%%;
-% Use a_x1_UX_Y_quad_yn_ to generate pm_S_use_k_p_wkS__ := S_x1_UX_k_p_wnS__. ;
+% Use a_k_Y_reco_empi_yk_ to generate pm_S_use_k_p_wkS__ := S_x1_UX_k_p_wnS__. ;
 % Note that poles are included for subsequent interpolation (when estimating ddssnll_lsq). ;
 %%%%%%%%;
+a_k_Y_reco_empi_yk__ = local_yk__from_yk_(pm_n_k_p_r,pm_l_max_,a_k_Y_reco_empi_yk_);
 [ ...
  n_viewing_S_use ...
 ,viewing_azimu_b_S_use_ ...
@@ -343,7 +225,7 @@ pm_template_2( ...
  0*flag_verbose ...
 ,l_max ...
 ,pm_n_k_p_r ...
-,a_x1_UX_Y_quad_yn__ ...
+,a_k_Y_reco_empi_yk__ ...
 ,[] ...
 ,-1 ...
 ,n_w_max ...
@@ -378,7 +260,7 @@ pm_template_2( ...
  0*flag_verbose ...
 ,l_max ...
 ,n_k_p_r ...
-,a_k_Y_quad_yk__ ...
+,a_k_Y_reco_empi_yk__ ...
 ,[] ...
 ,-1 ...
 ,n_w_max ...
@@ -410,27 +292,38 @@ end;%if flag_check;
 % Note that poles are excluded (to allow for finite derivatives in U_SmallRotation_2). ;
 %%%%%%%%;
 tmp_index_ = efind( abs(viewing_polar_a_S_use_-0*pi)>1e-6 & abs(viewing_polar_a_S_use_-1*pi)>1e-6 );
-n_M_use = numel(tmp_index_);
-viewing_weight_M_use_ = viewing_weight_S_use_(1+tmp_index_);
+%%%%%%%%;
+n_M_one = numel(tmp_index_);
+viewing_weight_M_one_ = viewing_weight_S_use_(1+tmp_index_);
+viewing_weight_M_one_ = viewing_weight_M_one_*sum(viewing_weight_S_use_)/max(1e-12,sum(viewing_weight_M_one_));
+pm_M_one_k_p_wkM__ = pm_S_use_k_p_wkS__(:,1+tmp_index_);
+euler_polar_a_M_one_ = viewing_polar_a_S_use_(1+tmp_index_);
+euler_azimu_b_M_one_ = viewing_azimu_b_S_use_(1+tmp_index_);
+euler_gamma_z_M_one_ = zeros(n_M_use,1);
+%%%%%%%%;
+n_M_use = n_ctf_per * numel(tmp_index_);
+viewing_weight_M_use_ = repmat(viewing_weight_S_use_(1+tmp_index_),[n_ctf_per,1]);
 viewing_weight_M_use_ = viewing_weight_M_use_*sum(viewing_weight_S_use_)/max(1e-12,sum(viewing_weight_M_use_));
-pm_M_use_k_p_wkM__ = pm_S_use_k_p_wkS__(:,1+tmp_index_);
-euler_polar_a_M_use_ = viewing_polar_a_S_use_(1+tmp_index_);
-euler_azimu_b_M_use_ = viewing_azimu_b_S_use_(1+tmp_index_);
+pm_M_tri_k_p_wkM__ = repmat(pm_S_use_k_p_wkS__(:,1+tmp_index_),[1,n_ctf_per]);
+euler_polar_a_M_use_ = repmat(viewing_polar_a_S_use_(1+tmp_index_),[n_ctf_per,1]);
+euler_azimu_b_M_use_ = repmat(viewing_azimu_b_S_use_(1+tmp_index_),[n_ctf_per,1]);
 euler_gamma_z_M_use_ = zeros(n_M_use,1);
 %%%%%%%%;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
-lsigma_dist_ = [NaN,-3:0.5:+3]; n_lsigma_dist = numel(lsigma_dist_);
+%lsigma_dist_ = [NaN,-3:0.5:+3]; n_lsigma_dist = numel(lsigma_dist_);
+lsigma_dist_ = [NaN]; n_lsigma_dist = numel(lsigma_dist_);
+factor_imagecount_M_one_s__ = zeros(n_M_one,n_lsigma_dist);
 factor_imagecount_Ms__ = zeros(n_M_use,n_lsigma_dist);
 for nlsigma_dist=0:n_lsigma_dist-1;
 lsigma_dist = lsigma_dist_(1+nlsigma_dist);
 sigma_dist = exp(-abs(lsigma_dist));
-if abs(lsigma_dist)<1e-12; factor_imagecount_M_use_ = 1/sqrt(2*pi)^2; end;
+if abs(lsigma_dist)<1e-12; factor_imagecount_M_one_ = 1/sqrt(2*pi)^2; end;
 if lsigma_dist< 0;
-factor_imagecount_M_use_ = 1/sqrt(2*pi)^2/sigma_dist^2*exp(-min((euler_polar_a_M_use_-0).^2,(euler_polar_a_M_use_-pi).^2)/(2*sigma_dist^2));
+factor_imagecount_M_one_ = 1/sqrt(2*pi)^2/sigma_dist^2*exp(-min((euler_polar_a_M_one_-0).^2,(euler_polar_a_M_one_-pi).^2)/(2*sigma_dist^2));
 end;%if lsigma_dist< 0;
 if lsigma_dist> 0;
-factor_imagecount_M_use_ = 1/sqrt(2*pi)^2/sigma_dist^2*exp(-(euler_polar_a_M_use_-pi/2).^2/(2*sigma_dist^2));
+factor_imagecount_M_one_ = 1/sqrt(2*pi)^2/sigma_dist^2*exp(-(euler_polar_a_M_one_-pi/2).^2/(2*sigma_dist^2));
 end;%if lsigma_dist> 0;
 if ~isfinite(lsigma_dist);
 [ ...
@@ -438,35 +331,35 @@ if ~isfinite(lsigma_dist);
  tmp_h_w3d_ab_ ...
 ] = ...
 hist2d_polar_a_azimu_b_0( ...
- euler_polar_a_M_use_ ...
-,euler_azimu_b_M_use_ ...
-,viewing_weight_M_use_ ...
+ euler_polar_a_M_one_ ...
+,euler_azimu_b_M_one_ ...
+,viewing_weight_M_one_ ...
 ,euler_polar_a_tavg_(:) ...
 ,euler_azimu_b_tavg_(:) ...
 ,[] ...
 ,[] ...
 ,-1 ...
 );
-factor_imagecount_M_use_ = tmp_h_w3d_ab_;
+factor_imagecount_M_one_ = tmp_h_w3d_ab_;
 end;%if ~isfinite(lsigma_dist);
-tmp_f = sum(factor_imagecount_M_use_.*viewing_weight_M_use_);
-factor_imagecount_M_use_ = factor_imagecount_M_use_./max(1e-12,tmp_f);
-factor_imagecount_Ms__(:,1+nlsigma_dist) = factor_imagecount_M_use_;
+tmp_f = sum(factor_imagecount_M_one_.*viewing_weight_M_one_);
+factor_imagecount_M_one_ = factor_imagecount_M_one_./max(1e-12,tmp_f);
+factor_imagecount_M_one_s__(:,1+nlsigma_dist) = factor_imagecount_M_one_;
 end;%for nlsigma_dist=0:n_lsigma_dist-1;
 %%%%;
 if flag_disp;
-figure(1+nf);nf=nf+1;clf;figbig;
-p_row = 4; p_col = ceil(n_lsigma_dist/p_row); np=0;
-%flim_ = prctile(factor_imagecount_Ms__,[  0,100],'all');
+figure(1+nf);nf=nf+1;clf;figsml;
+p_row = 1; p_col = ceil(n_lsigma_dist/p_row); np=0;
+%flim_ = prctile(factor_imagecount_M_one_s__,[  0,100],'all');
 flim_ = 4.0*[0,2.0/(4*pi)];
 flag_2d_vs_3d=0;
 for nlsigma_dist=0:n_lsigma_dist-1;
 lsigma_dist = lsigma_dist_(1+nlsigma_dist);
 subplot(p_row,p_col,1+np);np=np+1;
 imagesc_polar_a_azimu_b_0( ...
- euler_polar_a_M_use_ ... 
-,euler_azimu_b_M_use_ ... 
-,factor_imagecount_Ms__(:,1+nlsigma_dist) ...
+ euler_polar_a_M_one_ ... 
+,euler_azimu_b_M_one_ ... 
+,factor_imagecount_M_one_s__(:,1+nlsigma_dist) ...
 ,flim_ ... 
 ,colormap_beach ... 
 ,flag_2d_vs_3d ...
@@ -476,15 +369,41 @@ axisnotick3d; axis equal; axis vis3d;
 title(sprintf('lsigma %0.2f',lsigma_dist),'Interpreter','none');
 end;%for nlsigma_dist=0:n_lsigma_dist-1;
 drawnow();
+fname_fig_pre = sprintf('%s_jpg/ctf_select_FIGB',dir_ssnll);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+fname_fig_eps = sprintf('%s.eps',fname_fig_pre);
+if (flag_replot | ~exist(fname_fig_jpg,'file'));
+disp(sprintf(' %% %s not found, creating',fname_fig_pre));
+disp(sprintf(' %% writing %s',fname_fig_pre));
+sgtitle(fname_fig_pre,'Interpreter','none');
+print('-djpeg',fname_fig_jpg);
+print('-depsc',fname_fig_eps);
+end;%if (~exist(fname_fig_jpg,'file'));
 close(gcf);
 end;%if flag_disp;
+%%%%%%%%;
+factor_imagecount_Ms__ = repmat(factor_imagecount_M_one_s__,[n_ctf_per,1]);
+if (flag_verbose>0); disp(sprintf(' %% sum(factor_imagecount_M_one_.*viewing_weight_M_one_): %0.6f',sum(factor_imagecount_M_one_.*viewing_weight_M_one_))); end;
+if (flag_verbose>0); disp(sprintf(' %% sum(factor_imagecount_Ms__(:,1+0).*viewing_weight_M_use_): %0.6f',sum(factor_imagecount_Ms__(:,1+0).*viewing_weight_M_use_))); end;
 
 flag_calc = flag_256G | (k_int<=32 & flag_128G);
 if flag_calc;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+for nctf_select=0:n_ctf_select-1;
 for nlsigma_dist=0:n_lsigma_dist-1;
 for flag_implicit_dtau = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+n_CTF_select = n_CTF_select_s_(1+nctf_select);
+CTF_select_k_p_r_kC__ = CTF_select_k_p_r_kCs___(:,:,1+nctf_select);
+CTF_select_k_p_wkC__ = CTF_select_k_p_wkCs___(:,:,1+nctf_select);
+pm_n_CTF = n_CTF_select;
+pm_index_nCTF_from_nM_use_ = reshape(ones(n_M_one,1)*[0:pm_n_CTF-1],[n_M_use,1]);
+pm_CTF_k_p_r_kC__ = CTF_select_k_p_r_kC__;
+pm_CTF_k_p_wkC__ = CTF_select_k_p_wkC__;
+pm_M_use_k_p_wkM__ = pm_M_tri_k_p_wkM__.*pm_CTF_k_p_wkC__(:,1+pm_index_nCTF_from_nM_use_);
+DefocusV_CTF_select_C_ = DefocusV_CTF_select_Cs__(:,1+nctf_select);
+DefocusV_CTF_select_avg = mean(DefocusV_CTF_select_C_);
+str_ctf_select = sprintf('DefV%d',round(DefocusV_CTF_select_avg));
 lsigma_dist = lsigma_dist_(1+nlsigma_dist);
 factor_imagecount_M_use_ = factor_imagecount_Ms__(:,1+nlsigma_dist);
 weight_imagecount_M_use_ = viewing_weight_M_use_ .* factor_imagecount_M_use_ ;
@@ -494,8 +413,8 @@ if lsigma_dist>=-1e-12; str_infix = sprintf('lsigma_p%.3d',fix(100*abs(lsigma_di
 if (flag_verbose>0); disp(sprintf(' %% nlsigma_dist %.2d/%.2d %+0.2f %s',nlsigma_dist,n_lsigma_dist,lsigma_dist,str_infix)); end;
 str_dir_mat = sprintf('%s_mat',dir_ssnll);
 str_dir_jpg = sprintf('%s_jpg',dir_ssnll);
-if flag_implicit_dtau==0; str_fname_nopath_prefix = sprintf('eig_from_synth_%s_%s',str_tolerance_pm,str_infix); end;
-if flag_implicit_dtau==1; str_fname_nopath_prefix = sprintf('eig_i1_from_synth_%s_%s',str_tolerance_pm,str_infix); end;
+if flag_implicit_dtau==0; str_fname_nopath_prefix = sprintf('eig_from_synth_%s_%s_%s',str_tolerance_pm,str_infix,str_ctf_select); end;
+if flag_implicit_dtau==1; str_fname_nopath_prefix = sprintf('eig_i1_from_synth_%s_%s_%s',str_tolerance_pm,str_infix,str_ctf_select); end;
 %%%%;
 fname_pre = sprintf('%s/%s',str_dir_mat,str_fname_nopath_prefix);
 [flag_skip,fname_mat] = open_fname_tmp(fname_pre);
@@ -569,11 +488,6 @@ if ~exist('pm_d1W_betazeta_mlma____','var'); pm_d1W_betazeta_mlma____=[]; end;
 if ~exist('pm_d2W_betazeta_mlma____','var'); pm_d2W_betazeta_mlma____=[]; end;
 if ~exist('pm_U_tilde_SmallRotation_Delta_ykabc3__','var'); pm_pm_U_tilde_SmallRotation_Delta_ykabc3__=[]; end;
 %%%%;
-%if ~exist('pm_v_tilde_ykabci__ ','var'); pm_v_tilde_ykabci__ =[]; end;
-%if ~exist('pm_w_tilde_ykabc_ ','var'); pm_w_tilde_ykabc_ =[]; end;
-%if ~exist('alph_tilde_i_','var'); alph_tilde_i_=[]; end;
-%if ~exist('beta_tilde_i_ ','var'); beta_tilde_i_ =[]; end;
-%%%%;
 pm_a_k_p_quad_ = [];
 [ ...
  parameter_eig ...
@@ -593,7 +507,7 @@ eig_ddssnll_lanczos_3( ...
 ,pm_k_p_r_ ...
 ,pm_k_p_r_max ...
 ,pm_l_max_ ...
-,pm_a_k_Y_quad_yk_ ...
+,pm_a_k_Y_reco_empi_yk_ ...
 ,pm_n_k_all ...
 ,pm_n_k_all_csum_ ...
 ,pm_k_p_r_all_ ...
@@ -617,10 +531,10 @@ eig_ddssnll_lanczos_3( ...
 ,n_M_use ...
 ,weight_imagecount_M_use_ ...
 ,pm_M_use_k_p_wkM__ ...
-,[] ...
-,[] ...
-,[] ...
-,[] ...
+,pm_n_CTF ...
+,pm_index_nCTF_from_nM_use_ ...
+,pm_CTF_k_p_r_kC__ ...
+,pm_CTF_k_p_wkC__ ...
 ,[] ...
 ,[] ...
 ,[] ...
@@ -685,6 +599,10 @@ save(fname_mat ...
      ,'weight_imagecount_M_use_' ...
      ,'factor_imagecount_M_use_' ...
      ,'pm_M_use_k_p_wkM__' ...
+     ,'pm_n_CTF' ...
+     ,'pm_index_nCTF_from_nM_use_' ...
+     ,'pm_CTF_k_p_r_kC__' ...
+     ,'pm_CTF_k_p_wkC__' ...
      ,'euler_polar_a_M_use_' ...
      ,'euler_azimu_b_M_use_' ...
      ,'euler_gamma_z_M_use_' ...
@@ -701,6 +619,7 @@ end;%if ( exist(fname_mat,'file'));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 end;%for flag_implicit_dtau = 1;
 end;%for nlsigma_dist=0:n_lsigma_dist-1;
+end;%for nctf_select=0:n_ctf_select-1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 end;%if flag_calc;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
@@ -709,9 +628,21 @@ end;%if flag_calc;
 
 if flag_calc;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+for nctf_select=0:n_ctf_select-1;
 for nlsigma_dist=0:n_lsigma_dist-1;
 for flag_implicit_dtau = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+n_CTF_select = n_CTF_select_s_(1+nctf_select);
+CTF_select_k_p_r_kC__ = CTF_select_k_p_r_kCs___(:,:,1+nctf_select);
+CTF_select_k_p_wkC__ = CTF_select_k_p_wkCs___(:,:,1+nctf_select);
+pm_n_CTF = n_CTF_select;
+pm_index_nCTF_from_nM_use_ = reshape(ones(n_M_one,1)*[0:pm_n_CTF-1],[n_M_use,1]);
+pm_CTF_k_p_r_kC__ = CTF_select_k_p_r_kC__;
+pm_CTF_k_p_wkC__ = CTF_select_k_p_wkC__;
+pm_M_use_k_p_wkM__ = pm_M_tri_k_p_wkM__.*pm_CTF_k_p_wkC__(:,1+pm_index_nCTF_from_nM_use_);
+DefocusV_CTF_select_C_ = DefocusV_CTF_select_Cs__(:,1+nctf_select);
+DefocusV_CTF_select_avg = mean(DefocusV_CTF_select_C_);
+str_ctf_select = sprintf('DefV%d',round(DefocusV_CTF_select_avg));
 lsigma_dist = lsigma_dist_(1+nlsigma_dist);
 factor_imagecount_M_use_ = factor_imagecount_Ms__(:,1+nlsigma_dist);
 weight_imagecount_M_use_ = viewing_weight_M_use_ .* factor_imagecount_M_use_ ;
@@ -721,8 +652,8 @@ if lsigma_dist>=-1e-12; str_infix = sprintf('lsigma_p%.3d',fix(100*abs(lsigma_di
 if (flag_verbose>0); disp(sprintf(' %% nlsigma_dist %.2d/%.2d %+0.2f %s',nlsigma_dist,n_lsigma_dist,lsigma_dist,str_infix)); end;
 str_dir_mat = sprintf('%s_mat',dir_ssnll);
 str_dir_jpg = sprintf('%s_jpg',dir_ssnll);
-if flag_implicit_dtau==0; str_fname_nopath_prefix = sprintf('eig_from_synth_%s_%s',str_tolerance_pm,str_infix); end;
-if flag_implicit_dtau==1; str_fname_nopath_prefix = sprintf('eig_i1_from_synth_%s_%s',str_tolerance_pm,str_infix); end
+if flag_implicit_dtau==0; str_fname_nopath_prefix = sprintf('eig_from_synth_%s_%s_%s',str_tolerance_pm,str_infix,str_ctf_select); end;
+if flag_implicit_dtau==1; str_fname_nopath_prefix = sprintf('eig_i1_from_synth_%s_%s_%s',str_tolerance_pm,str_infix,str_ctf_select); end;
 fname_mat = sprintf('%s/%s.mat',str_dir_mat,str_fname_nopath_prefix);
 if ~exist(fname_mat,'file');
 disp(sprintf(' %% Warning, %s not found, not running diagnostic',fname_mat));
@@ -762,7 +693,7 @@ eig_ddssnll_lanczos_diagnostic_4( ...
 ,pm_k_p_r_ ...
 ,pm_k_p_r_max ...
 ,pm_l_max_ ...
-,pm_a_k_Y_quad_yk_ ...
+,pm_a_k_Y_reco_empi_yk_ ...
 ,pm_n_k_all ...
 ,pm_n_k_all_csum_ ...
 ,pm_k_p_r_all_ ...
@@ -786,10 +717,10 @@ eig_ddssnll_lanczos_diagnostic_4( ...
 ,n_M_use ...
 ,weight_imagecount_M_use_ ...
 ,pm_M_use_k_p_wkM__ ...
-,[] ...
-,[] ...
-,[] ...
-,[] ...
+,pm_n_CTF ...
+,pm_index_nCTF_from_nM_use_ ...
+,pm_CTF_k_p_r_kC__ ...
+,pm_CTF_k_p_wkC__ ...
 ,[] ...
 ,[] ...
 ,[] ...
@@ -844,8 +775,12 @@ end;%if  exist(fname_mat,'file');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 end;%for flag_implicit_dtau = 1;
 end;%for nlsigma_dist=0:n_lsigma_dist-1;
+end;%for nctf_select=0:n_ctf_select-1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 end;%if flag_calc;
 
+
+
 disp(sprintf(' %% returning after diagnostic')); return;
+
 

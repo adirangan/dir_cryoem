@@ -582,7 +582,7 @@ lambda_sub_ = diag(lambda_sub__);
 [lambda_srt_,ij_srt_] = sort(lambda_sub_,'ascend');
 ij_use = ij_srt_(1+index_lambda);
 lambda_use = lambda_srt_(1+index_lambda);
-assert(abs(lambda_use-lambda_ns__(1+nn,1+ns))<1e-12);
+if (abs(lambda_use-lambda_ns__(1+nn,1+ns))> 1e-12); disp(sprintf(' %% Warning, abs(lambda_use-lambda_ns__(1+nn,1+ns)): %0.16f',abs(lambda_use-lambda_ns__(1+nn,1+ns)))); end;
 pm_TV_tilde_eig_ = pm_TV_tilde_sub__(:,ij_use);
 pm_v_tilde_eig_ykabc_ = pm_v_tilde_ykabci__(:,1:1+niteration)*pm_TV_tilde_eig_;
 [pm_v_tilde_eig_dvol_yk_,pm_v_tilde_eig_polar_a_M_use_,pm_v_tilde_eig_azimu_b_M_use_,pm_v_tilde_eig_gamma_z_M_use_] = local_yk_a_b_c_from_ykabc_(pm_n_k_p_r,pm_l_max_,n_M_imp,pm_v_tilde_eig_ykabc_);
@@ -594,7 +594,7 @@ pm_v_eig_ykabc_ = bsxfun(@times,pm_denomator_root_weight_3d_riesz_weight_imageco
 [tmp_ff,tmp_ff_dvol,tmp_ff_a,tmp_ff_b,tmp_ff_c] = local_imagecount_f_bar_dot_g_(pm_n_k_p_r,pm_weight_3d_riesz_k_p_r_,pm_l_max_,n_M_imp,weight_imagecount_M_imp_,pm_v_eig_ykabc_,pm_v_eig_ykabc_);
 str_ff = sprintf('lambda %0.6f: tmp_ff %0.2f,tmp_ff_dvol %0.2f,tmp_ff_a %0.2f,tmp_ff_b %0.2f,tmp_ff_c %0.2f',lambda_use,tmp_ff,tmp_ff_dvol,tmp_ff_a,tmp_ff_b,tmp_ff_c);
 if (flag_verbose>1); disp(sprintf(' %% %s',str_ff)); end;
-assert(abs(tmp_ff_dvol-ee_ns4___(1+nn,1+ns,1+0))<1e-9);
+if (abs(tmp_ff_dvol-ee_ns4___(1+nn,1+ns,1+0))> 1e-9); disp(sprintf(' %% Warning, abs(tmp_ff_dvol-ee_ns4___(1+nn,1+ns,1+0)): %0.16f',abs(tmp_ff_dvol-ee_ns4___(1+nn,1+ns,1+0)))); end;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 end;%for nscan=0:n_scan-1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;

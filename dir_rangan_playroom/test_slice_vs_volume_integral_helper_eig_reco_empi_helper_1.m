@@ -78,7 +78,7 @@ weight_imagecount_M_use_ = viewing_weight_M_use_ .* factor_imagecount_M_use_ ;
 nlsigma_dist = 0; n_lsigma_dist = 1; lsigma_dist = NaN;
 str_infix = sprintf('p_reco_empi');
 if (flag_verbose>0); disp(sprintf(' %% %s',str_infix)); end;
-lanczos_n_iteration_max = 32;
+%lanczos_n_iteration_max = 32;
 ddssnll_mid_q2d_i_ = zeros(1,lanczos_n_iteration_max);
 ddssnll_dif_q2d_i_ = zeros(1,lanczos_n_iteration_max);
 ddssnll_lsq_q2d_i_ = zeros(1,lanczos_n_iteration_max);
@@ -174,6 +174,7 @@ lambda_cut = 3.5;
 if strcmp(dir_nopath_data_star,'rib80s');
 val_zoom_use = 1.50;
 prct_use = 98.00;
+vlim_g_max = 2.5e-3;
 npick_ = { ...
   ,[15] ...
   ,[16] ...
@@ -183,6 +184,7 @@ end;%if strcmp(dir_nopath_data_star,'rib80s');
 if strcmp(dir_nopath_data_star,'trpv1');
 val_zoom_use = 2.00;
 prct_use = 98.75;
+vlim_g_max = 2.5e-3;
 npick_ = { ...
   ,[15] ...
   ,[16] ...
@@ -192,6 +194,7 @@ end;%if strcmp(dir_nopath_data_star,'trpv1');
 if strcmp(dir_nopath_data_star,'ISWINCP');
 val_zoom_use = 1.85;
 prct_use = 99.25;
+vlim_g_max = 2.5e-3;
 npick_ = { ...
   ,[15] ...
   ,[16] ...
@@ -201,6 +204,7 @@ end;%if strcmp(dir_nopath_data_star,'ISWINCP');
 if strcmp(dir_nopath_data_star,'MlaFEDB');
 val_zoom_use = 1.75;
 prct_use = 99.00;
+vlim_g_max = 2.5e-3;
 npick_ = { ...
   ,[15] ...
   ,[16] ...
@@ -211,8 +215,8 @@ n_pick = numel(npick_);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 for npick=0:n_pick-1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
-npick = npick_{1+npick};
-index_lambda = npick(1+0);
+tmp_npick_ = npick_{1+npick};
+index_lambda = tmp_npick_(1+0);
 
 %%%%%%%%;
 lambda_mid = real(ddssnll_mid_q2d_i_(1,1+index_lambda));
@@ -712,7 +716,7 @@ interp_k = 1;
 dvol_ = tmp_dvol_mag*[-1:2.0:+1]; n_dvol = numel(dvol_);
 prct_ = [prct_use]; prct = prct_(1+0);
 vval = prctile(real(tmp_a_x_u_reco_fnrm_(:)),prct);
-vlim_g_ = [0,2.5e-3];
+vlim_g_ = [0,vlim_g_max];
 val_zoom = val_zoom_use;
 dvol = max(dvol_);
 tmp_tmp_a_x_u_reco_fnrm_ = tmp_a_x_u_reco_fnrm_ + dvol*v_x_u_reco_fnrm_;
@@ -775,7 +779,7 @@ end;%if flag_replot | ~exist(fname_fig_jpg,'file');
 close(gcf);
 end;%if flag_disp;
 
-flag_disp=0;
+flag_disp=1;
 if flag_disp;
 %%%%%%%%;
 % Make frames for perturbation movie. ;
@@ -784,7 +788,7 @@ interp_k = 1;
 dvol_ = tmp_dvol_mag*[-1:0.5:+1]; n_dvol = numel(dvol_);
 prct_ = [prct_use]; prct = prct_(1+0);
 vval = prctile(real(tmp_a_x_u_reco_fnrm_(:)),prct);
-vlim_g_ = [0,2.5e-3];
+vlim_g_ = [0,vlim_g_max];
 val_zoom = val_zoom_use;
 dvol = max(dvol_);
 tmp_tmp_a_x_u_reco_fnrm_ = tmp_a_x_u_reco_fnrm_ + dvol*v_x_u_reco_fnrm_;

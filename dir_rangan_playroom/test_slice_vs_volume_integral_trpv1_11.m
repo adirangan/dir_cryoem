@@ -1,5 +1,5 @@
 %%%%%%%%;
-% Applying eig_ddssnll_lanczos_2 to trpv1. ;
+% Applying eig_ddssnll_lanczos_3 to trpv1. ;
 % Limiting to principal modes. ;
 %%%%%%%%;
 
@@ -16,7 +16,20 @@ str_thisfunction = 'test_slice_vs_volume_integral_trpv1_11';
 flag_recalc=0; flag_replot=0;
 flag_verbose=1; flag_disp=1; nf=0;
 
-if ~exist('k_int','var'); k_int = 48; end;
+[~,str_hostname] = system('hostname');
+flag_256G = 0 ...
+| ~isempty(strfind(str_hostname,'crunchy')) ...
+| ~isempty(strfind(str_hostname,'linserv')) ...
+;
+flag_128G = 0 ...
+| ~isempty(strfind(str_hostname,'crunchy')) ...
+| ~isempty(strfind(str_hostname,'linserv')) ...
+| ~isempty(strfind(str_hostname,'xcalibr8')) ...
+| ~isempty(strfind(str_hostname,'snappy')) ...
+;
+%%;
+if ~exist('k_int','var'); k_int = 32; if flag_256G; k_int = 48; end; end;
+%%;
 if k_int==8;
 k_eq_d_double = 0.50;
 t_eq_d_double = 0.50;
@@ -28,6 +41,7 @@ KAPPA_qref_k_eq_d_double = 1.0;
 pm_n_UX_rank_max = 3;
 lanczos_n_iteration_max = pm_n_UX_rank_max*(k_int+1)^2; %<-- This should be a full calculation with 3 principal-modes. ;
 end;%if k_int==16;
+%%;
 if k_int==16;
 k_eq_d_double = 0.50;
 t_eq_d_double = 0.50;
@@ -39,6 +53,19 @@ KAPPA_qref_k_eq_d_double = 1.0;
 pm_n_UX_rank_max = +Inf;
 lanczos_n_iteration_max = 256;
 end;%if k_int==16;
+%%;
+if k_int==32;
+k_eq_d_double = 0.50;
+t_eq_d_double = 0.50;
+n_w_int = 2;
+KAPPA_flag_kernel_full = 1;
+KAPPA_pole_north_double = 12*pi/24;
+KAPPA_pole_south_double = 12*pi/24;
+KAPPA_qref_k_eq_d_double = 1.00;
+pm_n_UX_rank_max = +Inf;
+lanczos_n_iteration_max = 64;
+end;%if k_int==32;
+%%;
 if k_int==48;
 k_eq_d_double = 1.00;
 t_eq_d_double = 1.00;
@@ -50,6 +77,8 @@ KAPPA_qref_k_eq_d_double = 1.00;
 pm_n_UX_rank_max = +Inf;
 lanczos_n_iteration_max = 32;
 end;%if k_int==48;
+%%;
+flag_calc = flag_256G | (k_int<=32 & flag_128G);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 if (flag_verbose>0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
@@ -1282,7 +1311,7 @@ figure(1+nf);nf=nf+1;clf;figbig;figbeach();
 ns=0;
 for ncluster=0:min(20,n_cluster)-1;
 subplot(4,5,1+ns);ns=ns+1;
-imagesc(X_2d_Memp_d1_kkc___(:,:,1+ncluster)); axis image; axisnotick;
+imagesc(real(X_2d_Memp_d1_kkc___(:,:,1+ncluster))); axis image; axisnotick;
 end;%for ncluster=0:n_cluster-1;
 sgtitle(fname_fig_pre,'Interpreter','none');
 disp(sprintf(' %% writing %s',fname_fig_pre));
@@ -1303,7 +1332,7 @@ figure(1+nf);nf=nf+1;clf;figbig;figbeach();
 ns=0;
 for ncluster=0:min(20,n_cluster)-1;
 subplot(4,5,1+ns);ns=ns+1;
-imagesc(X_2d_Nemp_d1_kkc___(:,:,1+ncluster)); axis image; axisnotick;
+imagesc(real(X_2d_Nemp_d1_kkc___(:,:,1+ncluster))); axis image; axisnotick;
 end;%for ncluster=0:n_cluster-1;
 sgtitle(fname_fig_pre,'Interpreter','none');
 disp(sprintf(' %% writing %s',fname_fig_pre));
@@ -1343,7 +1372,7 @@ figure(1+nf);nf=nf+1;clf;figbig;figbeach();
 ns=0;
 for ncluster=0:min(20,n_cluster)-1;
 subplot(4,5,1+ns);ns=ns+1;
-imagesc(X_2d_xavg_d0_kkc___(:,:,1+ncluster)); axis image; axisnotick;
+imagesc(real(X_2d_xavg_d0_kkc___(:,:,1+ncluster))); axis image; axisnotick;
 end;%for ncluster=0:n_cluster-1;
 sgtitle(fname_fig_pre,'Interpreter','none');
 disp(sprintf(' %% writing %s',fname_fig_pre));
@@ -1370,7 +1399,7 @@ if (flag_replot | ~exist(fname_fig_jpg,'file'));
 disp(sprintf(' %% %s not found, creating',fname_fig_pre));
 figure(1+nf);nf=nf+1;clf;figsml;figbeach();
 subplot(1,1,1);
-imagesc(X_2d_x1_d0_kk__); axis image; axisnotick;
+imagesc(real(X_2d_x1_d0_kk__)); axis image; axisnotick;
 sgtitle(fname_fig_pre,'Interpreter','none');
 disp(sprintf(' %% writing %s',fname_fig_pre));
 print('-djpeg',fname_fig_jpg);
@@ -1661,7 +1690,7 @@ if (flag_verbose>0); disp(sprintf(' %% T_bar: %0.6f',T_bar)); end;
 % Let us assume that the overall molecular mass is 400kDa. ;
 % Also assume that the molecule is roughly encased within a box of ~1/2 side-length. ;
 % This means that the number of pixels holding the signal is ~n_x_u_pack^2/4 = 1000. ;
-% Thus, there should be roughly 400kDa/1000 = 400Da of 'signal' packed into each of 1000 pixelx in a synthetic image. ;
+% Thus, there should be roughly 400kDa/1000 = 400Da of 'signal' packed into each of 1000 pixels in a synthetic image. ;
 % Assuming each pixel is roughly 1AA, or 1 square-angstrom, we have 400 Da/AA packed into each pixel of the sythetic image support. ;
 % Thus, the norm-squared of a typical template is roughly 1000AA*[400Da/AA]^2 = 16e7 DD/AA %<-- Daltons^2 per Angstrom^2. ;
 % Now TT_bar=0.0042 corresponds to roughly 16e7 DD/AA. ;
@@ -1861,12 +1890,7 @@ if (flag_verbose> 1); disp(sprintf(' %% k_p_r %0.6f: sum(weight_3d_riesz_k_all_(
 end;%for nk_p_r=0:n_k_p_r-1;
 %%%%%%%%;
 
-[~,str_hostname] = system('hostname');
-flag_256G = 0 ...
-| ~isempty(strfind(str_hostname,'crunchy')) ...
-| ~isempty(strfind(str_hostname,'linserv')) ...
-;
-if flag_256G;
+if flag_calc;
 %%%%%%%%;
 %test_slice_vs_volume_integral_helper_eig_polar_cap_1;
 %test_slice_vs_volume_integral_helper_eig_equa_band_1;
@@ -1879,13 +1903,17 @@ if flag_256G;
 %%%%%%%%;
 % Use noiseless templates and synthetic viewing-angle distribution and principal-modes. ;
 %%%%%%%%;
-test_slice_vs_volume_integral_helper_eig_imagecount_6;
+%test_slice_vs_volume_integral_helper_eig_imagecount_6;
 %%%%%%%%;
 % Use empirical images. ;
 %%%%%%%%;
-%test_slice_vs_volume_integral_helper_eig_reco_empi_7;
+test_slice_vs_volume_integral_helper_eig_reco_empi_7;
 %%%%%%%%;
-end;%if flag_256G;
+% Use ctf select. ;
+%%%%%%%%;
+test_slice_vs_volume_integral_helper_eig_ctf_select_8;
+%%%%%%%%;
+end;%if flag_calc;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 if (flag_verbose>0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;

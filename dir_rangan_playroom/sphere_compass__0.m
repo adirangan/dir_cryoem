@@ -64,7 +64,7 @@ delta_gamma_z_S_(1+nS) = delta_gamma_z;
 end;%for nS=0:n_S-1;
 %%%%;
 parameter = struct('type','parameter');
-parameter.compass_r_base = 1/(2*pi)/k_p_r_max;
+parameter.compass_r_base = 2.0/(2*pi)/k_p_r_max;
 figure(1);clf;figmed;
 %%%%;
 subplot(1,2,1);
@@ -147,13 +147,12 @@ delta_gamma_z_norm_S_ = delta_euler_norm_S3__(:,1+2);
 
 for nS=0:n_S-1;
 parameter_sub = parameter;
-tmp_d = 1.0;
-if flag_normalize;
-tmp_d = sqrt(delta_polar_a_norm_S_(1+nS).^2 + delta_azimu_b_norm_S_(1+nS).^2);
-parameter_sub.compass_r_base = compass_r_base * sqrt(tmp_d);
-end;%  if flag_normalize;
-nc_use = max(0,min(n_c_use-1,floor(n_c_use*tmp_d/1.0)));
+tmp_c = 1.0; tmp_d = 1.0;
+tmp_c = sqrt(delta_polar_a_norm_S_(1+nS).^2 + delta_azimu_b_norm_S_(1+nS).^2);
+tmp_r = compass_r_base * sqrt(tmp_c); if flag_normalize; parameter_sub.compass_r_base = tmp_r; end;%  if flag_normalize;
+nc_use = max(0,min(n_c_use-1,floor(n_c_use*tmp_c/1.0)));
 parameter_sub.compass_pointer_patchcolor = c_use__(1+nc_use,:);
+if (tmp_r>=1e-4);
 parameter_sub = ...
 sphere_compass_0( ...
  parameter_sub ...
@@ -163,8 +162,8 @@ sphere_compass_0( ...
 ,delta_azimu_b_norm_S_(1+nS) ...
 ,delta_gamma_z_norm_S_(1+nS) ...
 );
+end;%if (tmp_r>=1e-4);
 end;%for nS=0:n_S-1;
-
 if (flag_verbose> 0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;
 
 

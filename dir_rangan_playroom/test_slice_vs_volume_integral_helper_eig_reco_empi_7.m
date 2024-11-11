@@ -293,16 +293,24 @@ pm_v_tilde_ykabci__=[];
 pm_w_tilde_ykabc_=[];
 alph_tilde_i_=[];
 beta_tilde_i_=[];
+dvol_a_k_Y_quad_yki__=[];
+dtau_euler_polar_a_Mi__=[];
+dtau_euler_azimu_b_Mi__=[];
+dtau_euler_gamma_z_Mi__=[];
 end;%if (~exist(fname_mat,'file'));
 %%%%;
 if (~flag_recalc &  exist(fname_mat,'file'));
 tmp_ = load(fname_mat);
-tmp_lanczos_n_iteration_max = numel(tmp_.alph_tilde_i_);
-pm_U_tilde_SmallRotation_Delta_ykabc3__ = tmp_.pm_U_tilde_SmallRotation_Delta_ykabc3__;
-pm_v_tilde_ykabci__ = tmp_.pm_v_tilde_ykabci__;
-pm_w_tilde_ykabc_ = tmp_.pm_w_tilde_ykabc_;
-alph_tilde_i_ = tmp_.alph_tilde_i_;
-beta_tilde_i_ = tmp_.beta_tilde_i_;
+if isfield(tmp_,'alph_tilde_i_'); tmp_lanczos_n_iteration_max = numel(tmp_.alph_tilde_i_); end;
+if isfield(tmp_,'pm_U_tilde_SmallRotation_Delta_ykabc3__'); pm_U_tilde_SmallRotation_Delta_ykabc3__ = tmp_.pm_U_tilde_SmallRotation_Delta_ykabc3__; end;
+if isfield(tmp_,'pm_v_tilde_ykabci__'); pm_v_tilde_ykabci__ = tmp_.pm_v_tilde_ykabci__; end;
+if isfield(tmp_,'pm_w_tilde_ykabc_'); pm_w_tilde_ykabc_ = tmp_.pm_w_tilde_ykabc_; end;
+if isfield(tmp_,'alph_tilde_i_'); alph_tilde_i_ = tmp_.alph_tilde_i_; end;
+if isfield(tmp_,'beta_tilde_i_'); beta_tilde_i_ = tmp_.beta_tilde_i_; end;
+if isfield(tmp_,'dvol_a_k_Y_quad_yki__'); dvol_a_k_Y_quad_yki__ = tmp_.dvol_a_k_Y_quad_yki__; end;
+if isfield(tmp_,'dtau_euler_polar_a_Mi__'); dtau_euler_polar_a_Mi__ = tmp_.dtau_euler_polar_a_Mi__; end;
+if isfield(tmp_,'dtau_euler_azimu_b_Mi__'); dtau_euler_azimu_b_Mi__ = tmp_.dtau_euler_azimu_b_Mi__; end;
+if isfield(tmp_,'dtau_euler_gamma_z_Mi__'); dtau_euler_gamma_z_Mi__ = tmp_.dtau_euler_gamma_z_Mi__; end;
 clear tmp_;
 end;%if ( exist(fname_mat,'file'));
 %%%%;
@@ -338,7 +346,7 @@ pm_a_k_p_reco_empi_ = [];
 ,dtau_euler_azimu_b_Mi__ ...
 ,dtau_euler_gamma_z_Mi__ ...
 ] = ...
-eig_ddssnll_lanczos_2( ...
+eig_ddssnll_lanczos_3( ...
  parameter_eig ...
 ,pm_n_k_p_r ...
 ,pm_k_p_r_ ...

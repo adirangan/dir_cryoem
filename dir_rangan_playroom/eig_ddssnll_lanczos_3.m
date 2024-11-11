@@ -228,9 +228,9 @@ if isempty(w_tilde_ykabc_); w_tilde_ykabc_ = zeros(n_lm_sum + n_M_use*n_3,0); en
 if isempty(alph_tilde_i_); alph_tilde_i_ = zeros(0,1); end;
 if isempty(beta_tilde_i_); beta_tilde_i_ = zeros(0,1); end;
 if isempty(dvol_a_k_Y_quad_yki__); dvol_a_k_Y_quad_yki__ = zeros(n_lm_sum,0); end;
-if isempty(dtau_euler_polar_a_Mi__); dtau_euler_polar_a_Mi__ = zeros(n_M_use,0); end;
-if isempty(dtau_euler_azimu_b_Mi__); dtau_euler_azimu_b_Mi__ = zeros(n_M_use,0); end;
-if isempty(dtau_euler_gamma_z_Mi__); dtau_euler_gamma_z_Mi__ = zeros(n_M_use,0); end;
+if isempty(dtau_euler_polar_a_Mi__); dtau_euler_polar_a_Mi__ = zeros(n_M,0); end;
+if isempty(dtau_euler_azimu_b_Mi__); dtau_euler_azimu_b_Mi__ = zeros(n_M,0); end;
+if isempty(dtau_euler_gamma_z_Mi__); dtau_euler_gamma_z_Mi__ = zeros(n_M,0); end;
 
 %%%%%%%%;
 if isempty(n_CTF);
@@ -441,9 +441,9 @@ v_tilde_ykabci__ = cat(2,v_tilde_ykabci__,zeros(n_ykabc,lanczos_n_iteration_cur)
 alph_tilde_i_ = cat(1,alph_tilde_i_,zeros(lanczos_n_iteration_cur,1));
 beta_tilde_i_ = cat(1,beta_tilde_i_,zeros(lanczos_n_iteration_cur,1));
 dvol_a_k_Y_quad_yki__ = cat(2,dvol_a_k_Y_quad_yki__,zeros(n_lm_sum,lanczos_n_iteration_cur));
-dtau_euler_polar_a_Mi__ = cat(2,dtau_euler_polar_a_Mi__,zeros(n_M_use,lanczos_n_iteration_cur));
-dtau_euler_azimu_b_Mi__ = cat(2,dtau_euler_azimu_b_Mi__,zeros(n_M_use,lanczos_n_iteration_cur));
-dtau_euler_gamma_z_Mi__ = cat(2,dtau_euler_gamma_z_Mi__,zeros(n_M_use,lanczos_n_iteration_cur));
+dtau_euler_polar_a_Mi__ = cat(2,dtau_euler_polar_a_Mi__,zeros(n_M,lanczos_n_iteration_cur));
+dtau_euler_azimu_b_Mi__ = cat(2,dtau_euler_azimu_b_Mi__,zeros(n_M,lanczos_n_iteration_cur));
+dtau_euler_gamma_z_Mi__ = cat(2,dtau_euler_gamma_z_Mi__,zeros(n_M,lanczos_n_iteration_cur));
 
 %%%%%%%%%%%%%%%%;
 for niteration=lanczos_n_iteration_pre:lanczos_n_iteration_sum-1;
@@ -488,7 +488,7 @@ v_tilde_ykabci__(:,1+niteration) = v_tilde_ykabc_;
 %%%%;
 w_tilde_ykabc_ = v_tilde_ykabci__(:,1+niteration);
 if ~flag_ignore_U; w_tilde_ykabc_ = local_weightless_orthogonalcomplement_gperpfn(n_k_p_r,l_max_,n_M_use,U_tilde_SmallRotation_Delta_ykabc3__,w_tilde_ykabc_); end; %<-- Projection. ;
-eig_ddssnll_lanczos_helper_2; %<-- apply weighted version of H. ;
+eig_ddssnll_lanczos_helper_3; %<-- apply weighted version of H. ;
 if ~flag_ignore_U; w_tilde_ykabc_ = local_weightless_orthogonalcomplement_gperpfn(n_k_p_r,l_max_,n_M_use,U_tilde_SmallRotation_Delta_ykabc3__,w_tilde_ykabc_); end; %<-- Projection. ;
 %%%%;
 alph_tilde_i_(1+niteration) = local_weightless_f_bar_dot_g_(n_k_p_r,l_max_,n_M_use,w_tilde_ykabc_,v_tilde_ykabci__(:,1+niteration));
@@ -582,11 +582,11 @@ hold on;
 for niteration=0:niteration_step:n_iteration-1;
 tmp_lambda_x_ = lambda_xi__(1:1+niteration,1+niteration);
 nc_use = max(0,min(n_c_use-1,floor(n_c_use*niteration/max(1,n_iteration-1))));
-stairs(linspace(0,1,1+niteration),log10(tmp_lambda_x_),'-','LineWidth',linewidth_big,'Color',c_use__(1+nc_use,:));
+stairs(linspace(0,1,1+niteration),log10(max(1e-12,abs(tmp_lambda_x_))),'-','LineWidth',linewidth_big,'Color',c_use__(1+nc_use,:));
 end;%for niteration=0:n_iteration-1;
 hold off;
 xlim([0,1]); xlabel('rank');
-ylim([prctile(log10(abs(S_x_)),0),prctile(log10(S_x_),100)]); ylabel('log10(S_x_)','Interpreter','none');
+ylim([prctile(log10(max(1e-12,abs(S_x_))),0),prctile(log10(max(1e-12,abs(S_x_))),100)]); ylabel('log10(S_x_)','Interpreter','none');
 title('log10(lambda) CDF');
 set(gca,'FontSize',fontsize_use);
 %%%%%%%%;
