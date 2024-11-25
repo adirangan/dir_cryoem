@@ -299,7 +299,7 @@ viewing_weight_M_one_ = viewing_weight_M_one_*sum(viewing_weight_S_use_)/max(1e-
 pm_M_one_k_p_wkM__ = pm_S_use_k_p_wkS__(:,1+tmp_index_);
 euler_polar_a_M_one_ = viewing_polar_a_S_use_(1+tmp_index_);
 euler_azimu_b_M_one_ = viewing_azimu_b_S_use_(1+tmp_index_);
-euler_gamma_z_M_one_ = zeros(n_M_use,1);
+euler_gamma_z_M_one_ = zeros(n_M_one,1);
 %%%%%%%%;
 n_M_use = n_ctf_per * numel(tmp_index_);
 viewing_weight_M_use_ = repmat(viewing_weight_S_use_(1+tmp_index_),[n_ctf_per,1]);

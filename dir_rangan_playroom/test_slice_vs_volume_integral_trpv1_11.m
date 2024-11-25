@@ -1907,7 +1907,7 @@ if flag_calc;
 %%%%%%%%;
 % Use empirical images. ;
 %%%%%%%%;
-test_slice_vs_volume_integral_helper_eig_reco_empi_7;
+%test_slice_vs_volume_integral_helper_eig_reco_empi_7;
 %%%%%%%%;
 % Use ctf select. ;
 %%%%%%%%;
