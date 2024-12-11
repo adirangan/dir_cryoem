@@ -1,28 +1,10 @@
-function nf = test_CryoLike_cg_lsq_20241126(k_eq_d_double,k_int,n_x_u,nf);
+function nf = test_CryoLike_fft_template_20241210(k_eq_d_double,k_int,n_x_u,nf);
 %%%%%%%%;
-% Tests 3d-integration. ;
-%%%%%%%%;
-% Input: ;
-% k_eq_d_double: double resolution-parameter. ;
-%     k_eq_d_double is defined as (2*pi)*k_eq_d. ;
-%     k_eq_d is the distance (along the equator) between sample-point in k-space on the largest k-shell. ;
-% k_int: int largest wavenumber. ;
-%     k_p_r_max is defined as k_int/(2*pi). ;
-% n_x_u: int number of spatial-points alongside box of side-length diameter_x_c:=2.0. ;
-% nf: int figure number for plotting. ;
-%%%%%%%%;
-% Additional internal parameters. ;
-% sigma_k: This is the standard-deviation of the gaussian-envelope in k-space. ;
-%     I set it to be k_p_r_max/4.0, but you can increase it. ;
-%     Doing so will narrow the support of the spatial-gaussian, ;
-%     increasing the resolution at the cost of integration-accuracy. ;
-% delta_x_c_max: This is the maximum translation allowed for generating the synthetic volume. ;
-%     I set it to be half-diameter_max/2.0, but you can increase it. ;
-%     Doing so will reduce the integration and reconstruction-accuracy. ;
+% Tests template-generation from a_x_u_. ;
 %%%%%%%%;
 % defaults: k_eq_d_double = 1.0; k_int = 48; n_x_u = 64; nf=0;
 
-str_thisfunction = 'test_CryoLike_cg_lsq_20241126';
+str_thisfunction = 'test_CryoLike_fft_template_20241210';
 
 if (nargin<1);
 k_eq_d_double_ = [1.0,4.0];
@@ -30,7 +12,7 @@ n_k_eq_d_double = numel(k_eq_d_double_);
 nf=0;
 for nk_eq_d_double=0:n_k_eq_d_double-1;
 k_eq_d_double = k_eq_d_double_(1+nk_eq_d_double);
-nf = test_CryoLike_cg_lsq_20241126(k_eq_d_double,[],[],nf);
+nf = test_CryoLike_cg_lsq_20241127(k_eq_d_double,[],[],nf);
 end;%for nk_eq_d_double=0:n_k_eq_d_double-1;
 disp(sprintf(' %% returning')); return;
 end;%if (nargin<1);
@@ -42,7 +24,7 @@ if nargin<1+na; n_x_u = []; end; na=na+1;
 if nargin<1+na; nf = []; end; na=na+1;
 
 % defaults for testing: ;
-% clear; str_thisfunction = 'test_CryoLike_cg_lsq_20241126'; k_eq_d_double = []; k_int = []; n_x_u = []; nf = [];
+% clear; str_thisfunction = 'test_CryoLike_fft_template_20241210'; k_eq_d_double = []; k_int = []; n_x_u = []; nf = [];
 
 %%%%%%%%;
 platform = 'rusty';
@@ -194,7 +176,7 @@ g_k_p_quad_ = xxnufft3d3(n_xxx_u,x_u_0___(:)*eta,x_u_1___(:)*eta,x_u_2___(:)*eta
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% %% xxnufft3d3: g_k_p_quad_ time %0.2fs',tmp_t)); end;
 %%%%;
 eta = pi/k_p_r_max; tmp_t = tic;
-g_x_u_quad_ = xxnufft3d3(n_k_all,2*pi*k_c_0_all_*eta,2*pi*k_c_1_all_*eta,2*pi*k_c_2_all_*eta,g_k_p_form_.*(2*pi)^3.*weight_3d_k_all_,+1,1e-12,n_xxx_u,x_u_0___(:)/eta,x_u_1___(:)/eta,x_u_2___(:)/eta)/sqrt(2*pi)/sqrt(2*pi)/sqrt(2*pi) / (sqrt(2*pi)^3) ;;
+g_x_u_quad_ = xxnufft3d3(n_k_all,2*pi*k_c_0_all_*eta,2*pi*k_c_1_all_*eta,2*pi*k_c_2_all_*eta,g_k_p_form_.*(2*pi)^3.*weight_3d_k_all_,+1,1e-12,n_xxx_u,x_u_0___(:)/eta,x_u_1___(:)/eta,x_u_2___(:)/eta)/sqrt(2*pi)/sqrt(2*pi)/sqrt(2*pi) / (sqrt(2*pi)^3) ;
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% %% xxnufft3d3: g_x_u_quad_ time %0.2fs',tmp_t)); end;
 g_x_u_quad_ = reshape(g_x_u_quad_,[n_x_u,n_x_u,n_x_u]);
 %%%%;
@@ -240,7 +222,7 @@ h_k_p_quad_ = xxnufft3d3(n_xxx_u,x_u_0___(:)*eta,x_u_1___(:)*eta,x_u_2___(:)*eta
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% %% xxnufft3d3: h_k_p_quad_ time %0.2fs',tmp_t)); end;
 %%%%;
 eta = pi/k_p_r_max; tmp_t = tic;
-h_x_u_quad_ = xxnufft3d3(n_k_all,2*pi*k_c_0_all_*eta,2*pi*k_c_1_all_*eta,2*pi*k_c_2_all_*eta,h_k_p_form_.*(2*pi)^3.*weight_3d_k_all_,+1,1e-12,n_xxx_u,x_u_0___(:)/eta,x_u_1___(:)/eta,x_u_2___(:)/eta)/sqrt(2*pi)/sqrt(2*pi)/sqrt(2*pi) / (sqrt(2*pi)^3) ;;
+h_x_u_quad_ = xxnufft3d3(n_k_all,2*pi*k_c_0_all_*eta,2*pi*k_c_1_all_*eta,2*pi*k_c_2_all_*eta,h_k_p_form_.*(2*pi)^3.*weight_3d_k_all_,+1,1e-12,n_xxx_u,x_u_0___(:)/eta,x_u_1___(:)/eta,x_u_2___(:)/eta)/sqrt(2*pi)/sqrt(2*pi)/sqrt(2*pi) / (sqrt(2*pi)^3) ;
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% %% xxnufft3d3: h_x_u_quad_ time %0.2fs',tmp_t)); end;
 h_x_u_quad_ = reshape(h_x_u_quad_,[n_x_u,n_x_u,n_x_u]);
 %%%%;
@@ -334,7 +316,7 @@ j_k_p_quad_ = xxnufft3d3(n_xxx_u,x_u_0___(:)*eta,x_u_1___(:)*eta,x_u_2___(:)*eta
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% %% xxnufft3d3: j_k_p_quad_ time %0.2fs',tmp_t)); end;
 %%%%;
 eta = pi/k_p_r_max; tmp_t = tic;
-j_x_u_quad_ = xxnufft3d3(n_k_all,2*pi*k_c_0_all_*eta,2*pi*k_c_1_all_*eta,2*pi*k_c_2_all_*eta,j_k_p_quad_.*(2*pi)^3.*weight_3d_k_all_,+1,1e-12,n_xxx_u,x_u_0___(:)/eta,x_u_1___(:)/eta,x_u_2___(:)/eta)/sqrt(2*pi)/sqrt(2*pi)/sqrt(2*pi) / (sqrt(2*pi)^3) ;;
+j_x_u_quad_ = xxnufft3d3(n_k_all,2*pi*k_c_0_all_*eta,2*pi*k_c_1_all_*eta,2*pi*k_c_2_all_*eta,j_k_p_quad_.*(2*pi)^3.*weight_3d_k_all_,+1,1e-12,n_xxx_u,x_u_0___(:)/eta,x_u_1___(:)/eta,x_u_2___(:)/eta)/sqrt(2*pi)/sqrt(2*pi)/sqrt(2*pi) / (sqrt(2*pi)^3) ;
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% %% xxnufft3d3: j_x_u_quad_ time %0.2fs',tmp_t)); end;
 j_x_u_quad_ = reshape(j_x_u_quad_,[n_x_u,n_x_u,n_x_u]);
 %%%%;
@@ -363,13 +345,160 @@ set(gca,'FontSize',fontsize_use);
 subplot(p_row,p_col,1+np);np=np+1; hold on;
 isosurface_f_x_u_1(parameter,a_x_u_from_a_x_u_zoom_0(struct('val_zoom',val_zoom),j_x_u_quad_));
 axisnotick3d; axis equal; axis vis3d;
-title('reconstructed');
+title('reconstructed (quad)');
 set(gca,'FontSize',fontsize_use);
 %%%%;
 str_sgtitle = sprintf('k_eq_d_double %0.2f k_int %d n_x_u %d',k_eq_d_double,k_int,n_x_u);
 sgtitle(str_sgtitle,'Interpreter','none');
 drawnow();
 end;%if flag_disp;
+
+%%%%%%%%;
+% Now convert to j_k_Y_ ; 
+%%%%%%%%;
+l_max_upb = round(2*pi*k_p_r_max); %<-- typically sufficient for 2-3 digits of precision. ;
+l_max_ = zeros(n_k_p_r,1);
+for nk_p_r=0:n_k_p_r-1;
+l_max_(1+nk_p_r) = max(0,min(l_max_upb,1+ceil(2*pi*k_p_r_(1+nk_p_r))));
+end;%for nk_p_r=0:n_k_p_r-1;
+n_lm_ = (l_max_+1).^2;
+n_lm_max = max(n_lm_);
+n_lm_sum = sum(n_lm_);
+n_lm_csum_ = cumsum([0;n_lm_]);
+l_max_max = max(l_max_); dWtdkd__l_max_max = 2*l_max_max;
+m_max_ = -l_max_max : +l_max_max;
+n_m_max = length(m_max_);
+Y_l_val_ = zeros(n_lm_sum,1);
+Y_m_val_ = zeros(n_lm_sum,1);
+Y_k_val_ = zeros(n_lm_sum,1);
+for nk_p_r=0:n_k_p_r-1;
+l_max = l_max_(1+nk_p_r);
+tmp_l_val_ = zeros(n_lm_(1+nk_p_r),1);
+tmp_m_val_ = zeros(n_lm_(1+nk_p_r),1);
+na=0; 
+for l_val=0:l_max;
+for m_val=-l_val:+l_val;
+tmp_l_val_(1+na) = l_val;
+tmp_m_val_(1+na) = m_val;
+na=na+1;
+end;%for m_val=-l_val:+l_val;
+end;%for l_val=0:l_max;
+tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm_(1+nk_p_r)-1);
+Y_l_val_(1+tmp_index_) = tmp_l_val_;
+Y_m_val_(1+tmp_index_) = tmp_m_val_;
+Y_k_val_(1+tmp_index_) = k_p_r_(1+nk_p_r);
+end;%for nk_p_r=0:n_k_p_r-1;
+weight_Y_ = zeros(n_lm_sum,1);
+for nk_p_r=0:n_k_p_r-1;
+tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm_(1+nk_p_r)-1);
+weight_Y_(1+tmp_index_) = weight_3d_k_p_r_(1+nk_p_r);
+end;%for nk_p_r=0:n_k_p_r-1;
+%%%%%%%%;
+tmp_t = tic;
+if ~exist('Ylm_uklma___','var'); Ylm_uklma___=[]; end;
+if ~exist('k_p_azimu_b_sub_uka__','var'); k_p_azimu_b_sub_uka__=[]; end;
+if ~exist('k_p_polar_a_sub_uka__','var'); k_p_polar_a_sub_uka__=[]; end;
+if ~exist('l_max_uk_','var'); l_max_uk_=[]; end;
+if ~exist('index_nu_n_k_per_shell_from_nk_p_r_','var'); index_nu_n_k_per_shell_from_nk_p_r_=[]; end;
+if ~exist('index_k_per_shell_uka__','var'); index_k_per_shell_uka__=[]; end;
+[ ...
+ j_k_Y_quad_ ...
+,Ylm_uklma___ ...
+,k_p_azimu_b_sub_uka__ ...
+,k_p_polar_a_sub_uka__ ...
+,l_max_uk_ ...
+,index_nu_n_k_per_shell_from_nk_p_r_ ...
+,index_k_per_shell_uka__ ...
+] = ...
+convert_k_p_to_spharm_4( ...
+ 0*flag_verbose ...
+,n_k_all ...
+,n_k_all_csum_ ...
+,k_p_r_all_ ...
+,k_p_azimu_b_all_ ...
+,k_p_polar_a_all_ ...
+,weight_3d_k_all_ ...
+,weight_shell_k_ ...
+,n_k_p_r ...
+,k_p_r_ ...
+,weight_3d_k_p_r_ ...
+,l_max_ ...
+,j_k_p_quad_ ...
+,Ylm_uklma___ ...
+,k_p_azimu_b_sub_uka__ ...
+,k_p_polar_a_sub_uka__ ...
+,l_max_uk_ ...
+,index_nu_n_k_per_shell_from_nk_p_r_ ...
+,index_k_per_shell_uka__ ...
+);
+tmp_t = toc(tmp_t); disp(sprintf(' %% j_k_p_quad_ --> j_k_Y_quad_ time %0.2fs',tmp_t));
+%%%%%%%%;
+tmp_t = tic;
+[ ...
+ j_k_p_reco_ ...
+,Ylm_uklma___ ...
+,k_p_azimu_b_sub_uka__ ...
+,k_p_polar_a_sub_uka__ ...
+,l_max_uk_ ...
+,index_nu_n_k_per_shell_from_nk_p_r_ ...
+,index_k_per_shell_uka__ ...
+] = ...
+convert_spharm_to_k_p_4( ...
+ 0*flag_verbose ...
+,n_k_all ...
+,n_k_all_csum_ ...
+,k_p_r_all_ ...
+,k_p_azimu_b_all_ ...
+,k_p_polar_a_all_ ...
+,weight_3d_k_all_ ...
+,weight_shell_k_ ...
+,n_k_p_r ...
+,k_p_r_ ...
+,weight_3d_k_p_r_ ...
+,l_max_ ...
+,j_k_Y_quad_ ...
+,Ylm_uklma___ ...
+,k_p_azimu_b_sub_uka__ ...
+,k_p_polar_a_sub_uka__ ...
+,l_max_uk_ ...
+,index_nu_n_k_per_shell_from_nk_p_r_ ...
+,index_k_per_shell_uka__ ...
+);
+tmp_t = toc(tmp_t); disp(sprintf(' %% j_k_Y_quad_ --> j_k_p_reco_ time %0.2fs',tmp_t));
+fnorm_disp(flag_verbose,'j_k_p_quad_',j_k_p_quad_,'j_k_p_reco_',j_k_p_reco_);
+%%%%%%%%;
+eta = pi/k_p_r_max; tmp_t = tic;
+j_x_u_reco_ = xxnufft3d3(n_k_all,2*pi*k_c_0_all_*eta,2*pi*k_c_1_all_*eta,2*pi*k_c_2_all_*eta,j_k_p_reco_.*(2*pi)^3.*weight_3d_k_all_,+1,1e-12,n_xxx_u,x_u_0___(:)/eta,x_u_1___(:)/eta,x_u_2___(:)/eta)/sqrt(2*pi)/sqrt(2*pi)/sqrt(2*pi) / (sqrt(2*pi)^3) ;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% %% xxnufft3d3: j_x_u_reco_ time %0.2fs',tmp_t)); end;
+j_x_u_reco_ = reshape(j_x_u_reco_,[n_x_u,n_x_u,n_x_u]);
+%%%%%%%%;
+if flag_disp;
+figure(1+nf);nf=nf+1;clf;figmed;
+fontsize_use = 16;
+val_zoom = sqrt(2);
+prctile_use = 98;
+p_row = 1; p_col = 2; np=0;
+j_x_u_bnd = max(abs(j_x_u_form_(:)));
+parameter = struct('type','parameter');
+parameter.vval_ = prctile(abs(j_x_u_form_),prctile_use,'all');
+%%%%;
+subplot(p_row,p_col,1+np);np=np+1; hold on;
+isosurface_f_x_u_1(parameter,a_x_u_from_a_x_u_zoom_0(struct('val_zoom',val_zoom),j_x_u_form_));
+axisnotick3d; axis equal; axis vis3d;
+title('original');
+set(gca,'FontSize',fontsize_use);
+%%%%;
+subplot(p_row,p_col,1+np);np=np+1; hold on;
+isosurface_f_x_u_1(parameter,a_x_u_from_a_x_u_zoom_0(struct('val_zoom',val_zoom),j_x_u_reco_));
+axisnotick3d; axis equal; axis vis3d;
+title('reconstructed (reco)');
+set(gca,'FontSize',fontsize_use);
+%%%%;
+str_sgtitle = sprintf('k_eq_d_double %0.2f k_int %d n_x_u %d',k_eq_d_double,k_int,n_x_u);
+sgtitle(str_sgtitle,'Interpreter','none');
+drawnow();
+end;%if flag_disp;
+%%%%%%%%;
 
 %%%%%%%%;
 % Note that, in the nufft1d3, we have: ;
@@ -442,18 +571,46 @@ fnorm_disp(flag_verbose,'j_x_u_quad_',j_x_u_quad_,'j_x_u_q3d1_',j_x_u_q3d1_);
 %%%%%%%%;
 % Now generate some templates. ;
 %%%%%%%%;
-n_S = 1024;
 n_w_max = 2+2*round(k_p_r_max/max(1e-12,k_eq_d));
+viewing_k_eq_d = 1.0/max(1e-12,k_p_r_max);
+template_k_eq_d = -1;
+tmp_t = tic;
+[ ...
+ S_0_k_p_wkS___ ...
+,n_w_max ...
+,n_viewing_all ...
+,viewing_azimu_b_all_ ...
+,viewing_polar_a_all_ ...
+,viewing_weight_all_ ...
+,n_viewing_polar_a ...
+,viewing_polar_a_ ...
+,n_viewing_azimu_b_ ...
+] = ...
+pm_template_2( ...
+ 0*flag_verbose ...
+,l_max ...
+,n_k_p_r ...
+,local_yk__from_yk_(n_k_p_r,l_max_,j_k_Y_quad_) ...
+,viewing_k_eq_d ...
+,template_k_eq_d ...
+,n_w_max ...
+);
+n_S = n_viewing_all;
 n_w_ = n_w_max*ones(n_k_p_r,1);
+n_w_max = max(n_w_);
 n_w_sum = n_w_max*n_k_p_r;
 n_w_csum_ = cumsum([0;n_w_]);
-viewing_polar_a_S_ = 1*pi*rand(n_S,1);
-viewing_azimu_b_S_ = 2*pi*rand(n_S,1);
+S_0_k_p_wkS__ = reshape(S_0_k_p_wkS___,[n_w_sum,n_S]);
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% %% pm_template_2: S_0_k_p_wkS__ time %0.2fs',tmp_t)); end;
+%%%%;
+% copy parameters. ;
+%%%%;
+viewing_polar_a_S_ = viewing_polar_a_all_;
+viewing_azimu_b_S_ = viewing_azimu_b_all_;
 viewing_gamma_z_S_ = 2*pi*rand(n_S,1);
 %%%%%%%%;
 % Note that the convention in cg_rhs_2 is to ;
 % subtract viewing_gamma_z from inplane_gamma_z. ;
-% This may not be consistent with _fourier_circles. ;
 %%%%%%%%;
 [ ...
  k_p_polar_a_wS__ ...
@@ -474,233 +631,151 @@ k_c_0_wkS___ = bsxfun(@times,reshape(k_p_r_,[1,n_k_p_r,1]),reshape(k_c_0_wS__,[n
 k_c_1_wkS___ = bsxfun(@times,reshape(k_p_r_,[1,n_k_p_r,1]),reshape(k_c_1_wS__,[n_w_max,1,n_S]));
 k_c_2_wkS___ = bsxfun(@times,reshape(k_p_r_,[1,n_k_p_r,1]),reshape(k_c_2_wS__,[n_w_max,1,n_S]));
 %%%%%%%%;
-% Now we construct the forward- and adjoint-evaluation-operator. ;
-% Note that these produce the 'unscaled' templates. ;
-% That is, they do not yet account for the 2d-weight. ;
-% As such, the variance per-degree-of-freedom is not uniform, ;
-% and these are not immediately appropriate for a least-squares problem. ;
+% Now we construct the forward-evaluation-operator. ;
 %%%%%%%%;
-eta = pi/x_p_r_max;
-%%%%;
 A_forward__ = @(a_x_u_test_) ...
-reshape( xxnufft3d3(n_xxx_u,x_u_0___(:)*eta,x_u_1___(:)*eta,x_u_2___(:)*eta,a_x_u_test_(:).*weight_xxx_u_(:),-1,1e-12,n_w_max*n_k_p_r*n_S,2*pi*k_c_0_wkS___(:)/eta,2*pi*k_c_1_wkS___(:)/eta,2*pi*k_c_2_wkS___(:)/eta)/sqrt(2*pi)/sqrt(2*pi)/sqrt(2*pi) * (sqrt(2*pi)^3) , [n_w_sum,n_S] ) ;
-%%%%;
-A_adjoint__ = @(a_k_p_test_) ...
-reshape( xxnufft3d3(n_k_all,2*pi*k_c_0_wkS___(:)*eta,2*pi*k_c_1_wkS___(:)*eta,2*pi*k_c_2_wkS___(:)*eta,reshape(a_k_p_test_,[n_w_sum*n_S,1]),+1,1e-12,n_xxx_u,x_u_0___(:)/eta,x_u_1___(:)/eta,x_u_2___(:)/eta)/sqrt(2*pi)/sqrt(2*pi)/sqrt(2*pi) / (sqrt(2*pi)^3) * weight_xxx_u_(:) , [n_x_u,n_x_u,n_x_u] );
-%%%%;
-% Now we generate the templates: ;
+reshape( xxnufft3d3(n_xxx_u,x_u_0___(:)*(pi/x_p_r_max),x_u_1___(:)*(pi/x_p_r_max),x_u_2___(:)*(pi/x_p_r_max),a_x_u_test_(:).*weight_xxx_u_(:),-1,1e-12,n_w_max*n_k_p_r*n_S,2*pi*k_c_0_wkS___(:)/(pi/x_p_r_max),2*pi*k_c_1_wkS___(:)/(pi/x_p_r_max),2*pi*k_c_2_wkS___(:)/(pi/x_p_r_max))/sqrt(2*pi)/sqrt(2*pi)/sqrt(2*pi) * (sqrt(2*pi)^3) , [n_w_sum,n_S] ) ;
 %%%%;
 tmp_t = tic;
-S_k_p_wkS__ = A_forward__(j_x_u_form_);
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% %% finufft3d3: S_k_p_wkS__ time %0.2fs',tmp_t)); end;
+S_1_k_p_wkS__ = A_forward__(j_x_u_form_);
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% %% finufft3d3: S_1_k_p_wkS__ time %0.2fs',tmp_t)); end;
 %%%%;
-% Now we generate a selection of synthetic-images, copied from the templates, ;
-% as well as a collection of CTF-functions. ;
+S_2_k_p_wkS__ = zeros(n_w_sum,n_S);
+for nS=0:n_S-1;
+S_2_k_p_wkS__(:,1+nS) = rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,S_1_k_p_wkS__(:,1+nS),-viewing_gamma_z_S_(1+nS));
+end;%for nS=0:n_S-1;
 %%%%;
-n_M = n_S;
-n_CTF = 8; %<-- some number of CTF-functions. ;
-CTF_k_p_r_kC__ = zeros(n_k_p_r,n_CTF);
-for nCTF=0:n_CTF-1;
-CTF_k_p_r_k_ = cos(nCTF*2*pi*k_p_r_/max(1e-12,k_p_r_max));
-CTF_k_p_r_kC__(:,1+nCTF) = CTF_k_p_r_k_;
-end;%for nCTF=0:n_CTF-1;
-index_nCTF_from_nM_ = mod(transpose([0:n_M-1]),n_CTF);
-M_k_p_wkM__ = S_k_p_wkS__;
-for nM=0:n_M-1;
-nCTF = index_nCTF_from_nM_(1+nM);
-CTF_k_p_r_k_ = CTF_k_p_r_kC__(:,1+nCTF);
-M_k_p_wk_ = M_k_p_wkM__(:,1+nM);
-M_k_p_wk__ = reshape(M_k_p_wk_,[n_w_max,n_k_p_r]);
-M_k_p_wk__ = bsxfun(@times,M_k_p_wk__,reshape(CTF_k_p_r_k_,[1,n_k_p_r]));
-M_k_p_wk_ = reshape(M_k_p_wk__,[n_w_sum,1]);
-M_k_p_wkM__(:,1+nM) = M_k_p_wk_;
-end;%for nM=0:n_M-1;
-%%%%;
+fnorm_disp(flag_verbose,'S_0_k_p_wkS__',S_0_k_p_wkS__,'S_2_k_p_wkS__',S_2_k_p_wkS__);
 
 if flag_disp;
 figure(1+nf);nf=nf+1;clf;figbig;
 p_row = 4; p_col = 6; np=0;
-for nM=0:min(p_row*p_col/3,min(n_M,n_CTF))-1;
-nS = nM;
-S_k_p_wk_ = S_k_p_wkS__(:,1+nS);
-Slim_ = prctile(real(S_k_p_wk_),75,'all'); Slim_ = 1.25*Slim_*[-1,+1];
-M_k_p_wk_ = M_k_p_wkM__(:,1+nM);
-nCTF = index_nCTF_from_nM_(1+nM);
-CTF_k_p_r_k_ = CTF_k_p_r_kC__(:,1+nCTF);
-subplot(p_row,p_col,1+np);np=np+1;cla;
-plot(k_p_r_,CTF_k_p_r_k_);
-xlim([0,k_p_r_max]); xlabel('k_p_r_','Interpreter','none');
-ylim([-1,+1]); ylabel('CTF_k_p_r_','Interpreter','none');
-title(sprintf('nM %d: CTF',nM),'Interpreter','none');
-subplot(p_row,p_col,1+np);np=np+1;cla;
-imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(S_k_p_wk_),Slim_);
+for np=0:min(p_row*p_col/2,n_S)-1;
+nS = max(0,min(n_S-1,round(n_S*np/max(1,p_row*p_col/2))));
+S_0_k_p_wk_ = S_0_k_p_wkS__(:,1+nS);
+Slim_ = prctile(real(S_0_k_p_wk_),75,'all'); Slim_ = 1.25*Slim_*[-1,+1];
+S_2_k_p_wk_ = S_2_k_p_wkS__(:,1+nS);
+subplot(p_row,p_col,1+2*np+0);cla;
+imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(S_0_k_p_wk_),Slim_);
 axis image; axisnotick;
-title(sprintf('nM %d: S_k_p_wk_',nM),'Interpreter','none');
-subplot(p_row,p_col,1+np);np=np+1;cla;
-imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(M_k_p_wk_),Slim_);
+title(sprintf('nS %d: S_0_k_p_wk_',nS),'Interpreter','none');
+subplot(p_row,p_col,1+2*np+1);cla;
+imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(S_2_k_p_wk_),Slim_);
 axis image; axisnotick;
-title(sprintf('nM %d: M_k_p_wk_',nM),'Interpreter','none');
-end;%for nM=0:min(n_M,p_row)-1;
+title(sprintf('nS %d: S_2_k_p_wk_',nS),'Interpreter','none');
+np=np+1;
+end;%for nS=0:min(p_row*p_col,n_S)-1;
 end;%if flag_disp;
 
 %%%%%%%%;
-% Here we quickly test the least-squares algorithm. ;
+% Note that, for the standard 'padded' fft, we have: ;
+% f_x_ori_ = array of size N_ori. ;
+% x_ori_ ranges from -tmp_x_p_r to +tmp_x_p_r --> x_ori_(1+nj) = -tmp_x_p_r + nj*2*tmp_x_p_r/(N_ori-1). ;
+% 2pik_pad_ = 2*pi*[0:N_pad-1]/(2*tmp_x_p_r)*(N_ori-1)/(N_pad);
+% f_k_pad_ = xfft(f_x_ori_,N_pad).*exp(-i*tmp_isgn*2pik_pad_*tmp_x_p_r) = array of size N_pad. ;
+% Note the extra phase-factor for f_k_pad_. ;
+% Note also that 2pik_pad_ can be periodized. ;
+% With this convention d2pik_pad = (2*pi)/(2*tmp_x_p_r)*(n_x_u-1)/(n_x_u_pad). ;
+% Thus, 2pik_pad_ ranges from 2*pi/(4*tmp_x_p_r)*(N_ori-1)*[-1,+1]. ;
+% This implies that, in order for this strategy to work, ;
+% 2*pi*k_p_r_max must be less than 2*pi/(4*x_p_r_max)*(n_x_u-1). ;
+% i.e., k_p_r_max must be less than (n_x_u-1)/(4*x_p_r_max). ;
 %%%%%%%%;
-tmp_n = 64;
-tmp_A_n__ = randn(tmp_n+0,tmp_n+0);
-tmp_A_t__ = transpose(tmp_A_n__);
-lhs_tru_ = rand(tmp_n,1);
-b_tru_ = tmp_A_n__*lhs_tru_;
-LSQ_forward__ = @(x_) tmp_A_n__*x_;
-LSQ_adjoint__ = @(b_) tmp_A_t__*b_;
-%%%%%%%%;
-% Now we set up the normal-equations for the least-squares problem above: ;
-%%%%%%%%;
-LSQ__ = @(x_) LSQ_adjoint__(LSQ_forward__(x_));
-RHS_form_ = LSQ__(lhs_tru_);
-RHS_ = LSQ_adjoint__(b_tru_);
-fnorm_disp(flag_verbose,'RHS_form_',RHS_form_,'RHS_',RHS_);
-flag_verbose = 1;
-flag_disp = 1;
-tolerance_cg_lsq = 1e-4;
-n_iteration = tmp_n;
-niteration=0;
-lhs_tmp_ = zeros(tmp_n,1);
-res_ = RHS_;
-pcg_ = res_;
-beta_num = sum(res_.^2);
-beta_den = 1.0;
-beta = beta_num/max(1e-12,beta_den);
-flag_continue = 1;
-while flag_continue
-if flag_verbose; fprintf(' %% niteration = %.3d beta_num = %0.6f\n', niteration, beta_num); end;
-An_pcg_ = LSQ_forward__(pcg_);
-zeta = sum(abs(An_pcg_).^2,'all');
-alph = beta_num / max(1e-12, zeta);
-lhs_tmp_ = lhs_tmp_ + alph*pcg_ ;
-res_ = res_ - alph * LSQ_adjoint__(An_pcg_);
-beta_den = beta_num;
-beta_num = sum(res_.^2);
-beta = beta_num / max(1e-12,beta_den);
-pcg_ = res_ + beta * pcg_ ;
-niteration = niteration + 1;
-if niteration >= n_iteration; flag_continue=0; end;
-if sqrt(beta) < tolerance_cg_lsq; flag_continue=0; end;
-end;%while;
-fnorm_disp(flag_verbose,'lhs_tru_',lhs_tru_,'lhs_tmp_',lhs_tmp_);
-lhs_pcg_ = pcg(LSQ__,RHS_,tolerance_cg_lsq,n_iteration); %<-- this is the prepackaged matlab version. ;
-fnorm_disp(flag_verbose,'lhs_tru_',lhs_tru_,'lhs_pcg_',lhs_pcg_);
+tmp_x_p_r = 1.25;
+tmp_x_ = x_u_0_*tmp_x_p_r;
+tmp_f_x_ = randn(n_x_u,1) + i*randn(n_x_u,1);
+n_x_u_pad = 3*n_x_u;
+tmp_2pik_fft1d0_ = transpose(periodize([0:n_x_u_pad-1],-n_x_u_pad/2,+n_x_u_pad/2))*(2*pi)/(2*tmp_x_p_r)*(n_x_u-1)/(n_x_u_pad);
+for tmp_isgn = [-1,+1];
+if tmp_isgn == -1; tmp_f_k_fft_ =       1.0* fft(tmp_f_x_,n_x_u_pad).*exp(-i*tmp_isgn*tmp_2pik_fft1d0_*tmp_x_p_r); end;
+if tmp_isgn == +1; tmp_f_k_fft_ = n_x_u_pad*ifft(tmp_f_x_,n_x_u_pad).*exp(-i*tmp_isgn*tmp_2pik_fft1d0_*tmp_x_p_r); end;
+tmp_2pik_fft1d3_ = tmp_2pik_fft1d0_;
+tmp_f_k_1d3_ = finufft1d3(tmp_x_,tmp_f_x_,tmp_isgn,1e-12,tmp_2pik_fft1d3_);
+tmp_2pik_tilde_ = tmp_2pik_fft1d3_.*(2*tmp_x_p_r/max(1,n_x_u-1));
+tmp_f_k_1d2_ = finufft1d2(tmp_2pik_tilde_,tmp_isgn,1e-12,tmp_f_x_).*exp(+i*tmp_isgn*tmp_2pik_tilde_/2);
+fnorm_disp(flag_verbose,'tmp_f_k_fft_',tmp_f_k_fft_,'tmp_f_k_1d3_',tmp_f_k_1d3_);
+fnorm_disp(flag_verbose,'tmp_f_k_1d3_',tmp_f_k_1d3_,'tmp_f_k_1d2_',tmp_f_k_1d2_);
+end;%for tmp_isgn = [-1,+1];
 
 %%%%%%%%;
-% Note that, typically, the distribution of points within each template can be nonuniform. ;
-% To account for this we need the template-weights. ;
-% Here the convention is that: ;
-% sum(weight_2d_k_p_r_) = pi*k_p_r_max^2. ;
-% sum(weight_2d_wk_)*(2*pi)^2 = pi*k_p_r_max^2. ;
-% We will use these further below. ;
+% With this in mind we check k_p_r_max. ;
 %%%%%%%%;
+flag_check_k = (k_p_r_max< (n_x_u-1)/(4*x_p_r_max)) ;
+if (flag_verbose>0); disp(sprintf(' %% flag_check_k %d: k_p_r_max %0.6f (n_x_u-1)/(4*x_p_r_max) %0.6f',flag_check_k,k_p_r_max,(n_x_u-1)/(4*x_p_r_max))); end;
+if ~flag_check_k; disp(sprintf(' %% Warning: flag_check_k %d: k_p_r_max %0.6f >= (n_x_u-1)/(4*x_p_r_max) %0.6f',flag_check_k,k_p_r_max,(n_x_u-1)/(4*x_p_r_max))); end;
+
+%%%%%%%%;
+% Now we create j_k_u_fft3d0___. ;
+%%%%%%%%;
+n_x_u_pad = 3*n_x_u;
+tmp_2pik_fft1d0_ = transpose(periodize([0:n_x_u_pad-1],-n_x_u_pad/2,+n_x_u_pad/2))*(2*pi)/(2*x_p_r_max)*(n_x_u-1)/(n_x_u_pad);
+tmp_2pik_fft1d0_lim_ = [min(tmp_2pik_fft1d0_),max(tmp_2pik_fft1d0_)];
+[tmp_2pik_0_fft3d0___,tmp_2pik_1_fft3d0___,tmp_2pik_2_fft3d0___] = ndgrid(tmp_2pik_fft1d0_,tmp_2pik_fft1d0_,tmp_2pik_fft1d0_);
+tmp_isgn = -1;
+if tmp_isgn == -1; j_k_u_fft3d0___ =       1.0  *fftshift( fftn(reshape(j_x_u_form_,[n_x_u,n_x_u,n_x_u]),[n_x_u_pad,n_x_u_pad,n_x_u_pad]).*exp(-i*tmp_isgn*(tmp_2pik_0_fft3d0___+tmp_2pik_1_fft3d0___+tmp_2pik_2_fft3d0___)*x_p_r_max)); end;
+if tmp_isgn == +1; j_k_u_fft3d0___ = n_x_u_pad^3*fftshift(ifftn(reshape(j_x_u_form_,[n_x_u,n_x_u,n_x_u]),[n_x_u_pad,n_x_u_pad,n_x_u_pad]).*exp(-i*tmp_isgn*(tmp_2pik_0_fft3d0___+tmp_2pik_1_fft3d0___+tmp_2_2pik_fft3d0___)*x_p_r_max)); end;
+tmp_2pik_0_fft3d3___ = tmp_2pik_0_fft3d0___;
+tmp_2pik_1_fft3d3___ = tmp_2pik_1_fft3d0___;
+tmp_2pik_2_fft3d3___ = tmp_2pik_2_fft3d0___;
+j_k_u_fft3d3___ = fftshift(reshape(finufft3d3(x_u_0___(:),x_u_1___(:),x_u_2___(:),j_x_u_form_(:),tmp_isgn,1e-9,tmp_2pik_0_fft3d3___(:),tmp_2pik_1_fft3d3___(:),tmp_2pik_2_fft3d3___(:)),[n_x_u_pad,n_x_u_pad,n_x_u_pad]));
+fnorm_disp(flag_verbose,'j_k_u_fft3d0___',j_k_u_fft3d0___,'j_k_u_fft3d3___',j_k_u_fft3d3___);
+
+%%%%%%%%;
+% Now we create the interpolation operator. ;
+%%%%%%%%;
+GB_max = 32;
+n_order = 3;
+n_S_per_Sbatch = 128;
+GB_per_Sbatch = (1+n_order)^4 * n_w_max*n_k_p_r*n_S_per_Sbatch*16/1e9; %<-- n_nodex^4*n_scatter used for flag_dd. ;
+if (flag_verbose>0); disp(sprintf(' %% GB_per_Sbatch %0.2f',GB_per_Sbatch)); end;
+if (GB_per_Sbatch>=GB_max); disp(sprintf(' %% Warning, GB_per_Sbatch %d',GB_per_Sbatch)); end;
+scatter_from_tensor_s012__ = sparse([],[],[],n_w_max*n_k_p_r*0,n_x_u_pad^3,0);
+n_Sbatch = ceil(n_S/n_S_per_Sbatch);
+if (flag_verbose>0); disp(sprintf(' %% n_Sbatch %d',n_Sbatch)); end;
+for nSbatch=0:n_Sbatch-1;
+index_S_in_Sbatch_ = nSbatch*n_S_per_Sbatch + (0:n_S_per_Sbatch-1);
+index_S_in_Sbatch_ = index_S_in_Sbatch_(find(index_S_in_Sbatch_<n_S)); n_S_sub = numel(index_S_in_Sbatch_);
+if (flag_verbose>0); disp(sprintf(' %% nSbatch %d/%d index_S_in_Sbatch_ %d-->%d',nSbatch,n_Sbatch,index_S_in_Sbatch_(1+0),index_S_in_Sbatch_(1+n_S_sub-1))); end;
+if (flag_verbose>0 & mod(nSbatch,32)==0); disp(sprintf(' %% nSbatch %d/%d index_S_in_Sbatch_ %d-->%d',nSbatch,n_Sbatch,index_S_in_Sbatch_(1+0),index_S_in_Sbatch_(1+n_S_sub-1))); end;
+if (n_S_sub>0);
+tmp_t = tic();
+k_c_0_wkS_sub___ = k_c_0_wkS___(:,:,1+index_S_in_Sbatch_);
+k_c_1_wkS_sub___ = k_c_1_wkS___(:,:,1+index_S_in_Sbatch_);
+k_c_2_wkS_sub___ = k_c_2_wkS___(:,:,1+index_S_in_Sbatch_);
 [ ...
- ~ ...
-,weight_2d_k_p_r_ ...
-,weight_2d_wk_ ...
+ scatter_from_tensor_sub_s012__ ...
 ] = ...
-get_weight_2d_2( ...
- flag_verbose ...
-,n_k_p_r ...
-,k_p_r_ ...
-,k_p_r_max ...
-,-1 ...
-,n_w_ ...
+volume_k_c_scatter_from_tensor_interpolate_n_8( ...
+ n_order ...
+,n_x_u_pad ...
+,n_x_u_pad ...
+,n_x_u_pad ...
+,tmp_2pik_fft1d0_lim_ ...
+,tmp_2pik_fft1d0_lim_ ...
+,tmp_2pik_fft1d0_lim_ ...
+,n_w_max*n_k_p_r*n_S_sub ...
+,2*pi*k_c_0_wkS_sub___(:) ...
+,2*pi*k_c_1_wkS_sub___(:) ...
+,2*pi*k_c_2_wkS_sub___(:) ...
 );
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% nSbatch %d/%d: scatter_from_tensor_sub_s012__: %0.6fs',nSbatch,n_Sbatch,tmp_t)); end;
+scatter_from_tensor_s012__ = cat(1,scatter_from_tensor_s012__,scatter_from_tensor_sub_s012__);
+end;%if (n_S_sub>0);
+end;%for nSbatch=0:n_Sbatch-1;
 %%%%%%%%;
+% Now use the interpolation operator to build the templates. ;
+%%%%%%%%;
+tmp_t = tic;
+S_3_k_p_wkS__ = reshape(scatter_from_tensor_s012__*j_k_u_fft3d0___(:).*weight_xxx_u_(:),[n_w_sum,n_S]);
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% %% scatter_from_tensor_s012__: S_3_k_p_wkS__ time %0.2fs',tmp_t)); end;
+%%%%;
+S_4_k_p_wkS__ = zeros(n_w_sum,n_S);
+for nS=0:n_S-1;
+S_4_k_p_wkS__(:,1+nS) = rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,S_3_k_p_wkS__(:,1+nS),-viewing_gamma_z_S_(1+nS));
+end;%for nS=0:n_S-1;
+%%%%;
+fnorm_disp(flag_verbose,'S_0_k_p_wkS__',S_0_k_p_wkS__,'S_4_k_p_wkS__',S_4_k_p_wkS__);
 
-%%%%%%%%;
-% Now we incorporate the weights into the least-squares problem. ;
-% Now the forward-operator is designed so that: ;
-% LSQ_forward__ * a_x_u_test_ \approx bsxfun(@times,M_k_p_wkM___,reshape(sqrt(weight_2d_k_p_r_),[1,n_k_p_r,1])), ;
-% precisely so that the residual is: ;
-% R_k_p_wkM__ = bsxfun(@times,T_k_p_wkM___ - M_k_p_wkM___,reshape(sqrt(weight_2d_k_p_r_),[1,n_k_p_r,1])), ;
-% and the standard l2-norm of the residual is: ;
-% sum(abs(R_k_p_wkM__).^2,'all') = sum(bsxfun(@times,abs(T_k_p_wkM___ - M_k_p_wkM___).^2,reshape(weight_2d_k_p_r_,[1,n_k_p_r,1])),'all'), ;
-% which is the sigma-squared-negative-log-likelihood (ssnll) in the low-temperature limit. ;
-%%%%%%%%;
-LSQ_forward__ = @(a_x_u_test_) reshape(bsxfun(@times,bsxfun(@times,reshape(A_forward__(reshape(a_x_u_test_,[n_x_u,n_x_u,n_x_u])),[n_w_max,n_k_p_r,n_M]),reshape(CTF_k_p_r_kC__(:,1+index_nCTF_from_nM_),[1,n_k_p_r,n_M])),reshape(sqrt(weight_2d_k_p_r_),[1,n_k_p_r,1])),[n_w_sum*n_M,1]);
-LSQ_adjoint__ = @(a_k_p_test_) reshape(A_adjoint__(reshape(bsxfun(@times,bsxfun(@times,reshape(a_k_p_test_,[n_w_max,n_k_p_r,n_M]),reshape(CTF_k_p_r_kC__(:,1+index_nCTF_from_nM_),[1,n_k_p_r,n_M])),reshape(sqrt(weight_2d_k_p_r_),[1,n_k_p_r,1])),[n_w_sum,n_M])),[n_x_u*n_x_u*n_x_u,1]);
-%%%%%%%%;
-% Now we set up the normal-equations for the least-squares problem above: ;
-%%%%%%%%;
-LSQ__ = @(a_x_u_test_) LSQ_adjoint__(LSQ_forward__(a_x_u_test_));
-tmp_t = tic();
-RHS_form_ = LSQ__(j_x_u_form_);
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% %% RHS_ time %0.2fs',tmp_t)); end;
-tmp_t = tic();
-RHS_ = LSQ_adjoint__(reshape(bsxfun(@times,reshape(M_k_p_wkM__,[n_w_max,n_k_p_r,n_M]),reshape(sqrt(weight_2d_k_p_r_),[1,n_k_p_r,1])),[n_w_sum*n_M,1]));
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% %% RHS_ time %0.2fs',tmp_t)); end;
-fnorm_disp(flag_verbose,'RHS_form_',RHS_form_,'RHS_',RHS_);
-%%%%%%%%;
-% Now we finally run the conjugate-gradient algorithm. ;
-%%%%%%%%;
-% Conjugate Gradient Loop
-flag_verbose = 1;
-flag_disp = 1;
-tolerance_cg_lsq = 1e-4;
-n_iteration = 64;
-niteration=0;
-lhs_tmp_ = zeros(n_x_u*n_x_u*n_x_u,1);
-tmp_t = tic();
-res_ = RHS_;
-if fnorm(lhs_tmp_)>tolerance_cg_lsq; res_ = RHS_ - LSQ__(lhs_tmp_); end;
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% precomputation: time %0.2fs',tmp_t)); end;
-pcg_ = res_;
-beta_num = sum(res_.^2);
-beta_den = 1.0;
-beta = beta_num/max(1e-12,beta_den);
-%%%%;
-if flag_disp;
-figure(1+nf);clf;figbig;
-val_zoom = sqrt(2);
-prctile_use = 98;
-j_x_u_bnd = max(abs(j_x_u_form_(:)));
-p_row = 1; p_col = 2;
-parameter = struct('type','parameter');
-parameter.vval_ = prctile(abs(j_x_u_form_),prctile_use,'all');
-subplot(p_row,p_col,1); cla;
-isosurface_f_x_u_1(parameter,a_x_u_from_a_x_u_zoom_0(struct('val_zoom',val_zoom),j_x_u_form_));
-axisnotick3d; axis equal; axis vis3d;
-title('original');
-end;%if flag_disp;
-%%%%;
-flag_continue = 1;
-while flag_continue
-if flag_verbose; fprintf(' %% niteration = %.3d beta_num = %0.6f\n', niteration, beta_num); end;
-tmp_t = tic();
-An_pcg_ = LSQ_forward__(pcg_);
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% An_pcg_: time %0.2fs',tmp_t)); end;
-zeta = sum(abs(An_pcg_).^2,'all');
-alph = beta_num / max(1e-12, zeta);
-lhs_tmp_ = lhs_tmp_ + alph*pcg_ ;
-tmp_t = tic();
-res_ = res_ - alph * LSQ_adjoint__(An_pcg_);
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% At_An_pcg_: time %0.2fs',tmp_t)); end;
-beta_den = beta_num;
-beta_num = sum(res_.^2);
-beta = beta_num / max(1e-12,beta_den);
-pcg_ = res_ + beta * pcg_ ;
-niteration = niteration + 1;
-if niteration >= n_iteration; flag_continue=0; end;
-if sqrt(beta) < tolerance_cg_lsq; flag_continue=0; end;
-%%%%;
-if flag_disp;
-subplot(p_row,p_col,2); cla;
-parameter_tmp = struct('type','parameter');
-parameter_tmp.vval_ = prctile(abs(lhs_tmp_),prctile_use,'all');
-isosurface_f_x_u_1(parameter_tmp,a_x_u_from_a_x_u_zoom_0(struct('val_zoom',val_zoom),reshape(real(lhs_tmp_),[n_x_u,n_x_u,n_x_u])));
-axisnotick3d; axis equal; axis vis3d;
-title(sprintf('niteration %.3d beta_num %0.6f',niteration,beta_num),'Interpreter','none');
-drawnow();
-end;%if flag_disp;
-%%%%;
-end;%while;
 
 if (flag_verbose>0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;
 

@@ -16,3 +16,4 @@ addpath('/home/rangan/dir_finufft/matlab/');
 set(groot,'defaultFigureCreateFcn',@(fig,~)addToolbarExplorationButtons(fig));
 set(groot,'defaultAxesCreateFcn',@(ax,~)set(ax.Toolbar,'Visible','off'));
 twopi = 2*pi;
+setenv('NVIDIA_CUDNN','/usr/local/cuda/');
