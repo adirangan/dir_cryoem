@@ -60,7 +60,7 @@ k_p_polar_a_sub_ka__ = cell(n_k_p_r,1);
 
 for nk_p_r=0:n_k_p_r-1;
 n_k_all_csum = n_k_all_csum_(1+nk_p_r);
-if (verbose>1); disp(sprintf(' %% nk_p_r %d/%d k_p_r %0.2f, n_k_all_csum %d --> %0.2f%%',nk_p_r,n_k_p_r,k_p_r,n_k_all_csum,n_k_all_csum/n_k_all)); end;
+if (verbose>1); disp(sprintf(' %% nk_p_r %d/%d, n_k_all_csum %d --> %0.2f%%',nk_p_r,n_k_p_r,n_k_all_csum,n_k_all_csum/n_k_all)); end;
 if (nk_p_r<n_k_p_r-1); n_k_per_shell = n_k_all_csum_(1+nk_p_r+1) - n_k_all_csum_(1+nk_p_r); else n_k_per_shell = n_k_all - n_k_all_csum ; end;
 index_sub_ = n_k_all_csum + (0:n_k_per_shell-1);
 k_p_azimu_b_sub_ = k_p_azimu_b_all_(1+index_sub_);

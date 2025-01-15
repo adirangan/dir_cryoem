@@ -1,5 +1,13 @@
 %%%%%%%%;
 % Determine critical dtau. ;
+% The likelihood L(F,\tau) can be expressed as: ;
+% L(F,t) = L0 + dLdF*dF + dLdt*dt + 0.5*dF*ddLdFF*dF + 0.5*dF*ddLdFdt*dt + 0.5*dt*ddLdtdF*dF + 0.5*dt*ddLdtdt*dt ;
+% Or: dL = dLdF*dF + dLdt*dt + 0.5*dF*ddLdFF*dF + 0.5*dF*ddLdFdt*dt + 0.5*dt*ddLdtdF*dF + 0.5*dt*ddLdtdt*dt ;
+% Now at a critical-point we assume dL=0 (e.g., dF=dt=0). ;
+% However, if dF is nonzero, then dt must be chosen to lie at a minimum of dL. ;
+% In this case we have: ;
+% 0 = \partial_{dt} dL = dLdt + Re(ddLdtdF*dF) + Re(ddLdtdt)*dt ;
+% Or: dt = - pinv[Re(ddLdtdt)] * (dLdt + Re(ddLdtdF*dF)) ;
 %%%%%%%%;
 dtau_dtau_inv_ssnll_q2d_33M___ = zeros(n_3,n_3,n_M);
 for nM=0:n_M-1;

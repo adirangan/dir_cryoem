@@ -1,3 +1,10 @@
+%{
+if ~exist('V_lmm___','var'); V_lmm___=[]; end;
+if ~exist('L_lm__','var'); L_lm__=[]; end;
+if ~exist('d0W_betazeta_mlma____','var'); d0W_betazeta_mlma____=[]; end;
+if ~exist('d1W_betazeta_mlma____','var'); d1W_betazeta_mlma____=[]; end;
+if ~exist('d2W_betazeta_mlma____','var'); d2W_betazeta_mlma____=[]; end;
+%}
 function ...
 [ ...
  template_wkS__ ...

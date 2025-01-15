@@ -312,7 +312,7 @@ tmp_t = tic();
 expimb_mj__ = exp(+i*bsxfun(@times,reshape(-l_max:+l_max,[1+2*l_max,1]),reshape(azimu_b_all_(1:n_all),[1,n_all])));
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% expimb_mj__: %0.6fs',tmp_t)); end;
 
-flag_calculate = 0;
+flag_calculate = 1;
 if flag_calculate;
 %%%%%%%%;
 % compare with loop below. ;
@@ -350,7 +350,7 @@ tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% permutation before in
 %%%%%%%%;
 end;%if flag_calculate;
 
-flag_calculate = 1;
+flag_calculate = 0;
 if flag_calculate;
 %%%%%%%%;
 % compare with vectorized version above. ;
@@ -374,5 +374,17 @@ end;%for nl=0:n_l-1;
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% loop over nl and m_val: %0.6fs',tmp_t)); end;
 %%%%%%%%;
 end;%if flag_calculate;
+
+index_pole_ = efind(1-abs(cos(polar_a_all_))<1e-16);
+for nl=0:n_l-1;
+l_val = l_val_(1+nl);
+for m_val=-l_val:+l_val;
+m_abs = abs(m_val);
+if flag_d1 & m_abs>0; d1Y_lmj___{1+nl}(1+l_val+m_val,1+index_pole_)=0; end;
+if flag_d2 & m_abs>0; d2Y_lmj___{1+nl}(1+l_val+m_val,1+index_pole_)=0; end;
+end;%for m_val=-l_val:+l_val;
+end;%for nl=0:n_l-1;
+
+
 
 if (flag_verbose>0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;

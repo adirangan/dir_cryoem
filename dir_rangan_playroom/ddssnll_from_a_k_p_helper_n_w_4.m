@@ -1,0 +1,17 @@
+l_max = kernel_basic_l_max_use;
+l_max_ = l_max*ones(n_k_p_r,1); %<-- use same bandlimit for each shell. ;
+n_S = n_viewing_S;
+n_3 = 3;
+if isempty(viewing_gamma_z_S_); viewing_gamma_z_S_ = zeros(n_S,1); end;
+%%%%%%%%;
+n_w_max = max(n_w_);
+n_w_sum = sum(n_w_);
+n_w_csum_ = cumsum([0;n_w_]);
+n_lm_ = (l_max_+1).^2;
+n_lm_max = max(n_lm_);
+n_lm_sum = sum(n_lm_);
+n_lm_csum_ = cumsum([0;n_lm_]);
+l_max_max = max(l_max_);
+m_max_ = -l_max_max : +l_max_max;
+n_m_max = length(m_max_);
+%%%%%%%%;

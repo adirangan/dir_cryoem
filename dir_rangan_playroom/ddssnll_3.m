@@ -299,12 +299,7 @@ ddssnll_helper_convert_a_times_dtau_a_restore_C2M0_3;
 ddssnll_helper_convert_dvol_a_times_a_restore_C2M0_3;
 
 %%%%%%%%;
-dtau_M3__ = [ ...
-,dtau_euler_polar_a_M_ ...
-,dtau_euler_azimu_b_M_ ...
-,dtau_euler_gamma_z_M_ ...
-] ;
-dtau_3M__ = transpose(dtau_M3__);
+dtau_M3__ = [ dtau_euler_polar_a_M_ , dtau_euler_azimu_b_M_ , dtau_euler_gamma_z_M_ ] ; dtau_3M__ = transpose(dtau_M3__);
 %%%%%%%%;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;

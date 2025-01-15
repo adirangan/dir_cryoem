@@ -1,0 +1,10 @@
+function [tmp_dvol_qk_,tmp_a_M_,tmp_b_M_,tmp_c_M_] = local_qk_a_b_c_from_qkabc_(n_q,n_k_p_r,n_M,tmp_qkabc_);
+n_qk = n_q*n_k_p_r;
+tmp_dvol_qk_ = zeros(n_qk,1);
+tmp_a_M_ = zeros(n_M,1);
+tmp_b_M_ = zeros(n_M,1);
+tmp_c_M_ = zeros(n_M,1);
+tmp_dvol_qk_(:) = tmp_qkabc_(1:n_qk);
+tmp_a_M_(:) = tmp_qkabc_(1*n_qk + 0*n_M + [1:n_M]);
+tmp_b_M_(:) = tmp_qkabc_(1*n_qk + 1*n_M + [1:n_M]);
+tmp_c_M_(:) = tmp_qkabc_(1*n_qk + 2*n_M + [1:n_M]);

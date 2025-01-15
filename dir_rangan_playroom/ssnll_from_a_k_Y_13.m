@@ -263,7 +263,7 @@ end;%if ~isempty(dvol_a_k_Y_yk__);
 if  isempty(n_S) |  isempty(viewing_azimu_b_S_) |  isempty(viewing_polar_a_S_) |  isempty(viewing_weight_S_) |  isempty(n_viewing_polar_a) |  isempty(viewing_polar_a_) |  isempty(n_viewing_azimu_b_) ;
 if (flag_verbose>0); disp(sprintf(' %% forming n_S, viewing_azimu_b_S_, viewing_polar_a_S_, viewing_weight_S_, n_viewing_polar_a, viewing_polar_a_, n_viewing_azimu_b_')); end;
 tmp_t = tic();
-str_T_vs_L = 'L';
+str_T_vs_L = 'C';
 flag_tensor_vs_adap = 1; %<-- tensor grid. ;
 [ ...
  n_S ...

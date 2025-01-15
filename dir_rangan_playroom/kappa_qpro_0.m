@@ -15,6 +15,9 @@ kappa_qpro_0( ...
 ,l_max ...
 ,chebleg_d_ ...
 );
+%%%%%%%%;
+% Defines kappa (with option for deconvolution) using quadratic-program. ;
+%%%%%%%%;
 
 str_thisfunction = 'kappa_qpro_0';
 
