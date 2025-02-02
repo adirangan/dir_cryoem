@@ -71,6 +71,7 @@ ssnll_from_a_k_Y_13( ...
 % Accumulates across all individual shells of a_k_Y_. ;
 % Associates CTF_k_p_wkC__(:,1+index_nCTF_from_nM_(1+nM)) with image M_k_p_wkM__(:,1+nM);
 % Allows for a nonuniform sigma-squared weighting-term (see eta_k_p_wke__). ;
+% Strongly assumes that viewing_gamma_z_S_ := zeros(n_S,1) ;
 % ;
 % Input: ;
 % n_k_p_r: integer number of radii (i.e., rings/shells) in the polar/spherical-grid. ;

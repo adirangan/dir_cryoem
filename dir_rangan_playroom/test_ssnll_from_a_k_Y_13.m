@@ -34,7 +34,7 @@ rng(0);
 delta_a_c__ = zeros(3,n_source);
 delta_b_c__ = zeros(3,n_source);
 for nsource=0:n_source-1;
-rng(1+nsource);
+rng(0+nsource);
 delta_a_c_ = 2*rand(3,1)-1; delta_a_c_ = delta_a_c_*0.5/k_p_r_max/max(1e-12,fnorm(delta_a_c_)); %<-- ensure small in magnitude. ;
 delta_a_c__(:,1+nsource) = delta_a_c_;
 delta_b_c_ = 2*rand(3,1)-1; delta_b_c_ = delta_b_c_*0.5/k_p_r_max/max(1e-12,fnorm(delta_b_c_)); %<-- ensure small in magnitude. ;

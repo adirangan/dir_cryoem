@@ -7,7 +7,7 @@ rsync \
     /home/rangan/dir_cryoem/dir_rangan_playground \
     /home/rangan/dir_cryoem/dir_presentations \
     /home/rangan/dir_cryoem/dir_fig_xfig \
-    rangan@access1.cims.nyu.edu:/data/rangan/dir_cryoem/ \
+    avr209@access1.cims.nyu.edu:/data/rangan/dir_cryoem/ \
     --include "/*" \
     --include "*.m" \
     --include "*.c" \
@@ -22,7 +22,7 @@ rsync \
 rsync \
     -avum \
     /home/rangan/dir_cryoem/dir_rangan_playroom/dir_eig_ddssnll_lanczos_local \
-    rangan@access1.cims.nyu.edu:/data/rangan/dir_cryoem/dir_rangan_playroom/ \
+    avr209@access1.cims.nyu.edu:/data/rangan/dir_cryoem/dir_rangan_playroom/ \
     --include "/*" \
     --include "*.m" \
     --include "*.c" \

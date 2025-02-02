@@ -16,6 +16,8 @@ rsync \
     --include "*.txt" \
     --include "*.sh" \
     --include "*.fig" \
+    --include "*.tex" \
+    --include "*.bib" \
     --exclude "*" \
     ;
 
@@ -31,5 +33,7 @@ rsync \
     --include "*.txt" \
     --include "*.sh" \
     --include "*.fig" \
+    --include "*.tex" \
+    --include "*.bib" \
     --exclude "*" \
     ;

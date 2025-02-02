@@ -272,6 +272,8 @@ if  flag_dtau &  flag_dvol;
 if (flag_verbose>0); disp(sprintf(' %%  flag_dtau %d &  flag_dvol %d = %d', flag_dtau, flag_dvol, flag_dtau &  flag_dvol)); end;
 ddssnll_from_a_k_p_helper_reconfigure_dvol_a_4; %<-- reconfigure dvol_a. ;
 ddssnll_from_a_k_p_helper_q2d_4; %<-- determine derivatives using dvol_a. ;
+disp(sprintf(' %% Warning, returning after ddssnll_from_a_k_p_helper_q2d_4')); return;
+
 ddssnll_helper_reconfigure_dtau_3; %<-- reconfigure dtau. ;
 ddssnll_from_a_k_p_helper_a_restore_from_kappa_4; %<-- use kappa_basic_apply to construct a_restore. ;
 % Note: a_restore_C2M0_k_p_qk_ etc. needed for Hvv_q3d. ;

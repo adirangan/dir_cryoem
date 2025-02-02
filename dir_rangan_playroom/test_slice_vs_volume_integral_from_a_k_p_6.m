@@ -17,8 +17,8 @@ if (strcmp(platform,'rusty')); setup_rusty; string_root = 'mnt/home'; end;
 str_thisfunction = 'test_slice_vs_volume_integral_from_a_k_p_6';
 flag_verbose=1; flag_disp=1; nf=0;
 
-k_int = 16;
-k_eq_d_double = 0.50;
+k_int = 8;
+k_eq_d_double = 0.250;
 t_eq_d_double = 1.0;
 n_order = 9;
 n_w_int = 2;
