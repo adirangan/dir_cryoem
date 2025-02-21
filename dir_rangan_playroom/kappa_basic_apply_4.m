@@ -39,7 +39,7 @@ kappa_basic_apply_4( ...
 ,M_k_p_wkM__ ...
 ,n_CTF ...
 ,index_nCTF_from_nM_ ...
-,CTF_k_p_r_kC__ ...
+,CTF_k_p_wkC__ ...
 ,qref_k_eq_d ...
 ,qref_n_shell ...
 ,qref_azimu_b_shell_ ...
@@ -80,7 +80,7 @@ if (nargin<1+na); n_k_p_r=[]; end; na=na+1;
 if (nargin<1+na); M_k_p_wkM__=[]; end; na=na+1;
 if (nargin<1+na); n_CTF=[]; end; na=na+1;
 if (nargin<1+na); index_nCTF_from_nM_=[]; end; na=na+1;
-if (nargin<1+na); CTF_k_p_r_kC__=[]; end; na=na+1;
+if (nargin<1+na); CTF_k_p_wkC__=[]; end; na=na+1;
 if (nargin<1+na); qref_k_eq_d=[]; end; na=na+1;
 if (nargin<1+na); qref_n_shell=[]; end; na=na+1;
 if (nargin<1+na); qref_azimu_b_shell_=[]; end; na=na+1;
@@ -133,8 +133,9 @@ CTF_k_p_wkM__ = [];
 if ~isempty(n_M) & ~isempty(n_k_p_r);
 if isempty(n_CTF); n_CTF = 1; end;
 if isempty(index_nCTF_from_nM_); index_nCTF_from_nM_ = zeros(n_M,1); end;
-if isempty(CTF_k_p_r_kC__); CTF_k_p_r_kC__ = ones(n_k_p_r,n_CTF); end;
-CTF_k_p_wkM__ = reshape(permute(repmat(CTF_k_p_r_kC__(:,1+index_nCTF_from_nM_),[1,1,n_w]),[3,1,2]),[n_w_sum,n_M]);
+if isempty(CTF_k_p_wkC__); CTF_k_p_wkC__ = ones(n_w_sum,n_CTF); end;
+if (size(CTF_k_p_wkC__,1)==n_k_p_r); CTF_k_p_r_kC__ = CTF_k_p_wkC__; CTF_k_p_wkC__ = reshape(repmat(reshape(CTF_k_p_r_kC__,[1,n_k_p_r,n_CTF]),[n_w_max,1,1]),[n_w_sum,n_CTF]); end;
+CTF_k_p_wkM__ = CTF_k_p_wkC__(:,1+index_nCTF_from_nM_);
 end;%if ~isempty(n_M) & ~isempty(n_k_p_r);
 tmp_t=toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% CTF_k_p_wkM__: %0.6fs',tmp_t)); end;
 

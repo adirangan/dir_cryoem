@@ -1,6 +1,7 @@
 rsync \
     -avum \
     /home/rangan/dir_cryoem/dir_EMIODist2 \
+    /home/rangan/dir_cryoem/dir_CryoBIFE_MD \
     /home/rangan/dir_cryoem/dir_rangan_playpen \
     /home/rangan/dir_cryoem/dir_rangan_playroom \
     /home/rangan/dir_cryoem/dir_rangan_playhouse \
@@ -16,6 +17,8 @@ rsync \
     --include "*.txt" \
     --include "*.sh" \
     --include "*.fig" \
+    --include "*.tex" \
+    --include "*.bib" \
     --exclude "*" \
     ;
 

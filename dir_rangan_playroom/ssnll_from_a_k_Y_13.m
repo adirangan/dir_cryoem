@@ -610,7 +610,7 @@ if isempty(index_neta_from_nM_); index_neta_from_nM_ = zeros(n_M,1); end;
 if isempty(eta_k_p_wke__); eta_k_p_wke__ = ones(n_w_sum,1); end;
 
 %%%%%%%%;
-if (flag_verbose>0); disp(sprintf(' %% Not rotate each of the CTF-functions.')); end;
+if (flag_verbose>0); disp(sprintf(' %% Not rotate each of the CTF-functions (Note: need to rotate if anisotropic).')); end;
 %%%%%%%%;
 tmp_t = tic();
 CTF_k_p_wkM__ = zeros(n_w_sum,n_M); %<-- CTF for each image. ;

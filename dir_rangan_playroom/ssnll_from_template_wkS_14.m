@@ -218,7 +218,7 @@ if isempty(index_neta_from_nM_); index_neta_from_nM_ = zeros(n_M,1); end;
 if isempty(eta_k_p_wke__); eta_k_p_wke__ = ones(n_w_sum,1); end;
 
 %%%%%%%%;
-if (flag_verbose>0); disp(sprintf(' %% Not rotate each of the CTF-functions.')); end;
+if (flag_verbose>0); disp(sprintf(' %% Yes rotate each of the CTF-functions (Note: need to rotate if anisotropic).')); end;
 %%%%%%%%;
 tmp_t = tic();
 CTF_k_p_wkM__ = zeros(n_w_sum,n_M); %<-- CTF for each image. ;
@@ -226,7 +226,7 @@ for nM=0:n_M-1;
 euler_gamma_z = euler_gamma_z_M_(1+nM);
 nCTF = index_nCTF_from_nM_(1+nM);
 CTF_k_p_wk_ = CTF_k_p_wkC__(:,1+nCTF);
-%CTF_k_p_wk_ = rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,CTF_k_p_wk_,+0*euler_gamma_z); %<-- Not rotate the CTF-functions. ;
+CTF_k_p_wk_ = rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,CTF_k_p_wk_,-1*euler_gamma_z); %<-- Yes rotate the CTF-functions. ;
 CTF_k_p_wkM__(:,1+nM) = CTF_k_p_wk_;
 end;%for nM=0:n_M-1;
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% CTF_k_p_wkM__: %0.2fs',tmp_t)); end;

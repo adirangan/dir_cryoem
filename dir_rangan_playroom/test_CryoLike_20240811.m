@@ -138,6 +138,19 @@ I_form = exp(lI_form);
 disp(sprintf(' %% I_form vs I_quad: %0.16f',fnorm(I_form-I_quad)/max(1e-12,fnorm(I_form))));
 %%%%%%%%;
 
+%%%%%%%%;
+n_pixel = 9; %<-- should be more than 3+1. ;
+tmp_factor = -(I_B^2/I_A + I_C)/(2*I_11);
+exp_2 = @(lambda_) (2*pi)^(3/2-n_pixel/2) * (I_11*I_A).^(-1/2) * (lambda_).^(3-n_pixel) .* exp( -tmp_factor ./ lambda_.^2 );
+x_max = 32;
+I_quad = integral(exp_2,1e-9,x_max,'AbsTol',1e-9,'RelTol',1e-9,'WayPoints',[1e-9:1:x_max]);
+I_form = (2*pi)^(3/2-n_pixel/2) * (I_11*I_A).^(-1/2) * 0.5 * (tmp_factor).^(2 - n_pixel/2) * gamma(n_pixel/2 - 2);
+disp(sprintf(' %% I_form vs I_quad: %0.16f',fnorm(I_form-I_quad)/max(1e-12,fnorm(I_form))));
+lI_form = (3/2-n_pixel/2)*log(2*pi) -0.5*log(I_11*I_A) - log(2) - (n_pixel/2-2)*log(tmp_factor) + gammaln(n_pixel/2 - 2);
+I_form = exp(lI_form);
+disp(sprintf(' %% I_form vs I_quad: %0.16f',fnorm(I_form-I_quad)/max(1e-12,fnorm(I_form))));
+%%%%%%%%;
+
 
 
 

@@ -17,14 +17,14 @@ if (strcmp(platform,'rusty')); setup_rusty; string_root = 'mnt/home'; end;
 str_thisfunction = 'test_slice_vs_volume_integral_5';
 flag_verbose=1; flag_disp=1; nf=0;
 
-k_int = 16;
-k_eq_d_double = 0.5;
-t_eq_d_double = 0.5;
-n_w_int = 1;
+k_int = 8;
+k_eq_d_double = 0.250;
+t_eq_d_double = 0.500;
+n_w_int = 2;
 KAPPA_flag_kernel_full = 1;
 KAPPA_pole_north_double = 12*pi/24;
 KAPPA_pole_south_double = 12*pi/24;
-KAPPA_qref_k_eq_d_double = 0.5;
+KAPPA_qref_k_eq_d_double = min(0.5,k_eq_d_double);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 if (flag_verbose>0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;

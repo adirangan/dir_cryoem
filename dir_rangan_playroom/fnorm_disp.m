@@ -24,5 +24,5 @@ disp(sprintf(' %% Warning, size(%s,1+%d) %d ~= size(%s,1+%d) %d',str_v0,nd0,d0,s
 end;%if (d0~=d1);
 end;%for nd0=0:n_d0-1;
 if (flag_verbose>0);
-disp(sprintf(' %% %s %+0.16f vs %s %+0.16f: r %0.16f%s',str_v0,fnorm(v0),str_v1,fnorm(v1),fnorm(v0-v1)/max(1e-12,fnorm(v0)),str_postfix));
+disp(sprintf(' %% %16s %+16.6f vs %16s %+16.6f: r %0.16f%s',str_v0,fnorm(v0),str_v1,fnorm(v1),fnorm(v0-v1)/max(1e-12,fnorm(v0)),str_postfix));
 end;%if (flag_verbose>0);

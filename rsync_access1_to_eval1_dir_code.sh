@@ -1,6 +1,7 @@
 rsync \
     -avum \
     avr209@access1.cims.nyu.edu:/data/rangan/dir_cryoem/dir_EMIODist2 \
+    avr209@access1.cims.nyu.edu:/data/rangan/dir_cryoem/dir_CryoBIFE_MD \
     avr209@access1.cims.nyu.edu:/data/rangan/dir_cryoem/dir_rangan_playpen \
     avr209@access1.cims.nyu.edu:/data/rangan/dir_cryoem/dir_rangan_playroom \
     avr209@access1.cims.nyu.edu:/data/rangan/dir_cryoem/dir_rangan_playhouse \

@@ -97,7 +97,6 @@ ddssnll_from_a_k_p_4( ...
 ,M_k_p_wkM__ ...
 ,n_CTF ...
 ,index_nCTF_from_nM_ ...
-,CTF_k_p_r_kC__ ...
 ,CTF_k_p_wkC__ ...
 ,n_eta ...
 ,index_neta_from_nM_ ...
@@ -179,7 +178,6 @@ if (nargin<1+na); weight_imagecount_M_=[]; end; na=na+1;
 if (nargin<1+na); M_k_p_wkM__=[]; end; na=na+1;
 if (nargin<1+na); n_CTF=[]; end; na=na+1;
 if (nargin<1+na); index_nCTF_from_nM_=[]; end; na=na+1;
-if (nargin<1+na); CTF_k_p_r_kC__=[]; end; na=na+1;
 if (nargin<1+na); CTF_k_p_wkC__=[]; end; na=na+1;
 if (nargin<1+na); n_eta=[]; end; na=na+1;
 if (nargin<1+na); index_neta_from_nM_=[]; end; na=na+1;
@@ -272,8 +270,7 @@ if  flag_dtau &  flag_dvol;
 if (flag_verbose>0); disp(sprintf(' %%  flag_dtau %d &  flag_dvol %d = %d', flag_dtau, flag_dvol, flag_dtau &  flag_dvol)); end;
 ddssnll_from_a_k_p_helper_reconfigure_dvol_a_4; %<-- reconfigure dvol_a. ;
 ddssnll_from_a_k_p_helper_q2d_4; %<-- determine derivatives using dvol_a. ;
-disp(sprintf(' %% Warning, returning after ddssnll_from_a_k_p_helper_q2d_4')); return;
-
+%if flag_check; disp(sprintf(' %% Warning, returning after ddssnll_from_a_k_p_helper_q2d_4')); return; end;
 ddssnll_helper_reconfigure_dtau_3; %<-- reconfigure dtau. ;
 ddssnll_from_a_k_p_helper_a_restore_from_kappa_4; %<-- use kappa_basic_apply to construct a_restore. ;
 % Note: a_restore_C2M0_k_p_qk_ etc. needed for Hvv_q3d. ;
@@ -324,7 +321,9 @@ ddssnll_helper_dtau_criticality_check_3;
 ddssnll_from_a_k_p_helper_dvol_criticality_check_4;
 ddssnll_from_a_k_p_helper_ssnll_check_4;
 ddssnll_from_a_k_p_helper_dtau_ssnll_check_4;
+%if flag_check; disp(sprintf(' %% Warning, returning after ddssnll_from_a_k_p_helper_dtau_ssnll_check_4')); return; end;
 ddssnll_from_a_k_p_helper_dtau_dtau_ssnll_check_4;
+%if flag_check; disp(sprintf(' %% Warning, returning after ddssnll_from_a_k_p_helper_dtau_dtau_ssnll_check_4')); return; end;
 ddssnll_helper_note_hessian_3;
 ddssnll_from_a_k_p_helper_Hvv_check_4;
 ddssnll_from_a_k_p_helper_Htt_check_4;
@@ -332,6 +331,7 @@ ddssnll_from_a_k_p_helper_Htv_check_4;
 ddssnll_from_a_k_p_helper_Hvt_check_4;
 ddssnll_from_a_k_p_helper_imagesc_shell_4;
 ddssnll_from_a_k_p_helper_Hv_q3d_check_4;
+%if flag_check; disp(sprintf(' %% Warning, returning after ddssnll_from_a_k_p_helper_Hv_q3d_check_4')); return; end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 end;%if flag_check;
