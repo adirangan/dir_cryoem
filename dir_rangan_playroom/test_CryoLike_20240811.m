@@ -60,15 +60,23 @@ disp(sprintf(' %% I_form vs I_quad: %0.16f',fnorm(I_form-I_quad)/max(1e-12,fnorm
 %%%%%%%%;
 
 %%%%%%%%;
-n_pixel = 3;
+n_pixel = 7;
 y_ = 0.25*randn(n_pixel,1) + i*0.25*randn(n_pixel,1);
 y0 = y_(1+0);
 y1 = y_(1+1);
 y2 = y_(1+2);
+y3 = y_(1+3);
+y4 = y_(1+4);
+y5 = y_(1+5);
+y6 = y_(1+6);
 x_ = 0.25*randn(n_pixel,1) + i*0.25*randn(n_pixel,1);
 x0 = x_(1+0);
 x1 = x_(1+1);
 x2 = x_(1+2);
+x3 = x_(1+3);
+x4 = x_(1+4);
+x5 = x_(1+5);
+x6 = x_(1+6);
 lambda = 0.3;
 u = -0.2; v = 0.45;
 mu = u + i*v;
@@ -79,6 +87,10 @@ I_all_0 = @(u_,v_,N_) ...
   + conj(y0 - N_*x0 - (u_ + i*v_)).*(y0 - N_*x0 - (u_ + i*v_)) ...
   + conj(y1 - N_*x1 - (u_ + i*v_)).*(y1 - N_*x1 - (u_ + i*v_)) ...
   + conj(y2 - N_*x2 - (u_ + i*v_)).*(y2 - N_*x2 - (u_ + i*v_)) ...
+  + conj(y3 - N_*x3 - (u_ + i*v_)).*(y3 - N_*x3 - (u_ + i*v_)) ...
+  + conj(y4 - N_*x4 - (u_ + i*v_)).*(y4 - N_*x4 - (u_ + i*v_)) ...
+  + conj(y5 - N_*x5 - (u_ + i*v_)).*(y5 - N_*x5 - (u_ + i*v_)) ...
+  + conj(y6 - N_*x6 - (u_ + i*v_)).*(y6 - N_*x6 - (u_ + i*v_)) ...
   ;
 I_yy = sum(conj(y_).*y_,'all');
 I_xy = sum(conj(x_).*y_,'all');

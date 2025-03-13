@@ -48,7 +48,6 @@ flag_verbose = 1;
 flag_disp = 1; nf=0;
 disp(sprintf(' %% testing %s',str_thisfunction));
 %%%%%%%%;
-%{
 disp(sprintf(' %% first testing uniform n_k_c_1_'));
 n_k_c_0 = 64+0;
 n_k_c_1 = 64+1;
@@ -68,6 +67,8 @@ ddfd11_c_10__ = (+i*delta_(1+1))*(+i*delta_(1+1))*exp(+i*(k_c_0_10__*delta_(1+0)
 n_scatter = 1024;
 k_s_0_ = 0.5*k_p_r_max*(2*rand(n_scatter,1)-1);
 k_s_1_ = 2*pi*rand(n_scatter,1);
+tmp_ij_ = randperm(n_scatter,floor(n_scatter/4));
+k_s_1_(tmp_ij_) = 2*pi*round(4*rand(numel(tmp_ij_),1))/4; %<-- ensure that some values of k_s_1_ are at multiples of pi/2. ;
 n_order = 5;
 [ ...
  scatter_from_tensor_s10__ ...
@@ -100,7 +101,7 @@ ddfd00_s_inte_ = ddscatterd00_from_tensor_s10__*f_c_10__(:);
 ddfd01_s_inte_ = ddscatterd01_from_tensor_s10__*f_c_10__(:);
 ddfd11_s_inte_ = ddscatterd11_from_tensor_s10__*f_c_10__(:);
 %%%%;
-figure(1+nf);clf;figbig;
+figure(1+nf);nf=nf+1;clf;figbig;
 p_row = 2; p_col = 3; np=0;
 subplot(p_row,p_col,1+np);np=np+1;
 hold on;
@@ -174,7 +175,8 @@ fnorm_disp(flag_verbose,'dfd1_s_form_',dfd1_s_form_,'dfd1_s_inte_',dfd1_s_inte_)
 fnorm_disp(flag_verbose,'ddfd00_s_form_',ddfd00_s_form_,'ddfd00_s_inte_',ddfd00_s_inte_);
 fnorm_disp(flag_verbose,'ddfd01_s_form_',ddfd01_s_form_,'ddfd01_s_inte_',ddfd01_s_inte_);
 fnorm_disp(flag_verbose,'ddfd11_s_form_',ddfd11_s_form_,'ddfd11_s_inte_',ddfd11_s_inte_);
-%}
+%%%%%%%%;
+%%%%%%%%%%%%%%%%;
 %%%%%%%%;
 disp(sprintf(' %% now testing nonuniform n_k_c_1_'));
 n_k_c_0 = 64+0;
@@ -211,6 +213,8 @@ ddfd11_c_10_ = (+i*delta_(1+1))*(+i*delta_(1+1))*exp(+i*(k_c_0_10_*delta_(1+0) +
 n_scatter = 1024;
 k_s_0_ = 0.5*k_p_r_max*(2*rand(n_scatter,1)-1);
 k_s_1_ = 2*pi*rand(n_scatter,1);
+tmp_ij_ = randperm(n_scatter,floor(n_scatter/4));
+k_s_1_(tmp_ij_) = 2*pi*round(4*rand(numel(tmp_ij_),1))/4; %<-- ensure that some values of k_s_1_ are at multiples of pi/2. ;
 n_order = 5;
 [ ...
  scatter_from_tensor_s10__ ...
@@ -243,7 +247,7 @@ ddfd00_s_inte_ = ddscatterd00_from_tensor_s10__*f_c_10_(:);
 ddfd01_s_inte_ = ddscatterd01_from_tensor_s10__*f_c_10_(:);
 ddfd11_s_inte_ = ddscatterd11_from_tensor_s10__*f_c_10_(:);
 %%%%;
-figure(1+nf);clf;figbig;
+figure(1+nf);nf=nf+1;clf;figbig;
 p_row = 2; p_col = 3; np=0;
 subplot(p_row,p_col,1+np);np=np+1;
 hold on;

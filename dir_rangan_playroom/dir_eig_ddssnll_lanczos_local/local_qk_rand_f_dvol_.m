@@ -9,7 +9,6 @@ if isempty(rseed); rseed=0; end;
 rng(rseed);
 
 n_qk = n_q*n_k_p_r;
-scaling_volumetric = (4*pi)^2 * sqrt(pi/2);
 f_dvol_qk_ = randn(n_qk,1); %<-- does not yet include imaginary component. Fix later! ;
 tmp_ff_dvol = local_qk_f_dvol_bar_dot_g_dvol_(n_q,n_k_p_r,weight_3d_riesz_k_p_qk_,f_dvol_qk_,f_dvol_qk_);
 f_dvol_qk_ = f_dvol_qk_/max(1e-12,sqrt(tmp_ff_dvol));

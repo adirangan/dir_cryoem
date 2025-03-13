@@ -38,6 +38,7 @@ ssnll_from_plane_wave_expansion_2( ...
 ,index_neta_from_nM_ ...
 ,eta_k_p_wke__ ...
 ,n_M ...
+,weight_imagecount_M_ ...
 ,euler_polar_a_M_ ...
 ,euler_azimu_b_M_ ...
 ,euler_gamma_z_M_ ...
@@ -61,7 +62,7 @@ str_thisfunction = 'ssnll_from_plane_wave_expansion_2';
 
 if nargin<1;
 disp(sprintf(' %% testing %s',str_thisfunction));
-test_ssnll_from_plane_wave_expansion_0;
+test_ssnll_from_plane_wave_expansion_2;
 disp('returning'); return;
 end;%if nargin<1;
 
@@ -85,6 +86,7 @@ if (nargin<1+na); n_eta=[]; end; na=na+1;
 if (nargin<1+na); index_neta_from_nM_=[]; end; na=na+1;
 if (nargin<1+na); eta_k_p_wke__=[]; end; na=na+1;
 if (nargin<1+na); n_M=[]; end; na=na+1;
+if (nargin<1+na); weight_imagecount_M_=[]; end; na=na+1;
 if (nargin<1+na); euler_polar_a_M_=[]; end; na=na+1;
 if (nargin<1+na); euler_azimu_b_M_=[]; end; na=na+1;
 if (nargin<1+na); euler_gamma_z_M_=[]; end; na=na+1;
@@ -108,6 +110,8 @@ if ~isfield(parameter,'flag_verbose'); parameter.flag_verbose=0; end;
 flag_verbose=parameter.flag_verbose;
 
 if (flag_verbose> 0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
+
+if isempty(weight_imagecount_M_); weight_imagecount_M_ = ones(n_M,1); end;
 
 P__ = ...
 [1 , 0 , 0 ; ...
@@ -152,6 +156,28 @@ ddRy = @(polar_a) ...
   +sin(polar_a) 0 -cos(polar_a) ; ...
 ];
 %%%%%%%%;
+flag_check=0;
+if flag_check;
+tmp_da = 1e-4;
+tmp_a = 1*pi*rand();
+Ry_mid__ = Ry(tmp_a); Ry_pos__ = Ry(tmp_a + tmp_da); Ry_neg__ = Ry(tmp_a - tmp_da);
+dRy_dif__ = (Ry_pos__ - Ry_neg__)/max(1e-12,2*tmp_da);
+dRy_mid__ = dRy(tmp_a);
+fnorm_disp(flag_verbose,'dRy_mid__',dRy_mid__,'dRy_dif__',dRy_dif__);
+ddRy_dif__ = (Ry_pos__ -2*Ry_mid__ + Ry_neg__)/max(1e-12,tmp_da.^2);
+ddRy_mid__ = ddRy(tmp_a);
+fnorm_disp(flag_verbose,'ddRy_mid__',ddRy_mid__,'ddRy_dif__',ddRy_dif__,' %<-- should be <1e-6');
+tmp_db = 1e-5;
+tmp_b = 2*pi*rand();
+Rz_mid__ = Rz(tmp_b); Rz_pos__ = Rz(tmp_b + tmp_db); Rz_neg__ = Rz(tmp_b - tmp_db);
+dRz_dif__ = (Rz_pos__ - Rz_neg__)/max(1e-12,2*tmp_db);
+dRz_mid__ = dRz(tmp_b);
+fnorm_disp(flag_verbose,'dRz_mid__',dRz_mid__,'dRz_dif__',dRz_dif__);
+ddRz_dif__ = (Rz_pos__ -2*Rz_mid__ + Rz_neg__)/max(1e-12,tmp_db.^2);
+ddRz_mid__ = ddRz(tmp_b);
+fnorm_disp(flag_verbose,'ddRz_mid__',ddRz_mid__,'ddRz_dif__',ddRz_dif__,' %<-- should be <1e-6');
+end;%if flag_check;
+%%%%%%%%;
 
 n_w_sum = n_w_max*n_k_p_r;
 psi_z_ = transpose((2*pi)*[0:n_w_max-1]/max(1,n_w_max));
@@ -180,14 +206,20 @@ flag_dtau_S = 0; if (~isempty(n_S) & nargout>=1+10); flag_dtau_S = 1; end;
 flag_dtau_dvol_S = 0; if (~isempty(n_S) & nargout>=1+13); flag_dtau_dvol_S = 1; end;
 flag_dtau_dtau_S = 0; if (~isempty(n_S) & nargout>=1+16); flag_dtau_dtau_S = 1; end;
 
+if ~flag_dvol_S;
+n_source_dvol_a = 1;
+v_source_dvol_a_ = zeros(n_source_dvol_a,1);
+delta_dvol_a_c__ = ones(3,n_source_dvol_a);
+end;%if ~flag_dvol_S;
+
 if flag_S;
 tmp_t = tic();
 S_k_p_wkS__ = zeros(n_w_sum,n_S);
 for nS=0:n_S-1;
-tmp_polar_a = +viewing_polar_a_S_(1+nS);
-tmp_azimu_b = +viewing_azimu_b_S_(1+nS);
-tmp_gamma_z = -viewing_gamma_z_S_(1+nS);
-tmp_R_a__ = Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
+tmp_viewing_polar_a = +viewing_polar_a_S_(1+nS);
+tmp_viewing_azimu_b = +viewing_azimu_b_S_(1+nS);
+tmp_viewing_gamma_z = -viewing_gamma_z_S_(1+nS);
+tmp_R_a__ = Rz(-tmp_viewing_gamma_z)*Ry(-tmp_viewing_polar_a)*Rz(-tmp_viewing_azimu_b);
 U_k_p_wk_ = zeros(n_w_sum,1);
 for nsource_a=0:n_source_a-1;
 tmp_v_source_a = v_source_a_(1+nsource_a);
@@ -203,13 +235,13 @@ if flag_dtau_S;
 tmp_t = tic();
 dtau_S_k_p_wkS3___ = zeros(n_w_sum,n_S,3);
 for nS=0:n_S-1;
-tmp_polar_a = +viewing_polar_a_S_(1+nS);
-tmp_azimu_b = +viewing_azimu_b_S_(1+nS);
-tmp_gamma_z = -viewing_gamma_z_S_(1+nS);
-tmp_R_a__ = Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
-tmp_da_R_a__ = -Rz(-tmp_gamma_z)*dRy(-tmp_polar_a)*Rz(-tmp_azimu_b);
-tmp_db_R_a__ = -Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*dRz(-tmp_azimu_b);
-tmp_dc_R_a__ = +dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
+tmp_viewing_polar_a = +viewing_polar_a_S_(1+nS);
+tmp_viewing_azimu_b = +viewing_azimu_b_S_(1+nS);
+tmp_viewing_gamma_z = -viewing_gamma_z_S_(1+nS);
+tmp_R_a__ = Rz(-tmp_viewing_gamma_z)*Ry(-tmp_viewing_polar_a)*Rz(-tmp_viewing_azimu_b);
+tmp_da_R_a__ = -Rz(-tmp_viewing_gamma_z)*dRy(-tmp_viewing_polar_a)*Rz(-tmp_viewing_azimu_b);
+tmp_db_R_a__ = -Rz(-tmp_viewing_gamma_z)*Ry(-tmp_viewing_polar_a)*dRz(-tmp_viewing_azimu_b);
+tmp_dc_R_a__ = +dRz(-tmp_viewing_gamma_z)*Ry(-tmp_viewing_polar_a)*Rz(-tmp_viewing_azimu_b);
 U_k_p_wk_ = zeros(n_w_sum,1);
 da_U_k_p_wk_ = zeros(n_w_sum,1);
 db_U_k_p_wk_ = zeros(n_w_sum,1);
@@ -231,28 +263,28 @@ dtau_S_k_p_wkS3___(:,1+nS,1+1) = db_U_k_p_wk_;
 dtau_S_k_p_wkS3___(:,1+nS,1+2) = dc_U_k_p_wk_;
 end;%for nS=0:n_S-1;
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% dtau_S_k_p_wkS3___: %0.6fs',tmp_t)); end;
-end;%if flag_dtau_ssnll;
+end;%if flag_dtau_S;
 
 if flag_dtau_dtau_S;
 tmp_t = tic();
 dtau_dtau_S_k_p_wkS33____ = zeros(n_w_sum,n_S,3,3);
 for nS=0:n_S-1;
-tmp_polar_a = +viewing_polar_a_S_(1+nS);
-tmp_azimu_b = +viewing_azimu_b_S_(1+nS);
-tmp_gamma_z = -viewing_gamma_z_S_(1+nS);
-tmp_R_a__ = Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
-tmp_da_R_a__ = -Rz(-tmp_gamma_z)*dRy(-tmp_polar_a)*Rz(-tmp_azimu_b);
-tmp_db_R_a__ = -Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*dRz(-tmp_azimu_b);
-tmp_dc_R_a__ = +dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
-tmp_dada_R_a__ = +Rz(-tmp_gamma_z)*ddRy(-tmp_polar_a)*Rz(-tmp_azimu_b);
-tmp_dadb_R_a__ = +Rz(-tmp_gamma_z)*dRy(-tmp_polar_a)*dRz(-tmp_azimu_b);
-tmp_dadc_R_a__ = -dRz(-tmp_gamma_z)*dRy(-tmp_polar_a)*Rz(-tmp_azimu_b);
-tmp_dbda_R_a__ = +Rz(-tmp_gamma_z)*dRy(-tmp_polar_a)*dRz(-tmp_azimu_b);
-tmp_dbdb_R_a__ = +Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*ddRz(-tmp_azimu_b);
-tmp_dbdc_R_a__ = -dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*dRz(-tmp_azimu_b);
-tmp_dcda_R_a__ = -dRz(-tmp_gamma_z)*dRy(-tmp_polar_a)*Rz(-tmp_azimu_b);
-tmp_dcdb_R_a__ = -dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*dRz(-tmp_azimu_b);
-tmp_dcdc_R_a__ = +ddRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
+tmp_viewing_polar_a = +viewing_polar_a_S_(1+nS);
+tmp_viewing_azimu_b = +viewing_azimu_b_S_(1+nS);
+tmp_viewing_gamma_z = -viewing_gamma_z_S_(1+nS);
+tmp_R_a__ = Rz(-tmp_viewing_gamma_z)*Ry(-tmp_viewing_polar_a)*Rz(-tmp_viewing_azimu_b);
+tmp_da_R_a__ = -Rz(-tmp_viewing_gamma_z)*dRy(-tmp_viewing_polar_a)*Rz(-tmp_viewing_azimu_b);
+tmp_db_R_a__ = -Rz(-tmp_viewing_gamma_z)*Ry(-tmp_viewing_polar_a)*dRz(-tmp_viewing_azimu_b);
+tmp_dc_R_a__ = +dRz(-tmp_viewing_gamma_z)*Ry(-tmp_viewing_polar_a)*Rz(-tmp_viewing_azimu_b);
+tmp_dada_R_a__ = +Rz(-tmp_viewing_gamma_z)*ddRy(-tmp_viewing_polar_a)*Rz(-tmp_viewing_azimu_b);
+tmp_dadb_R_a__ = +Rz(-tmp_viewing_gamma_z)*dRy(-tmp_viewing_polar_a)*dRz(-tmp_viewing_azimu_b);
+tmp_dadc_R_a__ = -dRz(-tmp_viewing_gamma_z)*dRy(-tmp_viewing_polar_a)*Rz(-tmp_viewing_azimu_b);
+tmp_dbda_R_a__ = +Rz(-tmp_viewing_gamma_z)*dRy(-tmp_viewing_polar_a)*dRz(-tmp_viewing_azimu_b);
+tmp_dbdb_R_a__ = +Rz(-tmp_viewing_gamma_z)*Ry(-tmp_viewing_polar_a)*ddRz(-tmp_viewing_azimu_b);
+tmp_dbdc_R_a__ = -dRz(-tmp_viewing_gamma_z)*Ry(-tmp_viewing_polar_a)*dRz(-tmp_viewing_azimu_b);
+tmp_dcda_R_a__ = -dRz(-tmp_viewing_gamma_z)*dRy(-tmp_viewing_polar_a)*Rz(-tmp_viewing_azimu_b);
+tmp_dcdb_R_a__ = -dRz(-tmp_viewing_gamma_z)*Ry(-tmp_viewing_polar_a)*dRz(-tmp_viewing_azimu_b);
+tmp_dcdc_R_a__ = +ddRz(-tmp_viewing_gamma_z)*Ry(-tmp_viewing_polar_a)*Rz(-tmp_viewing_azimu_b);
 U_k_p_wk_ = zeros(n_w_sum,1);
 da_U_k_p_wk_ = zeros(n_w_sum,1);
 db_U_k_p_wk_ = zeros(n_w_sum,1);
@@ -281,7 +313,7 @@ tmp_dbdc_delta_U_ = tmp_dbdc_R_a__*delta_a_c__(:,1+nsource_a);
 tmp_dcda_delta_U_ = tmp_dcda_R_a__*delta_a_c__(:,1+nsource_a);
 tmp_dcdb_delta_U_ = tmp_dcdb_R_a__*delta_a_c__(:,1+nsource_a);
 tmp_dcdc_delta_U_ = tmp_dcdc_R_a__*delta_a_c__(:,1+nsource_a);
-planewave_wk_ = tmp_v_source_a*exp(+i*2*pi*(k_c_0_wk_*tmp_delta_U_(1+0) + k_c_1_wk_*tmp_delta_U_(1+1)));
+planewave_wk_ = exp(+i*2*pi*(k_c_0_wk_*tmp_delta_U_(1+0) + k_c_1_wk_*tmp_delta_U_(1+1)));
 da_factor_wk_ = (+i*2*pi*(k_c_0_wk_*tmp_da_delta_U_(1+0) + k_c_1_wk_*tmp_da_delta_U_(1+1)));
 db_factor_wk_ = (+i*2*pi*(k_c_0_wk_*tmp_db_delta_U_(1+0) + k_c_1_wk_*tmp_db_delta_U_(1+1)));
 dc_factor_wk_ = (+i*2*pi*(k_c_0_wk_*tmp_dc_delta_U_(1+0) + k_c_1_wk_*tmp_dc_delta_U_(1+1)));
@@ -315,16 +347,16 @@ dtau_dtau_S_k_p_wkS33____(:,1+nS,1+2,1+1) = dcdb_U_k_p_wk_;
 dtau_dtau_S_k_p_wkS33____(:,1+nS,1+2,1+2) = dcdc_U_k_p_wk_;
 end;%for nS=0:n_S-1;
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% dtau_dtau_S_k_p_wkS33____: %0.6fs',tmp_t)); end;
-end;%if flag_dtau_dtau_ssnll;
+end;%if flag_dtau_dtau_S;
 
 if flag_dvol_S;
 tmp_t = tic();
 dvol_S_k_p_wkS__ = zeros(n_w_sum,n_S);
 for nS=0:n_S-1;
-tmp_polar_a = +viewing_polar_a_S_(1+nS);
-tmp_azimu_b = +viewing_azimu_b_S_(1+nS);
-tmp_gamma_z = -viewing_gamma_z_S_(1+nS);
-tmp_R_a__ = Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
+tmp_viewing_polar_a = +viewing_polar_a_S_(1+nS);
+tmp_viewing_azimu_b = +viewing_azimu_b_S_(1+nS);
+tmp_viewing_gamma_z = -viewing_gamma_z_S_(1+nS);
+tmp_R_a__ = Rz(-tmp_viewing_gamma_z)*Ry(-tmp_viewing_polar_a)*Rz(-tmp_viewing_azimu_b);
 dvol_U_k_p_wk_ = zeros(n_w_sum,1);
 for nsource_dvol_a=0:n_source_dvol_a-1;
 tmp_v_source_dvol_a = v_source_dvol_a_(1+nsource_dvol_a);
@@ -334,19 +366,19 @@ end;%for nsource_dvol_a=0:n_source_dvol_a-1;
 dvol_S_k_p_wkS__(:,1+nS) = dvol_U_k_p_wk_;
 end;%for nS=0:n_S-1;
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% dvol_S_k_p_wkS__: %0.6fs',tmp_t)); end;
-end;%if flag_dvol_ssnll;
+end;%if flag_dvol_S;
 
 if flag_dtau_dvol_S;
 tmp_t = tic();
 dtau_dvol_S_k_p_wkS3___ = zeros(n_w_sum,n_S,3);
 for nS=0:n_S-1;
-tmp_polar_a = +viewing_polar_a_S_(1+nS);
-tmp_azimu_b = +viewing_azimu_b_S_(1+nS);
-tmp_gamma_z = -viewing_gamma_z_S_(1+nS);
-tmp_R_a__ = Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
-tmp_da_R_a__ = -Rz(-tmp_gamma_z)*dRy(-tmp_polar_a)*Rz(-tmp_azimu_b);
-tmp_db_R_a__ = -Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*dRz(-tmp_azimu_b);
-tmp_dc_R_a__ = +dRz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
+tmp_viewing_polar_a = +viewing_polar_a_S_(1+nS);
+tmp_viewing_azimu_b = +viewing_azimu_b_S_(1+nS);
+tmp_viewing_gamma_z = -viewing_gamma_z_S_(1+nS);
+tmp_R_a__ = Rz(-tmp_viewing_gamma_z)*Ry(-tmp_viewing_polar_a)*Rz(-tmp_viewing_azimu_b);
+tmp_da_R_a__ = -Rz(-tmp_viewing_gamma_z)*dRy(-tmp_viewing_polar_a)*Rz(-tmp_viewing_azimu_b);
+tmp_db_R_a__ = -Rz(-tmp_viewing_gamma_z)*Ry(-tmp_viewing_polar_a)*dRz(-tmp_viewing_azimu_b);
+tmp_dc_R_a__ = +dRz(-tmp_viewing_gamma_z)*Ry(-tmp_viewing_polar_a)*Rz(-tmp_viewing_azimu_b);
 dvol_U_k_p_wk_ = zeros(n_w_sum,1);
 da_dvol_U_k_p_wk_ = zeros(n_w_sum,1);
 db_dvol_U_k_p_wk_ = zeros(n_w_sum,1);
@@ -368,7 +400,7 @@ dtau_dvol_S_k_p_wkS3___(:,1+nS,1+1) = db_dvol_U_k_p_wk_;
 dtau_dvol_S_k_p_wkS3___(:,1+nS,1+2) = dc_dvol_U_k_p_wk_;
 end;%for nS=0:n_S-1;
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% dtau_dvol_S_k_p_wkS3___: %0.6fs',tmp_t)); end;
-end;%if flag_dtau_dvol_ssnll;
+end;%if flag_dtau_dvol_S;
 
 %%%%%%%%%%%%%%%%;
 tmp_t = tic();
@@ -383,6 +415,21 @@ dtau_dvol_ssnll_M3__ = zeros(n_M,3);
 dtau_dvol_ssnll = 0.0d0;
 dtau_dtau_ssnll_M33___ = zeros(n_M,3,3);
 dtau_dtau_ssnll = 0.0d0;
+%%%%;
+da_ssnll_M_ = zeros(n_M,1);
+db_ssnll_M_ = zeros(n_M,1);
+dc_ssnll_M_ = zeros(n_M,1);
+dada_ssnll_M_ = zeros(n_M,1);
+dadb_ssnll_M_ = zeros(n_M,1);
+dadc_ssnll_M_ = zeros(n_M,1);
+dbdb_ssnll_M_ = zeros(n_M,1);
+dbdc_ssnll_M_ = zeros(n_M,1);
+dcdc_ssnll_M_ = zeros(n_M,1);
+dvol_ssnll_M_ = zeros(n_M,1);
+da_dvol_ssnll_M_ = zeros(n_M,1);
+db_dvol_ssnll_M_ = zeros(n_M,1);
+dc_dvol_ssnll_M_ = zeros(n_M,1);
+dvol_dvol_ssnll_M_ = zeros(n_M,1);
 %%%%%%%%%%%%%%%%;
 for nM=0:n_M-1;
 %%%%%%%%%%%%%%%%;
@@ -407,13 +454,13 @@ tmp_dc_R_a__ = +dRz(-tmp_euler_gamma_z)*Ry(-tmp_euler_polar_a)*Rz(-tmp_euler_azi
 tmp_dada_R_a__ = +Rz(-tmp_euler_gamma_z)*ddRy(-tmp_euler_polar_a)*Rz(-tmp_euler_azimu_b);
 tmp_dadb_R_a__ = +Rz(-tmp_euler_gamma_z)*dRy(-tmp_euler_polar_a)*dRz(-tmp_euler_azimu_b);
 tmp_dadc_R_a__ = -dRz(-tmp_euler_gamma_z)*dRy(-tmp_euler_polar_a)*Rz(-tmp_euler_azimu_b);
-tmp_dbda_R_a__ = +Rz(-tmp_euler_gamma_z)*dRy(-tmp_euler_polar_a)*dRz(-tmp_euler_azimu_b);
+%tmp_dbda_R_a__ = +Rz(-tmp_euler_gamma_z)*dRy(-tmp_euler_polar_a)*dRz(-tmp_euler_azimu_b);
 tmp_dbdb_R_a__ = +Rz(-tmp_euler_gamma_z)*Ry(-tmp_euler_polar_a)*ddRz(-tmp_euler_azimu_b);
 tmp_dbdc_R_a__ = -dRz(-tmp_euler_gamma_z)*Ry(-tmp_euler_polar_a)*dRz(-tmp_euler_azimu_b);
-tmp_dcda_R_a__ = -dRz(-tmp_euler_gamma_z)*dRy(-tmp_euler_polar_a)*Rz(-tmp_euler_azimu_b);
-tmp_dcdb_R_a__ = -dRz(-tmp_euler_gamma_z)*Ry(-tmp_euler_polar_a)*dRz(-tmp_euler_azimu_b);
+%tmp_dcda_R_a__ = -dRz(-tmp_euler_gamma_z)*dRy(-tmp_euler_polar_a)*Rz(-tmp_euler_azimu_b);
+%tmp_dcdb_R_a__ = -dRz(-tmp_euler_gamma_z)*Ry(-tmp_euler_polar_a)*dRz(-tmp_euler_azimu_b);
 tmp_dcdc_R_a__ = +ddRz(-tmp_euler_gamma_z)*Ry(-tmp_euler_polar_a)*Rz(-tmp_euler_azimu_b);
-%tmp_delta_U_a_ = zeros(n_source_a,1); tmp_omega_U_a_ = zeros(n_source_a,1);
+%%%%;
 tmp_delta_U_2a__ = zeros(2,n_source_a);
 tmp_da_delta_U_2a__ = zeros(2,n_source_a);
 tmp_db_delta_U_2a__ = zeros(2,n_source_a);
@@ -421,29 +468,26 @@ tmp_dc_delta_U_2a__ = zeros(2,n_source_a);
 tmp_dada_delta_U_2a__ = zeros(2,n_source_a);
 tmp_dadb_delta_U_2a__ = zeros(2,n_source_a);
 tmp_dadc_delta_U_2a__ = zeros(2,n_source_a);
-tmp_dbda_delta_U_2a__ = zeros(2,n_source_a);
+%tmp_dbda_delta_U_2a__ = zeros(2,n_source_a);
 tmp_dbdb_delta_U_2a__ = zeros(2,n_source_a);
 tmp_dbdc_delta_U_2a__ = zeros(2,n_source_a);
-tmp_dcda_delta_U_2a__ = zeros(2,n_source_a);
-tmp_dcdb_delta_U_2a__ = zeros(2,n_source_a);
+%tmp_dcda_delta_U_2a__ = zeros(2,n_source_a);
+%tmp_dcdb_delta_U_2a__ = zeros(2,n_source_a);
 tmp_dcdc_delta_U_2a__ = zeros(2,n_source_a);
 for nsource_a=0:n_source_a-1;
 tmp_v_source_a = v_source_a_(1+nsource_a);
 tmp_delta_U_2a__(:,1+nsource_a) = P__ * tmp_R_a__*delta_a_c__(:,1+nsource_a);
-%tmp_delta_U_ = tmp_R_a__*delta_a_c__(:,1+nsource_a);
-%tmp_delta_U = fnorm(tmp_delta_U_(1+[0,1])); tmp_omega_U = atan2(tmp_delta_U_(1+1),tmp_delta_U_(1+0));
-%tmp_delta_U_a_(1+nsource_a) = tmp_delta_U; tmp_omega_U_a_(1+nsource_a) = tmp_omega_U;
 tmp_da_delta_U_2a__(:,1+nsource_a) = P__ * tmp_da_R_a__*delta_a_c__(:,1+nsource_a);
 tmp_db_delta_U_2a__(:,1+nsource_a) = P__ * tmp_db_R_a__*delta_a_c__(:,1+nsource_a);
 tmp_dc_delta_U_2a__(:,1+nsource_a) = P__ * tmp_dc_R_a__*delta_a_c__(:,1+nsource_a);
 tmp_dada_delta_U_2a__(:,1+nsource_a) = P__ * tmp_dada_R_a__*delta_a_c__(:,1+nsource_a);
 tmp_dadb_delta_U_2a__(:,1+nsource_a) = P__ * tmp_dadb_R_a__*delta_a_c__(:,1+nsource_a);
 tmp_dadc_delta_U_2a__(:,1+nsource_a) = P__ * tmp_dadc_R_a__*delta_a_c__(:,1+nsource_a);
-tmp_dbda_delta_U_2a__(:,1+nsource_a) = P__ * tmp_dbda_R_a__*delta_a_c__(:,1+nsource_a);
+%tmp_dbda_delta_U_2a__(:,1+nsource_a) = P__ * tmp_dbda_R_a__*delta_a_c__(:,1+nsource_a);
 tmp_dbdb_delta_U_2a__(:,1+nsource_a) = P__ * tmp_dbdb_R_a__*delta_a_c__(:,1+nsource_a);
 tmp_dbdc_delta_U_2a__(:,1+nsource_a) = P__ * tmp_dbdc_R_a__*delta_a_c__(:,1+nsource_a);
-tmp_dcda_delta_U_2a__(:,1+nsource_a) = P__ * tmp_dcda_R_a__*delta_a_c__(:,1+nsource_a);
-tmp_dcdb_delta_U_2a__(:,1+nsource_a) = P__ * tmp_dcdb_R_a__*delta_a_c__(:,1+nsource_a);
+%tmp_dcda_delta_U_2a__(:,1+nsource_a) = P__ * tmp_dcda_R_a__*delta_a_c__(:,1+nsource_a);
+%tmp_dcdb_delta_U_2a__(:,1+nsource_a) = P__ * tmp_dcdb_R_a__*delta_a_c__(:,1+nsource_a);
 tmp_dcdc_delta_U_2a__(:,1+nsource_a) = P__ * tmp_dcdc_R_a__*delta_a_c__(:,1+nsource_a);
 end;%for nsource_a=0:n_source_a-1;
 %%%%;
@@ -457,20 +501,17 @@ tmp_R_a__ = Rz(-tmp_euler_gamma_z)*Ry(-tmp_euler_polar_a)*Rz(-tmp_euler_azimu_b)
 tmp_da_R_a__ = -Rz(-tmp_euler_gamma_z)*dRy(-tmp_euler_polar_a)*Rz(-tmp_euler_azimu_b);
 tmp_db_R_a__ = -Rz(-tmp_euler_gamma_z)*Ry(-tmp_euler_polar_a)*dRz(-tmp_euler_azimu_b);
 tmp_dc_R_a__ = +dRz(-tmp_euler_gamma_z)*Ry(-tmp_euler_polar_a)*Rz(-tmp_euler_azimu_b);
-%tmp_delta_dvol_U_a_ = zeros(n_source_a,1); tmp_omega_dvol_U_a_ = zeros(n_source_a,1);
+%%;
 tmp_delta_dvol_U_2a__ = zeros(2,n_source_dvol_a);
 tmp_da_delta_dvol_U_2a__ = zeros(2,n_source_dvol_a);
 tmp_db_delta_dvol_U_2a__ = zeros(2,n_source_dvol_a);
 tmp_dc_delta_dvol_U_2a__ = zeros(2,n_source_dvol_a);
 for nsource_dvol_a=0:n_source_dvol_a-1;
 tmp_v_source_dvol_a = v_source_dvol_a_(1+nsource_dvol_a);
-tmp_delta_dvol_U_2a__(:,1+nsource_a) = P__ * tmp_R_a__*delta_dvol_a_c__(:,1+nsource_dvol_a);
-%tmp_delta_dvol_U_ = tmp_R_a__*delta_dvol_a_c__(:,1+nsource_dvol_a);
-%tmp_delta_dvol_U = fnorm(tmp_delta_dvol_U_(1+[0,1])); tmp_omega_dvol_U = atan2(tmp_delta_dvol_U_(1+1),tmp_delta_dvol_U_(1+0));
-%tmp_delta_dvol_U_a_(1+nsource_a) = tmp_delta_dvol_U; tmp_omega_dvol_U_a_(1+nsource_a) = tmp_omega_dvol_U;
-tmp_da_delta_dvol_U_2a__(:,1+nsource_a) = P__ * tmp_da_R_a__*delta_dvol_a_c__(:,1+nsource_dvol_a);
-tmp_db_delta_dvol_U_2a__(:,1+nsource_a) = P__ * tmp_db_R_a__*delta_dvol_a_c__(:,1+nsource_dvol_a);
-tmp_dc_delta_dvol_U_2a__(:,1+nsource_a) = P__ * tmp_dc_R_a__*delta_dvol_a_c__(:,1+nsource_dvol_a);
+tmp_delta_dvol_U_2a__(:,1+nsource_dvol_a) = P__ * tmp_R_a__*delta_dvol_a_c__(:,1+nsource_dvol_a);
+tmp_da_delta_dvol_U_2a__(:,1+nsource_dvol_a) = P__ * tmp_da_R_a__*delta_dvol_a_c__(:,1+nsource_dvol_a);
+tmp_db_delta_dvol_U_2a__(:,1+nsource_dvol_a) = P__ * tmp_db_R_a__*delta_dvol_a_c__(:,1+nsource_dvol_a);
+tmp_dc_delta_dvol_U_2a__(:,1+nsource_dvol_a) = P__ * tmp_dc_R_a__*delta_dvol_a_c__(:,1+nsource_dvol_a);
 end;%for nsource_dvol_a=0:n_source_dvol_a-1;
 end;%if flag_dvol_ssnll;
 %%%%;
@@ -480,86 +521,159 @@ tmp_fromb_polar_a = +fromb_polar_a_M_(1+nM);
 tmp_fromb_azimu_b = +fromb_azimu_b_M_(1+nM);
 tmp_fromb_gamma_z = -fromb_gamma_z_M_(1+nM);
 tmp_R_b__ = Rz(-tmp_fromb_gamma_z)*Ry(-tmp_fromb_polar_a)*Rz(-tmp_fromb_azimu_b);
-%tmp_delta_V_b_ = zeros(n_source_b,1); tmp_omega_V_b_ = zeros(n_source_b,1);
 tmp_delta_V_2b__ = zeros(2,n_source_b);
 for nsource_b=0:n_source_b-1;
 tmp_v_source_b = v_source_b_(1+nsource_b);
 tmp_delta_V_2b__(:,1+nsource_b) = P__ * tmp_R_b__*delta_b_c__(:,1+nsource_b);
-%tmp_delta_V_ = tmp_R_b__*delta_b_c__(:,1+nsource_b);
-%tmp_delta_V = fnorm(tmp_delta_V_(1+[0,1])); tmp_omega_V = atan2(tmp_delta_V_(1+1),tmp_delta_V_(1+0));
-%tmp_delta_V_b_(1+nsource_b) = tmp_delta_V; tmp_omega_V_b_(1+nsource_b) = tmp_omega_V;
 end;%for nsource_b=0:n_source_b-1;
+%%%%%%%%;
+if ~exist('tmp_delta_dvol_U_2a__','var'); tmp_delta_dvol_U_2a__=[]; end;
+if ~exist('tmp_da_delta_dvol_U_2a__','var'); tmp_da_delta_dvol_U_2a__=[]; end;
+if ~exist('tmp_db_delta_dvol_U_2a__','var'); tmp_db_delta_dvol_U_2a__=[]; end;
+if ~exist('tmp_dc_delta_dvol_U_2a__','var'); tmp_dc_delta_dvol_U_2a__=[]; end;
 %%%%;
-ssnll_M = 0.0d0;
-for nsource_a0=0:n_source_a-1; for nsource_a1=0:n_source_a-1;
-%tmp_delta_0 = tmp_delta_U_a_(1+nsource_a0); tmp_omega_0 = tmp_omega_U_a_(1+nsource_a0);
-%tmp_delta_1 = tmp_delta_U_a_(1+nsource_a1); tmp_omega_1 = tmp_omega_U_a_(1+nsource_a1);
-tmp_delta_0_ = tmp_delta_U_2a__(:,1+nsource_a0); tmp_delta_1_ = tmp_delta_U_2a__(:,1+nsource_a1);
-ssnll_M = ssnll_M + 0.5*I_PxxP_0(k_p_r_max,CTF_phi,tmp_delta_0_,CTF_phi,tmp_delta_1_) * v_source_a_(1+nsource_a0) * v_source_a_(1+nsource_a1) ;
-end;end;%for nsource_a0=0:n_source_a-1; for nsource_a1=0:n_source_a-1;
-for nsource_a0=0:n_source_a-1; for nsource_b1=0:n_source_b-1;
-%tmp_delta_0 = tmp_delta_U_a_(1+nsource_a0); tmp_omega_0 = tmp_omega_U_a_(1+nsource_a0);
-%tmp_delta_1 = tmp_delta_V_b_(1+nsource_b1); tmp_omega_1 = tmp_omega_V_b_(1+nsource_b1);
-tmp_delta_0_ = tmp_delta_U_2a__(:,1+nsource_a0); tmp_delta_1_ = tmp_delta_V_2b__(:,1+nsource_b1);
-ssnll_M = ssnll_M - 0.5*I_PxxP_0(k_p_r_max,CTF_phi,tmp_delta_0_,  M_phi,tmp_delta_1_) * v_source_a_(1+nsource_a0) * v_source_b_(1+nsource_b1) ;
-end;end;%for nsource_a0=0:n_source_a-1; for nsource_b1=0:n_source_b-1;
-for nsource_b0=0:n_source_b-1; for nsource_a1=0:n_source_a-1;
-%tmp_delta_0 = tmp_delta_V_b_(1+nsource_b0); tmp_omega_0 = tmp_omega_V_b_(1+nsource_b0);
-%tmp_delta_1 = tmp_delta_U_a_(1+nsource_a1); tmp_omega_1 = tmp_omega_U_a_(1+nsource_a1);
-tmp_delta_0_ = tmp_delta_V_2b__(:,1+nsource_b0); tmp_delta_1_ = tmp_delta_U_2a__(:,1+nsource_a1);
-ssnll_M = ssnll_M - 0.5*I_PxxP_0(k_p_r_max,  M_phi,tmp_delta_0_,CTF_phi,tmp_delta_1_) * v_source_b_(1+nsource_b0) * v_source_a_(1+nsource_a1) ;
-end;end;%for nsource_b0=0:n_source_b-1; for nsource_a1=0:n_source_a-1;
-for nsource_b0=0:n_source_b-1; for nsource_b1=0:n_source_b-1;
-%tmp_delta_0 = tmp_delta_V_b_(1+nsource_b0); tmp_omega_0 = tmp_omega_V_b_(1+nsource_b0);
-%tmp_delta_1 = tmp_delta_V_b_(1+nsource_b1); tmp_omega_1 = tmp_omega_V_b_(1+nsource_b1);
-tmp_delta_0_ = tmp_delta_V_2b__(:,1+nsource_b0); tmp_delta_1_ = tmp_delta_V_2b__(:,1+nsource_b1);
-ssnll_M = ssnll_M + 0.5*I_PxxP_0(k_p_r_max,  M_phi,tmp_delta_0_,  M_phi,tmp_delta_1_) * v_source_b_(1+nsource_b0) * v_source_b_(1+nsource_b1) ;
-end;end;%for nsource_b0=0:n_source_b-1; for nsource_b1=0:n_source_b-1;
+%%%%%%%%;
+if  flag_ssnll & ~flag_dtau_ssnll & ~flag_dtau_dtau_ssnll ;
+[ ...
+ ssnll_M ...
+,dvol_ssnll_M ...
+,dvol_dvol_ssnll_M ...
+] = ...
+I_xP__plus_xP__vs_xP__0( ...
+ k_p_r_max ...
+,CTF_phi ...
+,n_source_a ...
+,v_source_a_ ...
+,tmp_delta_U_2a__ ...
+,n_source_dvol_a ...
+,v_source_dvol_a_ ...
+,tmp_delta_dvol_U_2a__ ...
+,M_phi ...
+,n_source_b ...
+,v_source_b_ ...
+,tmp_delta_V_2b__ ...
+);
+end;%if  flag_ssnll & ~flag_dtau_ssnll & ~flag_dtau_dtau_ssnll ;
+%%%%%%%%;
+if  flag_ssnll &  flag_dtau_ssnll & ~flag_dtau_dtau_ssnll ;
+[ ...
+ ssnll_M ...
+,dvol_ssnll_M ...
+,dvol_dvol_ssnll_M ...
+,da_ssnll_M ...
+,db_ssnll_M ...
+,dc_ssnll_M ...
+,da_dvol_ssnll_M ...
+,db_dvol_ssnll_M ...
+,dc_dvol_ssnll_M ...
+] = ...
+I_xP__plus_xP__vs_xP__0( ...
+ k_p_r_max ...
+,CTF_phi ...
+,n_source_a ...
+,v_source_a_ ...
+,tmp_delta_U_2a__ ...
+,n_source_dvol_a ...
+,v_source_dvol_a_ ...
+,tmp_delta_dvol_U_2a__ ...
+,M_phi ...
+,n_source_b ...
+,v_source_b_ ...
+,tmp_delta_V_2b__ ...
+,tmp_da_delta_U_2a__ ...
+,tmp_db_delta_U_2a__ ...
+,tmp_dc_delta_U_2a__ ...
+);
+end;%if  flag_ssnll &  flag_dtau_ssnll & ~flag_dtau_dtau_ssnll ;
+%%%%%%%%;
+if  flag_ssnll &  flag_dtau_ssnll &  flag_dtau_dtau_ssnll ;
+[ ...
+ ssnll_M ...
+,dvol_ssnll_M ...
+,dvol_dvol_ssnll_M ...
+,da_ssnll_M ...
+,db_ssnll_M ...
+,dc_ssnll_M ...
+,da_dvol_ssnll_M ...
+,db_dvol_ssnll_M ...
+,dc_dvol_ssnll_M ...
+,dada_ssnll_M ...
+,dadb_ssnll_M ...
+,dadc_ssnll_M ...
+,dbdb_ssnll_M ...
+,dbdc_ssnll_M ...
+,dcdc_ssnll_M ...
+] = ...
+I_xP__plus_xP__vs_xP__0( ...
+ k_p_r_max ...
+,CTF_phi ...
+,n_source_a ...
+,v_source_a_ ...
+,tmp_delta_U_2a__ ...
+,n_source_dvol_a ...
+,v_source_dvol_a_ ...
+,tmp_delta_dvol_U_2a__ ...
+,M_phi ...
+,n_source_b ...
+,v_source_b_ ...
+,tmp_delta_V_2b__ ...
+,tmp_da_delta_U_2a__ ...
+,tmp_db_delta_U_2a__ ...
+,tmp_dc_delta_U_2a__ ...
+,tmp_da_delta_dvol_U_2a__ ...
+,tmp_db_delta_dvol_U_2a__ ...
+,tmp_dc_delta_dvol_U_2a__ ...
+,tmp_dada_delta_U_2a__ ...
+,tmp_dadb_delta_U_2a__ ...
+,tmp_dadc_delta_U_2a__ ...
+,tmp_dbdb_delta_U_2a__ ...
+,tmp_dbdc_delta_U_2a__ ...
+,tmp_dcdc_delta_U_2a__ ...
+);
+end;%if  flag_ssnll &  flag_dtau_ssnll &  flag_dtau_dtau_ssnll ;
+%%%%%%%%;
+%%%%;
+%%%%%%%%;
+if flag_ssnll;
 ssnll_M_(1+nM) = ssnll_M;
-%%%%;
+end;%if flag_ssnll;
+if flag_dtau_ssnll;
+da_ssnll_M_(1+nM) = da_ssnll_M;
+db_ssnll_M_(1+nM) = db_ssnll_M;
+dc_ssnll_M_(1+nM) = dc_ssnll_M;
+dtau_ssnll_M3__(1+nM,1+0) = da_ssnll_M;
+dtau_ssnll_M3__(1+nM,1+1) = db_ssnll_M;
+dtau_ssnll_M3__(1+nM,1+2) = dc_ssnll_M;
+end;%if flag_dtau_ssnll;
+if flag_dtau_dtau_ssnll;
+dada_ssnll_M_(1+nM) = dada_ssnll_M;
+dadb_ssnll_M_(1+nM) = dadb_ssnll_M;
+dadc_ssnll_M_(1+nM) = dadc_ssnll_M;
+dbdb_ssnll_M_(1+nM) = dbdb_ssnll_M;
+dbdc_ssnll_M_(1+nM) = dbdc_ssnll_M;
+dcdc_ssnll_M_(1+nM) = dcdc_ssnll_M;
+dtau_dtau_ssnll_M33___(1+nM,1+0,1+0) = dada_ssnll_M;
+dtau_dtau_ssnll_M33___(1+nM,1+0,1+1) = dadb_ssnll_M;
+dtau_dtau_ssnll_M33___(1+nM,1+0,1+2) = dadc_ssnll_M;
+dtau_dtau_ssnll_M33___(1+nM,1+1,1+0) = dadb_ssnll_M;
+dtau_dtau_ssnll_M33___(1+nM,1+1,1+1) = dbdb_ssnll_M;
+dtau_dtau_ssnll_M33___(1+nM,1+1,1+2) = dbdc_ssnll_M;
+dtau_dtau_ssnll_M33___(1+nM,1+2,1+0) = dadc_ssnll_M;
+dtau_dtau_ssnll_M33___(1+nM,1+2,1+1) = dbdc_ssnll_M;
+dtau_dtau_ssnll_M33___(1+nM,1+2,1+2) = dcdc_ssnll_M;
+end;%if flag_dtau_dtau_ssnll;
 if flag_dvol_ssnll;
-dvol_ssnll_M = 0.0d0;
-for nsource_a0=0:n_source_a-1; for nsource_a1=0:n_source_a-1;
-%tmp_delta_0 = tmp_delta_dvol_U_a_(1+nsource_a0); tmp_omega_0 = tmp_omega_dvol_U_a_(1+nsource_a0);
-%tmp_delta_1 = tmp_delta_U_a_(1+nsource_a1); tmp_omega_1 = tmp_omega_U_a_(1+nsource_a1);
-tmp_delta_0_ = tmp_delta_dvol_U_2a__(:,1+nsource_a0); tmp_delta_1_ = tmp_delta_U_2a__(:,1+nsource_a1);
-dvol_ssnll_M = dvol_ssnll_M + 0.5*I_PxxP_0(k_p_r_max,CTF_phi,tmp_delta_0_,CTF_phi,tmp_delta_1_) * v_source_dvol_a_(1+nsource_a0) * v_source_a_(1+nsource_a1) ;
-end;end;%for nsource_a0=0:n_source_a-1; for nsource_a1=0:n_source_a-1;
-for nsource_a0=0:n_source_a-1; for nsource_a1=0:n_source_a-1;
-%tmp_delta_0 = tmp_delta_U_a_(1+nsource_a0); tmp_omega_0 = tmp_omega_U_a_(1+nsource_a0);
-%tmp_delta_1 = tmp_delta_dvol_U_a_(1+nsource_a1); tmp_omega_1 = tmp_omega_dvol_U_a_(1+nsource_a1);
-tmp_delta_0_ = tmp_delta_U_2a__(:,1+nsource_a0); tmp_delta_1_ = tmp_delta_dvol_U_2a__(:,1+nsource_a1);
-dvol_ssnll_M = dvol_ssnll_M + 0.5*I_PxxP_0(k_p_r_max,CTF_phi,tmp_delta_0_,CTF_phi,tmp_delta_1_) * v_source_a_(1+nsource_a0) * v_source_dvol_a_(1+nsource_a1) ;
-end;end;%for nsource_a0=0:n_source_a-1; for nsource_a1=0:n_source_a-1;
-for nsource_a0=0:n_source_a-1; for nsource_b1=0:n_source_b-1;
-%tmp_delta_0 = tmp_delta_dvol_U_a_(1+nsource_a0); tmp_omega_0 = tmp_omega_dvol_U_a_(1+nsource_a0);
-%tmp_delta_1 = tmp_delta_V_b_(1+nsource_b1); tmp_omega_1 = tmp_omega_V_b_(1+nsource_b1);
-tmp_delta_0_ = tmp_delta_dvol_U_2a__(:,1+nsource_a0); tmp_delta_1_ = tmp_delta_V_2b__(:,1+nsource_b1);
-dvol_ssnll_M = dvol_ssnll_M - 0.5*I_PxxP_0(k_p_r_max,CTF_phi,tmp_delta_0_,  M_phi,tmp_delta_1_) * v_source_dvol_a_(1+nsource_a0) * v_source_b_(1+nsource_b1) ;
-end;end;%for nsource_a0=0:n_source_a-1; for nsource_b1=0:n_source_b-1;
-for nsource_b0=0:n_source_b-1; for nsource_a1=0:n_source_a-1;
-%tmp_delta_0 = tmp_delta_V_b_(1+nsource_b0); tmp_omega_0 = tmp_omega_V_b_(1+nsource_b0);
-%tmp_delta_1 = tmp_delta_dvol_U_a_(1+nsource_a1); tmp_omega_1 = tmp_omega_dvol_U_a_(1+nsource_a1);
-tmp_delta_0_ = tmp_delta_V_2b__(:,1+nsource_b0); tmp_delta_1_ = tmp_delta_dvol_U_2a__(:,1+nsource_a1);
-dvol_ssnll_M = dvol_ssnll_M - 0.5*I_PxxP_0(k_p_r_max,  M_phi,tmp_delta_1_,CTF_phi,tmp_delta_0_) * v_source_b_(1+nsource_b0) * v_source_dvol_a_(1+nsource_a1) ;
-end;end;%for nsource_b0=0:n_source_b-1; for nsource_a1=0:n_source_a-1;
 dvol_ssnll_M_(1+nM) = dvol_ssnll_M;
 end;%if flag_dvol_ssnll;
-%%%%;
+if flag_dtau_dvol_ssnll;
+da_dvol_ssnll_M_(1+nM) = da_dvol_ssnll_M;
+db_dvol_ssnll_M_(1+nM) = db_dvol_ssnll_M;
+dc_dvol_ssnll_M_(1+nM) = dc_dvol_ssnll_M;
+dtau_dvol_ssnll_M3__(1+nM,1+0) = da_dvol_ssnll_M;
+dtau_dvol_ssnll_M3__(1+nM,1+1) = db_dvol_ssnll_M;
+dtau_dvol_ssnll_M3__(1+nM,1+2) = dc_dvol_ssnll_M;
+end;%if flag_dtau_dvol_ssnll;
 if flag_dvol_dvol_ssnll;
-dvol_dvol_ssnll_M = 0.0d0;
-for nsource_a0=0:n_source_a-1; for nsource_a1=0:n_source_a-1;
-%tmp_delta_0 = tmp_delta_dvol_U_a_(1+nsource_a0); tmp_omega_0 = tmp_omega_dvol_U_a_(1+nsource_a0);
-%tmp_delta_1 = tmp_delta_dvol_U_a_(1+nsource_a1); tmp_omega_1 = tmp_omega_dvol_U_a_(1+nsource_a1);
-tmp_delta_0_ = tmp_delta_dvol_U_2a__(:,1+nsource_a0); tmp_delta_1_ = tmp_delta_dvol_U_2a__(:,1+nsource_a1);
-dvol_dvol_ssnll_M = dvol_dvol_ssnll_M + 0.5*I_PxxP_0(k_p_r_max,CTF_phi,tmp_delta_0_,CTF_phi,tmp_delta_1_) * v_source_dvol_a_(1+nsource_a0) * v_source_dvol_a_(1+nsource_a1) ;
-end;end;%for nsource_a0=0:n_source_a-1; for nsource_a1=0:n_source_a-1;
-for nsource_a0=0:n_source_a-1; for nsource_a1=0:n_source_a-1;
-%tmp_delta_0 = tmp_delta_dvol_U_a_(1+nsource_a0); tmp_omega_0 = tmp_omega_dvol_U_a_(1+nsource_a0);
-%tmp_delta_1 = tmp_delta_dvol_U_a_(1+nsource_a1); tmp_omega_1 = tmp_omega_dvol_U_a_(1+nsource_a1);
-tmp_delta_0_ = tmp_delta_dvol_U_2a__(:,1+nsource_a0); tmp_delta_1_ = tmp_delta_dvol_U_2a__(:,1+nsource_a1);
-dvol_dvol_ssnll_M = dvol_dvol_ssnll_M + 0.5*I_PxxP_0(k_p_r_max,CTF_phi,tmp_delta_0_,CTF_phi,tmp_delta_1_) * v_source_dvol_a_(1+nsource_a0) * v_source_dvol_a_(1+nsource_a1) ;
-end;end;%for nsource_a0=0:n_source_a-1; for nsource_a1=0:n_source_a-1;
 dvol_dvol_ssnll_M_(1+nM) = dvol_dvol_ssnll_M;
 end;%if flag_dvol_dvol_ssnll;
 %%%%%%%%%%%%%%%%;
@@ -567,13 +681,14 @@ end;%for nM=0:n_M-1;
 %%%%%%%%%%%%%%%%;
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% ssnll: %0.6fs',tmp_t)); end;
 %%%%%%%%%%%%%%%%;
-ssnll = sum(ssnll_M_,[1]);
-dvol_ssnll = sum(dvol_ssnll_M_,[1]);
+ssnll = sum(ssnll_M_.*weight_imagecount_M_,[1]);
+dvol_ssnll = sum(dvol_ssnll_M_.*weight_imagecount_M_,[1]);
+dvol_dvol_ssnll = sum(dvol_dvol_ssnll_M_.*weight_imagecount_M_,[1]);
 dtau_M3__ = [dtau_euler_polar_a_M_,dtau_euler_azimu_b_M_,dtau_euler_gamma_z_M_];
-dtau_ssnll = sum(bsxfun(@times,dtau_ssnll_M3__,dtau_M3__),[1,2]);
-dtau_dvol_ssnll = sum(bsxfun(@times,dtau_dvol_ssnll_M3__,dtau_M3__),[1,2]);
+dtau_ssnll = sum(bsxfun(@times,bsxfun(@times,dtau_ssnll_M3__,dtau_M3__),weight_imagecount_M_),[1,2]);
+dtau_dvol_ssnll = sum(bsxfun(@times,bsxfun(@times,dtau_dvol_ssnll_M3__,dtau_M3__),weight_imagecount_M_),[1,2]);
 dtau_M33___ = bsxfun(@times,reshape(dtau_M3__,[n_M,3,1]),reshape(dtau_M3__,[n_M,1,3]));
-dtau_dtau_ssnll = sum(bsxfun(@times,dtau_dtau_ssnll_M33___,dtau_M33___),[1,2,3]);
+dtau_dtau_ssnll = sum(bsxfun(@times,bsxfun(@times,dtau_dtau_ssnll_M33___,dtau_M33___),weight_imagecount_M_),[1,2,3]);
 %%%%%%%%%%%%%%%%;
 
 if (flag_verbose> 0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;

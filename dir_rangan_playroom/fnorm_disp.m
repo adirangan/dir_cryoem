@@ -1,4 +1,4 @@
-function fnorm_disp(flag_verbose,str_v0,v0,str_v1,v1,str_postfix);
+function errrel = fnorm_disp(flag_verbose,str_v0,v0,str_v1,v1,str_postfix);
 na=0;
 if (nargin<1+na); flag_verbose=[]; end; na=na+1;
 if (nargin<1+na); str_v0=[]; end; na=na+1;
@@ -23,6 +23,7 @@ if (d0~=d1);
 disp(sprintf(' %% Warning, size(%s,1+%d) %d ~= size(%s,1+%d) %d',str_v0,nd0,d0,str_v1,nd1,d1));
 end;%if (d0~=d1);
 end;%for nd0=0:n_d0-1;
+errrel = fnorm(v0-v1)/max(1e-12,fnorm(v0));
 if (flag_verbose>0);
-disp(sprintf(' %% %16s %+16.6f vs %16s %+16.6f: r %0.16f%s',str_v0,fnorm(v0),str_v1,fnorm(v1),fnorm(v0-v1)/max(1e-12,fnorm(v0)),str_postfix));
+disp(sprintf(' %% %16s %+16.6f vs %16s %+16.6f: r %0.16f%s',str_v0,fnorm(v0),str_v1,fnorm(v1),errrel,str_postfix));
 end;%if (flag_verbose>0);

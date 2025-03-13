@@ -1431,7 +1431,7 @@ assert(tab_check==n_polar_a_single_shell);
 %%%%%%%%;
 
 %%%%%%%%;
-n_q_single_shell = n_qk/n_k_p_r;
+n_q_single_shell = n_qk/max(1,n_k_p_r);
 k_p_azimu_b_single_shell_ = k_p_azimu_b_qk_(1:n_q_single_shell);
 k_p_polar_a_single_shell_ = k_p_polar_a_qk_(1:n_q_single_shell);
 weight_3d_k_single_shell_ = weight_3d_k_p_qk_(1:n_q_single_shell); %<-- sum(weight_3d_k_single_shell_) = 4*pi*weight_3d_k_p_r_(1);

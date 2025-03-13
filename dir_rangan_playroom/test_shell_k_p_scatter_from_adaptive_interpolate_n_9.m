@@ -1,8 +1,9 @@
 flag_verbose = 1;
 flag_disp = 1; nf=0;
 
-k_p_r_max = 48.0/(2*pi);
-k_eq_d_double = 1.0/8.0;
+
+k_p_r_max = 24.0/(2*pi);
+k_eq_d_double = 0.5/(2*pi);
 n_order = 15;
 str_parameter = sprintf('2*pi*k_p_r_max %d k_eq_d_double %0.4f n_order %d',round(2*pi*k_p_r_max),k_eq_d_double,n_order);
 
@@ -122,7 +123,11 @@ tmp_t = tic();
 n_scatter = 1024;
 rng(0);
 polar_a_scatter_ = [ 1*pi*rand(n_scatter,1) ];
+%tmp_ij_ = randperm(n_scatter,floor(n_scatter/4));
+%polar_a_scatter_(tmp_ij_) = 1*pi*round(2*rand(numel(tmp_ij_),1))/2; %<-- ensure that some values of polar_a_scatter_ are at multiples of pi/2. ;
 azimu_b_scatter_ = [ 2*pi*rand(n_scatter,1) ];
+tmp_ij_ = randperm(n_scatter,floor(n_scatter/4));
+azimu_b_scatter_(tmp_ij_) = 2*pi*round(4*rand(numel(tmp_ij_),1))/4; %<-- ensure that some values of azimu_b_scatter_ are at multiples of pi/2. ;
 k_c_0_s_ = k_p_r_max*cos(azimu_b_scatter_).*sin(polar_a_scatter_);
 k_c_1_s_ = k_p_r_max*sin(azimu_b_scatter_).*sin(polar_a_scatter_);
 k_c_2_s_ = k_p_r_max*cos(polar_a_scatter_);
@@ -502,7 +507,7 @@ if pcol==2; tmp_errabs_y_ = tmp_errabs_d2_y_; tmp_errrel_y_ = tmp_errrel_d2_y_; 
 for prow=0:p_row-1;
 if prow==0; xlim_ = [0,l_max]; tmp_x_y_ = tmp_l_y_; tmp_str_x = 'l_val'; end;
 if prow==1; xlim_ = l_max*[-1,+1]; tmp_x_y_ = tmp_m_y_; tmp_str_x = 'm_val'; end;
-ylim_ = [-6,0];
+ylim_ = [-8,+2];
 subplot(p_row,p_col,1+pcol+prow*p_col); cla;
 hold on;
 plot(tmp_x_y_,max(min(ylim_),min(max(ylim_),log10(abs(tmp_errabs_y_)))),'rd','MarkerSize',markersize_use,'MarkerFaceColor',0.65*[1,0,0]);
@@ -539,7 +544,7 @@ if np==na; tmp_errabs_y_ = tmp_errabs_d2_aa_y_; tmp_errrel_y_ = tmp_errrel_d2_aa
 if np==na; tmp_errabs_y_ = tmp_errabs_d2_ab_y_; tmp_errrel_y_ = tmp_errrel_d2_ab_y_; tmp_str_y = 'd2_ab'; end; na=na+1;
 if np==na; tmp_errabs_y_ = tmp_errabs_d2_bb_y_; tmp_errrel_y_ = tmp_errrel_d2_bb_y_; tmp_str_y = 'd2_bb'; end; na=na+1;
 xlim_ = [0,l_max]; tmp_x_y_ = tmp_l_y_; tmp_str_x = 'l_val';
-ylim_ = [-6,0];
+ylim_ = [-8,+2];
 subplot(p_row,p_col,1+np);np=np+1;cla;
 hold on;
 tmp_y0_ = max(min(ylim_),min(max(ylim_),log10(abs(tmp_errabs_y_))));

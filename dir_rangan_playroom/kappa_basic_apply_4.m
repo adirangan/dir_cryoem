@@ -317,9 +317,10 @@ if flag_recalc_qref_from_data;
 d2_full_wMq__ = sum(bsxfun(@minus,reshape(qref_k_c_qc__,[1,n_q,3]),reshape(+data_k_c_wMc__,[n_w*n_M,1,3])).^2,3);
 d1_full_wMq__ = sqrt(d2_full_wMq__);
 mollify_qref_from_data_wMq__ = chebfun_kernel_norm_(1-d2_full_wMq__/2);
+weight_mollify_qref_from_data_wMq__ = reshape(bsxfun(@times,reshape(mollify_qref_from_data_wMq__,[n_w,n_M,n_q]),reshape(weight_imagecount_M_,[1,n_M,1])),[n_w*n_M,n_q]);
 index_qref_wMq__ = repmat([0:n_q-1],[n_w*n_M,1]);
 index_data_wMq__ = repmat(transpose(0:n_w*n_M-1),[1,n_q]);
-qref_from_data_qwM__ = sparse(1+index_qref_wMq__(:),1+index_data_wMq__(:),mollify_qref_from_data_wMq__,n_q,n_w*n_M);
+qref_from_data_qwM__ = sparse(1+index_qref_wMq__(:),1+index_data_wMq__(:),weight_mollify_qref_from_data_wMq__,n_q,n_w*n_M);
 KAPPA.qref_from_data_qwM__ = qref_from_data_qwM__;
 end%if flag_recalc_qref_from_data;
 %%%%%%%%;
@@ -346,7 +347,8 @@ dtau_distsquared_1wMq___ = reshape(sum(bsxfun(@times,d_distsquared_cwMq____,dtau
 dchebfun_kernel_ = diff(chebfun_kernel_);
 ddchebfun_kernel_ = diff(dchebfun_kernel_);
 dtau_data_kappa_1wMq___ = dchebfun_kernel_(1-distsquared_1wMq___/2).*(-0.5).*dtau_distsquared_1wMq___;
-dtau_qref_from_data_qwM__ = sparse(1+index_qref_wMq__(:),1+index_data_wMq__(:),dtau_data_kappa_1wMq___(:),n_q,n_w*n_M);
+weight_dtau_data_kappa_1wMq___ = reshape(bsxfun(@times,reshape(dtau_data_kappa_1wMq___,[1,n_w,n_M,n_q]),reshape(weight_imagecount_M_,[1,1,n_M,1])),[1,n_w,n_M,n_q]);
+dtau_qref_from_data_qwM__ = sparse(1+index_qref_wMq__(:),1+index_data_wMq__(:),weight_dtau_data_kappa_1wMq___(:),n_q,n_w*n_M);
 KAPPA.dtau_qref_from_data_qwM__ = dtau_qref_from_data_qwM__;
 end;%if flag_recalc_dtau_qref_from_data;
 %%%%%%%%;
@@ -375,7 +377,8 @@ dtau_dtau_data_kappa_1wMq___ = ...
  + dchebfun_kernel_(1-distsquared_1wMq___/2).*(-0.5).*dtau_dtau_distsquared_1wMq___ ...
  + ddchebfun_kernel_(1-distsquared_1wMq___/2).*(-0.5).*dtau_distsquared_1wMq___.*(-0.5).*dtau_distsquared_1wMq___ ...
 ;
-dtau_dtau_qref_from_data_qwM__ = sparse(1+index_qref_wMq__(:),1+index_data_wMq__(:),dtau_dtau_data_kappa_1wMq___(:),n_q,n_w*n_M);
+weight_dtau_dtau_data_kappa_1wMq___ = reshape(bsxfun(@times,reshape(dtau_dtau_data_kappa_1wMq___,[1,n_w,n_M,n_q]),reshape(weight_imagecount_M_,[1,1,n_M,1])),[1,n_w,n_M,n_q]);
+dtau_dtau_qref_from_data_qwM__ = sparse(1+index_qref_wMq__(:),1+index_data_wMq__(:),weight_dtau_dtau_data_kappa_1wMq___(:),n_q,n_w*n_M);
 KAPPA.dtau_dtau_qref_from_data_qwM__ = dtau_dtau_qref_from_data_qwM__;
 end;%if flag_recalc_dtau_dtau_qref_from_data;
 %%%%%%%%;

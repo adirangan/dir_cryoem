@@ -1,58 +1,21 @@
-%{
-if ~exist('wS_from_single_shell_sba__','var'); wS_from_single_shell_sba__=[]; end;
-if ~exist('dwSda_from_single_shell_sba__','var'); dwSda_from_single_shell_sba__=[]; end;
-if ~exist('dwSdb_from_single_shell_sba__','var'); dwSdb_from_single_shell_sba__=[]; end;
-if ~exist('ddwSdaa_from_single_shell_sba__','var'); ddwSdaa_from_single_shell_sba__=[]; end;
-if ~exist('ddwSdab_from_single_shell_sba__','var'); ddwSdab_from_single_shell_sba__=[]; end;
-if ~exist('ddwSdbb_from_single_shell_sba__','var'); ddwSdbb_from_single_shell_sba__=[]; end;
-if ~exist('R_use__','var'); R_use__ = []; end;
-if ~exist('ba_from_single_shell_baba__','var'); ba_from_single_shell_baba__=[]; end;
-if ~exist('a_R_k_p_qk_','var'); a_R_k_p_qk_=[]; end;
-if ~exist('ba_from_single_shell_baba__','var'); ba_from_single_shell_baba__=[]; end;
-if ~exist('wS_from_R_single_shell_sba__','var'); wS_from_R_single_shell_sba__=[]; end;
-if ~exist('dwSda_from_R_single_shell_sba__','var'); dwSda_from_R_single_shell_sba__=[]; end;
-if ~exist('dwSdb_from_R_single_shell_sba__','var'); dwSdb_from_R_single_shell_sba__=[]; end;
-if ~exist('ddwSdaa_from_R_single_shell_sba__','var'); ddwSdaa_from_R_single_shell_sba__=[]; end;
-if ~exist('ddwSdab_from_R_single_shell_sba__','var'); ddwSdab_from_R_single_shell_sba__=[]; end;
-if ~exist('ddwSdbb_from_R_single_shell_sba__','var'); ddwSdbb_from_R_single_shell_sba__=[]; end;
-%}
 function ...
 [ ...
  parameter ...
-,template_ori_wkS__ ...
-,n_w ...
-,n_viewing_S ...
-,viewing_azimu_b_S_ ...
-,viewing_polar_a_S_ ...
-,viewing_weight_S_ ...
-,n_viewing_polar_a ...
-,viewing_polar_a_ ...
-,n_viewing_azimu_b_ ...
-,viewing_gamma_z_S_ ...
-,wS_from_single_shell_sba__ ...
+,n_S_sub ...
+,index_nS_from_nS_sub_ ...
 ,R_use__ ...
 ,a_R_k_p_qk_ ...
 ,ba_from_single_shell_baba__ ...
+,viewing_R_polar_a_S_ ...
+,viewing_R_azimu_b_S_ ...
+,viewing_R_gamma_z_S_ ...
+,template_rec_wkS__ ...
 ,wS_from_R_single_shell_sba__ ...
-,dtemplateda_ori_wkS__ ...
-,dtemplatedb_ori_wkS__ ...
-,dtemplatedc_ori_wkS__ ...
-,dwSda_from_single_shell_sba__ ...
-,dwSdb_from_single_shell_sba__ ...
 ,dtemplateda_rec_wkS__ ...
 ,dtemplatedb_rec_wkS__ ...
 ,dtemplatedc_rec_wkS__ ...
 ,dwSda_from_R_single_shell_sba__ ...
 ,dwSdb_from_R_single_shell_sba__ ...
-,ddtemplatedaa_ori_wkS__ ...
-,ddtemplatedab_ori_wkS__ ...
-,ddtemplatedac_ori_wkS__ ...
-,ddtemplatedbb_ori_wkS__ ...
-,ddtemplatedbc_ori_wkS__ ...
-,ddtemplatedcc_ori_wkS__ ...
-,ddwSdaa_from_single_shell_sba__ ...
-,ddwSdab_from_single_shell_sba__ ...
-,ddwSdbb_from_single_shell_sba__ ...
 ,ddtemplatedaa_rec_wkS__ ...
 ,ddtemplatedab_rec_wkS__ ...
 ,ddtemplatedac_rec_wkS__ ...
@@ -63,8 +26,11 @@ function ...
 ,ddwSdab_from_R_single_shell_sba__ ...
 ,ddwSdbb_from_R_single_shell_sba__ ...
 ] = ...
-interpolate_template_6( ...
+interpolate_template_R_0( ...
  parameter ...
+,flag_1 ...
+,flag_d ...
+,flag_dd ...
 ,n_order ...
 ,n_qk ...
 ,n_qk_csum_ ...
@@ -101,6 +67,17 @@ interpolate_template_6( ...
 ,ddwSdaa_from_single_shell_sba__ ...
 ,ddwSdab_from_single_shell_sba__ ...
 ,ddwSdbb_from_single_shell_sba__ ...
+,template_ori_wkS__ ...
+,dtemplateda_ori_wkS__ ...
+,dtemplatedb_ori_wkS__ ...
+,dtemplatedc_ori_wkS__ ...
+,ddtemplatedaa_ori_wkS__ ...
+,ddtemplatedab_ori_wkS__ ...
+,ddtemplatedac_ori_wkS__ ...
+,ddtemplatedbb_ori_wkS__ ...
+,ddtemplatedbc_ori_wkS__ ...
+,ddtemplatedcc_ori_wkS__ ...
+,nR ...
 ,R_use__ ...
 ,a_R_k_p_qk_ ...
 ,ba_from_single_shell_baba__ ...
@@ -111,90 +88,20 @@ interpolate_template_6( ...
 ,ddwSdab_from_R_single_shell_sba__ ...
 ,ddwSdbb_from_R_single_shell_sba__ ...
 );
-%%%%;
-% Uses a_k_p_qk_ to evaluate templates on a collection of points on spherical shells. ;
-% Each spherical-shell has the same resolution, determined by viewing_k_eq_d and template_k_eq_d and/or n_w_max. ;
-% We assume that each spherical-shell is discretized with a (potentially adaptive) discretization with: ;
-% a collection of equispaced longitudes (i.e., azimuthal-points) for each latitude (i.e., polar-point), with: ;
-% polar-points equispaced from [0,pi]. ;
-% Furthermore, we assume that the number of longitudes on each pole is 1, ;
-% and that the number of longitudes at each other latitude is even. ;
-%%%%;
-% This code is largely similar to interpolate_template_5.m ;
-% As an additional feature we calculate each quantity twice, ;
-% once for the original quadrature-grid, and once for a rotated version of the grid. ;
-%%%%;
-% ;
-% inputs: ;
-% ;
-% flag_verbose = integer verbosity_level. ;
-% n_qk = integer total number of points in spherical discretization. ;
-% n_qk_csum_ = integer array of size (n_k_p_r). n_qk_csum_(1+nk_p_r) is the number of points prior to shell nk_p_r. ;
-% k_p_r_qk_ = double array of size (n_qk). k_p_r_qk_(1+na) = radius of point na. ;
-% k_p_azimu_b_qk_ = double array of size (n_qk). k_p_azimu_b_qk_(1+na) = azimu_b of point na. ;
-% k_p_polar_a_qk_ = double array of size (n_qk). k_p_polar_a_qk_(1+na) = azimu_b of point na. ;
-% weight_3d_k_p_qk_ = double array of size (n_qk). weight_3d_k_p_qk_(1+na) = quadrature-weight (3d) for point na. ;
-% weight_shell_qk_ = double array of size (n_qk). weight_shell_qk_(1+na) = quadrature-weight (shell) for point na. ;
-% n_k_p_r = integer number of shells. ;
-% k_p_r_ = double array of size (n_k_p_r). k_p_r_(1+nk_p_r) = radius of shell nk_p_r.
-% k_p_r_max = double maximum k_value intended for radial integration. ;
-% weight_3d_k_p_r_ = double array of size (n_k_p_r). weight_3d_k_p_r_(1+nk_p_r) = quadrature-weight for shell nk_p_r. ;
-% k_c_0_qk_ = double array of size (n_qk). k_c_0_qk_(1+na) = k_c_0 of point na. ;
-% k_c_1_qk_ = double array of size (n_qk). k_c_1_qk_(1+na) = k_c_1 of point na. ;
-% k_c_2_qk_ = double array of size (n_qk). k_c_2_qk_(1+na) = k_c_2 of point na. ;
-% n_polar_a_k_ = integer array of size (n_k_p_r). n_polar_a_k_(1+nk_p_r) = number of latitudinal-lines for shell nk_p_r. ;
-% polar_a_ka__ = cell-array of size (n_k_p_r). polar_a_ka__{1+nk_p_r} = double array of size n_polar_a_k_(1+nk_p_r) storing latitudes. ;
-% n_azimu_b_ka__ = cell-array of size (n_k_p_r). n_azimu_b_ka__{1+nk_p_r} = integer array of size n_polar_a_k_(1+nk_p_r) storing n_azimu_b per latitude. ;
-% a_k_p_qk_ = complex array of size (n_qk). a_k_p_qk_(1+na) = function-value a for point na. ;
-% viewing_k_eq_d = real equatorial-distance used for sampling viewing angles and templates. ;
-% template_k_eq_d = real equatorial-distance used for sampling inplane-shifts along each template. ;
-% n_w_0in = integer. used if template_k_eq_d <=0; desired n_w for templates. ;
-% n_viewing_S = integer. number of viewing angles (i.e., number of templates) .;
-% viewing_azimu_b_S_ = real array of size (n_viewing_S,1). ;
-%                        azimu_b values for each template. ;
-% viewing_polar_a_S_ = real array of size (n_viewing_S,1). ;
-%                        polar_a values for each template. ;
-% viewing_weight_S_ = real array of size (n_viewing_S,1). ;
-%                       integration weight (on shell of radius 1) for each template. ;
-% n_viewing_polar_a = integer. number of distinct polar_a across the viewing angles. ;
-% viewing_polar_a_ = real array of size (n_viewing_polar_a,1). ;
-%                    polar_a values for each viewing_polar_a_. ;
-% n_viewing_azimu_b_ = integer array of size (n_viewing_polar_a,1). ;
-%                      number of azimu_b values for each polar_a. ;
-%                      These azimu_b values are assumed to be equispaced on [0,2*pi). ;
-% viewing_gamma_z_S_ = real gamma_z value for each template. (typically 0.0). ;
-% ;
-% outputs: ;
-% ;
-% template_wkS__ = complex array of templates. ;
-%                  template_wkS__(1+nw+nk_p_r*n_w_max,1+nS) ;
-%                  stores template value for angle-index nw, radial-index nk_p_r, ;
-%                  and viewing_azimu_b = viewing_azimu_b_all_(1+nS). ;
-%                  and viewing_polar_a = viewing_polar_a_all_(1+nS). ;
-% dtemplatedx_wkS__ = complex array analogous to template_wkS__. ;
-%                     stores first-derivative of template with respect to: ;
-%                     x==a: polar_a ; %<-- note that the first-derivative with respect to polar_a has a different sign than wignerd_c produces. ;
-%                     x==b: azimu_b ;
-%                     x==c: gamma_z ;
-% ddtemplatedxy_wkS__ = complex array analogous to template_wkS__. ;
-%                       stores second-derivative of template with respect to x and y (see above). ;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
-str_thisfunction = 'interpolate_template_6';
+str_thisfunction = 'interpolate_template_R_0';
 
-if nargin<1;
-rng(0);
-flag_verbose = 2; nf=1;
-if (flag_verbose); disp(sprintf(' %% testing %s',str_thisfunction)); end;
-test_interpolate_template_6;
-disp(sprintf(' %% returning')); return;
-end;% if nargin<7;
-%%%%%%%%;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+%if nargin<1;
+%disp(sprintf(' %% testing %s',str_thisfunction));
+%
+%disp('returning'); return;
+%end;%if nargin<1;
 
 na=0;
 if (nargin<1+na); parameter=[]; end; na=na+1;
+if (nargin<1+na); flag_1=[]; end; na=na+1;
+if (nargin<1+na); flag_d=[]; end; na=na+1;
+if (nargin<1+na); flag_dd=[]; end; na=na+1;
 if (nargin<1+na); n_order=[]; end; na=na+1;
 if (nargin<1+na); n_qk=[]; end; na=na+1;
 if (nargin<1+na); n_qk_csum_=[]; end; na=na+1;
@@ -231,15 +138,17 @@ if (nargin<1+na); dwSdb_from_single_shell_sba__=[]; end; na=na+1;
 if (nargin<1+na); ddwSdaa_from_single_shell_sba__=[]; end; na=na+1;
 if (nargin<1+na); ddwSdab_from_single_shell_sba__=[]; end; na=na+1;
 if (nargin<1+na); ddwSdbb_from_single_shell_sba__=[]; end; na=na+1;
-if (nargin<1+na); R_use__=[]; end; na=na+1;
-if (nargin<1+na); a_R_k_p_qk_=[]; end; na=na+1;
-if (nargin<1+na); ba_from_single_shell_baba__=[]; end; na=na+1;
-if (nargin<1+na); wS_from_R_single_shell_sba__=[]; end; na=na+1;
-if (nargin<1+na); dwSda_from_R_single_shell_sba__=[]; end; na=na+1;
-if (nargin<1+na); dwSdb_from_R_single_shell_sba__=[]; end; na=na+1;
-if (nargin<1+na); ddwSdaa_from_R_single_shell_sba__=[]; end; na=na+1;
-if (nargin<1+na); ddwSdab_from_R_single_shell_sba__=[]; end; na=na+1;
-if (nargin<1+na); ddwSdbb_from_R_single_shell_sba__=[]; end; na=na+1;
+if (nargin<1+na); template_ori_wkS__=[]; end; na=na+1;
+if (nargin<1+na); dtemplateda_ori_wkS__=[]; end; na=na+1;
+if (nargin<1+na); dtemplatedb_ori_wkS__=[]; end; na=na+1;
+if (nargin<1+na); dtemplatedc_ori_wkS__=[]; end; na=na+1;
+if (nargin<1+na); ddtemplatedaa_ori_wkS__=[]; end; na=na+1;
+if (nargin<1+na); ddtemplatedab_ori_wkS__=[]; end; na=na+1;
+if (nargin<1+na); ddtemplatedac_ori_wkS__=[]; end; na=na+1;
+if (nargin<1+na); ddtemplatedbb_ori_wkS__=[]; end; na=na+1;
+if (nargin<1+na); ddtemplatedbc_ori_wkS__=[]; end; na=na+1;
+if (nargin<1+na); ddtemplatedcc_ori_wkS__=[]; end; na=na+1;
+if (nargin<1+na); nR=[]; end; na=na+1;
 
 if isempty(parameter); parameter=struct('type','parameter'); end;
 if ~isfield(parameter,'flag_verbose'); parameter.flag_verbose=0; end;
@@ -248,35 +157,31 @@ if ~isfield(parameter,'flag_check'); parameter.flag_check=0; end;
 flag_check=parameter.flag_check; nf=0;
 if ~isfield(parameter,'tolerance_pinv'); parameter.tolerance_pinv=1e-6; end;
 tolerance_pinv=parameter.tolerance_pinv;
+if ~isfield(parameter,'tolerance_w'); parameter.tolerance_w = 0.5*(2*pi)/max(1,n_w_0in); end;
+tolerance_w=parameter.tolerance_w;
 if ~isfield(parameter,'flag_parsimonious'); parameter.flag_parsimonious=1; end;
 flag_parsimonious=parameter.flag_parsimonious; nf=0;
+if ~isfield(parameter,'flag_overwrite'); parameter.flag_overwrite=0; end;
+flag_overwrite=parameter.flag_overwrite; nf=0;
 
-if (flag_verbose>0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
+if (flag_verbose> 0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
 
-if isempty(n_order); n_order = 5; end;
+%%%%%%%%;
+if (flag_verbose>0); disp(sprintf(' %% setting n_w_')); end;
+%%%%%%%%;
+n_w = n_w_0in;
+n_w_max = n_w;
+n_w_ = n_w_max*ones(n_k_p_r,1);
+n_w_sum = sum(n_w_);
+n_w_csum_ = cumsum([0;n_w_]);
+%%%%%%%%;
+n_S = n_viewing_S; n_1 = 1; n_3 = 3; n_9 = 9;
 
-flag_1 = 1;
-index_nS_ = transpose([0:n_viewing_S-1]); n_S_sub = n_viewing_S;
-if flag_parsimonious==0;
-% do nothing. ;
-end;%if flag_parsimonious==0;
-if flag_parsimonious==1;
-tolerance_w = 0.5*(2*pi)/max(1,n_w_0in);
-index_nS_ = efind( abs(periodize(viewing_polar_a_S_,-pi/4,+pi/4)) <  tolerance_w ); %<-- selects both poles and equator. ;
-%index_nS_ = efind( abs(periodize(viewing_polar_a_S_,-pi/4,+pi/4)) <= pi/4 ); %<-- pick all. ;
-%index_nS_ = efind( abs(periodize(viewing_polar_a_S_,-pi/4,+pi/4)) <= -1 ); %<-- pick none. ;
-%index_nS_ = efind( abs(viewing_polar_a_S_ - pi/3) <= 1e-1 ),; %<-- pick something. ;
-n_S_sub = numel(index_nS_);
-end;%if flag_parsimonious==1;
-flag_d = (nargout>=17);
-flag_dd = (nargout>=27);
-if (flag_verbose>0); disp(sprintf(' %% flag_1 %d flag_d %d flag_dd %d',flag_1,flag_d,flag_dd)); end;
-
+if isempty(template_ori_wkS__) | isempty(dtemplateda_ori_wkS__) | isempty(dtemplatedb_ori_wkS__) | isempty(dtemplatedc_ori_wkS__) ;
 %%%%%%%%;
 % Construct templates under original frame. ;
 %%%%%%%%;
-if (flag_verbose>0); disp(sprintf(' %% First establish baseline calculation under original frame.')); end;
-%%%%%%%%;
+if (flag_verbose>0); disp(sprintf(' %% Construct templates under original frame.')); end;
 tmp_t = tic();
 if ~exist('wS_from_single_shell_sba__','var'); wS_from_single_shell_sba__=[]; end;
 if ~exist('dwSda_from_single_shell_sba__','var'); dwSda_from_single_shell_sba__=[]; end;
@@ -355,17 +260,36 @@ interpolate_template_5( ...
 );
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% interpolate_template_5: %0.6fs',tmp_t)); end;
 %%%%%%%%;
+end;%if isempty(template_ori_wkS__) | isempty(dtemplateda_ori_wkS__) | isempty(dtemplatedb_ori_wkS__) | isempty(dtemplatedc_ori_wkS__) ;
+
+%%%%%%%%;
+if (flag_verbose>0); disp(sprintf(' %% copying ddtemplatedba_ori_wkS__ from ddtemplatedab_ori_wkS__.')); end;
+%%%%%%%%;
 ddtemplatedba_ori_wkS__ = ddtemplatedab_ori_wkS__;
 ddtemplatedca_ori_wkS__ = ddtemplatedac_ori_wkS__;
 ddtemplatedcb_ori_wkS__ = ddtemplatedbc_ori_wkS__;
 %%%%%%%%;
-n_w_max = n_w;
-n_w_ = n_w_max*ones(n_k_p_r,1);
-n_w_sum = sum(n_w_);
-n_w_csum_ = cumsum([0;n_w_]);
+
+if (flag_verbose>0); disp(sprintf(' %% setting index_nS_from_nS_sub_')); end;
+index_nS_from_nS_sub_ = transpose([0:n_viewing_S-1]); n_S_sub = n_viewing_S;
+if flag_parsimonious==0;
+% do nothing. ;
+end;%if flag_parsimonious==0;
+if flag_parsimonious==1;
+index_nS_from_nS_polar_a_sub_ = efind( abs(periodize(viewing_polar_a_S_,-pi/4,+pi/4)) <  tolerance_w ); %<-- selects both poles and equator. ;
+index_nS_from_nS_azimu_b_sub_ = efind( abs(periodize(viewing_azimu_b_S_,-pi/4,+pi/4)) <  tolerance_w ); %<-- selects meridians. ;
+index_nS_from_nS_sub_ = union(index_nS_from_nS_polar_a_sub_,index_nS_from_nS_azimu_b_sub_);
+n_S_sub = numel(index_nS_from_nS_sub_);
+if (flag_verbose>0); disp(sprintf(' %% n_S_sub %d/%d',n_S_sub,n_S)); end;
+end;%if flag_parsimonious==1;
+
+n_index_sparse = n_w_sum*n_S_sub;
+index_row_sparse_ = reshape(repmat(transpose([0:n_w_sum-1]),[1,n_S_sub]),[n_index_sparse,1]);
+index_col_sparse_ = reshape(repmat(reshape(index_nS_from_nS_sub_,[1,n_S_sub]),[n_w_sum,1]),[n_index_sparse,1]);
+if (flag_verbose>0); disp(sprintf(' %% n_index_sparse %d/%d',n_index_sparse,n_w_sum*n_S)); end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
-if flag_d;
+if flag_1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
 %%%%%%%%;
@@ -377,53 +301,46 @@ if flag_d;
 % For accuracy one might consider increasing the angular-resolution (on each shell) ;
 % without necessarily increasing the radial-resolution (i.e., the distance between shells). ;
 %%%%%%%%;
-if (flag_verbose>0); disp(sprintf(' %% checking spherical-grid for consistency.')); end;
-tmp_t = tic();
-if n_k_p_r> 1;
-tmp_std = std(diff(n_qk_csum_));
-if (flag_verbose>0); disp(sprintf(' %% std(diff(n_qk_csum_)) %0.6f',tmp_std)); end;
-if tmp_std> 1e-12; disp(sprintf(' %% Warning, std(diff(n_qk_csum_)) %0.6f in %s',tmp_std,str_thisfunction)); end;
-end;%if n_k_p_r> 1;
-if n_k_p_r> 1;
-tmp_std = std(diff(n_polar_a_k_));
-if (flag_verbose>0); disp(sprintf(' %% std(diff(n_polar_a_k_)) %0.6f',tmp_std)); end;
-if tmp_std> 1e-12; disp(sprintf(' %% Warning, std(diff(n_polar_a_k_)) %0.6f in %s',tmp_std,str_thisfunction)); end;
-end;%if n_k_p_r> 1;
-polar_a_single_shell_ = polar_a_ka__{1};
-n_azimu_b_single_shell_ = n_azimu_b_ka__{1};
-tmp_std = std(diff(polar_a_single_shell_));
-if (flag_verbose>0); disp(sprintf(' %% std(diff(polar_a_single_shell_)) %0.6f',tmp_std)); end;
-if tmp_std> 1e-12; disp(sprintf(' %% Warning, std(diff(polar_a_single_shell_)) %0.6f in %s',tmp_std,str_thisfunction)); end;
-n_polar_a_single_shell = numel(polar_a_single_shell_);
-polar_a_single_shell_lim_ = [polar_a_single_shell_(1),polar_a_single_shell_(end)];
-tab_error=0; tab_check=0;
-for npolar_a_single_shell=0:n_polar_a_single_shell-1;
-n_azimu_b_single_shell = n_azimu_b_single_shell_(1+npolar_a_single_shell);
-if npolar_a_single_shell==0; if n_azimu_b_single_shell~=1; disp(sprintf(' %% Warning, npolar_a_single_shell %d n_azimu_b_single_shell %d',npolar_a_single_shell,n_azimu_b_single_shell)); tab_error = tab_error+1; else; tab_check = tab_check+1; end; end;
-if npolar_a_single_shell==n_polar_a_single_shell-1; if n_azimu_b_single_shell~=1; disp(sprintf(' %% Warning, npolar_a_single_shell %d n_azimu_b_single_shell %d',npolar_a_single_shell,n_azimu_b_single_shell)); tab_error = tab_error+1; else; tab_check = tab_check+1; end; end;
-if npolar_a_single_shell> 0 & npolar_a_single_shell< n_polar_a_single_shell-1; if mod(n_azimu_b_single_shell,2)~=0; disp(sprintf(' %% Warning, npolar_a_single_shell %d n_azimu_b_single_shell %d',npolar_a_single_shell,n_azimu_b_single_shell)); tab_error = tab_error+1; else; tab_check = tab_check+1; end; end;
-end;%for npolar_a_single_shell=0:n_polar_a_single_shell-1;
-assert(tab_check==n_polar_a_single_shell);
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% check grid: %0.6fs',tmp_t)); end;
+if (flag_verbose>0); disp(sprintf(' %% Check spherical-grid for consistency.')); end;
 %%%%%%%%;
-if (flag_verbose>0); disp(sprintf(' %% extracting quadrature-grid on shell.')); end;
-tmp_t = tic();
-n_q_single_shell = n_qk/max(1,n_k_p_r); n_3 = 3; n_9 = 9; n_1 = 1;
-nk_p_r = n_k_p_r-1;
-k_p_r = k_p_r_(1+nk_p_r);
-weight_3d_k_p_r = weight_3d_k_p_r_(1+nk_p_r);
-tmp_index_ = n_qk_csum_(1+nk_p_r)+[0:n_q_single_shell-1];
-k_c_0_single_shell_ = k_c_0_qk_(1+tmp_index_)/max(1e-12,k_p_r);
-k_c_1_single_shell_ = k_c_1_qk_(1+tmp_index_)/max(1e-12,k_p_r);
-k_c_2_single_shell_ = k_c_2_qk_(1+tmp_index_)/max(1e-12,k_p_r);
-k_p_azimu_b_single_shell_ = k_p_azimu_b_qk_(1+tmp_index_);
-k_p_polar_a_single_shell_ = k_p_polar_a_qk_(1+tmp_index_);
-weight_3d_k_single_shell_ = weight_3d_k_p_qk_(1+tmp_index_); %<-- sum(weight_3d_k_single_shell_) = 4*pi*weight_3d_k_p_r;
-if (flag_verbose>0); disp(sprintf(' %% sum(weight_3d_k_single_shell_) %0.16f 4*pi*weight_3d_k_p_r %0.16f',sum(weight_3d_k_single_shell_),4*pi*weight_3d_k_p_r)); end;
-weight_shell_qk_single_shell_ = weight_shell_qk_(1+tmp_index_); %<-- sum(weight_shell_qk_single_shell_) = 4*pi*k_p_r^2. ;
-if (flag_verbose>0); disp(sprintf(' %% sum(weight_shell_qk_single_shell_) %0.16f 4*pi*k_p_r^2 %0.16f',sum(weight_shell_qk_single_shell_),4*pi*k_p_r^2)); end;
-weight_shell_qk_unit_shell_ = weight_shell_qk_single_shell_/max(1e-12,k_p_r)^2; %<-- sum(weight_shell_qk_unit_shell_) = 4*pi. ;
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% set weight_shell_qk_unit_shell_: %0.6fs',tmp_t)); end;
+[ ...
+ parameter ...
+,polar_a_single_shell_ ...
+,n_azimu_b_single_shell_ ...
+,n_polar_a_single_shell ...
+,polar_a_single_shell_lim_ ...
+,n_q_single_shell ...
+,k_c_0_single_shell_ ...
+,k_c_1_single_shell_ ...
+,k_c_2_single_shell_ ...
+,k_p_azimu_b_single_shell_ ...
+,k_p_polar_a_single_shell_ ...
+,weight_3d_k_single_shell_ ...
+,weight_shell_qk_single_shell_ ...
+,weight_shell_qk_unit_shell_ ...
+] = ...
+interpolate_template_consistency_check_0( ...
+ parameter ...
+,n_qk ...
+,n_qk_csum_ ...
+,k_p_r_qk_ ...
+,k_p_azimu_b_qk_ ...
+,k_p_polar_a_qk_ ...
+,weight_3d_k_p_qk_ ...
+,weight_shell_qk_ ...
+,n_k_p_r ...
+,k_p_r_ ...
+,k_p_r_max ...
+,weight_3d_k_p_r_ ...
+,k_c_0_qk_ ...
+,k_c_1_qk_ ...
+,k_c_2_qk_ ...
+,n_polar_a_k_ ...
+,polar_a_ka__ ...
+,n_azimu_b_ka__ ...
+);
+%%%%%%%%;
+
 %%%%%%%%;
 % define rotations. ;
 %%%%%%%%;
@@ -440,21 +357,23 @@ Ry = @(polar_a) ...
   -sin(polar_a) 0 +cos(polar_a) ; ...
 ];
 %%%%%%%%;
+if isempty(nR); nR=0; end;
 if isempty(R_use__);
 if (flag_verbose>0); disp(sprintf(' %% defining R_use__.')); end;
-polar_a_use = +pi/5;
-azimu_b_use = +pi/7;
-gamma_z_use = +pi/3;
+polar_a_use = +(1+nR)*pi/5;
+azimu_b_use = +(1+nR)*pi/7;
+gamma_z_use = +(1+nR)*pi/3;
 euler_use_ = [gamma_z_use,polar_a_use,azimu_b_use];
 R_use__ = Rz(azimu_b_use)*Ry(polar_a_use)*Rz(gamma_z_use);
 fnorm_disp(flag_verbose,'R_use__',R_use__,'euler_to_R_0(euler_use_)',euler_to_R_0(euler_use_));
 fnorm_disp(flag_verbose,'euler_use_',euler_use_,'R_to_euler_0(R_use__)',R_to_euler_0(R_use__));
 end;%if isempty(R_use__);
+%%%%%%%%;
 
-euler_use_ = R_to_euler_0(R_use__);
 %%%%%%%%;
 % Now rotate the quadrature-grid. ;
 %%%%%%%%;
+euler_use_ = R_to_euler_0(R_use__);
 if (flag_verbose>0); disp(sprintf(' %% rotating quadrature-grid.')); end;
 tmp_t = tic();
 tmp_q3__ = cat(2,k_c_0_single_shell_,k_c_1_single_shell_,k_c_2_single_shell_)*transpose(R_use__);
@@ -470,6 +389,7 @@ if flag_check | isempty(a_R_k_p_qk_);
 % build interpolant. ;
 %%%%%%%%;
 if isempty(ba_from_single_shell_baba__);
+if (flag_verbose>0); disp(sprintf(' %% Building interpolant')); end;
 if (flag_verbose>0); disp(sprintf(' %% calling shell_k_p_scatter_from_adaptive_interpolate_n_9.')); end;
 tmp_t = tic();
 [ ...
@@ -489,13 +409,13 @@ end;%if isempty(ba_from_single_shell_baba__);
 %%%%%%%%;
 % apply interpolant. ;
 %%%%%%%%;
-if (flag_verbose>0); disp(sprintf(' %% applying interpolant.')); end;
+if (flag_verbose>0); disp(sprintf(' %% Applying interpolant.')); end;
 tmp_t = tic();
 tmp_a_R_k_p_qk_ = reshape(ba_from_single_shell_baba__*reshape(a_k_p_qk_,[n_q_single_shell,n_k_p_r]),[n_qk,1]);
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% apply interpolant: %0.6fs',tmp_t)); end;
 %%%%%%%%;
 if ~isempty(a_R_k_p_qk_);
-if (flag_verbose>0); disp(sprintf(' %% display error.')); end;
+if (flag_verbose>0); disp(sprintf(' %% Display error.')); end;
 fnorm_disp(flag_verbose,'a_R_k_p_qk_',a_R_k_p_qk_,'tmp_a_R_k_p_qk_',tmp_a_R_k_p_qk_);
 end;%if ~isempty(a_R_k_p_qk_);
 if  isempty(a_R_k_p_qk_);
@@ -508,9 +428,8 @@ end;%if flag_check | isempty(a_R_k_p_qk_);
 %%%%%%%%;
 % Construct templates under rotated frame. ;
 %%%%%%%%;
-if (flag_verbose>0); disp(sprintf(' %% constructing rotated viewing-angles.')); end;
+if (flag_verbose>0); disp(sprintf(' %% Constructing rotated viewing-angles.')); end;
 tmp_t = tic();
-n_S = n_viewing_S;
 [ ...
  ~ ...
 ,viewing_R_polar_a_S_ ...
@@ -527,14 +446,138 @@ euler_to_euler_0( ...
 );
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% construct rotated viewing-angles: %0.6fs',tmp_t)); end;
 %%%%%%%%;
-if (flag_verbose>0); disp(sprintf(' %% constructing templates under rotated frame.')); end;
-tmp_t = tic();
+if (flag_verbose>0); disp(sprintf(' %% Constructing templates under rotated frame.')); end;
+if (flag_verbose>0); disp(sprintf(' %% Note: We can try to minimize the work here by only considering viewing_R_polar_a_S_sub_, etc.')); end;
+if (flag_verbose>0); disp(sprintf(' %% However, this will require only a subset of the wS_from_R_single_shell_sba__, etc.')); end;
 if ~exist('wS_from_R_single_shell_sba__','var'); wS_from_R_single_shell_sba__=[]; end;
 if ~exist('dwSda_from_R_single_shell_sba__','var'); dwSda_from_R_single_shell_sba__=[]; end;
 if ~exist('dwSdb_from_R_single_shell_sba__','var'); dwSdb_from_R_single_shell_sba__=[]; end;
 if ~exist('ddwSdaa_from_R_single_shell_sba__','var'); ddwSdaa_from_R_single_shell_sba__=[]; end;
 if ~exist('ddwSdab_from_R_single_shell_sba__','var'); ddwSdab_from_R_single_shell_sba__=[]; end;
 if ~exist('ddwSdbb_from_R_single_shell_sba__','var'); ddwSdbb_from_R_single_shell_sba__=[]; end;
+tmp_parameter = parameter;
+tmp_parameter.flag_verbose = max(0,flag_verbose-1);
+tmp_parameter.flag_attend = 0; %<-- Here we bypass any calls to cartesian_from_shell. ;
+%%%%%%%%;
+%%%%%%%%%%%%;
+%%%%%%%%%%%%%%%%;
+if  flag_1 & ~flag_d & ~flag_dd ;
+tmp_t = tic();
+[ ...
+ tmp_parameter ...
+,template_rot_wkS__ ...
+,n_w ...
+,n_viewing_S ...
+,viewing_R_azimu_b_S_ ...
+,viewing_R_polar_a_S_ ...
+,viewing_weight_S_ ...
+,n_viewing_polar_a ...
+,viewing_polar_a_ ...
+,n_viewing_azimu_b_ ...
+,viewing_R_gamma_z_S_ ...
+,wS_from_R_single_shell_sba__ ...
+] = ...
+interpolate_template_5( ...
+ tmp_parameter ...
+,n_order ...
+,n_qk ...
+,n_qk_csum_ ...
+,k_p_r_qk_ ...
+,k_p_azimu_b_qk_ ...
+,k_p_polar_a_qk_ ...
+,weight_3d_k_p_qk_ ...
+,weight_shell_qk_ ...
+,n_k_p_r ...
+,k_p_r_ ...
+,weight_3d_k_p_r_ ...
+,k_c_0_qk_ ...
+,k_c_1_qk_ ...
+,k_c_2_qk_ ...
+,n_polar_a_k_ ...
+,polar_a_ka__ ...
+,n_azimu_b_ka__ ...
+,a_R_k_p_qk_ ...
+,viewing_k_eq_d ...
+,template_k_eq_d ...
+,n_w_0in ...
+,n_viewing_S ...
+,viewing_R_azimu_b_S_ ...
+,viewing_R_polar_a_S_ ...
+,viewing_weight_S_ ...
+,n_viewing_polar_a ...
+,viewing_polar_a_ ...
+,n_viewing_azimu_b_ ...
+,viewing_R_gamma_z_S_ ...
+,wS_from_R_single_shell_sba__ ...
+);
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% interpolate_template_5: %0.6fs',tmp_t)); end;
+end;%if  flag_1 & ~flag_d & ~flag_dd ;
+%%%%%%%%%%%%%%%%;
+%%%%%%%%%%%%;
+%%%%%%%%%%%%%%%%;
+if  flag_1 &  flag_d & ~flag_dd ;
+tmp_t = tic();
+[ ...
+ tmp_parameter ...
+,template_rot_wkS__ ...
+,n_w ...
+,n_viewing_S ...
+,viewing_R_azimu_b_S_ ...
+,viewing_R_polar_a_S_ ...
+,viewing_weight_S_ ...
+,n_viewing_polar_a ...
+,viewing_polar_a_ ...
+,n_viewing_azimu_b_ ...
+,viewing_R_gamma_z_S_ ...
+,wS_from_R_single_shell_sba__ ...
+,dtemplateda_rot_wkS__ ...
+,dtemplatedb_rot_wkS__ ...
+,dtemplatedc_rot_wkS__ ...
+,dwSda_from_R_single_shell_sba__ ...
+,dwSdb_from_R_single_shell_sba__ ...
+] = ...
+interpolate_template_5( ...
+ tmp_parameter ...
+,n_order ...
+,n_qk ...
+,n_qk_csum_ ...
+,k_p_r_qk_ ...
+,k_p_azimu_b_qk_ ...
+,k_p_polar_a_qk_ ...
+,weight_3d_k_p_qk_ ...
+,weight_shell_qk_ ...
+,n_k_p_r ...
+,k_p_r_ ...
+,weight_3d_k_p_r_ ...
+,k_c_0_qk_ ...
+,k_c_1_qk_ ...
+,k_c_2_qk_ ...
+,n_polar_a_k_ ...
+,polar_a_ka__ ...
+,n_azimu_b_ka__ ...
+,a_R_k_p_qk_ ...
+,viewing_k_eq_d ...
+,template_k_eq_d ...
+,n_w_0in ...
+,n_viewing_S ...
+,viewing_R_azimu_b_S_ ...
+,viewing_R_polar_a_S_ ...
+,viewing_weight_S_ ...
+,n_viewing_polar_a ...
+,viewing_polar_a_ ...
+,n_viewing_azimu_b_ ...
+,viewing_R_gamma_z_S_ ...
+,wS_from_R_single_shell_sba__ ...
+,dwSda_from_R_single_shell_sba__ ...
+,dwSdb_from_R_single_shell_sba__ ...
+);
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% interpolate_template_5: %0.6fs',tmp_t)); end;
+end;%if  flag_1 &  flag_d & ~flag_dd ;
+%%%%%%%%%%%%%%%%;
+%%%%%%%%%%%%;
+%%%%%%%%%%%%%%%%;
+if  flag_1 &  flag_d &  flag_dd ;
+tmp_t = tic();
 [ ...
  tmp_parameter ...
 ,template_rot_wkS__ ...
@@ -602,14 +645,20 @@ interpolate_template_5( ...
 ,ddwSdbb_from_R_single_shell_sba__ ...
 );
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% interpolate_template_5: %0.6fs',tmp_t)); end;
+end;%if  flag_1 &  flag_d &  flag_dd ;
+%%%%%%%%%%%%%%%%;
+%%%%%%%%%%%%;
 %%%%%%%%;
+if flag_dd;
 ddtemplatedba_rot_wkS__ = ddtemplatedab_rot_wkS__;
 ddtemplatedca_rot_wkS__ = ddtemplatedac_rot_wkS__;
 ddtemplatedcb_rot_wkS__ = ddtemplatedbc_rot_wkS__;
+end;%if flag_dd;
+%%%%%%%%;
 
 if flag_check;
 %%%%%%%%;
-if (flag_verbose>0); disp(sprintf(' %% displaying template-error in original and rotated frame.')); end;
+if (flag_verbose>0); disp(sprintf(' %% Displaying template-error in original and rotated frame.')); end;
 figure(1+nf);nf=nf+1;clf;figbig;
 n_S_check = 4;
 p_row = min(n_S_check,n_S); p_col = 6; np=0;
@@ -654,41 +703,62 @@ end;%for nS=0:min(n_S_check,n_S)-1;
 %%%%%%%%;
 end;%if flag_check;
 
-viewing_polar_a_S_sub_ = viewing_polar_a_S_(1+index_nS_);
-viewing_azimu_b_S_sub_ = viewing_azimu_b_S_(1+index_nS_);
-viewing_gamma_z_S_sub_ = viewing_gamma_z_S_(1+index_nS_);
-dtemplateda_ori_wkS_sub__ = dtemplateda_ori_wkS__(:,1+index_nS_);
-dtemplatedb_ori_wkS_sub__ = dtemplatedb_ori_wkS__(:,1+index_nS_);
-dtemplatedc_ori_wkS_sub__ = dtemplatedc_ori_wkS__(:,1+index_nS_);
-ddtemplatedaa_ori_wkS_sub__ = ddtemplatedaa_ori_wkS__(:,1+index_nS_);
-ddtemplatedab_ori_wkS_sub__ = ddtemplatedab_ori_wkS__(:,1+index_nS_);
-ddtemplatedac_ori_wkS_sub__ = ddtemplatedac_ori_wkS__(:,1+index_nS_);
-ddtemplatedba_ori_wkS_sub__ = ddtemplatedba_ori_wkS__(:,1+index_nS_);
-ddtemplatedbb_ori_wkS_sub__ = ddtemplatedbb_ori_wkS__(:,1+index_nS_);
-ddtemplatedbc_ori_wkS_sub__ = ddtemplatedbc_ori_wkS__(:,1+index_nS_);
-ddtemplatedca_ori_wkS_sub__ = ddtemplatedca_ori_wkS__(:,1+index_nS_);
-ddtemplatedcb_ori_wkS_sub__ = ddtemplatedcb_ori_wkS__(:,1+index_nS_);
-ddtemplatedcc_ori_wkS_sub__ = ddtemplatedcc_ori_wkS__(:,1+index_nS_);
-viewing_R_polar_a_S_sub_ = viewing_R_polar_a_S_(1+index_nS_);
-viewing_R_azimu_b_S_sub_ = viewing_R_azimu_b_S_(1+index_nS_);
-viewing_R_gamma_z_S_sub_ = viewing_R_gamma_z_S_(1+index_nS_);
-dtemplateda_rot_wkS_sub__ = dtemplateda_rot_wkS__(:,1+index_nS_);
-dtemplatedb_rot_wkS_sub__ = dtemplatedb_rot_wkS__(:,1+index_nS_);
-dtemplatedc_rot_wkS_sub__ = dtemplatedc_rot_wkS__(:,1+index_nS_);
-ddtemplatedaa_rot_wkS_sub__ = ddtemplatedaa_rot_wkS__(:,1+index_nS_);
-ddtemplatedab_rot_wkS_sub__ = ddtemplatedab_rot_wkS__(:,1+index_nS_);
-ddtemplatedac_rot_wkS_sub__ = ddtemplatedac_rot_wkS__(:,1+index_nS_);
-ddtemplatedba_rot_wkS_sub__ = ddtemplatedba_rot_wkS__(:,1+index_nS_);
-ddtemplatedbb_rot_wkS_sub__ = ddtemplatedbb_rot_wkS__(:,1+index_nS_);
-ddtemplatedbc_rot_wkS_sub__ = ddtemplatedbc_rot_wkS__(:,1+index_nS_);
-ddtemplatedca_rot_wkS_sub__ = ddtemplatedca_rot_wkS__(:,1+index_nS_);
-ddtemplatedcb_rot_wkS_sub__ = ddtemplatedcb_rot_wkS__(:,1+index_nS_);
-ddtemplatedcc_rot_wkS_sub__ = ddtemplatedcc_rot_wkS__(:,1+index_nS_);
+%%%%%%%%;
+if (flag_verbose>0); disp(sprintf(' %% Extracting index_nS_from_nS_sub_.')); end;
+%%%%%%%%;
+viewing_polar_a_S_sub_ = viewing_polar_a_S_(1+index_nS_from_nS_sub_);
+viewing_azimu_b_S_sub_ = viewing_azimu_b_S_(1+index_nS_from_nS_sub_);
+viewing_gamma_z_S_sub_ = viewing_gamma_z_S_(1+index_nS_from_nS_sub_);
+if flag_1;
+template_ori_wkS_sub__ = template_ori_wkS__(:,1+index_nS_from_nS_sub_);
+end;%if flag_1;
+if flag_d;
+dtemplateda_ori_wkS_sub__ = dtemplateda_ori_wkS__(:,1+index_nS_from_nS_sub_);
+dtemplatedb_ori_wkS_sub__ = dtemplatedb_ori_wkS__(:,1+index_nS_from_nS_sub_);
+dtemplatedc_ori_wkS_sub__ = dtemplatedc_ori_wkS__(:,1+index_nS_from_nS_sub_);
+end;%if flag_d;
+if flag_dd;
+ddtemplatedaa_ori_wkS_sub__ = ddtemplatedaa_ori_wkS__(:,1+index_nS_from_nS_sub_);
+ddtemplatedab_ori_wkS_sub__ = ddtemplatedab_ori_wkS__(:,1+index_nS_from_nS_sub_);
+ddtemplatedac_ori_wkS_sub__ = ddtemplatedac_ori_wkS__(:,1+index_nS_from_nS_sub_);
+ddtemplatedba_ori_wkS_sub__ = ddtemplatedba_ori_wkS__(:,1+index_nS_from_nS_sub_);
+ddtemplatedbb_ori_wkS_sub__ = ddtemplatedbb_ori_wkS__(:,1+index_nS_from_nS_sub_);
+ddtemplatedbc_ori_wkS_sub__ = ddtemplatedbc_ori_wkS__(:,1+index_nS_from_nS_sub_);
+ddtemplatedca_ori_wkS_sub__ = ddtemplatedca_ori_wkS__(:,1+index_nS_from_nS_sub_);
+ddtemplatedcb_ori_wkS_sub__ = ddtemplatedcb_ori_wkS__(:,1+index_nS_from_nS_sub_);
+ddtemplatedcc_ori_wkS_sub__ = ddtemplatedcc_ori_wkS__(:,1+index_nS_from_nS_sub_);
+end;%if flag_dd;
+viewing_R_polar_a_S_sub_ = viewing_R_polar_a_S_(1+index_nS_from_nS_sub_);
+viewing_R_azimu_b_S_sub_ = viewing_R_azimu_b_S_(1+index_nS_from_nS_sub_);
+viewing_R_gamma_z_S_sub_ = viewing_R_gamma_z_S_(1+index_nS_from_nS_sub_);
+if flag_1;
+template_rot_wkS_sub__ = template_rot_wkS__(:,1+index_nS_from_nS_sub_);
+end;%if flag_1;
+if flag_d;
+dtemplateda_rot_wkS_sub__ = dtemplateda_rot_wkS__(:,1+index_nS_from_nS_sub_);
+dtemplatedb_rot_wkS_sub__ = dtemplatedb_rot_wkS__(:,1+index_nS_from_nS_sub_);
+dtemplatedc_rot_wkS_sub__ = dtemplatedc_rot_wkS__(:,1+index_nS_from_nS_sub_);
+end;%if flag_d;
+if flag_dd;
+ddtemplatedaa_rot_wkS_sub__ = ddtemplatedaa_rot_wkS__(:,1+index_nS_from_nS_sub_);
+ddtemplatedab_rot_wkS_sub__ = ddtemplatedab_rot_wkS__(:,1+index_nS_from_nS_sub_);
+ddtemplatedac_rot_wkS_sub__ = ddtemplatedac_rot_wkS__(:,1+index_nS_from_nS_sub_);
+ddtemplatedba_rot_wkS_sub__ = ddtemplatedba_rot_wkS__(:,1+index_nS_from_nS_sub_);
+ddtemplatedbb_rot_wkS_sub__ = ddtemplatedbb_rot_wkS__(:,1+index_nS_from_nS_sub_);
+ddtemplatedbc_rot_wkS_sub__ = ddtemplatedbc_rot_wkS__(:,1+index_nS_from_nS_sub_);
+ddtemplatedca_rot_wkS_sub__ = ddtemplatedca_rot_wkS__(:,1+index_nS_from_nS_sub_);
+ddtemplatedcb_rot_wkS_sub__ = ddtemplatedcb_rot_wkS__(:,1+index_nS_from_nS_sub_);
+ddtemplatedcc_rot_wkS_sub__ = ddtemplatedcc_rot_wkS__(:,1+index_nS_from_nS_sub_);
+end;%if flag_dd;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+if flag_d;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
 %%%%%%%%;
 % [ template_k_c_0 ; template_k_c_1 ; template_k_c_2 ] = [ +cb*ca*cc - sb*sc ; +sb*ca*cc + cb*sc ; -sa*cc ];
 %%%%%%%%;
-if (flag_verbose>0); disp(sprintf(' %% calculating gradients of data-locations under original frame.')); end;
+if (flag_verbose>0); disp(sprintf(' %% Calculating gradients of data-locations under original frame.')); end;
 tmp_t = tic();
 [ ...
  k_p_polar_a_wS_sub__ ...
@@ -720,7 +790,7 @@ cg_rhs_2( ...
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% cg_rhs_2: %0.6fs',tmp_t)); end;
 k_c_wS_sub_3__ = cat(2,k_c_0_wS_sub__(:),k_c_1_wS_sub__(:),k_c_2_wS_sub__(:));
 %%%%;
-if (flag_verbose>0); disp(sprintf(' %% calculating gradients of data-locations under rotated frame.')); end;
+if (flag_verbose>0); disp(sprintf(' %% Calculating gradients of data-locations under rotated frame.')); end;
 tmp_t = tic();
 [ ...
  R_k_p_polar_a_wS_sub__ ...
@@ -757,6 +827,7 @@ fnorm_disp(flag_verbose,'k_c_wS_sub_3__',k_c_wS_sub_3__,'R_k_c_wS_sub_3__*transp
 %%%%%%%%;
 % Now recalculate the first-derivatives. ;
 %%%%%%%%;
+if (flag_verbose>0); disp(sprintf(' %% Recalculating the first-derivatives')); end;
 tmp_t = tic();
 tab_a = 0; tab_b = 1; tab_c = 2;
 J_ori_abc012wS_sub____ = zeros(n_3,n_3,n_w_max,n_S_sub);
@@ -783,6 +854,8 @@ end;%for nS_sub=0:n_S_sub-1;
 end;%for nw=0:n_w_max-1;
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% pinv_J_xxx_abc012__: %0.6fs',tmp_t)); end;
 %%%%%%%%;
+if (flag_verbose>0); disp(sprintf(' %% Note: compare R_use__*dtemplated012_rot_ to dtemplated012_ori_.')); end;
+if (flag_verbose>0); disp(sprintf(' %% Copying first-derivatives to dtemplateda_rec_wkS_sub__.')); end;
 tmp_t = tic();
 dtemplated0_ori_wkS_sub__ = zeros(n_w_sum,n_S_sub);
 dtemplated1_ori_wkS_sub__ = zeros(n_w_sum,n_S_sub);
@@ -846,6 +919,10 @@ if flag_dd;
 %%%%%%%%;
 % Now recalculate second-derivatives. ;
 %%%%%%%%;
+if (flag_verbose>0); disp(sprintf(' %% Recalculating second-derivatives.')); end;
+if (flag_verbose>0); disp(sprintf(' %% Note: compare R_use__*LHS_rot_012012__*transpose(R_use__) to LHS_ori_012012__.')); end;
+if (flag_verbose>0); disp(sprintf(' %% Copying second-derivatives to ddtemplatedaa_rec_wkS_sub__.')); end;
+if (flag_verbose>0); disp(sprintf(' %% Also creating ddtemplatedabcabc_rec__.')); end;
 tmp_t = tic();
 ddtemplatedaa_rec_wkS_sub__ = zeros(n_w_sum,n_S_sub);
 ddtemplatedab_rec_wkS_sub__ = zeros(n_w_sum,n_S_sub);
@@ -959,14 +1036,25 @@ end;%for nw=0:n_w_max-1;
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% ddtemplatedxx_rec_wkS_sub__: %0.6fs',tmp_t)); end;
 %%%%%%%%;
 
-ddtemplatedaa_rec_wkS__ = zeros(n_w_sum,n_S);
-ddtemplatedab_rec_wkS__ = zeros(n_w_sum,n_S);
-ddtemplatedac_rec_wkS__ = zeros(n_w_sum,n_S);
-ddtemplatedbb_rec_wkS__ = zeros(n_w_sum,n_S);
-ddtemplatedbc_rec_wkS__ = zeros(n_w_sum,n_S);
-ddtemplatedcc_rec_wkS__ = zeros(n_w_sum,n_S);
+%%%%%%%%;
+% store as sparse. ;
+%%%%%%%%;
+if (flag_verbose>0); disp(sprintf(' %% Storing second-derivative output as sparse-matrices.')); end;
+ddtemplatedaa_rec_wkS__ = sparse(1+index_row_sparse_,1+index_col_sparse_,ddtemplatedaa_rec_wkS_sub__,n_w_sum,n_S);
+ddtemplatedab_rec_wkS__ = sparse(1+index_row_sparse_,1+index_col_sparse_,ddtemplatedab_rec_wkS_sub__,n_w_sum,n_S);
+ddtemplatedac_rec_wkS__ = sparse(1+index_row_sparse_,1+index_col_sparse_,ddtemplatedac_rec_wkS_sub__,n_w_sum,n_S);
+ddtemplatedbb_rec_wkS__ = sparse(1+index_row_sparse_,1+index_col_sparse_,ddtemplatedbb_rec_wkS_sub__,n_w_sum,n_S);
+ddtemplatedbc_rec_wkS__ = sparse(1+index_row_sparse_,1+index_col_sparse_,ddtemplatedbc_rec_wkS_sub__,n_w_sum,n_S);
+ddtemplatedcc_rec_wkS__ = sparse(1+index_row_sparse_,1+index_col_sparse_,ddtemplatedcc_rec_wkS_sub__,n_w_sum,n_S);
+%{
+ddtemplatedaa_rec_wkS__ = sparse(zeros(n_w_sum,n_S));
+ddtemplatedab_rec_wkS__ = sparse(zeros(n_w_sum,n_S));
+ddtemplatedac_rec_wkS__ = sparse(zeros(n_w_sum,n_S));
+ddtemplatedbb_rec_wkS__ = sparse(zeros(n_w_sum,n_S));
+ddtemplatedbc_rec_wkS__ = sparse(zeros(n_w_sum,n_S));
+ddtemplatedcc_rec_wkS__ = sparse(zeros(n_w_sum,n_S));
 for nS_sub=0:n_S_sub-1;
-nS = index_nS_(1+nS_sub);
+nS = index_nS_from_nS_sub_(1+nS_sub);
 ddtemplatedaa_rec_wkS__(:,1+nS) = ddtemplatedaa_rec_wkS_sub__(:,1+nS_sub);
 ddtemplatedab_rec_wkS__(:,1+nS) = ddtemplatedab_rec_wkS_sub__(:,1+nS_sub);
 ddtemplatedac_rec_wkS__(:,1+nS) = ddtemplatedac_rec_wkS_sub__(:,1+nS_sub);
@@ -974,11 +1062,12 @@ ddtemplatedbb_rec_wkS__(:,1+nS) = ddtemplatedbb_rec_wkS_sub__(:,1+nS_sub);
 ddtemplatedbc_rec_wkS__(:,1+nS) = ddtemplatedbc_rec_wkS_sub__(:,1+nS_sub);
 ddtemplatedcc_rec_wkS__(:,1+nS) = ddtemplatedcc_rec_wkS_sub__(:,1+nS_sub);
 end;%for nS_sub=0:n_S_sub-1;
+%}
 
-if flag_parsimonious==1;
-if (flag_verbose>0); disp(sprintf(' %% overwriting second-derivative.')); end;
+if flag_overwrite==1;
+if (flag_verbose>0); disp(sprintf(' %% Overwriting second-derivative.')); end;
 for nS_sub=0:n_S_sub-1;
-nS = index_nS_(1+nS_sub);
+nS = index_nS_from_nS_sub_(1+nS_sub);
 ddtemplatedaa_ori_wkS__(:,1+nS) = ddtemplatedaa_rec_wkS_sub__(:,1+nS_sub);
 ddtemplatedab_ori_wkS__(:,1+nS) = ddtemplatedab_rec_wkS_sub__(:,1+nS_sub);
 ddtemplatedac_ori_wkS__(:,1+nS) = ddtemplatedac_rec_wkS_sub__(:,1+nS_sub);
@@ -986,37 +1075,64 @@ ddtemplatedbb_ori_wkS__(:,1+nS) = ddtemplatedbb_rec_wkS_sub__(:,1+nS_sub);
 ddtemplatedbc_ori_wkS__(:,1+nS) = ddtemplatedbc_rec_wkS_sub__(:,1+nS_sub);
 ddtemplatedcc_ori_wkS__(:,1+nS) = ddtemplatedcc_rec_wkS_sub__(:,1+nS_sub);
 end;%for nS_sub=0:n_S_sub-1;
-end;%if flag_parsimonious==1;
+end;%if flag_overwrite==1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 end;%if flag_dd;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
-dtemplateda_rec_wkS__ = zeros(n_w_sum,n_S);
-dtemplatedb_rec_wkS__ = zeros(n_w_sum,n_S);
-dtemplatedc_rec_wkS__ = zeros(n_w_sum,n_S);
+if (flag_verbose>0); disp(sprintf(' %% Storing first-derivative output as sparse-matrices.')); end;
+dtemplateda_rec_wkS__ = sparse(1+index_row_sparse_,1+index_col_sparse_,dtemplateda_rec_wkS_sub__,n_w_sum,n_S);
+dtemplatedb_rec_wkS__ = sparse(1+index_row_sparse_,1+index_col_sparse_,dtemplatedb_rec_wkS_sub__,n_w_sum,n_S);
+dtemplatedc_rec_wkS__ = sparse(1+index_row_sparse_,1+index_col_sparse_,dtemplatedc_rec_wkS_sub__,n_w_sum,n_S);
+%{
+dtemplateda_rec_wkS__ = sparse(zeros(n_w_sum,n_S));
+dtemplatedb_rec_wkS__ = sparse(zeros(n_w_sum,n_S));
+dtemplatedc_rec_wkS__ = sparse(zeros(n_w_sum,n_S));
 for nS_sub=0:n_S_sub-1;
-nS = index_nS_(1+nS_sub);
+nS = index_nS_from_nS_sub_(1+nS_sub);
 dtemplateda_rec_wkS__(:,1+nS) = dtemplateda_rec_wkS_sub__(:,1+nS_sub);
 dtemplatedb_rec_wkS__(:,1+nS) = dtemplatedb_rec_wkS_sub__(:,1+nS_sub);
 dtemplatedc_rec_wkS__(:,1+nS) = dtemplatedc_rec_wkS_sub__(:,1+nS_sub);
 end;%for nS_sub=0:n_S_sub-1;
+%}
 
-if flag_parsimonious==1;
-if (flag_verbose>0); disp(sprintf(' %% overwriting first-derivative.')); end;
+if flag_overwrite==1;
+if (flag_verbose>0); disp(sprintf(' %% Overwriting first-derivative.')); end;
 for nS_sub=0:n_S_sub-1;
-nS = index_nS_(1+nS_sub);
+nS = index_nS_from_nS_sub_(1+nS_sub);
 dtemplateda_ori_wkS__(:,1+nS) = dtemplateda_rec_wkS_sub__(:,1+nS_sub);
 dtemplatedb_ori_wkS__(:,1+nS) = dtemplatedb_rec_wkS_sub__(:,1+nS_sub);
 dtemplatedc_ori_wkS__(:,1+nS) = dtemplatedc_rec_wkS_sub__(:,1+nS_sub);
 end;%for nS_sub=0:n_S_sub-1;
-end;%if flag_parsimonious==1;
+end;%if flag_overwrite==1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 end;%if flag_d;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
-if (flag_verbose>0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;
+if (flag_verbose>0); disp(sprintf(' %% Storing output as sparse-matrix.')); end;
+template_rec_wkS_sub__ = template_rot_wkS__(:,1+index_nS_from_nS_sub_);
+template_rec_wkS__ = sparse(1+index_row_sparse_,1+index_col_sparse_,template_rec_wkS_sub__,n_w_sum,n_S);
+%{
+template_rec_wkS__ = sparse(zeros(n_w_sum,n_S));
+for nS_sub=0:n_S_sub-1;
+nS = index_nS_from_nS_sub_(1+nS_sub);
+template_rec_wkS__(:,1+nS) = template_rec_wkS_sub__(:,1+nS_sub);
+end;%for nS_sub=0:n_S_sub-1;
+%}
 
+if flag_overwrite==1;
+if (flag_verbose>0); disp(sprintf(' %% Overwriting template.')); end;
+for nS_sub=0:n_S_sub-1;
+nS = index_nS_from_nS_sub_(1+nS_sub);
+template_ori_wkS__(:,1+nS) = template_rec_wkS_sub__(:,1+nS_sub);
+end;%for nS_sub=0:n_S_sub-1;
+end;%if flag_overwrite==1;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+end;%if flag_1;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+
+if (flag_verbose> 0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;
 
