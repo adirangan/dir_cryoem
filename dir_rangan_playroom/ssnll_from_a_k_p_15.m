@@ -203,7 +203,7 @@ str_thisfunction = 'ssnll_from_a_k_p_15';
 %%%%%%%%;
 if (nargin<1);
 %%%%%%%%;
-test_ssnll_from_a_k_p_15;
+test_slice_vs_volume_integral_from_a_k_p_7.m;
 %%%%%%%%;
 disp(sprintf(' %% returning')); return;
 %%%%%%%%;
