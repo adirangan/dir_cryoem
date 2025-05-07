@@ -31,7 +31,7 @@ ampmh_X_dwSM____8( ...
 % X_dwSM____(1+ndelta,1+nw,1+nS,1+nM) = dot( rotate(S,+gamma_z) , transf(M,+delta_) );
 %                                    = sum( conj(rotate(S,+gamma_z)) .* transf(M,+delta_) .* weight_2d_ );
 % Note that we project X_dwSM____ onto its real component. ;
-% The output Y_dwSM____ is analogous to X_dwSM____, with no normalization. ;
+% The output Y_dwSM____ is the l2-distance corresponding to X_dwSM____, with no normalization. ;
 %%%%%%%%;
 % Note that ampmh_X_dwSM____8 assumes an isotropic CTF. ;
 % I.e., the inputs CTF_UX_S_k_q_wnS__ and CTF_UX_S_l2_ ;

@@ -312,6 +312,7 @@ end;%if flag_check;
 end;%if flag_recalc_qref_from_data | flag_recalc_dtau_qref_from_data | flag_recalc_dtau_dtau_qref_from_data;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
+if ~isfield(KAPPA,'qref_from_data_qwM__'); KAPPA.qref_from_data_qwM__ = []; end;
 %%%%%%%%;
 if flag_recalc_qref_from_data;
 d2_full_wMq__ = sum(bsxfun(@minus,reshape(qref_k_c_qc__,[1,n_q,3]),reshape(+data_k_c_wMc__,[n_w*n_M,1,3])).^2,3);
@@ -326,6 +327,7 @@ end%if flag_recalc_qref_from_data;
 %%%%%%%%;
 qref_from_data_qwM__ = KAPPA.qref_from_data_qwM__;
 
+if ~isfield(KAPPA,'dtau_qref_from_data_qwM__'); KAPPA.dtau_qref_from_data_qwM__ = []; end;
 %%%%%%%%;
 if flag_recalc_dtau_qref_from_data;
 chebfun_kernel_ = chebfun_kernel_norm_;
@@ -354,6 +356,7 @@ end;%if flag_recalc_dtau_qref_from_data;
 %%%%%%%%;
 dtau_qref_from_data_qwM__ = KAPPA.dtau_qref_from_data_qwM__;
 
+if ~isfield(KAPPA,'dtau_dtau_qref_from_data_qwM__'); KAPPA.dtau_dtau_qref_from_data_qwM__ = []; end;
 %%%%%%%%;
 if flag_recalc_dtau_dtau_qref_from_data;
 dtau_dtau_data_k_c_wM33c_____ = cat(5,dtau_dtau_data_k_c_0_wM33____,dtau_dtau_data_k_c_1_wM33____,dtau_dtau_data_k_c_2_wM33____); %<-- 33c is abc,abc,012 ;
