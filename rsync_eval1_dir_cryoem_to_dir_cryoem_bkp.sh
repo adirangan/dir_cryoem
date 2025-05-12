@@ -7,6 +7,7 @@ rsync -avum \
       --include="*.make" \
       --include="*.m" \
       --include="*.sh" \
+      --include="*.txt" \
       --include="*.tex" \
       --include="*.pdf" \
       --exclude="*" ;
