@@ -13,18 +13,14 @@ if (strcmp(platform,'OptiPlex')); setup_OptiPlex; string_root = 'home'; end;
 if (strcmp(platform,'eval1')); setup_eval1; string_root = 'home'; end;
 if (strcmp(platform,'rusty')); setup_rusty; string_root = 'mnt/home'; end;
 
-flag_verbose = 1;
-flag_recalc = 0;
-flag_replot = 0;
-flag_center = 1;
-flag_invert = 0;
-k_int = 16;
-k_eq_d_double = 1.0;
-template_k_eq_d_double = 0.5;
-n_w_int = 1.0;
-n_x_c = max(64,2*k_int);
-tolerance_master = 1e-2;
-flag_disp=1; nf=0;
+flag_verbose = 1; %<-- verbosity level. ;
+flag_disp=1; nf=0; %<-- display level. ;
+
+k_int = 16; %<-- highest frequency (2*pi*k_p_r_max), watch out for aliasing! ;
+k_eq_d_double = 1.0; %<-- prefactor for k_eq_d, determines density of sampling in frequency-space. ;
+template_k_eq_d_double = 0.5; %<-- prefactor for template_k_eq_d, determines density of viewing-angles on the sphere. ;
+n_w_int = 1.0; %<-- prefactor for n_w_max, determines the number of distinct angles (i.e., n_gamma_z) used in frequency-space 2d-polar-grid. ;
+n_x_c = max(64,2*k_int); %<-- the number of 'pixels' on a side in the real-space cartesian-grid. ;
 
 dir_base = sprintf('/%s/rangan/dir_cryoem/dir_rangan_playroom',string_root);
 dir_jpg = sprintf('%s/dir_jpg',dir_base);
