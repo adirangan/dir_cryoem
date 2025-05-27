@@ -268,7 +268,7 @@ pm_template_2( ...
 );
 n_S = n_viewing_S;
 template_2_wkS__ = reshape(template_2_wkS___,[n_w_max*n_k_p_r,n_S]);
-tmp_t = toc(tmp_t); disp(sprintf(' %% pm_template_2: %0.2fs',tmp_t));
+tmp_t = toc(tmp_t); disp(sprintf(' %% pm_template_2: time %0.6fs',tmp_t));
 %%%%%%%%;
 tmp_t = tic();
 a_k_Y_lkm___ = [];
@@ -285,7 +285,7 @@ sph_template_3( ...
 ,template_k_eq_d ...
 ,n_w_0in ...
 );
-tmp_t = toc(tmp_t); disp(sprintf(' %% sph_template_3: %0.2fs',tmp_t));
+tmp_t = toc(tmp_t); disp(sprintf(' %% sph_template_3: time %0.6fs',tmp_t));
 disp(sprintf(' %% n_S %d',n_S));
 %%%%%%%%;
 fnorm_disp(flag_verbose,'template_2_wkS__',template_2_wkS__,'template_3_wkS__',template_3_wkS__);
@@ -329,7 +329,7 @@ convert_spharm_to_k_p_4( ...
 ,index_nu_n_k_per_shell_from_nk_p_r_ ...
 ,index_k_per_shell_uka__ ...
 );
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% convert_spharm_to_k_p_4: %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% convert_spharm_to_k_p_4: time %0.6fs',tmp_t)); end;
 %%%%%%%%;
 tmp_t = tic();
 [ ...
@@ -362,7 +362,7 @@ convert_k_p_to_spharm_4( ...
 ,index_nu_n_k_per_shell_from_nk_p_r_ ...
 ,index_k_per_shell_uka__ ...
 );
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% convert_k_p_to_spharm: %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% convert_k_p_to_spharm: time %0.6fs',tmp_t)); end;
 %%%%%%%%;
 fnorm_disp(flag_verbose,'a_k_Y_yk_',a_k_Y_yk_,'a_k_Y_reco_yk_',a_k_Y_reco_yk_);
 %%%%%%%%;
@@ -428,7 +428,7 @@ interpolate_template_5( ...
 ,n_viewing_azimu_b_ ...
 ,viewing_gamma_z_S_sub_ ...
 );
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% interpolate_template S_sub: %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% interpolate_template S_sub: time %0.6fs',tmp_t)); end;
 fnorm_disp(flag_verbose,'template_2_wkS_sub__',template_2_wkS_sub__,'template_4_wkS_sub__',template_4_wkS_sub__);
 fnorm_disp(flag_verbose,'template_3_wkS_sub__',template_3_wkS_sub__,'template_4_wkS_sub__',template_4_wkS_sub__);
 %%%%%%%%;
@@ -607,7 +607,7 @@ sph_template_3( ...
 ,d1W_betazeta_mlma____ ...
 ,d2W_betazeta_mlma____ ...
 );
-tmp_t = toc(tmp_t); disp(sprintf(' %% sph_template_3: %0.2fs',tmp_t));
+tmp_t = toc(tmp_t); disp(sprintf(' %% sph_template_3: time %0.6fs',tmp_t));
 %%%%;
 template_3_mid_x_wkS_sub__ = template_3_mid_x_wkS__(:,1+nS_sub_);
 dtemplate_3da_mid_wkS_sub__ = dtemplate_3da_mid_wkS__(:,1+nS_sub_);
@@ -1430,7 +1430,7 @@ sample_shell_5( ...
 ,viewing_k_eq_d ...
 ,'L' ...
 ) ; %<-- obtain viewing angles. ;
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% sample_shell_5: %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% sample_shell_5: time %0.6fs',tmp_t)); end;
 end;%if isempty(n_viewing_S);
 %%%%;
 if isempty(viewing_weight_S_); viewing_weight_S_ = ones(n_viewing_S,1); end;
@@ -1444,7 +1444,7 @@ for nviewing_polar_a=0:n_viewing_polar_a-1;
 viewing_polar_a = viewing_polar_a_(1+nviewing_polar_a);
 n_viewing_azimu_b_(1+nviewing_polar_a) = numel(efind(abs(viewing_polar_a_S_-viewing_polar_a)<1e-12));
 end;%for nviewing_polar_a=0:n_viewing_polar_a-1;
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% n_viewing_azimu_b_: %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% n_viewing_azimu_b_: time %0.6fs',tmp_t)); end;
 end;%if isempty(n_viewing_polar_a);
 %%%%;
 n_viewing_azimu_b_sum = sum(n_viewing_azimu_b_);
@@ -1483,52 +1483,42 @@ tolerance_w = 0.5*(2*pi)/max(1,n_w_max); %<-- tolerance used for correction. ;
 % For accuracy one might consider increasing the angular-resolution (on each shell) ;
 % without necessarily increasing the radial-resolution (i.e., the distance between shells). ;
 %%%%%%%%;
-tmp_t = tic();
-if n_k_p_r> 1;
-tmp_std = std(diff(n_qk_csum_));
-if (flag_verbose>0); disp(sprintf(' %% std(diff(n_qk_csum_)) %0.6f',tmp_std)); end;
-if tmp_std> 1e-12; disp(sprintf(' %% Warning, std(diff(n_qk_csum_)) %0.6f in %s',tmp_std,str_thisfunction)); end;
-end;%if n_k_p_r> 1;
-if n_k_p_r> 1;
-tmp_std = std(diff(n_polar_a_k_));
-if (flag_verbose>0); disp(sprintf(' %% std(diff(n_polar_a_k_)) %0.6f',tmp_std)); end;
-if tmp_std> 1e-12; disp(sprintf(' %% Warning, std(diff(n_polar_a_k_)) %0.6f in %s',tmp_std,str_thisfunction)); end;
-end;%if n_k_p_r> 1;
-polar_a_single_shell_ = polar_a_ka__{1};
-n_azimu_b_single_shell_ = n_azimu_b_ka__{1};
-tmp_std = std(diff(polar_a_single_shell_));
-if (flag_verbose>0); disp(sprintf(' %% std(diff(polar_a_single_shell_)) %0.6f',tmp_std)); end;
-if tmp_std> 1e-12; disp(sprintf(' %% Warning, std(diff(polar_a_single_shell_)) %0.6f in %s',tmp_std,str_thisfunction)); end;
-n_polar_a_single_shell = numel(polar_a_single_shell_);
-polar_a_single_shell_lim_ = [polar_a_single_shell_(1),polar_a_single_shell_(end)];
-tab_error=0; tab_check=0;
-for npolar_a_single_shell=0:n_polar_a_single_shell-1;
-n_azimu_b_single_shell = n_azimu_b_single_shell_(1+npolar_a_single_shell);
-if npolar_a_single_shell==0; if n_azimu_b_single_shell~=1; disp(sprintf(' %% Warning, npolar_a_single_shell %d n_azimu_b_single_shell %d',npolar_a_single_shell,n_azimu_b_single_shell)); tab_error = tab_error+1; else; tab_check = tab_check+1; end; end;
-if npolar_a_single_shell==n_polar_a_single_shell-1; if n_azimu_b_single_shell~=1; disp(sprintf(' %% Warning, npolar_a_single_shell %d n_azimu_b_single_shell %d',npolar_a_single_shell,n_azimu_b_single_shell)); tab_error = tab_error+1; else; tab_check = tab_check+1; end; end;
-if npolar_a_single_shell> 0 & npolar_a_single_shell< n_polar_a_single_shell-1; if mod(n_azimu_b_single_shell,2)~=0; disp(sprintf(' %% Warning, npolar_a_single_shell %d n_azimu_b_single_shell %d',npolar_a_single_shell,n_azimu_b_single_shell)); tab_error = tab_error+1; else; tab_check = tab_check+1; end; end;
-end;%for npolar_a_single_shell=0:n_polar_a_single_shell-1;
-assert(tab_check==n_polar_a_single_shell);
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% checking consistency: %0.6fs',tmp_t)); end;
-%%%%%%%%;
-
-%%%%%%%%;
-n_q_single_shell = n_qk/max(1,n_k_p_r); n_3 = 3;
-nk_p_r = n_k_p_r-1;
-k_p_r = k_p_r_(1+nk_p_r);
-weight_3d_k_p_r = weight_3d_k_p_r_(1+nk_p_r);
-tmp_index_ = n_qk_csum_(1+nk_p_r)+[0:n_q_single_shell-1];
-k_c_0_single_shell_ = k_c_0_qk_(1+tmp_index_)/max(1e-12,k_p_r);
-k_c_1_single_shell_ = k_c_1_qk_(1+tmp_index_)/max(1e-12,k_p_r);
-k_c_2_single_shell_ = k_c_2_qk_(1+tmp_index_)/max(1e-12,k_p_r);
-k_p_azimu_b_single_shell_ = k_p_azimu_b_qk_(1+tmp_index_);
-k_p_polar_a_single_shell_ = k_p_polar_a_qk_(1+tmp_index_);
-weight_3d_k_single_shell_ = weight_3d_k_p_qk_(1+tmp_index_); %<-- sum(weight_3d_k_single_shell_) = 4*pi*weight_3d_k_p_r;
-if (flag_verbose>0); disp(sprintf(' %% sum(weight_3d_k_single_shell_) %0.16f 4*pi*weight_3d_k_p_r %0.16f',sum(weight_3d_k_single_shell_),4*pi*weight_3d_k_p_r)); end;
-weight_shell_qk_single_shell_ = weight_shell_qk_(1+tmp_index_); %<-- sum(weight_shell_qk_single_shell_) = 4*pi*k_p_r^2. ;
-if (flag_verbose>0); disp(sprintf(' %% sum(weight_shell_qk_single_shell_) %0.16f 4*pi*k_p_r^2 %0.16f',sum(weight_shell_qk_single_shell_),4*pi*k_p_r^2)); end;
-weight_shell_qk_unit_shell_ = weight_shell_qk_single_shell_/max(1e-12,k_p_r)^2; %<-- sum(weight_shell_qk_unit_shell_) = 4*pi. ;
-%%%%%%%%;
+[ ...
+ parameter ...
+,polar_a_single_shell_ ...
+,n_azimu_b_single_shell_ ...
+,n_polar_a_single_shell ...
+,polar_a_single_shell_lim_ ...
+,n_q_single_shell ...
+,k_c_0_single_shell_ ...
+,k_c_1_single_shell_ ...
+,k_c_2_single_shell_ ...
+,k_p_azimu_b_single_shell_ ...
+,k_p_polar_a_single_shell_ ...
+,weight_3d_k_single_shell_ ...
+,weight_shell_qk_single_shell_ ...
+,weight_shell_qk_unit_shell_ ...
+] = ...
+interpolate_template_consistency_check_0( ...
+ parameter ...
+,n_qk ...
+,n_qk_csum_ ...
+,k_p_r_qk_ ...
+,k_p_azimu_b_qk_ ...
+,k_p_polar_a_qk_ ...
+,weight_3d_k_p_qk_ ...
+,weight_shell_qk_ ...
+,n_k_p_r ...
+,k_p_r_ ...
+,[] ...
+,weight_3d_k_p_r_ ...
+,k_c_0_qk_ ...
+,k_c_1_qk_ ...
+,k_c_2_qk_ ...
+,n_polar_a_k_ ...
+,polar_a_ka__ ...
+,n_azimu_b_ka__ ...
+);
 
 %%%%%%%%;
 % Now generate great-circles for the templates. ;
@@ -1605,7 +1595,7 @@ cg_rhs_2( ...
 ,viewing_gamma_z_S_ ...
 );
 end;%if  flag_1 &  flag_d &  flag_dd ;
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% cg_rhs_2: %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% cg_rhs_2: time %0.6fs',tmp_t)); end;
 %%%%%%%%;
 tmp_t = tic();
 n_wS = n_w_max*n_S; n_3 = 3;
@@ -1646,8 +1636,8 @@ index_attend_c_ = efind( (abs(periodize(viewing_gamma_z_wS_,-pi/2,pi/2))<=tolera
 index_attend_ = unionall({index_attend_0_,index_attend_a_,index_attend_b_,index_attend_c_});
 n_attend = numel(index_attend_);
 if (flag_verbose>0); disp(sprintf(' %% n_attend %d',n_attend)); end;
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% reshaping + n_attend: %0.6fs',tmp_t)); end;
 end;%if flag_attend==1;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% reshaping + n_attend: time %0.6fs',tmp_t)); end;
 
 %%%%%%%%;
 % Now generate the interpolation operator. ;
@@ -1668,7 +1658,7 @@ shell_k_p_scatter_from_adaptive_interpolate_n_9( ...
 ,k_p_polar_a_wS_ ...
 ,k_p_azimu_b_wS_ ...
 );
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% shell_k_p_scatter_from_adaptive_interpolate_n_9 (flag_1): %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% shell_k_p_scatter_from_adaptive_interpolate_n_9 (flag_1): time %0.6fs',tmp_t)); end;
 end;%if isempty(wS_from_single_shell_sba__);
 end;%if  flag_1 & ~flag_d & ~flag_dd
 if  flag_1 &  flag_d & ~flag_dd
@@ -1694,7 +1684,7 @@ shell_k_p_scatter_from_adaptive_interpolate_n_9( ...
 ,k_p_polar_a_wS_ ...
 ,k_p_azimu_b_wS_ ...
 );
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% shell_k_p_scatter_from_adaptive_interpolate_n_9 (flag_d): %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% shell_k_p_scatter_from_adaptive_interpolate_n_9 (flag_d): time %0.6fs',tmp_t)); end;
 end;%if;
 end;%if  flag_1 &  flag_d & ~flag_dd
 if  flag_1 &  flag_d &  flag_dd
@@ -1726,7 +1716,7 @@ shell_k_p_scatter_from_adaptive_interpolate_n_9( ...
 ,k_p_polar_a_wS_ ...
 ,k_p_azimu_b_wS_ ...
 );
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% shell_k_p_scatter_from_adaptive_interpolate_n_9 (flag_dd): %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% shell_k_p_scatter_from_adaptive_interpolate_n_9 (flag_dd): time %0.6fs',tmp_t)); end;
 end;%if;
 end;%if  flag_1 &  flag_d &  flag_dd
 %%%%%%%%;
@@ -1776,7 +1766,7 @@ ddSdaa_k_p_wS_ = ddwSdaa_from_single_shell_sba__*a_k_p_single_shell_;
 ddSdab_k_p_wS_ = ddwSdab_from_single_shell_sba__*a_k_p_single_shell_;
 ddSdbb_k_p_wS_ = ddwSdbb_from_single_shell_sba__*a_k_p_single_shell_;
 end;%if flag_dd;
-tmp_t_1 = toc(tmp_t_1); if (flag_verbose>0); disp(sprintf(' %% extract ddSdxx_k_p_wS_: %0.6fs',tmp_t_1)); end;
+tmp_t_1 = toc(tmp_t_1); if (flag_verbose>0); disp(sprintf(' %% extract ddSdxx_k_p_wS_: time %0.6fs',tmp_t_1)); end;
 %%%%%%%%;
 S_k_p_wSk__(:,1+nk_p_r) = S_k_p_wS_;
 if flag_d;
@@ -1793,7 +1783,7 @@ dSdc_k_p_wSk__(:,1+nk_p_r) = ...
 + bsxfun(@times,dSda_k_p_wS_,dtau_k_p_polar_a_wS3__(:,1+tab_c)) ...
 + bsxfun(@times,dSdb_k_p_wS_,dtau_k_p_azimu_b_wS3__(:,1+tab_c)) ...
 ;
-tmp_t_1 = toc(tmp_t_1); if (flag_verbose>0); disp(sprintf(' %% calculate dSdx_k_p_wSk__: %0.6fs',tmp_t_1)); end;
+tmp_t_1 = toc(tmp_t_1); if (flag_verbose>0); disp(sprintf(' %% calculate dSdx_k_p_wSk__: time %0.6fs',tmp_t_1)); end;
 end;%if flag_d;
 if flag_dd;
 tmp_t_1 = tic();
@@ -1845,7 +1835,7 @@ ddSdcc_k_p_wSk__(:,1+nk_p_r) = ...
 + 1.0*bsxfun(@times,ddSdab_k_p_wS_,dtau_k_p_azimu_b_wS3__(:,1+tab_c).*dtau_k_p_polar_a_wS3__(:,1+tab_c)) ...
 + 1.0*bsxfun(@times,ddSdbb_k_p_wS_,dtau_k_p_azimu_b_wS3__(:,1+tab_c).*dtau_k_p_azimu_b_wS3__(:,1+tab_c)) ...
 ;
-tmp_t_1 = toc(tmp_t_1); if (flag_verbose>0); disp(sprintf(' %% calculate ddSdxx_k_p_wSk__: %0.6fs',tmp_t_1)); end;
+tmp_t_1 = toc(tmp_t_1); if (flag_verbose>0); disp(sprintf(' %% calculate ddSdxx_k_p_wSk__: time %0.6fs',tmp_t_1)); end;
 end;%if flag_dd;
 %%%%%%%%%%%%%%%%;
 if ~flag_attend | n_attend==0;
@@ -1871,7 +1861,7 @@ ddSdaa_k_p_wS_attend_ = ddSdaa_k_p_wS_(1+index_attend_);
 ddSdab_k_p_wS_attend_ = ddSdab_k_p_wS_(1+index_attend_);
 ddSdbb_k_p_wS_attend_ = ddSdbb_k_p_wS_(1+index_attend_);
 end;%if flag_dd;
-tmp_t_2 = toc(tmp_t_2); if (flag_verbose>0); disp(sprintf(' %% extract ddSdxx_k_p_wS_attend_: %0.6fs',tmp_t_2)); end;
+tmp_t_2 = toc(tmp_t_2); if (flag_verbose>0); disp(sprintf(' %% extract ddSdxx_k_p_wS_attend_: time %0.6fs',tmp_t_2)); end;
 %%%%%%%%;
 if flag_d;
 tmp_t_2 = tic();
@@ -1881,7 +1871,7 @@ dtau_k_c_0_wS_attend_3__ = dtau_k_c_0_wS3__(1+index_attend_,1:n_3);
 dtau_k_c_1_wS_attend_3__ = dtau_k_c_1_wS3__(1+index_attend_,1:n_3);
 dtau_k_c_2_wS_attend_3__ = dtau_k_c_2_wS3__(1+index_attend_,1:n_3);
 dtau_k_p_r01_wS_attend_3__ = dtau_k_p_r01_wS3__(1+index_attend_,1:n_3);
-tmp_t_2 = toc(tmp_t_2); if (flag_verbose>0); disp(sprintf(' %% extract dtau_k_c_x_wS_attend_3__: %0.6fs',tmp_t_2)); end;
+tmp_t_2 = toc(tmp_t_2); if (flag_verbose>0); disp(sprintf(' %% extract dtau_k_c_x_wS_attend_3__: time %0.6fs',tmp_t_2)); end;
 end;%if flag_d;
 if flag_dd;
 tmp_t_2 = tic();
@@ -1891,7 +1881,7 @@ dtau_dtau_k_c_0_wS_attend_33___ = dtau_dtau_k_c_0_wS33___(1+index_attend_,1:n_3,
 dtau_dtau_k_c_1_wS_attend_33___ = dtau_dtau_k_c_1_wS33___(1+index_attend_,1:n_3,1:n_3);
 dtau_dtau_k_c_2_wS_attend_33___ = dtau_dtau_k_c_2_wS33___(1+index_attend_,1:n_3,1:n_3);
 dtau_dtau_k_p_r01_wS_attend_33___ = dtau_dtau_k_p_r01_wS33___(1+index_attend_,1:n_3,1:n_3);
-tmp_t_2 = toc(tmp_t_2); if (flag_verbose>0); disp(sprintf(' %% extract dtau_dtau_k_c_x_wS_attend_33___: %0.6fs',tmp_t_2)); end;
+tmp_t_2 = toc(tmp_t_2); if (flag_verbose>0); disp(sprintf(' %% extract dtau_dtau_k_c_x_wS_attend_33___: time %0.6fs',tmp_t_2)); end;
 end;%if flag_dd;
 %%%%%%%%;
 % Note, the pseudo-inverse calculations in cartesian_from_shell_10 need only be calculated once per shell ;
@@ -1918,7 +1908,7 @@ cartesian_from_shell_10( ...
 ,dSda_k_p_wS_attend_ ...
 ,dSdb_k_p_wS_attend_ ...
 );
-tmp_t_2 = toc(tmp_t_2); if (flag_verbose>0); disp(sprintf(' %% calling cartesian_from_shell_10 (flag_d): %0.6fs',tmp_t_2)); end;
+tmp_t_2 = toc(tmp_t_2); if (flag_verbose>0); disp(sprintf(' %% calling cartesian_from_shell_10 (flag_d): time %0.6fs',tmp_t_2)); end;
 end;%if flag_d;
 %%%%;
 if flag_dd;
@@ -1953,7 +1943,7 @@ cartesian_from_shell_10( ...
 ddSd10_k_p_wS_attend_ = ddSd01_k_p_wS_attend_ ;
 ddSd20_k_p_wS_attend_ = ddSd02_k_p_wS_attend_ ;
 ddSd21_k_p_wS_attend_ = ddSd12_k_p_wS_attend_ ;
-tmp_t_2 = toc(tmp_t_2); if (flag_verbose>0); disp(sprintf(' %% calling cartesian_from_shell_10 (flag_dd): %0.6fs',tmp_t_2)); end;
+tmp_t_2 = toc(tmp_t_2); if (flag_verbose>0); disp(sprintf(' %% calling cartesian_from_shell_10 (flag_dd): time %0.6fs',tmp_t_2)); end;
 end;%if flag_dd;
 %%%%%%%%;
 T_k_p_wS_attend_ = S_k_p_wS_attend_;
@@ -1974,7 +1964,7 @@ dTdc_k_p_wS_attend_ = ...
 + bsxfun(@times,dSd1_k_p_wS_attend_,dtau_k_c_1_wS_attend_3__(:,1+tab_c)) ...
 + bsxfun(@times,dSd2_k_p_wS_attend_,dtau_k_c_2_wS_attend_3__(:,1+tab_c)) ...
 ;
-tmp_t_2 = toc(tmp_t_2); if (flag_verbose>0); disp(sprintf(' %% calculate dTdx_k_p_wS_attend_ (flag_d): %0.6fs',tmp_t_2)); end;
+tmp_t_2 = toc(tmp_t_2); if (flag_verbose>0); disp(sprintf(' %% calculate dTdx_k_p_wS_attend_ (flag_d): time %0.6fs',tmp_t_2)); end;
 end;%if flag_d;
 if flag_dd;
 tmp_t_2 = tic();
@@ -2062,7 +2052,7 @@ ddTdcc_k_p_wS_attend_ = ...
 + 1.0*bsxfun(@times,ddSd21_k_p_wS_attend_,dtau_k_c_2_wS_attend_3__(:,1+tab_c).*dtau_k_c_1_wS_attend_3__(:,1+tab_c)) ...
 + 1.0*bsxfun(@times,ddSd22_k_p_wS_attend_,dtau_k_c_2_wS_attend_3__(:,1+tab_c).*dtau_k_c_2_wS_attend_3__(:,1+tab_c)) ...
 ;
-tmp_t_2 = toc(tmp_t_2); if (flag_verbose>0); disp(sprintf(' %% calculate ddTdxx_k_p_wS_attend_ (flag_dd): %0.6fs',tmp_t_2)); end;
+tmp_t_2 = toc(tmp_t_2); if (flag_verbose>0); disp(sprintf(' %% calculate ddTdxx_k_p_wS_attend_ (flag_dd): time %0.6fs',tmp_t_2)); end;
 end;%if flag_dd;
 %%%%%%%%;
 tmp_t_2 = tic();
@@ -2080,14 +2070,14 @@ ddSdbb_k_p_wSk__(1+index_attend_,1+nk_p_r) = ddTdbb_k_p_wS_attend_ ;
 ddSdbc_k_p_wSk__(1+index_attend_,1+nk_p_r) = ddTdbc_k_p_wS_attend_ ;
 ddSdcc_k_p_wSk__(1+index_attend_,1+nk_p_r) = ddTdcc_k_p_wS_attend_ ;
 end;%if flag_dd;
-tmp_t_2 = toc(tmp_t_2); if (flag_verbose>0); disp(sprintf(' %% copying ddSdxx_k_p_wSk__: %0.6fs',tmp_t_2)); end;
+tmp_t_2 = toc(tmp_t_2); if (flag_verbose>0); disp(sprintf(' %% copying ddSdxx_k_p_wSk__: time %0.6fs',tmp_t_2)); end;
 %%%%%%%%;
-tmp_t_1 = toc(tmp_t_1); if (flag_verbose>0); disp(sprintf(' %% finish lsq-correction: %0.6fs',tmp_t_1)); end;
+tmp_t_1 = toc(tmp_t_1); if (flag_verbose>0); disp(sprintf(' %% finish lsq-correction: time %0.6fs',tmp_t_1)); end;
 end;%if flag_attend & n_attend> 0;
 %%%%%%%%%%%%%%%%;
 end;%for nk_p_r=0:n_k_p_r-1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
-tmp_t_0 = toc(tmp_t_0); if (flag_verbose>0); disp(sprintf(' %% applying interpolation operator: %0.6fs',tmp_t_0)); end;
+tmp_t_0 = toc(tmp_t_0); if (flag_verbose>0); disp(sprintf(' %% applying interpolation operator: time %0.6fs',tmp_t_0)); end;
 
 %%%%%%%%;
 if (flag_verbose>0); disp(sprintf(' %% permuting template values.')); end;
@@ -2108,7 +2098,7 @@ ddSdbb_k_p_wkS__ = reshape(permute(reshape(ddSdbb_k_p_wSk__,[n_w_max,n_S,n_k_p_r
 ddSdbc_k_p_wkS__ = reshape(permute(reshape(ddSdbc_k_p_wSk__,[n_w_max,n_S,n_k_p_r]),[1,3,2]),[n_w_sum,n_S]);
 ddSdcc_k_p_wkS__ = reshape(permute(reshape(ddSdcc_k_p_wSk__,[n_w_max,n_S,n_k_p_r]),[1,3,2]),[n_w_sum,n_S]);
 end;%if flag_dd;
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% permuting template values: %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% permuting template values: time %0.6fs',tmp_t)); end;
 %%%%%%%%;
 
 %%%%%%%%;
@@ -2129,7 +2119,7 @@ ddtemplatedbb_wkS__ = ddSdbb_k_p_wkS__;
 ddtemplatedbc_wkS__ = ddSdbc_k_p_wkS__;
 ddtemplatedcc_wkS__ = ddSdcc_k_p_wkS__;
 end;%if flag_dd;
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% copying to output: %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% copying to output: time %0.6fs',tmp_t)); end;
 %%%%%%%%;
 
 %%%%%%%%;

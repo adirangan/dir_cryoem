@@ -26,7 +26,7 @@ str_thisfunction = 'scatter_from_tensor_helper_n_9';
 
 if nargin<1;
 disp(sprintf(' %% testing %s',str_thisfunction));
-disp(sprintf(' %% see interval_k_c_scatter_from_tensor_interpolate_n_8'));
+disp(sprintf(' %% see interval_k_c_scatter_from_tensor_interpolate_n_9'));
 disp('returning'); return;
 end;%if nargin<1;
 
@@ -64,7 +64,7 @@ weight_ddnumerator_0_xs__=[];
 
 n_part_order = round((n_order-1)/2);
 %%%%;
-k_s_0_rescale_ = (k_s_0_ - k_c_0_start)/dk_c_0; %<-- assume dk_c_0 is not close to 0. ;
+k_s_0_rescale_ = (k_s_0_ - k_c_0_start)/dk_c_0; %<-- unprotected (signed) divide, assume dk_c_0 is not close to 0. ;
 k_s_0_rescale_start_ = floor(k_s_0_rescale_) - n_part_order;
 k_s_0_rescale_shift_ = k_s_0_rescale_ - floor(k_s_0_rescale_) - 0.5 ;
 %%%%;

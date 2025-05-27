@@ -10,6 +10,7 @@ rsync \
     avr209@access1.cims.nyu.edu:/data/rangan/dir_cryoem/dir_fig_xfig \
     /home/rangan/dir_cryoem/ \
     --include "/*" \
+    --include "*.py" \
     --include "*.m" \
     --include "*.c" \
     --include "*.h" \
@@ -27,6 +28,7 @@ rsync \
     avr209@access1.cims.nyu.edu:/data/rangan/dir_cryoem/dir_rangan_playroom/dir_eig_ddssnll_lanczos_local \
     /home/rangan/dir_cryoem/dir_rangan_playroom/ \
     --include "/*" \
+    --include "*.py" \
     --include "*.m" \
     --include "*.c" \
     --include "*.h" \

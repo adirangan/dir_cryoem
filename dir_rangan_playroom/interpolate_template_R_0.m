@@ -427,6 +427,7 @@ end;%if flag_check | isempty(a_R_k_p_qk_);
 
 %%%%%%%%;
 % Construct templates under rotated frame. ;
+% see Manual_Derivative_SO3_0.pdf. ;
 %%%%%%%%;
 if (flag_verbose>0); disp(sprintf(' %% Constructing rotated viewing-angles.')); end;
 tmp_t = tic();
@@ -826,6 +827,7 @@ fnorm_disp(flag_verbose,'k_c_wS_sub_3__',k_c_wS_sub_3__,'R_k_c_wS_sub_3__*transp
 
 %%%%%%%%;
 % Now recalculate the first-derivatives. ;
+% see Manual_Derivative_SO3_0.pdf. ;
 %%%%%%%%;
 if (flag_verbose>0); disp(sprintf(' %% Recalculating the first-derivatives')); end;
 tmp_t = tic();
@@ -918,6 +920,7 @@ if flag_dd;
 
 %%%%%%%%;
 % Now recalculate second-derivatives. ;
+% see Manual_Derivative_SO3_0.pdf. ;
 %%%%%%%%;
 if (flag_verbose>0); disp(sprintf(' %% Recalculating second-derivatives.')); end;
 if (flag_verbose>0); disp(sprintf(' %% Note: compare R_use__*LHS_rot_012012__*transpose(R_use__) to LHS_ori_012012__.')); end;

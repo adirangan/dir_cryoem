@@ -1534,7 +1534,8 @@ if (flag_verbose>0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
-function disp_error(flag_verbose,str_0_,d_0_,str_1_,d_1_);
+function ...
+disp_error(flag_verbose,str_0_,d_0_,str_1_,d_1_);
 if (flag_verbose>0);
 f_numerator = fnorm(d_0_-d_1_);
 f_denomator = min(fnorm(d_0_),fnorm(d_1_));
