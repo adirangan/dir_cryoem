@@ -55,13 +55,20 @@ if (flag_disp>0);
 figure(1+nf);nf=nf+1;clf;figbig;
 markersize_use = 12;
 fontsize_use = 16;
-subplot(1,1,1);
+subplot(1,2,1);
+plot(x_c_0___(:,:,1+0),x_c_1___(:,:,1+0),'k.','MarkerSize',markersize_use);
+xlabel('x_c_0','Interpreter','none');
+ylabel('x_c_1','Interpreter','none');
+axis equal; axisnotick;
+title('2d real-space cartesian-grid');
+set(gca,'FontSize',fontsize_use);
+subplot(1,2,2);
 plot3(x_c_0___(:),x_c_1___(:),x_c_2___(:),'k.','MarkerSize',markersize_use);
 xlabel('x_c_0','Interpreter','none');
 ylabel('x_c_1','Interpreter','none');
 zlabel('x_c_2','Interpreter','none');
 axis equal; axis vis3d; axisnotick3d;
-title('real-space cartesian-grid');
+title('3d real-space cartesian-grid');
 set(gca,'FontSize',fontsize_use);
 fname_fig_pre = sprintf('%s/test_transforms_x_c_x___FIGA',dir_jpg);
 fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
@@ -225,8 +232,9 @@ tmp_parameter = struct('type','parameter');
 tmp_parameter.c_use__ = colormap_80s();
 a_k_c_form_lim_ = prctile(mean(reshape(real(a_k_c_form___),[n_k_c,n_k_c,n_k_c]),3),[ 5,95],'all');
 tmp_parameter.vlim_ = 1.0*a_k_c_form_lim_;
+tmp_parameter.percent_threshold_ = [ 1,99];
 isosurface_f_x_u_1(tmp_parameter,a_k_c_form___);
-xlabel('x0'); ylabel('x1'); zlabel('x2'); axisnotick3d;
+xlabel('k0'); ylabel('k1'); zlabel('k2'); axisnotick3d;
 title('real(a_k_c_form___)','Interpreter','none');
 set(gca,'FontSize',fontsize_use);
 %%%%%%%%;
@@ -453,10 +461,12 @@ get_weight_2d_2( ...
 ,n_w_0in_ ...
 );
 n_w_sum = sum(n_w_); n_w_csum_ = cumsum([0;n_w_]);
+n_gamma_z = n_w_max;
+gamma_z_ = transpose(linspace(0,2*pi,n_gamma_z+1)); gamma_z_ = gamma_z_(1:n_gamma_z);
 %%%%%%%%;
-tmp_S_delta_x_c_ = [cos(pi/4);sin(pi/4)]/max(1e-12,k_p_r_max);
+tmp_S_delta_x_c_ = 0.85*[cos(pi/4);sin(pi/4)]/max(1e-12,k_p_r_max);
 tmp_S_phi = +1*pi/5;
-tmp_T_delta_x_c_ = [cos(-pi/3);sin(-pi/3)]/max(1e-12,k_p_r_max);
+tmp_T_delta_x_c_ = 1.35*[cos(-pi/3);sin(-pi/3)]/max(1e-12,k_p_r_max);
 tmp_T_phi = -3*pi/7;
 tmp_S_k_p_wk_ = exp(+2*pi*i*(k_c_0_wk_*tmp_S_delta_x_c_(1+0) + k_c_1_wk_*tmp_S_delta_x_c_(1+1)));
 tmp_plane_S_k_p_wk_ = 2*k_p_r_wk_.*cos(k_p_w_wk_ - tmp_S_phi);
@@ -704,7 +714,7 @@ a_k_Y_l2_quad = sum(conj(a_k_Y_form_yk__).*a_k_Y_form_yk__*reshape(weight_3d_k_p
 disp(sprintf(' %% a_k_Y_l2_quad %+0.6f a_k_p_l2_form %+0.6f',a_k_Y_l2_quad,a_k_p_l2_form));
 
 %%%%%%%%;
-% define rotations in 3d. ;
+% define rotations in 2d and 3d. ;
 %%%%%%%%;
 R2 = @(gamma_z) ...
 [ +cos(gamma_z) -sin(gamma_z) ; ...
@@ -748,7 +758,35 @@ n_S = n_viewing_S;
 S_k_p_wkS__ = reshape(S_k_p_wkS__,[n_w_max*n_k_p_r,n_S]);
 S_k_p_l2_quad_S_ = reshape(sum(bsxfun(@times,conj(S_k_p_wkS__).*S_k_p_wkS__,reshape(weight_2d_wk_,[n_w_sum,1])),1),[n_S,1])*(2*pi)^2;
 %%%%%%%%;
-% Now step through and reconstitute the templates. ;
+
+%%%%%%%%;
+% The 3d-frequency-space locations associated with a particular template can be calculated as follows: ;
+% (see get_template_1.m);
+%%%%%%%%;
+nS = max(0,min(n_S-1,floor(0.2*n_S)));
+tmp_viewing_azimu_b = viewing_azimu_b_S_(1+nS);
+tmp_viewing_polar_a = viewing_polar_a_S_(1+nS);
+tmp_viewing_gamma_z = 0.0;
+tmp_cc_ = cos(k_p_w_wk_); tmp_sc_ = sin(k_p_w_wk_);
+tmp_cb = cos(tmp_viewing_azimu_b); tmp_sb = sin(tmp_viewing_azimu_b);
+tmp_ca = cos(tmp_viewing_polar_a); tmp_sa = sin(tmp_viewing_polar_a);
+tmp_k_c_0_wk_ = (+tmp_cb*tmp_ca*tmp_cc_ - tmp_sb*tmp_sc_).*k_p_r_wk_;
+tmp_k_c_1_wk_ = (+tmp_sb*tmp_ca*tmp_cc_ + tmp_cb*tmp_sc_).*k_p_r_wk_;
+tmp_k_c_2_wk_ = (-tmp_sa*tmp_cc_                        ).*k_p_r_wk_;
+tmp_0_k_c_wk3__ = cat(2,tmp_k_c_0_wk_,tmp_k_c_1_wk_,tmp_k_c_2_wk_);
+%%%%%%%%;
+% which can also be calculated via: ;
+% (see imagesc_S_k_p_3d_2.m);
+%%%%%%%%;
+k_c_wk2__ = cat(2,cos(k_p_w_wk_).*k_p_r_wk_,sin(k_p_w_wk_).*k_p_r_wk_);
+k_c_wk3__ = cat(2,k_c_wk2__,zeros(n_w_sum,1));
+tmp_1_k_c_wk3__ = k_c_wk3__*transpose(Ry(tmp_viewing_polar_a))*transpose(Rz(tmp_viewing_azimu_b));
+%%%%%%%%;
+fnorm_disp(flag_verbose,'tmp_0_k_c_wk3__',tmp_0_k_c_wk3__,'tmp_1_k_c_wk3__',tmp_1_k_c_wk3__,' %%<-- should be zero');
+%%%%%%%%;
+
+%%%%%%%%;
+% Now step through and reconstitute the templates themselves. ;
 %%%%%%%%;
 T_k_p_l2_quad_S_ = zeros(n_S,1);
 T_k_p_l2_form_S_ = zeros(n_S,1);
@@ -793,7 +831,7 @@ fnorm_disp(flag_verbose,'T_k_p_l2_form_S_',T_k_p_l2_form_S_,'S_k_p_l2_quad_S_',S
 if (flag_disp>0);
 figure(1+nf);nf=nf+1;clf;figbig;
 fontsize_use = 12;
-p_row = 2; p_col = 4; n_plot = p_row*p_col; np=0;
+p_row = 3; p_col = 4; n_plot = 4; np=0;
 %%%%%%%%;
 subplot(p_row,p_col,1+np);np=np+1;cla;
 tmp_parameter = struct('type','parameter');
@@ -810,6 +848,7 @@ tmp_parameter = struct('type','parameter');
 tmp_parameter.c_use__ = colormap_80s();
 a_k_c_form_lim_ = prctile(mean(reshape(real(a_k_c_form___),[n_k_c,n_k_c,n_k_c]),3),[ 5,95],'all');
 tmp_parameter.vlim_ = 1.0*a_k_c_form_lim_;
+tmp_parameter.percent_threshold_ = [ 1,99];
 isosurface_f_x_u_1(tmp_parameter,a_k_c_form___);
 xlabel('k0'); ylabel('k1'); zlabel('k2'); axisnotick3d;
 title('a_k_c_form___','Interpreter','none');
@@ -830,10 +869,12 @@ Slim_ = max(abs(S_k_p_wk_),[],'all')*[-1,+1];
 subplot(p_row,p_col,1+np);np=np+1;imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(S_k_p_wk_),Slim_,colormap_80s()); axis image; axisnotick; title('real(S_k_p_wk_)','Interpreter','none'); set(gca,'FontSize',fontsize_use);
 subplot(p_row,p_col,1+np);np=np+1;imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,imag(S_k_p_wk_),Slim_,colormap_80s()); axis image; axisnotick; title('imag(S_k_p_wk_)','Interpreter','none'); set(gca,'FontSize',fontsize_use);
 %%%%%%%%;
-np_start = np;
-for np=np_start:n_plot-1;
-subplot(p_row,p_col,1+np);cla;
-nk_p_r = max(0,min(n_k_p_r-1,floor((np-np_start)/max(1,n_plot-np_start)*n_k_p_r)));
+for ntype=0:1;
+if ntype==0; tmp_S_k_p_wk_ = real(S_k_p_wkS__(:,1+nS)); tmp_str = 'real'; end;
+if ntype==1; tmp_S_k_p_wk_ = imag(S_k_p_wkS__(:,1+nS)); tmp_str = 'imag'; end;
+for nplot=0:n_plot-1;
+subplot(p_row,p_col,1+np);np=np+1;cla;
+nk_p_r = max(0,min(n_k_p_r-1,floor((nplot)/max(1,n_plot)*n_k_p_r)));
 k_p_r = k_p_r_(1+nk_p_r);
 n_qk_csum_pre = n_qk_csum_(1+nk_p_r+0);
 n_qk_csum_pos = n_qk_csum_(1+nk_p_r+1);
@@ -842,7 +883,8 @@ a_k_p_sub_ = a_k_p_form_(1+n_qk_csum_pre+[0:qref_n_shell-1]);
 a_k_p_sub_lim_ = prctile(abs(a_k_p_sub_),95)*[-1,+1];
 %%%%;
 hold on;
-imagesc_polar_a_azimu_b_0(qref_polar_a_shell_,qref_azimu_b_shell_,real(a_k_p_sub_),a_k_p_ori_sub_fin_lim_,colormap_80s,0,k_p_r);
+if ntype==0; tmp_a_k_p_sub_ = real(a_k_p_sub_); end; if ntype==1; tmp_a_k_p_sub_ = imag(a_k_p_sub_); end;
+imagesc_polar_a_azimu_b_0(qref_polar_a_shell_,qref_azimu_b_shell_,tmp_a_k_p_sub_,a_k_p_ori_sub_fin_lim_,colormap_80s,0,k_p_r);
 %n_contour = 16;
 tmp_parameter = struct('type','parameter');
 tmp_parameter.n_contour = 0;
@@ -859,25 +901,27 @@ imagesc_S_k_p_3d_2( ...
 ,n_w_ ...
 ,weight_2d_wk_ ...
 ,1 ...
-,real(S_k_p_wkS__(:,1+nS)) ...
+,tmp_S_k_p_wk_ ...
 ,viewing_azimu_b_S_(1+nS) ...
 ,viewing_polar_a_S_(1+nS) ...
 );
 hold off;
 xlabel('k0'); ylabel('k1'); zlabel('k2'); axisnotick3d;
-title(sprintf('nk_p_r %d k_p_r %.2f',nk_p_r,k_p_r),'Interpreter','none');
+title(sprintf('nk_p_r %d k_p_r %.2f %s',nk_p_r,k_p_r,tmp_str),'Interpreter','none');
 set(gca,'FontSize',fontsize_use);
 axis equal;
 drawnow;
-end;%for np=np_start:n_plot-1;
+end;%for nplot=0:n_plot-1;
+end;%for ntype=0:1;
 %%%%%%%%;
+sgtitle(sprintf('azimu_b %+0.2f pi polar_a %+0.2f pi',viewing_azimu_b_S_(1+nS)/pi,viewing_polar_a_S_(1+nS)/pi),'Interpreter','none');
 fname_fig_pre = sprintf('%s/test_transforms_S_k_p_wk_FIGA',dir_jpg);
 fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
 if flag_replot | ~exist(fname_fig_jpg,'file');
 disp(sprintf(' %% writing %s',fname_fig_pre));
 print('-djpeg',fname_fig_jpg);
 end;%if flag_replot | ~exist(fname_fig_jpg,'file');
-close(gcf);
+%close(gcf);
 end;%if (flag_disp>0);
 %%%%%%%%;
 
@@ -1191,7 +1235,7 @@ end;%if flag_replot | ~exist(fname_fig_jpg,'file');
 close(gcf);
 end;%if (flag_disp>0);
 %%%%;
-if (flag_disp>0);
+if (flag_disp>1);
 figure(1+nf);nf=nf+1;clf;figbig;
 p_row = 6; p_col = ceil(n_azimu_b_use/p_row); np=0;
 Slim_ = max(abs(S_k_p_sub_wkb__),[],'all')*[-1,+1];
@@ -1208,7 +1252,7 @@ disp(sprintf(' %% writing %s',fname_fig_pre));
 print('-djpeg',fname_fig_jpg);
 end;%if flag_replot | ~exist(fname_fig_jpg,'file');
 close(gcf);
-end;%if (flag_disp>0);
+end;%if (flag_disp>1);
 %%%%%%%%;
 [ ...
  U_k_p_sub_wkb__ ...
