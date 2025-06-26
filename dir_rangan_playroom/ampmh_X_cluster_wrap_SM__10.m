@@ -6,6 +6,8 @@ function ...
 ,delta_y_SM__ ...
 ,gamma_z_SM__ ...
 ,I_value_SM__ ...
+,CTF_UX_S_l2_SM__ ...
+,UX_M_l2_SM__ ...
 ,CTF_UX_S_l2_Sc__ ...
 ,index_nM_from_ncluster__ ...
 ,n_index_nM_from_ncluster_ ...
@@ -621,6 +623,8 @@ delta_x_SM__ = zeros(n_S,n_M);
 delta_y_SM__ = zeros(n_S,n_M);
 gamma_z_SM__ = zeros(n_S,n_M);
 I_value_SM__ = zeros(n_S,n_M);
+CTF_UX_S_l2_SM__ = zeros(n_S,n_M);
+UX_M_l2_SM__ = zeros(n_S,n_M);
 
 if  isempty(CTF_UX_S_k_q_wnSc___);
 S_k_q_wSk___ = permute(reshape(S_k_q_wkS__,[n_w_max,n_k_p_r,n_S]),[1,3,2]);
@@ -692,6 +696,17 @@ ampmh_X_single_cluster_SM__10( ...
 );
 tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% ampmh_X_single_cluster_SM__10: %0.3fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,'ampmh_X_single_cluster_SM__10',tmp_t);
+%%%%%%%%;
+for tmp_nM=0:tmp_n_M-1;
+nM = index_nM_from_ncluster_(1+tmp_nM);
+for nS=0:n_S-1;
+CTF_UX_S_l2_SM__(1+nS,1+nM) = CTF_UX_S_l2_S_(1+nS);
+tmp_delta_x = delta_x_SM__(1+nS,1+nM);
+tmp_delta_y = delta_y_SM__(1+nS,1+nM);
+tmp_nd = efind( (FTK.delta_x_==tmp_delta_x) & (FTK.delta_y_==tmp_delta_y) );
+UX_M_l2_SM__(1+nS,1+nM) = UX_M_l2_dM__(1+tmp_nd,1+nM);
+end;%for nS=0:n_S-1;
+end;%for tmp_nM=0:tmp_n_M-1;
 %%%%%%%%;
 flag_check=0;
 if (flag_check);
