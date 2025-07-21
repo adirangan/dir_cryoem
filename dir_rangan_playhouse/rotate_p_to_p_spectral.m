@@ -6,7 +6,7 @@ ic=0;
 icstart=0;
 for nr=0:n_r-1         ;
 for nq=0:n_w_(1+nr)-1;
-q = periodize(nq,-n_w_(1+nr)/2,n_w_(1+nr)/2-1);
+q = periodize(nq,-n_w_(1+nr)/2,n_w_(1+nr)/2);
 M_q_(1+ic) = S_q_(1+ic)*exp(-i*q*gamma);
 ic = ic + 1;
 end;%for;
