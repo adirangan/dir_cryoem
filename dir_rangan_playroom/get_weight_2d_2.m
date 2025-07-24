@@ -15,6 +15,7 @@ get_weight_2d_2( ...
 ,k_p_r_max ...
 ,template_k_eq_d ...
 ,n_w_0in_ ...
+,weight_3d_k_p_r_ ...
 );
 
 str_thisfunction = 'get_weight_2d_2';
@@ -97,8 +98,12 @@ if (nargin<1+na); k_p_r_=[]; end; na=na+1;
 if (nargin<1+na); k_p_r_max=[]; end; na=na+1;
 if (nargin<1+na); template_k_eq_d=[]; end; na=na+1;
 if (nargin<1+na); n_w_0in_=[]; end; na=na+1;
+if (nargin<1+na); weight_3d_k_p_r_=[]; end; na=na+1;
 
 if isempty(template_k_eq_d); template_k_eq_d=-1; end;
+if  isempty(weight_3d_k_p_r_); flag_pinv=1; end;
+if ~isempty(weight_3d_k_p_r_); flag_pinv=0; end;
+
 
 n_w_ = zeros(n_k_p_r,1);
 if (template_k_eq_d>0);
@@ -120,6 +125,7 @@ if (verbose); disp(sprintf(' %% n_w_max %d n_w_sum %d',n_w_max,n_w_sum)); end;
 %%%%%%%%;
 if (verbose); disp(sprintf(' %% Set up integration weights for the templates.')); end;
 %%%%%%%%;
+if flag_pinv==1;
 tmp_P_ = zeros(n_k_p_r,n_k_p_r); %<-- polynomials of order 0:n_k_p_r-1 evaluated on k_p_r_/k_p_r_max. ;
 tmp_I_ = zeros(n_k_p_r,1); %<-- integrals of those polynomials on the 2d-disc of radius 1. ;
 for nk_p_r=0:n_k_p_r-1;
@@ -130,6 +136,22 @@ end;%for nk_p_r=0:n_k_p_r-1;
 tmp_W_ = pinv(tmp_P_,1e-6)*tmp_I_;
 if (verbose>1); disp(sprintf(' %% weight error: %0.16f',fnorm(tmp_P_*tmp_W_ - tmp_I_)/fnorm(tmp_I_))); end;
 weight_2d_k_p_r_ = tmp_W_*k_p_r_max^2;
+end;%if flag_pinv==1;
+if flag_pinv==0;
+weight_2d_k_p_r_ = 2*pi*reshape(weight_3d_k_p_r_,[n_k_p_r,1])./k_p_r_;
+if verbose>0;
+tmp_P_ = zeros(n_k_p_r,n_k_p_r); %<-- polynomials of order 0:n_k_p_r-1 evaluated on k_p_r_/k_p_r_max. ;
+tmp_I_ = zeros(n_k_p_r,1); %<-- integrals of those polynomials on the 2d-disc of radius 1. ;
+for nk_p_r=0:n_k_p_r-1;
+tmp_x = @(x) x.^nk_p_r;
+tmp_P_(1+nk_p_r,:) = tmp_x(k_p_r_/k_p_r_max);
+tmp_I_(1+nk_p_r) = 2*pi*1/(nk_p_r+2);
+end;%for nk_p_r=0:n_k_p_r-1;
+tmp_PW_ = tmp_P_*weight_2d_k_p_r_/k_p_r_max^2;
+disp(sprintf(' %% tmp_I_ vs tmp_PW_: %0.16f',fnorm(tmp_I_-tmp_PW_)/max(1e-12,fnorm(tmp_I_))));
+end;%if verbose>0;
+end;%if flag_pinv==0;
+%%%%%%%%;
 weight_2d_wk_ = zeros(n_w_sum,1);
 for nk_p_r=0:n_k_p_r-1;
 tmp_ij_ = n_w_csum_(1+nk_p_r) + (0:n_w_(1+nk_p_r)-1);
