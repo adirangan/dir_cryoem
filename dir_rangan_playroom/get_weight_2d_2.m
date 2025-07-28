@@ -25,7 +25,15 @@ if nargin<1;
 disp(sprintf(' %% testing %s',str_thisfunction));
 %%%%%%%%;
 flag_verbose=0; flag_disp=1; nf=0;
-k_p_r_max = 48/(2*pi); k_eq_d = 1.0/(2*pi); str_T_vs_L = 'L';
+k_p_r_max = 48/(2*pi); 
+n_k_p_r = [];
+k_p_r_ = [];
+template_k_eq_d = [];
+n_w_0in_ = [];
+weight_3d_k_p_r_ = [];
+flag_precalc = 1;
+if flag_precalc;
+k_eq_d = 1.0/(2*pi); str_T_vs_L = 'L';
 [ ...
  n_k_p_r ...
 ,k_p_r_ ...
@@ -37,9 +45,10 @@ get_weight_3d_1( ...
 ,k_eq_d ...
 ,str_T_vs_L ...
 );
-%%%%%%%%;
 template_k_eq_d = -1;
 n_w_max = 98; n_w_0in_ = n_w_max*ones(n_k_p_r,1);
+end;%if flag_precalc;
+%%%%%%%%;
 [ ...
  n_w_ ...
 ,weight_2d_k_p_r_ ...
@@ -184,7 +193,7 @@ weight_2d_k_p_r_ = tmp_W_*k_p_r_max^2;
 end;%if flag_pinv==1;
 if flag_pinv==0;
 if (flag_verbose>0); disp(sprintf(' %% rescaling weight_3d_k_p_r_')); end;
-weight_2d_k_p_r_ = 2*pi*reshape(weight_3d_k_p_r_,[n_k_p_r,1])./k_p_r_;
+weight_2d_k_p_r_ = 2*pi*reshape(weight_3d_k_p_r_,[n_k_p_r,1])./max(1e-12,k_p_r_);
 if flag_verbose>0;
 tmp_P_ = zeros(n_k_p_r,n_k_p_r); %<-- polynomials of order 0:n_k_p_r-1 evaluated on k_p_r_/k_p_r_max. ;
 tmp_I_ = zeros(n_k_p_r,1); %<-- integrals of those polynomials on the 2d-disc of radius 1. ;
