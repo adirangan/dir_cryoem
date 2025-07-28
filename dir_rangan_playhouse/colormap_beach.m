@@ -1,5 +1,6 @@
 function output = colormap_beach(n_cra);
 if (nargin<1); n_cra = 64; end;
+if n_cra<0; imagesc(1:64); colormap(colormap_beach()); return; end;
 gamma1 = 0.5;
 gamma2 = 0.25;
 cra = zeros(n_cra,3);

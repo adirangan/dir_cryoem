@@ -1,23 +1,34 @@
-function imagesc_c(n_x,x_,n_y,y_,S_c_,clim,cra_);
+function imagesc_c(n_x,x_,n_y,y_,S_c__,clim,cra_);
 % cartesian imagesc;
-% assumes S_c_(nx,ny) = S_c_(nx + ny*n_x);
+% assumes S_c__(nx,ny) = S_c__(nx + ny*n_x);
+
+if (nargin<1);
+n_x = 24+1; x_ = transpose(linspace(-1,+1,n_x));
+n_y = 16+1; y_ = transpose(linspace(-1,+1,n_y));
+[x__,y__] = ndgrid(x_,y_);
+S_c__ = (x__ + y__)./2;
+imagesc_c(n_x,x_,n_y,y_,S_c__,[-1,+1],colormap_beach());
+axis image; axisnotick;
+return;
+end;%if (nargin<1);
+
 na=0;
 if (nargin<1+na); n_x=[]; end; na=na+1;
 if (nargin<1+na); x_=[]; end; na=na+1;
 if (nargin<1+na); n_y=[]; end; na=na+1;
 if (nargin<1+na); y_=[]; end; na=na+1;
-if (nargin<1+na); S_c_=[]; end; na=na+1;
+if (nargin<1+na); S_c__=[]; end; na=na+1;
 if (nargin<1+na); clim=[]; end; na=na+1;
 if (nargin<1+na); cra_=[]; end; na=na+1;
 
-if isempty(S_c_); S_c_ = zeros(2,2); end;
-if isempty(n_x); if size(S_c_,2)>1; n_x = size(S_c_,1); else; n_x = fix(sqrt(numel(S_c_))); end; end;
-if isempty(n_y); if size(S_c_,2)>1; n_y = size(S_c_,2); else; n_x = fix(numel(S_c_)/n_x); end; end;
+if isempty(S_c__); S_c__ = zeros(2,2); end;
+if isempty(n_x); if size(S_c__,2)>1; n_x = size(S_c__,1); else; n_x = fix(sqrt(numel(S_c__))); end; end;
+if isempty(n_y); if size(S_c__,2)>1; n_y = size(S_c__,2); else; n_x = fix(numel(S_c__)/n_x); end; end;
 if isempty(x_); x_ = linspace(-1,+1,n_x); end;
 if isempty(y_); y_ = linspace(-1,+1,n_y); end;
 
 if isempty(clim); 
-clim = mean(S_c_(:)) + std(S_c_(:))*2.5*[-1,1]; 
+clim = mean(S_c__(:)) + std(S_c__(:))*2.5*[-1,1]; 
 end;%if isempty(clim);
 if isempty(cra_); 
 cra_ = colormap_beach();
@@ -38,7 +49,7 @@ if (nx==0); x_pre = x_(1)-0.5*dx_(1); else; x_pre = 0.5*(x_(1+nx-1)+x_(1+nx)); e
 if (nx==n_x-1); x_pos = x_(end)+0.5*dx_(end); else; x_pos = 0.5*(x_(1+nx+1)+x_(1+nx)); end;
 x0_(1+ic) = x_pre; x1_(1+ic) = x_pos;
 y0_(1+ic) = y_pre; y1_(1+ic) = y_pos;
-nc = max(1,min(ncra,floor(ncra*(S_c_(1+ic) - min(clim))/diff(clim))));
+nc = max(1,min(ncra,floor(ncra*(S_c__(1+ic) - min(clim))/diff(clim))));
 C_(1,1+ic,1:3) = cra_(nc,:);
 ic = ic+1;
 end;%for nx=0:n_x-1;
