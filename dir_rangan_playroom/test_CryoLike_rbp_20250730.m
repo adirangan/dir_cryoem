@@ -1,4 +1,4 @@
-function nf = test_CryoLike_rbp_20250728(k_eq_d_double,k_int,viewing_k_eq_d_double,nf);
+function nf = test_CryoLike_rbp_20250730(k_eq_d_double,k_int,viewing_k_eq_d_double,nf);
 %%%%%%%%;
 % Tests raw back-propagation onto spherical-grid. ;
 %%%%%%%%;
@@ -18,14 +18,14 @@ function nf = test_CryoLike_rbp_20250728(k_eq_d_double,k_int,viewing_k_eq_d_doub
 %%%%%%%%;
 % defaults: k_eq_d_double = 1.0; k_int = 48; nf=0;
 
-str_thisfunction = 'test_CryoLike_rbp_20250728';
+str_thisfunction = 'test_CryoLike_rbp_20250730';
 
 if (nargin<1);
 viewing_k_eq_d_double_ = [1.0,0.5]; n_viewing_k_eq_d_double = numel(viewing_k_eq_d_double_);
 nf=0;
 for nviewing_k_eq_d_double=0:n_viewing_k_eq_d_double-1;
 viewing_k_eq_d_double = viewing_k_eq_d_double_(1+nviewing_k_eq_d_double);
-nf = test_CryoLike_rbp_20250728([],[],viewing_k_eq_d_double,nf);
+nf = test_CryoLike_rbp_20250730([],[],viewing_k_eq_d_double,nf);
 end;%for nviewing_k_eq_d_double=0:n_viewing_k_eq_d_double-1;
 disp(sprintf(' %% returning')); return;
 end;%if (nargin<1);
@@ -37,7 +37,7 @@ if nargin<1+na; viewing_k_eq_d_double = []; end; na=na+1;
 if nargin<1+na; nf = []; end; na=na+1;
 
 % defaults for testing: ;
-% clear; str_thisfunction = 'test_CryoLike_rbp_20250728'; k_eq_d_double = []; k_int = []; viewing_k_eq_d_double = []; nf = [];
+% clear; str_thisfunction = 'test_CryoLike_rbp_20250730'; k_eq_d_double = []; k_int = []; viewing_k_eq_d_double = []; nf = [];
 
 %%%%%%%%;
 platform = 'rusty';

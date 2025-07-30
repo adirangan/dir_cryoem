@@ -135,6 +135,7 @@ weight_3d_k_p_qk_ = zeros(n_qk,1);
 weight_shell_k_ = zeros(n_qk,1);
 n_polar_a_k_ = zeros(n_k_p_r,1);
 polar_a_k_ = zeros(n_k_p_r,1);
+polar_a_ka__ = cell(n_k_p_r,1);
 n_azimu_b_ka__ = cell(n_k_p_r,1);
 ix=0;
 for nk_p_r=0:n_k_p_r-1;
