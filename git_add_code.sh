@@ -2,6 +2,9 @@ git add \
 *.sh \
 dir_*/*.sh \
 dir_*/dir_*/*.sh \
+*.py \
+dir_*/*.py \
+dir_*/dir_*/*.py \
 *.m \
 dir_*/*.m \
 dir_*/dir_*/*.m \

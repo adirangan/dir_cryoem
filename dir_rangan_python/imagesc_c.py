@@ -1,0 +1,125 @@
+import numpy as np
+from matplotlib.patches import Polygon
+from matplotlib.collections import PatchCollection
+
+'''
+function imagesc_c(n_x,x_,n_y,y_,S_c__,clim,cra_);
+% cartesian imagesc;
+% assumes S_c__(nx,ny) = S_c__(nx + ny*n_x);
+
+if (nargin<1);
+n_x = 24+1; x_ = transpose(linspace(-1,+1,n_x));
+n_y = 16+1; y_ = transpose(linspace(-1,+1,n_y));
+[x__,y__] = ndgrid(x_,y_);
+S_c__ = (x__ + y__)./2;
+imagesc_c(n_x,x_,n_y,y_,S_c__,[-1,+1],colormap_beach());
+axis image; axisnotick;
+return;
+end;%if (nargin<1);
+
+na=0;
+if (nargin<1+na); n_x=[]; end; na=na+1;
+if (nargin<1+na); x_=[]; end; na=na+1;
+if (nargin<1+na); n_y=[]; end; na=na+1;
+if (nargin<1+na); y_=[]; end; na=na+1;
+if (nargin<1+na); S_c__=[]; end; na=na+1;
+if (nargin<1+na); clim=[]; end; na=na+1;
+if (nargin<1+na); cra_=[]; end; na=na+1;
+
+if isempty(S_c__); S_c__ = zeros(2,2); end;
+if isempty(n_x); if size(S_c__,2)>1; n_x = size(S_c__,1); else; n_x = fix(sqrt(numel(S_c__))); end; end;
+if isempty(n_y); if size(S_c__,2)>1; n_y = size(S_c__,2); else; n_x = fix(numel(S_c__)/n_x); end; end;
+if isempty(x_); x_ = linspace(-1,+1,n_x); end;
+if isempty(y_); y_ = linspace(-1,+1,n_y); end;
+
+if isempty(clim); 
+clim = mean(S_c__(:)) + std(S_c__(:))*2.5*[-1,1]; 
+end;%if isempty(clim);
+if isempty(cra_); 
+cra_ = colormap_beach();
+end;%if isempty(clim);
+dx_ = diff(x_); dy_ = diff(y_);
+x0_ = zeros(1,n_x*n_y);
+x1_ = zeros(1,n_x*n_y);
+y0_ = zeros(1,n_x*n_y);
+y1_ = zeros(1,n_x*n_y);
+ncra = size(cra_,1);
+C_ = zeros(1,n_x*n_y,3);
+ic=0;
+for ny=0:n_y-1;
+if (ny==0); y_pre = y_(1)-0.5*dy_(1); else; y_pre = 0.5*(y_(1+ny-1)+y_(1+ny)); end;
+if (ny==n_y-1); y_pos = y_(end)+0.5*dy_(end); else; y_pos = 0.5*(y_(1+ny+1)+y_(1+ny)); end;
+for nx=0:n_x-1;
+if (nx==0); x_pre = x_(1)-0.5*dx_(1); else; x_pre = 0.5*(x_(1+nx-1)+x_(1+nx)); end;
+if (nx==n_x-1); x_pos = x_(end)+0.5*dx_(end); else; x_pos = 0.5*(x_(1+nx+1)+x_(1+nx)); end;
+x0_(1+ic) = x_pre; x1_(1+ic) = x_pos;
+y0_(1+ic) = y_pre; y1_(1+ic) = y_pos;
+nc = max(1,min(ncra,floor(ncra*(S_c__(1+ic) - min(clim))/diff(clim))));
+C_(1,1+ic,1:3) = cra_(nc,:);
+ic = ic+1;
+end;%for nx=0:n_x-1;
+end;%for ny=0:n_y-1;
+X_ = [x0_ ; x0_ ; x1_ ; x1_ ; x0_];
+Y_ = [y0_ ; y1_ ; y1_ ; y0_ ; y0_];
+p=patch(X_,Y_,C_); set(p,'EdgeColor','none');
+'''
+import matplotlib.pyplot as plt
+
+def imagesc_c(ax,n_x=None, x_=None, n_y=None, y_=None, S_c__=None, clim=None, cra_=None):
+    if S_c__ is None:
+        n_x = 24 + 1 if n_x is None else n_x
+        x_ = np.linspace(-1, +1, n_x) if x_ is None else x_
+        n_y = 16 + 1 if n_y is None else n_y
+        y_ = np.linspace(-1, +1, n_y) if y_ is None else y_
+        x__, y__ = np.meshgrid(x_, y_, indexing='ij')
+        S_c__ = (x__ + y__) / 2
+        imagesc_c(n_x, x_, n_y, y_, S_c__, [-1, +1], colormap_beach())
+        plt.axis('image')
+        plt.axis('off')
+        plt.show()
+        return
+
+    if S_c__ is None:
+        S_c__ = np.zeros((2, 2))
+    if n_x is None:
+        n_x = S_c__.shape[0] if S_c__.ndim > 1 else int(np.sqrt(S_c__.size))
+    if n_y is None:
+        n_y = S_c__.shape[1] if S_c__.ndim > 1 else int(S_c__.size / n_x)
+    if x_ is None:
+        x_ = np.linspace(-1, +1, n_x)
+    if y_ is None:
+        y_ = np.linspace(-1, +1, n_y)
+
+    if clim is None:
+        clim = [np.mean(S_c__) - 2.5 * np.std(S_c__), np.mean(S_c__) + 2.5 * np.std(S_c__)]
+    if cra_ is None:
+        cra_ = colormap_beach()
+
+    dx_ = np.diff(x_)
+    dy_ = np.diff(y_)
+    x0_, x1_, y0_, y1_ = [], [], [], []
+    ncra = cra_.shape[0]
+    C_ = []
+
+    for ny in range(n_y):
+        y_pre = y_[0] - 0.5 * dy_[0] if ny == 0 else 0.5 * (y_[ny - 1] + y_[ny])
+        y_pos = y_[-1] + 0.5 * dy_[-1] if ny == n_y - 1 else 0.5 * (y_[ny + 1] + y_[ny])
+        for nx in range(n_x):
+            x_pre = x_[0] - 0.5 * dx_[0] if nx == 0 else 0.5 * (x_[nx - 1] + x_[nx])
+            x_pos = x_[-1] + 0.5 * dx_[-1] if nx == n_x - 1 else 0.5 * (x_[nx + 1] + x_[nx])
+            x0_.append(x_pre)
+            x1_.append(x_pos)
+            y0_.append(y_pre)
+            y1_.append(y_pos)
+            nc = max(0, min(ncra - 1, int(ncra * (S_c__[nx, ny] - clim[0]) / (clim[1] - clim[0]))))
+            C_.append(cra_[nc])
+
+    patches = []
+    for i in range(len(x0_)):
+        polygon = Polygon([[x0_[i], y0_[i]], [x0_[i], y1_[i]], [x1_[i], y1_[i]], [x1_[i], y0_[i]]], closed=True)
+        patches.append(polygon)
+
+    p = PatchCollection(patches, edgecolor='none', linewidth=0)
+    p.set_facecolor(C_)
+    ax.add_collection(p)
+    ax.set_aspect('equal')
