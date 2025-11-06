@@ -15,7 +15,7 @@ str_thisfunction = 'test_rotate_spharm_to_spharm_4';
 flag_verbose = 1; rng(0);
 flag_disp = 1; nf=0;
 k_int = 48;
-k_eq_d_double = 0.5;
+k_eq_d_double = 0.25;
 dir_jpg = sprintf('/%s/rangan/dir_cryoem/dir_CryoBIFE_MD',string_root);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
@@ -40,6 +40,7 @@ b_ = transpose(linspace(0,2*pi,n_b+1)); b_ = b_(1:n_b);
 
 %%%%%%%%;
 k_p_r_max = k_int/(2*pi); k_eq_d = k_eq_d_double/(2*pi);
+flag_uniform_over_polar_a = 1;
 [ ...
  n_qk ...
 ,k_p_azimu_b_qk_ ...
@@ -49,10 +50,11 @@ k_p_r_max = k_int/(2*pi); k_eq_d = k_eq_d_double/(2*pi);
 ,k_c_1_qk_ ...
 ,k_c_2_qk_ ...
 ] = ...
-sample_shell_5( ...
+sample_shell_6( ...
  k_p_r_max ...
 ,k_eq_d ...
 ,'L' ...
+,flag_uniform_over_polar_a ...
 ) ;
 %%%%%%%%;
 %map_qk_ = interp2(b_,a_,flipud(map_ab__),k_p_azimu_b_qk_,k_p_polar_a_qk_);
@@ -236,58 +238,83 @@ print('-djpeg',fname_fig_jpg);
 %%%%%%%%;
 
 %%%%%%%%;
-figure(1+nf);nf=nf+1;clf;
 flag_2d_vs_3d = 0;
 sphere_grid_k_max = 1.0 + 1.0/64;
-fontsize_use = 12;
-linewidth_use = 4;
-markersize_use = 12;
-subplot(2,2,1);
+fontsize_use = 24;
+linewidth_use = 4*2;
+markersize_use = 12*2;
+%%%%;
+figure(1+nf);nf=nf+1;clf;
+subplot(1,1,1);%subplot(2,2,1);
 hold on; plot_sphere_grid_0(struct('k_max',sphere_grid_k_max));
 imagesc_polar_a_azimu_b_0(k_p_polar_a_qk_,k_p_azimu_b_qk_,real(a_k_p_reco_),maplim_,c_elev__,flag_2d_vs_3d);
 hold on;
 plot3(r_pole*[0;pole_0_(1+0)],r_pole*[0;pole_0_(1+1)],r_pole*[0;pole_0_(1+2)],'k-','Linewidth',linewidth_use);
 plot3(r_pole*[pole_0_(1+0)],r_pole*[pole_0_(1+1)],r_pole*[pole_0_(1+2)],'ko','MarkerSize',markersize_use,'MarkerFaceColor','r');
-xlabel('x');ylabel('y');zlabel('z'); axis vis3d;
+xlabel('x');ylabel('y');zlabel('z'); axis equal;% axis vis3d;
 %title(sprintf('\\tau [0;0;0]\\pi'));
 title(str_step0,'Interpreter','latex');
 set(gca,'XTick',[-1,+1],'XTickLabel',{'-','+'});
 set(gca,'YTick',[-1,+1],'YTickLabel',{'-','+'});
 set(gca,'ZTick',[-1,+1],'ZTickLabel',{'-','+'});
 set(gca,'FontSize',fontsize_use);
-subplot(2,2,2);
+figbig;
+fname_fig_pre = sprintf('%s/test_rotate_spharm_to_spharm_FIGB00',dir_jpg);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+disp(sprintf(' %% Writing %s',fname_fig_pre));
+print('-djpeg',fname_fig_jpg);
+close(gcf);
+%%%%;
+figure(1+nf);nf=nf+1;clf;
+subplot(1,1,1);%subplot(2,2,2);
 hold on; plot_sphere_grid_0(struct('k_max',sphere_grid_k_max));
 imagesc_polar_a_azimu_b_0(k_p_polar_a_qk_,k_p_azimu_b_qk_,real(b_k_p_quad_),maplim_,c_elev__,flag_2d_vs_3d);
 hold on;
 plot3(r_pole*[0;pole_1_(1+0)],r_pole*[0;pole_1_(1+1)],r_pole*[0;pole_1_(1+2)],'k-','Linewidth',linewidth_use);
 plot3(r_pole*[pole_1_(1+0)],r_pole*[pole_1_(1+1)],r_pole*[pole_1_(1+2)],'ko','MarkerSize',markersize_use,'MarkerFaceColor','r');
-xlabel('x');ylabel('y');zlabel('z'); axis vis3d;
+xlabel('x');ylabel('y');zlabel('z'); axis equal;% axis vis3d;
 %title(sprintf('\\tau [%+0.2f;%+0.2f;%+0.2f]\\pi',euler_b_));
 title(str_step1,'Interpreter','latex');
 set(gca,'XTick',[-1,+1],'XTickLabel',{'-','+'});
 set(gca,'YTick',[-1,+1],'YTickLabel',{'-','+'});
 set(gca,'ZTick',[-1,+1],'ZTickLabel',{'-','+'});
 set(gca,'FontSize',fontsize_use);
-subplot(2,2,3);
+figbig;
+fname_fig_pre = sprintf('%s/test_rotate_spharm_to_spharm_FIGB01',dir_jpg);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+disp(sprintf(' %% Writing %s',fname_fig_pre));
+print('-djpeg',fname_fig_jpg);
+close(gcf);
+%%%%;
+figure(1+nf);nf=nf+1;clf;
+subplot(1,1,1);%subplot(2,2,3);
 hold on; plot_sphere_grid_0(struct('k_max',sphere_grid_k_max));
 imagesc_polar_a_azimu_b_0(k_p_polar_a_qk_,k_p_azimu_b_qk_,real(c_k_p_quad_),maplim_,c_elev__,flag_2d_vs_3d);
 hold on;
 plot3(r_pole*[0;pole_2_(1+0)],r_pole*[0;pole_2_(1+1)],r_pole*[0;pole_2_(1+2)],'k-','Linewidth',linewidth_use);
 plot3(r_pole*[pole_2_(1+0)],r_pole*[pole_2_(1+1)],r_pole*[pole_2_(1+2)],'ko','MarkerSize',markersize_use,'MarkerFaceColor','r');
-xlabel('x');ylabel('y');zlabel('z'); axis vis3d;
+xlabel('x');ylabel('y');zlabel('z'); axis equal;% axis vis3d;
 %title(sprintf('\\tau [%+0.2f;%+0.2f;%+0.2f]\\pi',euler_c_));
 title(str_step2,'Interpreter','latex');
 set(gca,'XTick',[-1,+1],'XTickLabel',{'-','+'});
 set(gca,'YTick',[-1,+1],'YTickLabel',{'-','+'});
 set(gca,'ZTick',[-1,+1],'ZTickLabel',{'-','+'});
 set(gca,'FontSize',fontsize_use);
-subplot(2,2,4);
+figbig;
+fname_fig_pre = sprintf('%s/test_rotate_spharm_to_spharm_FIGB10',dir_jpg);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+disp(sprintf(' %% Writing %s',fname_fig_pre));
+print('-djpeg',fname_fig_jpg);
+close(gcf);
+%%%%;
+figure(1+nf);nf=nf+1;clf;
+subplot(1,1,1);%subplot(2,2,4);
 hold on; plot_sphere_grid_0(struct('k_max',sphere_grid_k_max));
 imagesc_polar_a_azimu_b_0(k_p_polar_a_qk_,k_p_azimu_b_qk_,real(d_k_p_quad_),maplim_,c_elev__,flag_2d_vs_3d);
 hold on;
 plot3(r_pole*[0;pole_3_(1+0)],r_pole*[0;pole_3_(1+1)],r_pole*[0;pole_3_(1+2)],'k-','Linewidth',linewidth_use);
 plot3(r_pole*[pole_3_(1+0)],r_pole*[pole_3_(1+1)],r_pole*[pole_3_(1+2)],'ko','MarkerSize',markersize_use,'MarkerFaceColor','r');
-xlabel('x');ylabel('y');zlabel('z'); axis vis3d;
+xlabel('x');ylabel('y');zlabel('z'); axis equal;% axis vis3d;
 %title(sprintf('\\tau [%+0.2f;%+0.2f;%+0.2f]\\pi',euler_d_));
 title(str_step3,'Interpreter','latex');
 set(gca,'XTick',[-1,+1],'XTickLabel',{'-','+'});
@@ -295,10 +322,11 @@ set(gca,'YTick',[-1,+1],'YTickLabel',{'-','+'});
 set(gca,'ZTick',[-1,+1],'ZTickLabel',{'-','+'});
 set(gca,'FontSize',fontsize_use);
 figbig;
-fname_fig_pre = sprintf('%s/test_rotate_spharm_to_spharm_FIGB',dir_jpg);
+fname_fig_pre = sprintf('%s/test_rotate_spharm_to_spharm_FIGB11',dir_jpg);
 fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
 disp(sprintf(' %% Writing %s',fname_fig_pre));
 print('-djpeg',fname_fig_jpg);
+close(gcf);
 %%%%%%%%;
 %%%%%%%%;
 

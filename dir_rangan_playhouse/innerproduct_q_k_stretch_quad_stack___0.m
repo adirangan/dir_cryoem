@@ -34,7 +34,7 @@ function M_k_q_rwl___ = innerproduct_q_k_stretch_quad_stack___0(n_k_p_r,n_w_,M_k
 %    Note that we do not shift all the nw from the original image by l_val. ;
 %    Instead, to maintain consistency with the bandlimit for which the fourier-bessel coefficients were originally defined, ;
 %    we ignore any coefficients for which the shifted nw lies outside the range [-n_w/2+1,+n_w/2-1] (defining n_w:=n_w_(1+nk_p_r)). ;
-%    Finally, we assume that interpretation of the retained nw requires only knowledge of n_w_max (which is independent on nk_p_r). ;
+%    Finally, we assume that interpretation of the retained nw requires only knowledge of n_w_max (which is independent of nk_p_r). ;
 %    To accomplish this we rearrange the output indices nw on each ring so that ;
 %    nw==+1 and nw==n_w_max-1 are consistently associated with output frequencies +1 and -1, respectively, ;
 %    nw==+2 and nw==n_w_max-2 are consistently associated with output frequencies +2 and -2, and so forth. ;
@@ -42,22 +42,27 @@ function M_k_q_rwl___ = innerproduct_q_k_stretch_quad_stack___0(n_k_p_r,n_w_,M_k
 % Notes: ;
 % Assumes that n_w_ is a list of even integers. ;
 %%%%%%%%;
+
+str_thisfunction = 'innerproduct_q_k_stretch_quad_stack___0';
+
 n_w_sum = sum(n_w_);
 M_k_q__ = zeros(n_w_sum,1+2*l_max);
 ic=0;
 for nk_p_r=0:n_k_p_r-1;
-for nw=0:n_w_(1+nk_p_r)-1;
-n_w_t = round(1.0d0*n_w_(1+nk_p_r)/2.0d0);
+n_w = n_w_(1+nk_p_r);
+if mod(n_w,2)==1; disp(sprintf(' %% Warning, odd n_w in %s',str_thisfunction)); end;
+n_w_t = round(1.0d0*n_w/2.0d0);
+for nw=0:n_w-1;
 for l_val=-l_max:+l_max;
 nwc = nw;
-if (nwc>=n_w_t); nwc = nwc - n_w_(1+nk_p_r); end;%if;
+if (nwc>=n_w_t); nwc = nwc - n_w; end;%if;
 flag_ict_overflow = 0;
 nwd = nwc + l_val;
-if (abs(nwd)<n_w_t); nwt = periodize(nwd,0,n_w_(1+nk_p_r));  else; nwt = 0; flag_ict_overflow = 1; end;%if;
+if (abs(nwd)<n_w_t); nwt = periodize(nwd,0,n_w);  else; nwt = 0; flag_ict_overflow = 1; end;%if;
 ict = ic-nw+nwt;
 if (flag_ict_overflow==0); M_k_q__(1+ic,1+l_max+l_val) = M_k_q_(1+ict); end;%if;
 end;%for l_val=-l_max:+l_max;
 ic = ic + 1;
-end;%for nw=0:n_w_(1+nk_p_r)-1;
+end;%for nw=0:n_w-1;
 end;%for nk_p_r=0:n_k_p_r-1;
 M_k_q_rwl___ = innerproduct_q_k_stretch_quad_stack__0(n_k_p_r,n_w_/(2*pi),n_w_,1+2*l_max,M_k_q__);

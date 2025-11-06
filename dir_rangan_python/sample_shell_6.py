@@ -1,7 +1,11 @@
-import numpy as np
+import numpy as np ; pi = np.pi ; import torch ; import timeit ;
+from matlab_index_2d_0 import matlab_index_2d_0 ;
+from matlab_index_3d_0 import matlab_index_3d_0 ;
+from matlab_index_4d_0 import matlab_index_4d_0 ;
 from matlab_scalar_round import matlab_scalar_round
+mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
 
-'''
+r'''
 function ...
 [ ...
  n_q ...
@@ -122,68 +126,78 @@ end;%if (nargout>4);
 '''
 def sample_shell_6(
         k_p_r_max=1.0,
-        k_eq_d=1/(2*np.pi),
+        k_eq_d=1/(2*pi),
         str_T_vs_L='L',
         flag_uniform_over_polar_a=0,
 ):
-    n_equator = 3 + matlab_scalar_round(2 * np.pi * k_p_r_max / max(1e-12, k_eq_d))
-    n_polar_a = 3 + matlab_scalar_round(n_equator / 2)
+    n_equator = 3 + matlab_scalar_round(2 * pi * k_p_r_max / max(1e-12, k_eq_d)) ;
+    n_polar_a = 3 + matlab_scalar_round(n_equator / 2) ;
 
     if str_T_vs_L == 'T':
         tsch_node_, tsch_weight_ = np.polynomial.chebyshev.chebgauss(n_polar_a) #<-- note these range from high to low, which is the opposite of matlab chebpts. ;
-        polar_a_ = np.arccos(np.flip(tsch_node_)) #<-- and so we flip the nodes so that polar_a_ ranges from pi to 0. ;
-        weight_ = tsch_weight_
+        tsch_node_   = torch.tensor(  tsch_node_).to(dtype=torch.float32) ;
+        tsch_weight_ = torch.tensor(tsch_weight_).to(dtype=torch.float32) ;
+        polar_a_ = torch.arccos(torch.flip(tsch_node_,(0,))) ; #<-- and so we flip the nodes so that polar_a_ ranges from pi to 0. ;
+        weight_ = tsch_weight_ ;
     elif str_T_vs_L in ['C', 'C2']:
         print('Warning, type-2 nodes and weights not implemented');
         tsch_node_, tsch_weight_ = np.polynomial.chebyshev.chebgauss(n_polar_a, 'type_2') #<-- not implemented. ;
-        polar_a_ = np.arccos(np.flip(tsch_node_))
-        weight_ = tsch_weight_
+        tsch_node_   = torch.tensor(  tsch_node_).to(dtype=torch.float32) ;
+        tsch_weight_ = torch.tensor(tsch_weight_).to(dtype=torch.float32) ;
+        polar_a_ = torch.arccos(torch.flip(tsch_node_,(0,))) ;
+        weight_ = tsch_weight_ ;
     elif str_T_vs_L == 'L':
-        lgnd_node_, lgnd_weight_ = np.polynomial.legendre.leggauss(n_polar_a)
-        polar_a_ = np.arccos(lgnd_node_)
-        weight_ = lgnd_weight_
+        lgnd_node_, lgnd_weight_ = np.polynomial.legendre.leggauss(n_polar_a) ;
+        lgnd_node_   = torch.tensor(  lgnd_node_).to(dtype=torch.float32) ;
+        lgnd_weight_ = torch.tensor(lgnd_weight_).to(dtype=torch.float32) ;
+        polar_a_ = torch.arccos(lgnd_node_) ;
+        weight_ = lgnd_weight_ ;
     else:
-        raise ValueError("Invalid str_T_vs_L value")
-
-    n_azimu_b_max = 3 + matlab_scalar_round(2 * np.pi * k_p_r_max / max(1e-12, k_eq_d))
-    n_azimu_b_ = np.zeros(n_polar_a, dtype=int)
-    n_q = int(0)
+        raise ValueError("Invalid str_T_vs_L value") ;
+    #end;%ifelse;
+    
+    n_azimu_b_max = 3 + matlab_scalar_round(2 * pi * k_p_r_max / max(1e-12, k_eq_d)) ;
+    n_azimu_b_ = torch.zeros(n_polar_a).to(dtype=torch.int32) ;
+    n_q = int(0) ;
 
     for npolar_a in range(n_polar_a):
-        polar_a = polar_a_[npolar_a]
-        spolar_a = np.sin(polar_a)
+        polar_a = polar_a_[npolar_a].item() ;
+        spolar_a = np.sin(polar_a) ;
         if flag_uniform_over_polar_a == 0:
-            n_azimu_b = 3 + matlab_scalar_round(2 * np.pi * spolar_a * k_p_r_max / max(1e-12, k_eq_d))
+            n_azimu_b = 3 + matlab_scalar_round(2 * pi * spolar_a * k_p_r_max / max(1e-12, k_eq_d)) ;
         elif flag_uniform_over_polar_a == 1:
-            n_azimu_b = n_azimu_b_max
+            n_azimu_b = n_azimu_b_max ;
+        #end;%ifelse;
         if str_T_vs_L == 'C2':
-            n_azimu_b += n_azimu_b % 2
+            n_azimu_b += n_azimu_b % 2 ;
             if 1 - abs(np.cos(polar_a)) < 1e-16:
-                n_azimu_b = 1
-        n_azimu_b_[npolar_a] = n_azimu_b
-        n_q += n_azimu_b
+                n_azimu_b = 1 ;
+            #end;%if;
+        #end;%if;
+        n_azimu_b_[npolar_a] = n_azimu_b ;
+        n_q += n_azimu_b ;
+    #end;%for;
 
-    azimu_b_q_ = np.zeros(n_q)
-    polar_a_q_ = np.zeros(n_q)
-    weight_shell_q_ = np.zeros(n_q)
-    ix = 0
-
+    azimu_b_q_ = torch.zeros(n_q).to(dtype=torch.float32) ;
+    polar_a_q_ = torch.zeros(n_q).to(dtype=torch.float32) ;
+    weight_shell_q_ = torch.zeros(n_q).to(dtype=torch.float32) ;
+    ix = 0 ;
     for npolar_a in range(n_polar_a):
-        polar_a = polar_a_[npolar_a]
-        spolar_a = np.sin(polar_a)
-        n_azimu_b = n_azimu_b_[npolar_a]
-        azimu_b_ = np.linspace(0, 2 * np.pi, n_azimu_b + 1)[:-1]
-        dazimu_b = np.mean(np.diff(azimu_b_)) if np.isfinite(np.mean(np.diff(azimu_b_))) else 2 * np.pi
-        if n_azimu_b == 1:
-            dazimu_b = 2 * np.pi
-        azimu_b_q_[ix:ix + n_azimu_b] = azimu_b_
-        polar_a_q_[ix:ix + n_azimu_b] = polar_a
-        weight_shell_q_[ix:ix + n_azimu_b] = k_p_r_max**2 * weight_[npolar_a] * dazimu_b
-        ix += n_azimu_b
+        polar_a = polar_a_[npolar_a].item() ;
+        spolar_a = np.sin(polar_a) ;
+        n_azimu_b = int(n_azimu_b_[npolar_a].item()) ;
+        azimu_b_ = torch.linspace(0, 2 * pi, n_azimu_b + 1)[:-1].to(dtype=torch.float32) ;
+        dazimu_b = torch.mean(torch.diff(azimu_b_)) if torch.isfinite(torch.mean(torch.diff(azimu_b_))) else 2 * pi ;
+        if n_azimu_b == 1: dazimu_b = 2 * pi ;
+        azimu_b_q_[ix:ix + n_azimu_b] = azimu_b_ ;
+        polar_a_q_[ix:ix + n_azimu_b] = polar_a ;
+        weight_shell_q_[ix:ix + n_azimu_b] = k_p_r_max**2 * weight_[npolar_a] * dazimu_b ;
+        ix += n_azimu_b ;
+    #end;%for;
 
-    k_c_0_q_ = k_p_r_max * np.cos(azimu_b_q_) * np.sin(polar_a_q_)
-    k_c_1_q_ = k_p_r_max * np.sin(azimu_b_q_) * np.sin(polar_a_q_)
-    k_c_2_q_ = k_p_r_max * np.cos(polar_a_q_)
+    k_c_0_q_ = k_p_r_max * torch.cos(azimu_b_q_) * torch.sin(polar_a_q_) ;
+    k_c_1_q_ = k_p_r_max * torch.sin(azimu_b_q_) * torch.sin(polar_a_q_) ;
+    k_c_2_q_ = k_p_r_max * torch.cos(polar_a_q_) ;
 
     return (
         n_q,
@@ -196,4 +210,4 @@ def sample_shell_6(
         n_polar_a,
         polar_a_,
         n_azimu_b_,
-    )
+    ) ;

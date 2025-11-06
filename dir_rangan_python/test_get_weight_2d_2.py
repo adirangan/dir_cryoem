@@ -1,4 +1,11 @@
-import numpy as np
+import numpy as np ; pi = np.pi ; import torch ; import timeit ;
+from matlab_index_2d_0 import matlab_index_2d_0 ;
+from matlab_index_3d_0 import matlab_index_3d_0 ;
+from matlab_index_4d_0 import matlab_index_4d_0 ;
+from matlab_scalar_round import matlab_scalar_round
+from matlab_scalar_round import matlab_scalar_round
+cumsum_0 = lambda a : torch.cumsum(torch.concatenate((torch.tensor([0]),a)) , 0).to(torch.int32) ;
+mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
 
 '''
 flag_verbose=0; flag_disp=1; nf=0;
@@ -93,11 +100,11 @@ disp('returning'); return;
 from get_weight_3d_1 import get_weight_3d_1
 from get_weight_2d_2 import get_weight_2d_2
 
-flag_verbose = 0
-k_p_r_max = 48 / (2 * np.pi)
+flag_verbose = 0 ;
+k_p_r_max = 48 / (2 * pi) ;
 
-k_eq_d = 1.0 / (2 * np.pi)
-str_T_vs_L = 'L'
+k_eq_d = 1.0 / (2 * pi) ;
+str_T_vs_L = 'L' ;
 (
     n_k_p_r,
     k_p_r_,
@@ -107,11 +114,10 @@ str_T_vs_L = 'L'
     k_p_r_max,
     k_eq_d,
     str_T_vs_L,
-)
-template_k_eq_d = -1
-n_w_max = 98
-n_w_0in_ = n_w_max * np.ones(n_k_p_r)
-
+) ;
+template_k_eq_d = -1 ;
+n_w_max = 98 ;
+n_w_0in_ = n_w_max * torch.ones(n_k_p_r).to(dtype=torch.int32) ;
 (
     n_w_,
     weight_2d_k_p_r_,
@@ -128,33 +134,32 @@ n_w_0in_ = n_w_max * np.ones(n_k_p_r)
     template_k_eq_d,
     n_w_0in_,
     weight_3d_k_p_r_,
-)
+) ;
 
-n_w_ = np.array(n_w_, dtype=int)
-n_w_max = np.max(n_w_)
-n_w_sum = np.sum(n_w_)
-n_w_csum_ = np.cumsum(np.concatenate(([0], n_w_)))
+n_w_max = torch.max(n_w_).item() ;
+n_w_sum = torch.sum(n_w_).item() ;
+n_w_csum_ = cumsum_0(n_w_);
 
-sigma = k_p_r_max / 2
+sigma = k_p_r_max / 2 ;
 
 # Function 1
-f = lambda k, w: np.ones_like(k)
-F_tru = np.pi * k_p_r_max**2
-F_est = np.dot(f(k_p_r_wk_, k_p_w_wk_), weight_2d_k_p_wk_) * (2 * np.pi)**2
-errrel_0 = abs(F_tru - F_est) / abs(F_tru)
-print(f" %% F_tru vs F_est: {errrel_0:.16f}")
+f = lambda k, w: torch.ones_like(k,dtype=torch.float64) ;
+F_tru = torch.tensor( pi * k_p_r_max**2 ).to(dtype=torch.float64);
+F_est = torch.dot(f(k_p_r_wk_, k_p_w_wk_), weight_2d_k_p_wk_.to(dtype=torch.float64)) * (2 * pi)**2 ;
+errrel_0 = torch.abs(F_tru - F_est) / torch.abs(F_tru) ;
+print(f" %% F_tru vs F_est: {errrel_0:.16f}") ;
 
 # Function 2
-f = lambda k, w: -1 * (1 / sigma**2) * np.exp(-k**2 / (2 * sigma**2))
-F_tru = 2 * np.pi * (np.exp(-k_p_r_max**2 / (2 * sigma**2)) - 1)
-F_est = np.dot(f(k_p_r_wk_, k_p_w_wk_), weight_2d_k_p_wk_) * (2 * np.pi)**2
-errrel_1 = abs(F_tru - F_est) / abs(F_tru)
-print(f" %% F_tru vs F_est: {errrel_1:.16f}")
+f = lambda k, w: ( -1 * (1 / sigma**2) * torch.exp(-k**2 / (2 * sigma**2))).to(dtype=torch.float64) ;
+F_tru = torch.tensor( 2 * pi * (np.exp(-k_p_r_max**2 / (2 * sigma**2)) - 1) ).to(dtype=torch.float64);
+F_est = torch.dot(f(k_p_r_wk_, k_p_w_wk_), weight_2d_k_p_wk_.to(dtype=torch.float64)) * (2 * pi)**2 ;
+errrel_1 = torch.abs(F_tru - F_est) / torch.abs(F_tru) ;
+print(f" %% F_tru vs F_est: {errrel_1:.16f}") ;
 
 # Function 3
-f = lambda k, w: -(np.sin(w) * np.cos(w) + 1) * (1 / sigma**2) * np.exp(-k**2 / (2 * sigma**2))
-F_tru = 2 * np.pi * (np.exp(-k_p_r_max**2 / (2 * sigma**2)) - 1)
-F_est = np.dot(f(k_p_r_wk_, k_p_w_wk_), weight_2d_k_p_wk_) * (2 * np.pi)**2
-errrel_2 = abs(F_tru - F_est) / abs(F_tru)
-print(f" %% F_tru vs F_est: {errrel_2:.16f}")
+f = lambda k, w: ( -(torch.sin(w) * torch.cos(w) + 1) * (1 / sigma**2) * torch.exp(-k**2 / (2 * sigma**2))).to(dtype=torch.float64) ;
+F_tru = torch.tensor( 2 * pi * (np.exp(-k_p_r_max**2 / (2 * sigma**2)) - 1) ).to(dtype=torch.float64);
+F_est = torch.dot(f(k_p_r_wk_, k_p_w_wk_), weight_2d_k_p_wk_.to(dtype=torch.float64)) * (2 * pi)**2 ;
+errrel_2 = torch.abs(F_tru - F_est) / torch.abs(F_tru) ;
+print(f" %% F_tru vs F_est: {errrel_2:.16f}") ;
 

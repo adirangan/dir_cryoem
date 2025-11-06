@@ -1,0 +1,22 @@
+import numpy as np ; pi = np.pi ; i = 1j ; import torch ; import timeit ;
+from matlab_index_2d_0 import matlab_index_2d_0 ;
+from matlab_index_3d_0 import matlab_index_3d_0 ;
+from matlab_index_4d_0 import matlab_index_4d_0 ;
+from matlab_scalar_round import matlab_scalar_round ;
+from get_r8_delta_2 import get_r8_delta_2 ;
+mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
+msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
+mts = lambda a : tuple(len(a) - x - 1 for x in a) ; #<-- for permute (i.e., tuple subtract (...)). ;
+efind = lambda a : torch.where(a)[0] ;
+n_byte_per_float32 = 4;
+n_byte_per_complex64 = 8;
+
+str_thisfunction = 'get_delta_2';
+flag_verbose=1;
+if (flag_verbose>0): print(f' %% testing {str_thisfunction}');
+k_p_r_max = 48.0/(2*pi); delta_r_max = 0.5/np.maximum(1e-12,k_p_r_max); svd_eps = 1e-6; n_delta_v_requested = 128;
+n_delta_v_out,r8_delta_x_,r8_delta_y_ = get_r8_delta_2(delta_r_max,n_delta_v_requested);
+if (flag_verbose>0): print(f' %% n_delta_v_requested {n_delta_v_requested}');
+if (flag_verbose>0): print(f' %% n_delta_v_out {n_delta_v_out}');
+if (flag_verbose>0): print(f' %% r8_delta_x_:'); print(r8_delta_x_);
+if (flag_verbose>0): print(f' %% r8_delta_y_:'); print(r8_delta_y_);

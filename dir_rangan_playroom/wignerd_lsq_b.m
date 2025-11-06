@@ -10,8 +10,8 @@ disp(sprintf(' %% testing wignerd_lsq_b'));
 %%%%%%%%;
 % Note that the discrepancy is larger than 1e-6 at nl==88. ;
 %%%%%%%%;
-%n_l=48;
-n_l=196;
+n_l=48;
+%n_l=196;
 beta=pi/6; nf=0;
 tic; W1_ = wignerd_b(n_l,beta);     disp(sprintf(' %% wignerd_b  : %0.2f seconds',toc));
 tic; W2_ = wignerd_lsq_b(n_l,beta); disp(sprintf(' %% wignerd_lsq_b: %0.2f seconds',toc));  
@@ -55,9 +55,9 @@ disp('returning');return;
 end;%if nargin<1;
 %%%%%%%%;
 
-verbose = 0;
+flag_verbose = 0;
 
-% verbose=1; n_l = 11; beta = pi/6;
+% flag_verbose=1; n_l = 11; beta = pi/6;
 
 n_oversample = 5;
 l_max = n_l;
@@ -73,7 +73,7 @@ flag_check=0;
 if flag_check;
 tmp_t = tic();
 J_lmab____ = permute(reshape(ylgndr_1(l_max,cos(polar_a_ori__(:))),[n_polar_a,n_azimu_b,1+l_max,1+l_max]),[3,4,1,2]);
-tmp_t = toc(tmp_t); if (verbose); disp(sprintf(' %% J_lmab____: %0.2fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose); disp(sprintf(' %% J_lmab____: %0.2fs',tmp_t)); end;
 end;%if flag_check;
 %%%%;
 tmp_t = tic();
@@ -89,11 +89,11 @@ ylgndr_1( ...
  l_max ...
 ,cos(polar_a_) ...
 );
-L_ori_lmab____ = repmat(permute(reshape(d0y_jlm___,[n_polar_a,1+l_max,1+l_max]),[2,3,1]),[1,1,1,n_azimu_b]);
-tmp_t = toc(tmp_t); if (verbose); disp(sprintf(' %% L_ori_lmab____: %0.2fs',tmp_t)); end;
+L_ori_lmab____ = repmat(permute(reshape(d0y_jlm___,[n_polar_a,1+l_max,1+l_max]),1+[1,2,0]),[1,1,1,n_azimu_b]);
+tmp_t = toc(tmp_t); if (flag_verbose); disp(sprintf(' %% L_ori_lmab____: %0.2fs',tmp_t)); end;
 %%%%;
 if flag_check;
-if (verbose); disp(sprintf(' %% L_ori_lmab____ vs J_lmab____: %0.16f',fnorm(L_ori_lmab____ - J_lmab____)/fnorm(L_ori_lmab____))); end;
+if (flag_verbose); disp(sprintf(' %% L_ori_lmab____ vs J_lmab____: %0.16f',fnorm(L_ori_lmab____ - J_lmab____)/fnorm(L_ori_lmab____))); end;
 end;%if flag_check;
 %%%%;
 L_ori_lmab____ = cat(2,flip(L_ori_lmab____(:,2:end,:,:),2),L_ori_lmab____)/sqrt(4*pi);
@@ -113,21 +113,22 @@ azimu_b_rot__ = atan2(Yt__,Xt__);
 polar_a_rot__ = acos(Zt__);
 %%%%;
 tmp_t = tic();
-L_rot_lmab____ = permute(reshape(ylgndr_1(l_max,cos(polar_a_rot__(:)),sqrt_2lp1_,sqrt_2mp1_,sqrt_rat0_,sqrt_rat3__,sqrt_rat4__),[n_polar_a,n_azimu_b,1+l_max,1+l_max]),[3,4,1,2]);
-tmp_t = toc(tmp_t); if (verbose); disp(sprintf(' %% L_rot_lmab____: %0.2fs',tmp_t)); end;
+L_rot_lmab____ = permute(reshape(ylgndr_1(l_max,cos(polar_a_rot__(:)),sqrt_2lp1_,sqrt_2mp1_,sqrt_rat0_,sqrt_rat3__,sqrt_rat4__),[n_polar_a,n_azimu_b,1+l_max,1+l_max]),1+[2,3,0,1]);
+tmp_t = toc(tmp_t); if (flag_verbose); disp(sprintf(' %% L_rot_lmab____: %0.2fs',tmp_t)); end;
 L_rot_lmab____ = cat(2,flip(L_rot_lmab____(:,2:end,:,:),2),L_rot_lmab____)/sqrt(4*pi);
 s_ = ones(n_m_max,1);
 %s_ = (-1).^((m_max_<0).*m_max_); %<-- unnecessary here. ;
 expi_mab___ = exp(+i*bsxfun(@times,m_max_,reshape(azimu_b_rot__,[1,n_polar_a,n_azimu_b])));
 Y_rot_lmab____ = bsxfun(@times,bsxfun(@times,L_rot_lmab____,reshape(s_,[1,n_m_max,1,1])),reshape(expi_mab___,[1,n_m_max,n_polar_a,n_azimu_b]));
 %%%%;
+W_ = cell(1+l_max,1);
 tmp_t = tic();
 for l_val=0:l_max;
 Y_ori_mab__ = reshape(Y_ori_lmab____(1+l_val,1+l_max+[-l_val:+l_val],:,:),[1+2*l_val,n_polar_a*n_azimu_b]);
 Y_rot_mab__ = reshape(Y_rot_lmab____(1+l_val,1+l_max+[-l_val:+l_val],:,:),[1+2*l_val,n_polar_a*n_azimu_b]);
 W_{1+l_val} = real(transpose(Y_rot_mab__ / Y_ori_mab__)) ;
 end;%for l_val=0:l_max;
-tmp_t = toc(tmp_t); if (verbose); disp(sprintf(' %% W_: %0.2fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose); disp(sprintf(' %% W_: %0.2fs',tmp_t)); end;
 
 %%%%%%%%;
 flag_check=0;

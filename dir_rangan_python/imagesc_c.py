@@ -1,6 +1,16 @@
-import numpy as np
+import numpy as np ; pi = np.pi ; i = 1j ; import torch ; import timeit ;
+from matlab_index_2d_0 import matlab_index_2d_0 ;
+from matlab_index_3d_0 import matlab_index_3d_0 ;
+from matlab_index_4d_0 import matlab_index_4d_0 ;
+from matlab_scalar_round import matlab_scalar_round ;
+from i4_torch_arange import i4_torch_arange ;
+from fnorm_disp import fnorm_disp ;
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
+mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
+msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
+mts = lambda a : tuple(len(a) - x - 1 for x in a) ; #<-- for permute (i.e., tuple subtract (...)). ;
+n_1 = 1; n_2 = 2; n_3 = 3;
 
 '''
 function imagesc_c(n_x,x_,n_y,y_,S_c__,clim,cra_);
@@ -65,61 +75,46 @@ p=patch(X_,Y_,C_); set(p,'EdgeColor','none');
 '''
 import matplotlib.pyplot as plt
 
-def imagesc_c(ax,n_x=None, x_=None, n_y=None, y_=None, S_c__=None, clim=None, cra_=None):
-    if S_c__ is None:
-        n_x = 24 + 1 if n_x is None else n_x
-        x_ = np.linspace(-1, +1, n_x) if x_ is None else x_
-        n_y = 16 + 1 if n_y is None else n_y
-        y_ = np.linspace(-1, +1, n_y) if y_ is None else y_
-        x__, y__ = np.meshgrid(x_, y_, indexing='ij')
-        S_c__ = (x__ + y__) / 2
-        imagesc_c(n_x, x_, n_y, y_, S_c__, [-1, +1], colormap_beach())
-        plt.axis('image')
-        plt.axis('off')
-        plt.show()
-        return
+def imagesc_c(
+        ax,
+        n_x=None,
+        x_=None,
+        n_y=None,
+        y_=None,
+        S_c__=None,
+        clim_=None,
+        c_3c__=None,
+):
+    if S_c__ is None: S_c__ = torch.zeros(mtr((2, 2))).to(dtype=torch.float32);
+    if n_x is None: n_x = int(S_c__.size()[0]) ;
+    if n_y is None: n_y = int(S_c__.size()[1]) ;
+    if x_ is None: x_ = torch.linspace(-1, +1, n_x).to(dtype=torch.float32) ;
+    if y_ is None: y_ = torch.linspace(-1, +1, n_y).to(dtype=torch.float32) ;
+    if clim_ is None: clim_ = torch.mean(S_c__).item() + 2.5 * torch.std(S_c__).item() * torch.tensor([-1,+1]).to(dtype=torch.float32);
+    if c_3c__ is None: c_3c__ = colormap_beach() ; # Default colormap
 
-    if S_c__ is None:
-        S_c__ = np.zeros((2, 2))
-    if n_x is None:
-        n_x = S_c__.shape[0] if S_c__.ndim > 1 else int(np.sqrt(S_c__.size))
-    if n_y is None:
-        n_y = S_c__.shape[1] if S_c__.ndim > 1 else int(S_c__.size / n_x)
-    if x_ is None:
-        x_ = np.linspace(-1, +1, n_x)
-    if y_ is None:
-        y_ = np.linspace(-1, +1, n_y)
+    dx_ = torch.diff(x_.ravel()).to(dtype=torch.float32) ;
+    x_pre_ = x_ -  0.5 * torch.concatenate( ( torch.tensor([dx_[0]]) , dx_ ) , 0 );
+    x_pos_ = x_ +  0.5 * torch.concatenate( ( dx_ , torch.tensor([dx_[n_x-1-1]]) ) , 0 );
+    dy_ = torch.diff(y_.ravel()).to(dtype=torch.float32) ;
+    y_pre_ = y_ -  0.5 * torch.concatenate( ( torch.tensor([dy_[0]]) , dy_ ) , 0 );
+    y_pos_ = y_ +  0.5 * torch.concatenate( ( dy_ , torch.tensor([dy_[n_y-1-1]]) ) , 0 );
+    y_prepre__,x_prepre__ = torch.meshgrid(y_pre_,x_pre_,indexing='ij');
+    y_prepos__,x_prepos__ = torch.meshgrid(y_pos_,x_pre_,indexing='ij');
+    y_pospre__,x_pospre__ = torch.meshgrid(y_pre_,x_pos_,indexing='ij');
+    y_pospos__,x_pospos__ = torch.meshgrid(y_pos_,x_pos_,indexing='ij');
+    n_c = int(c_3c__.size()[0]);
+    nc_ = torch.maximum(torch.tensor(0.0),torch.minimum(torch.tensor(n_c-1),torch.floor(n_c*(S_c__.ravel()-clim_[0].item())/np.maximum(1e-12,clim_[1].item()-clim_[0].item())))).to(dtype=torch.int32);
+    C_3a__ = torch.zeros(mtr((n_3,n_x*n_y))).to(dtype=torch.float32);
+    patches = [];
+    for na in range(n_x*n_y):
+        nc = int(nc_[na].item());
+        C_3a__[na,:] = c_3c__[nc,:];
+        polygon = Polygon( [ [x_prepre__.ravel()[na].item(),y_prepre__.ravel()[na].item()] , [x_prepos__.ravel()[na].item(),y_prepos__.ravel()[na].item()] , [x_pospos__.ravel()[na].item(),y_pospos__.ravel()[na].item()] , [x_pospre__.ravel()[na].item(),y_pospre__.ravel()[na].item()] ], closed=True ) ;
+        patches.append(polygon) ;
+    #end;%for na in range(n_x*n_y):
 
-    if clim is None:
-        clim = [np.mean(S_c__) - 2.5 * np.std(S_c__), np.mean(S_c__) + 2.5 * np.std(S_c__)]
-    if cra_ is None:
-        cra_ = colormap_beach()
-
-    dx_ = np.diff(x_)
-    dy_ = np.diff(y_)
-    x0_, x1_, y0_, y1_ = [], [], [], []
-    ncra = cra_.shape[0]
-    C_ = []
-
-    for ny in range(n_y):
-        y_pre = y_[0] - 0.5 * dy_[0] if ny == 0 else 0.5 * (y_[ny - 1] + y_[ny])
-        y_pos = y_[-1] + 0.5 * dy_[-1] if ny == n_y - 1 else 0.5 * (y_[ny + 1] + y_[ny])
-        for nx in range(n_x):
-            x_pre = x_[0] - 0.5 * dx_[0] if nx == 0 else 0.5 * (x_[nx - 1] + x_[nx])
-            x_pos = x_[-1] + 0.5 * dx_[-1] if nx == n_x - 1 else 0.5 * (x_[nx + 1] + x_[nx])
-            x0_.append(x_pre)
-            x1_.append(x_pos)
-            y0_.append(y_pre)
-            y1_.append(y_pos)
-            nc = max(0, min(ncra - 1, int(ncra * (S_c__[nx, ny] - clim[0]) / (clim[1] - clim[0]))))
-            C_.append(cra_[nc])
-
-    patches = []
-    for i in range(len(x0_)):
-        polygon = Polygon([[x0_[i], y0_[i]], [x0_[i], y1_[i]], [x1_[i], y1_[i]], [x1_[i], y0_[i]]], closed=True)
-        patches.append(polygon)
-
-    p = PatchCollection(patches, edgecolor='none', linewidth=0)
-    p.set_facecolor(C_)
-    ax.add_collection(p)
-    ax.set_aspect('equal')
+    p = PatchCollection(patches, edgecolor='none', linewidth=0) ;
+    p.set_facecolor(C_3a__.numpy()) ;
+    ax.add_collection(p) ;
+    ax.set_aspect('equal') ;

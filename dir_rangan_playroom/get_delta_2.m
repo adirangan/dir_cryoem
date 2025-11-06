@@ -3,24 +3,38 @@ function [n_delta_v_out,delta_x_,delta_y_] = get_delta_2(delta_r_max,n_delta_v_0
 % that are supported on a disc of radius delta_r_max. ;
 % The number of requested displacents n_delta_v_0in is a lower-bound on the actual number produced. ;
 
+str_thisfunction = 'get_delta_2';
+if nargin<1;
+flag_verbose=1;
+if (flag_verbose>0); disp(sprintf(' %% testing %s',str_thisfunction)); end;
+k_p_r_max = 48.0/(2*pi); delta_r_max = 0.5/max(1e-12,k_p_r_max); svd_eps = 1e-6; n_delta_v_requested = 128;
+[n_delta_v_out,delta_x_,delta_y_] = get_delta_2(delta_r_max,n_delta_v_requested);
+if (flag_verbose>0); disp(sprintf(' %% n_delta_v_requested %d',n_delta_v_requested)); end;
+if (flag_verbose>0); disp(sprintf(' %% n_delta_v_out %d',n_delta_v_out)); end;
+if (flag_verbose>0); disp(sprintf(' %% delta_x_ %s',num2str(transpose(delta_x_)))); end;
+if (flag_verbose>0); disp(sprintf(' %% delta_y_ %s',num2str(transpose(delta_y_)))); end;
+disp('returning'); return;
+end;%if nargin<1;
+
 if n_delta_v_0in<=1;
 n_delta_v_out = 1; delta_x_ = 0; delta_y_ = 0;
 end;%if n_delta_v_0in<=1;
 
+tolerance_margin = 1e-6;
 if n_delta_v_0in> 1;
 n_x = 1 + floor(sqrt(n_delta_v_0in)); continue_flag=1;
 while continue_flag;
 x_ = linspace(-delta_r_max,+delta_r_max,n_x);
 y_ = linspace(-delta_r_max,+delta_r_max,n_x);
-[X_,Y_] = ndgrid(x_,y_);
-R_ = sqrt(X_.^2 + Y_.^2);
-tmp_ij_ = find(R_(:)<=delta_r_max);
-if numel(tmp_ij_)>=n_delta_v_0in; continue_flag=0; end;
-if numel(tmp_ij_)< n_delta_v_0in; n_x = n_x + 1; continue_flag=1; end;
+[X__,Y__] = ndgrid(x_,y_);
+R__ = sqrt(X__.^2 + Y__.^2);
+tmp_index_ = efind(R__(:)<=delta_r_max+tolerance_margin);
+if numel(tmp_index_)>=n_delta_v_0in; continue_flag=0; end;
+if numel(tmp_index_)< n_delta_v_0in; n_x = n_x + 1; continue_flag=1; end;
 end;%while;
-n_delta_v_out = numel(tmp_ij_);
-delta_x_ = X_(tmp_ij_);
-delta_y_ = Y_(tmp_ij_);
+n_delta_v_out = numel(tmp_index_);
+delta_x_ = X__(1+tmp_index_);
+delta_y_ = Y__(1+tmp_index_);
 if (mod(n_x,2)==0); n_delta_v_out = n_delta_v_out + 1; end;
 if (mod(n_x,2)==0); delta_x_ = [0;delta_x_]; end;
 if (mod(n_x,2)==0); delta_y_ = [0;delta_y_]; end;

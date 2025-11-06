@@ -28,13 +28,13 @@ function W_ = wignerd_b(n_l,beta) ;
   %}
 
 if (n_l>=88); disp(sprintf(' %% Warning, n_l=%d>=88 in wignerd_b',n_l)); end;
-verbose=0;
+flag_verbose=0;
 
 cb = cos(beta/2); sb = sin(beta/2); 
 W_ = cell(1+n_l,1);
 W_{1} = [1];
 for nl=1:n_l;
-if (verbose); disp(sprintf(' \n %% nl %d \n',nl)); end;
+if (flag_verbose); disp(sprintf(' \n %% nl %d \n',nl)); end;
 nlp = nl-1;
 V = W_{nl};
 W = zeros(2*nl+1,2*nl+1);
@@ -64,7 +64,7 @@ W3 = 0; if (abs(nmp-0)<=nlp & abs(nmn+1)<=nlp); W3 = V(1+nlp+(nmp-0),1+nlp+(nmn+
 tmp = sb*cb*C1(nl,nmn,nmp)*W1 + (cb*cb-sb*sb)*C2(nl,nmn,nmp)*W2 - sb*cb*C3(nl,nmn,nmp)*W3;
 end;%if (nl~=-nmp & nl~=+nmp); % use recurrence C ;
 %%%%%%%%%%%%%%%%;
-if (verbose); disp(sprintf(' %% setting W(%d,%d) <-- %f (using %s %f %f %f)',nl+nmp,nl+nmn,tmp,str_tmp,W1,W2,W3)); end;
+if (flag_verbose); disp(sprintf(' %% setting W(%d,%d) <-- %f (using %s %f %f %f)',nl+nmp,nl+nmn,tmp,str_tmp,W1,W2,W3)); end;
 W(1+nl+nmp,1+nl+nmn) = tmp;
 end;end;%for nmn = -nl:+nl; for nmp = -nl:+nl;
 W_{1+nl} = W;
@@ -74,10 +74,10 @@ end;%for nl=1:n_l;
 % Fix condon-shortley-phase ;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 for nl=1:n_l;
-m_ = -nl:+nl;
-s=(-1).^((m_<0).*m_); % needed to preserve condon-shortley phase. ;
-S = transpose(s)*s;
-W_{1+nl} = W_{1+nl}.*S;
+m_ = transpose(-nl:+nl);
+s_=(-1).^((m_<0).*m_); % needed to preserve condon-shortley phase. ;
+S__ = s_*transpose(s_);
+W_{1+nl} = W_{1+nl}.*S__;
 end;%for nl=1:n_l;
 
 %{

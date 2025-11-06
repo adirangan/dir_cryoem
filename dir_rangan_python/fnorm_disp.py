@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as np ; pi = np.pi ; import torch ; import timeit ;
 
 '''
 function errrel = fnorm_disp(flag_verbose,str_v0,v0,str_v1,v1,str_postfix);
@@ -32,25 +32,24 @@ disp(sprintf(' %% %16s %+16.6f vs %16s %+16.6f: r %0.16f%s',str_v0,fnorm(v0),str
 end;%if (flag_verbose>0);
 '''
 def fnorm_disp(flag_verbose, str_v0, v0, str_v1, v1, str_postfix=""):
-    if v0.ndim != v1.ndim:
-        print(f"Warning, {str_v0} ndims(v0) {v0.ndim} != {str_v1} ndims(v1) {v1.ndim}")
-    if v0.size != v1.size:
-        print(f"Warning, {str_v0} numel(v0) {v0.size} != {str_v1} numel(v1) {v1.size}")
+    if np.isscalar(v0): v0 = torch.tensor([v0]) ;
+    if np.isscalar(v1): v1 = torch.tensor([v1]) ;
+    if v0.ndim != v1.ndim: print(f"Warning, {str_v0} ndims(v0) {v0.ndim} != {str_v1} ndims(v1) {v1.ndim}");
+    if v0.size() != v1.size(): print(f"Warning, {str_v0} numel(v0) {v0.size} != {str_v1} numel(v1) {v1.size}");
     
-    d0_ = v0.shape
-    d1_ = v1.shape
-    n_d0 = len(d0_)
-    n_d1 = len(d1_)
+    d0_ = v0.shape;
+    d1_ = v1.shape;
+    n_d0 = len(d0_);
+    n_d1 = len(d1_);
     
     for nd0 in range(n_d0):
-        nd1 = nd0
-        d0 = d0_[nd0]
-        d1 = d1_[nd1]
-        if d0 != d1:
-            print(f"Warning, size({str_v0},1+{nd0}) {d0} != size({str_v1},1+{nd1}) {d1}")
+        nd1 = nd0;
+        d0 = d0_[nd0];
+        d1 = d1_[nd1];
+        if d0 != d1: print(f"Warning, size({str_v0},1+{nd0}) {d0} != size({str_v1},1+{nd1}) {d1}") ;
     
-    errrel = np.linalg.norm(v0 - v1) / max(1e-12, np.linalg.norm(v0))
+    errrel = torch.linalg.norm(v0 - v1) / max(1e-12, torch.linalg.norm(v0)) ;
     if flag_verbose > 0:
-        print(f"{str_v0:>16} {np.linalg.norm(v0):+16.6f} vs {str_v1:>16} {np.linalg.norm(v1):+16.6f}: r {errrel:0.16f}{str_postfix}")
+        print(f"{str_v0:>16} {torch.linalg.norm(v0):+16.6f} vs {str_v1:>16} {torch.linalg.norm(v1):+16.6f}: r {errrel:0.16f}{str_postfix}");
     
-    return errrel
+    return errrel ;

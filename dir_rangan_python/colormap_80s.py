@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as np ; import torch ;
 
 '''
 function output = colormap_80s(n_c,gamma1,gamma2,gamma3);
@@ -47,40 +47,42 @@ c_(m2:end,2) = 0 + 0*tmp3_;
 c_(m2:end,3) = tmp1_;
 output = c_;
 '''
+
 def colormap_80s(n_c=64, gamma1=0.25, gamma2=0.75, gamma3=0.50):
     if n_c < 0:
-        gamma1_ = np.linspace(0, 2, 17)
-        gamma2_ = np.linspace(0, 2, 17)
-        n_c = 64
-        p_ = np.arange(n_c)
-        x_ = np.array([0 + p_, 1 + p_, 1 + p_, 0 + p_, 0 + p_])
-        y_ = np.tile(np.array([0, 0, 1, 1, 0]), (n_c, 1)).T
+        gamma1_ = np.linspace(0, 2, 17);
+        gamma2_ = np.linspace(0, 2, 17);
+        n_c = 64;
+        p_ = np.arange(n_c);
+        x_ = np.array([0 + p_, 1 + p_, 1 + p_, 0 + p_, 0 + p_]);
+        y_ = np.tile(np.array([0, 0, 1, 1, 0]), (n_c, 1)).T;
         for ng1 in range(17):
             for ng2 in range(17):
-                gamma1 = gamma1_[ng1]
-                gamma2 = gamma2_[ng2]
-                c_ = colormap_80s(n_c, gamma1, gamma2).reshape((1, n_c, 3))
-                # Visualization code (e.g., matplotlib) would go here
-                print(f'{gamma1:.2f} {gamma2:.2f}')
-        print(f'gamma3 {gamma3:.2f}')
-        print('returning')
-        return
+                gamma1 = gamma1_[ng1];
+                gamma2 = gamma2_[ng2];
+                c_3c__ = colormap_80s(n_c, gamma1, gamma2).reshape((1, n_c, 3));
+                # Visualization code (e.g., matplotlib) would go here;
+                print(f'{gamma1:.2f} {gamma2:.2f}');
+        print(f'gamma3 {gamma3:.2f}');
+        print('returning');
+        return;
 
-    c_ = np.zeros((n_c, 3))
-    m1 = n_c // 2
-    c_[m1, :] = [0, 0, 0]
-    tmp1_ = np.linspace(1, 0, m1) ** gamma1
-    tmp2_ = np.linspace(1, 0, m1) ** gamma2
-    tmp3_ = np.linspace(1, 0, m1) ** gamma3
-    c_[:m1, 0] = 0 + 0 * tmp3_
-    c_[:m1, 1] = tmp2_
-    c_[:m1, 2] = tmp1_
-    m2 = (n_c + 1) // 2
-    c_[m2 - 1, :] = [0, 0, 0]
-    tmp1_ = np.linspace(0, 1, n_c - m2 + 1) ** gamma1
-    tmp2_ = np.linspace(0, 1, n_c - m2 + 1) ** gamma2
-    tmp3_ = np.linspace(0, 1, n_c - m2 + 1) ** gamma3
-    c_[m2 - 1:, 0] = tmp2_
-    c_[m2 - 1:, 1] = 0 + 0 * tmp3_
-    c_[m2 - 1:, 2] = tmp1_
-    return c_
+    c_3c__ = np.zeros((n_c, 3));
+    m1 = n_c // 2;
+    c_3c__[m1, :] = [0, 0, 0];
+    tmp1_ = np.linspace(1, 0, m1) ** gamma1;
+    tmp2_ = np.linspace(1, 0, m1) ** gamma2;
+    tmp3_ = np.linspace(1, 0, m1) ** gamma3;
+    c_3c__[:m1, 0] = 0 + 0 * tmp3_;
+    c_3c__[:m1, 1] = tmp2_;
+    c_3c__[:m1, 2] = tmp1_;
+    m2 = (n_c + 1) // 2;
+    c_3c__[m2 - 1, :] = [0, 0, 0];
+    tmp1_ = np.linspace(0, 1, n_c - m2 + 1) ** gamma1;
+    tmp2_ = np.linspace(0, 1, n_c - m2 + 1) ** gamma2;
+    tmp3_ = np.linspace(0, 1, n_c - m2 + 1) ** gamma3;
+    c_3c__[m2 - 1:, 0] = tmp2_;
+    c_3c__[m2 - 1:, 1] = 0 + 0 * tmp3_;
+    c_3c__[m2 - 1:, 2] = tmp1_;
+    c_3c__ = torch.tensor(c_3c__).to(dtype=torch.float32);
+    return c_3c__;

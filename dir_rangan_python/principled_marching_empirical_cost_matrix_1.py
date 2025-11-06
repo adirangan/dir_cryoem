@@ -1,0 +1,73 @@
+import numpy as np ; pi = np.pi ; i = 1j ; import torch ; import timeit ;
+from matlab_index_2d_0 import matlab_index_2d_0 ;
+from matlab_index_3d_0 import matlab_index_3d_0 ;
+from matlab_index_4d_0 import matlab_index_4d_0 ;
+from matlab_scalar_round import matlab_scalar_round ;
+from interp_p_to_q import interp_p_to_q ;
+numel_unique = lambda a : np.unique(a.numpy().ravel()).size ;
+cumsum_0 = lambda a : torch.cumsum(torch.concatenate((torch.tensor([0]),a)) , 0).to(torch.int32) ;
+fnorm = lambda a : torch.linalg.norm(a).item() ;
+mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
+msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
+mts = lambda a : tuple(len(a) - x - 1 for x in a) ; #<-- for permute (i.e., tuple subtract (...)). ;
+tic = lambda : timeit.default_timer() ;
+toc = lambda a : tic() - a ;
+mmmm = lambda A , B : torch.einsum( msr('ab') + ',' + msr('bc') + '->' + msr('ac') , A , B ) ; #<-- matlab matrix matrix multiplication. ;
+mmvm = lambda A , B : torch.einsum( msr('ab') + ',' +  msr('b') + '->' +  msr('a') , A , B ) ; #<-- matlab matrix vector multiplication. ;
+mvmm = lambda A , B : torch.einsum(  msr('b') + ',' + msr('bc') + '->' +  msr('c') , A , B ) ; #<-- matlab vector matrix multiplication. ;
+mvvm = lambda A , B : torch.einsum(  msr('b') + ',' +  msr('b') + '->' +   msr('') , A , B ) ; #<-- matlab vector vector multiplication. ;
+n_1 = int(1); n_2 = int(2); n_3 = int(3);
+
+def principled_marching_empirical_cost_matrix_1(
+        n_k_p_r=None,
+        k_p_r_=None,
+        weight_2d_k_p_r_=None,
+        n_w_=None,
+        n_M=None,
+        M_k_p_wkM__=None,        
+):
+    flag_verbose = 0;
+    str_thisfunction = 'principled_marching_empirical_cost_matrix_1';
+
+    if flag_verbose > 0: print(f' %% [entering {str_thisfunction}]');
+
+    n_w_max = int(torch.max(n_w_).item());
+    n_w_sum = int(torch.sum(n_w_).item());
+    n_w_csum_ = cumsum_0(n_w_);
+
+    M_k_q_wkM__ = interp_p_to_q(n_k_p_r,n_w_,n_w_sum,M_k_p_wkM__);
+    if numel_unique(n_w_)> 1:
+        print(f' %% Warning: numel_unique(n_w_)> 1 not implemented in {str_thisfunction}');
+    #end;%if numel(unique(n_w_))> 1;
+    if numel_unique(n_w_)==1:
+        M_k_q_rwM___ = torch.permute(torch.reshape(M_k_q_wkM__,mtr((n_w_max,n_k_p_r,n_M))),mtr(mts((1,0,2)))); 
+        tmp_index_lhs_ = matlab_index_3d_0(n_k_p_r,':',n_w_max,int(n_w_max/2),n_M,':');
+        M_k_q_rwM___.ravel()[tmp_index_lhs_] = 0.0;
+    #end;%if numel(unique(n_w_))==1;
+
+    X_00_kk__ = torch.zeros(n_k_p_r,n_k_p_r).to(dtype=torch.float32);
+    for nM in range(n_M):
+        M_k_q_rw__ = M_k_q_rwM___[nM,:,:];
+        tmp_X_00_kk__ = mmmm( torch.conj(M_k_q_rw__) , M_k_q_rw__.T );
+        X_00_kk__ = X_00_kk__ + tmp_X_00_kk__;
+    #end;%for nM=0:n_M-1;
+    X_00_kk__ = (2*pi)**2 * X_00_kk__ / np.maximum(1,n_M) ;
+
+    X_01_kk__ = torch.zeros(n_k_p_r,n_k_p_r).to(dtype=torch.float32);
+    tmp_index_rhs_ = matlab_index_3d_0(n_k_p_r,':',n_w_max,0,n_M,':');
+    M_k_q_r0M_ = torch.sum(torch.reshape(M_k_q_rwM___.ravel()[tmp_index_rhs_],mtr((n_k_p_r,n_M))),1-1);
+    X_01_kk__ = (2*pi)**2 * torch.reshape(torch.conj(M_k_q_r0M_),mtr((n_k_p_r,1))) * torch.reshape(M_k_q_r0M_,mtr((1,n_k_p_r))) / np.maximum(1,n_M**2) ;
+
+    X_weight_r_ = torch.zeros(n_k_p_r).to(dtype=torch.float32);
+    for nk_p_r in range(n_k_p_r):
+        X_weight_r_[nk_p_r] = np.sqrt(weight_2d_k_p_r_[nk_p_r]);
+    #end;%for nk_p_r=0:n_k_p_r-1;
+
+    X_kk__ = mmmm( torch.diagflat(X_weight_r_).to(dtype=torch.float32) , mmmm( (2*torch.real(X_00_kk__) - 2*torch.real(X_01_kk__)) , torch.diagflat(X_weight_r_).to(dtype=torch.float32) ) ) ;
+
+    if flag_verbose > 0: print(f' %% [finished {str_thisfunction}]');
+
+    return(
+        X_kk__,
+        X_weight_r_,
+    );

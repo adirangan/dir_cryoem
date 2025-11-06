@@ -41,3 +41,4 @@ X_weight_r_(1+nk_p_r) = sqrt(weight_2d_k_p_r_(1+nk_p_r));
 end;%for nk_p_r=0:n_k_p_r-1;
 
 X__ = diag(X_weight_r_) * (2*real(X_00__) - 2*real(X_01__)) * diag(X_weight_r_) ;
+

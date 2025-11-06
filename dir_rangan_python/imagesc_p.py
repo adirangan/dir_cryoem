@@ -1,6 +1,16 @@
-import numpy as np
+import numpy as np ; pi = np.pi ; i = 1j ; import torch ; import timeit ;
+from matlab_index_2d_0 import matlab_index_2d_0 ;
+from matlab_index_3d_0 import matlab_index_3d_0 ;
+from matlab_index_4d_0 import matlab_index_4d_0 ;
+from matlab_scalar_round import matlab_scalar_round ;
+from i4_torch_arange import i4_torch_arange ;
+from fnorm_disp import fnorm_disp ;
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
+mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
+msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
+mts = lambda a : tuple(len(a) - x - 1 for x in a) ; #<-- for permute (i.e., tuple subtract (...)). ;
+n_1 = 1; n_2 = 2; n_3 = 3;
 
 '''
 function clim = imagesc_p(n_r,grid_p_,n_w_,n_A,S_p_,clim,cra_);
@@ -63,49 +73,55 @@ p=patch(X_,Y_,C_); set(p,'EdgeColor','none');
 '''
 import matplotlib.pyplot as plt
 
-def imagesc_p(ax,n_r, grid_p_, n_w_, n_A, S_p_, clim=None, cra_=None):
-    if clim is None:
-        clim = np.mean(S_p_) + 2.5 * np.std(S_p_) * np.array([-1, 1])
-    if cra_ is None:
-        cra_ = plt.cm.viridis(np.linspace(0, 1, 256))  # Default colormap
+def imagesc_p(
+        ax,
+        n_r,
+        grid_p_,
+        n_w_,
+        n_w_sum,
+        S_p_,
+        clim_=None,
+        c_3c__=None,
+):
+    if clim_ is None: clim_ = torch.mean(S_p_).item() + 2.5 * torch.std(S_p_).item() * torch.tensor([-1,+1]).to(dtype=torch.float32);
+    if c_3c__ is None: c_3c__ = torch.tensor(plt.cm.viridis(np.linspace(0, 1, 256))).to(dtype=torch.float32);  # Default colormap
 
-    r0_ = np.zeros(n_A)
-    r1_ = np.zeros(n_A)
-    w0_ = np.zeros(n_A)
-    w1_ = np.zeros(n_A)
-    ncra = cra_.shape[0]
-    C_ = np.zeros((n_A, 3))
-    ic = 0
-    patches = []
-
+    r0_ = torch.zeros(n_w_sum).to(dtype=torch.float32)
+    r1_ = torch.zeros(n_w_sum).to(dtype=torch.float32)
+    w0_ = torch.zeros(n_w_sum).to(dtype=torch.float32)
+    w1_ = torch.zeros(n_w_sum).to(dtype=torch.float32)
+    n_c = int(c_3c__.size()[0]);
+    C_3a__ = torch.zeros(mtr((n_3,n_w_sum))).to(dtype=torch.float32);
+    nw_sum = 0;
+    patches = [];
     for nr in range(n_r):
-        r = grid_p_[nr]
-        r_pre = grid_p_[0] if nr == 0 else 0.5 * (grid_p_[nr - 1] + grid_p_[nr])
-        r_pos = grid_p_[-1] if nr == n_r - 1 else 0.5 * (grid_p_[nr + 1] + grid_p_[nr])
+        r = grid_p_[nr].item();
+        r_pre = grid_p_[ 0].item() if nr ==       0 else 0.5 * (grid_p_[nr - 1].item() + grid_p_[nr].item());
+        r_pos = grid_p_[-1].item() if nr == n_r - 1 else 0.5 * (grid_p_[nr + 1].item() + grid_p_[nr].item());
         if n_r == 1:
-            r_pre = grid_p_[-1] / 4.0
-            r_pos = grid_p_[-1]
-        n_w = n_w_[nr]
-        dw = 2 * np.pi / n_w
-
+            r_pre = grid_p_[-1] / 4.0 ;
+            r_pos = grid_p_[-1] / 1.0 ;
+        n_w = int(n_w_[nr].item()) ;
+        dw = 2 * pi / np.maximum(1,n_w) ;
         for nw in range(n_w):
-            w_pre = nw * dw - 0.5 * dw
-            w_pos = nw * dw + 0.5 * dw
-            r0_[ic] = r_pre
-            r1_[ic] = r_pos
-            w0_[ic] = w_pre
-            w1_[ic] = w_pos
-            nc = max(0, min(ncra - 1, int(ncra * (S_p_[ic] - clim[0]) / (clim[1] - clim[0]))))
-            C_[ic, :] = cra_[nc, :]
-            x = [r0_[ic] * np.cos(w0_[ic]), r1_[ic] * np.cos(w0_[ic]),
-                 r1_[ic] * np.cos(w1_[ic]), r0_[ic] * np.cos(w1_[ic]), r0_[ic] * np.cos(w0_[ic])]
-            y = [r0_[ic] * np.sin(w0_[ic]), r1_[ic] * np.sin(w0_[ic]),
-                 r1_[ic] * np.sin(w1_[ic]), r0_[ic] * np.sin(w1_[ic]), r0_[ic] * np.sin(w0_[ic])]
-            polygon = Polygon(np.column_stack((x, y)), True)
-            patches.append(polygon)
-            ic += 1
+            w_pre = nw * dw - 0.5 * dw ;
+            w_pos = nw * dw + 0.5 * dw ;
+            r0_[nw_sum] = r_pre ;
+            r1_[nw_sum] = r_pos ;
+            w0_[nw_sum] = w_pre ;
+            w1_[nw_sum] = w_pos ;
+            nc = int(np.maximum(0, np.minimum(n_c - 1, int(n_c * (S_p_[nw_sum].item() - clim_[0].item()) / np.maximum(1e-12,clim_[1].item() - clim_[0].item())))));
+            C_3a__[nw_sum, :] = c_3c__[nc, :] ;
+            x = [ r0_[nw_sum].item() * np.cos(w0_[nw_sum].item()), r1_[nw_sum].item() * np.cos(w0_[nw_sum].item()), r1_[nw_sum].item() * np.cos(w1_[nw_sum].item()), r0_[nw_sum].item() * np.cos(w1_[nw_sum].item()), r0_[nw_sum].item() * np.cos(w0_[nw_sum].item()) ] ;
+            y = [ r0_[nw_sum].item() * np.sin(w0_[nw_sum].item()), r1_[nw_sum].item() * np.sin(w0_[nw_sum].item()), r1_[nw_sum].item() * np.sin(w1_[nw_sum].item()), r0_[nw_sum].item() * np.sin(w1_[nw_sum].item()), r0_[nw_sum].item() * np.sin(w0_[nw_sum].item()) ] ;
+            polygon = Polygon(np.column_stack((x, y)), closed=True) ;
+            patches.append(polygon) ;
+            nw_sum += 1 ;
+        #end;%for nw in range(n_w):
+    #end;%for nr in range(n_r):
+    assert(nw_sum==n_w_sum);
 
-    p = PatchCollection(patches, edgecolor='none', linewidth=0)
-    p.set_facecolor(C_)
-    ax.add_collection(p)
-    ax.set_aspect('equal')
+    p = PatchCollection(patches, edgecolor='none', linewidth=0) ;
+    p.set_facecolor(C_3a__.numpy()) ;
+    ax.add_collection(p) ;
+    ax.set_aspect('equal') ;

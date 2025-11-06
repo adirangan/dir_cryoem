@@ -17,7 +17,7 @@ disp('returning'); return;
 end;%if (nargin<1);
 
 try;
-ier=0; fk = finufft2d1(xj,yj,cj,iflag,eps,ms,mt) / nj ;
+ier=0; fk = finufft2d1(xj,yj,cj,iflag,eps,ms,mt) / max(1,nj) ;
 catch;
 [fk,ier] = nufft2d1(nj,xj,yj,cj,iflag,eps,ms,mt) ;
 end;%try;

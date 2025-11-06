@@ -1,5 +1,11 @@
-import numpy as np
+import numpy as np ; pi = np.pi ; import torch ; import timeit ;
+from matlab_index_2d_0 import matlab_index_2d_0 ;
+from matlab_index_3d_0 import matlab_index_3d_0 ;
+from matlab_index_4d_0 import matlab_index_4d_0 ;
 from matlab_scalar_round import matlab_scalar_round
+from matlab_scalar_round import matlab_scalar_round
+cumsum_0 = lambda a : torch.cumsum(torch.concatenate((torch.tensor([0]),a)) , 0).to(torch.int32) ;
+mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
 
 '''
 function ...
@@ -124,88 +130,83 @@ end;%for nk_p_r=0:n_k_p_r-1;
 if (flag_verbose>0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;
 '''
 def get_weight_2d_2(
-        flag_verbose,
-        n_k_p_r,
-        k_p_r_,
-        k_p_r_max,
-        template_k_eq_d,
-        n_w_0in_,
-        weight_3d_k_p_r_,
+        flag_verbose=None,
+        n_k_p_r=None,
+        k_p_r_=None,
+        k_p_r_max=None,
+        template_k_eq_d=None,
+        n_w_0in_=None,
+        weight_3d_k_p_r_=None,
 ):
 
-    if flag_verbose is None:
-        flag_verbose = 0
+    if flag_verbose is None: flag_verbose = 0 ;
 
-    if flag_verbose > 0:
-        print(f" %% [entering get_weight_2d_2]")
+    if flag_verbose > 0: print(f" %% [entering get_weight_2d_2]") ;
 
-    flag_calc = 0
-    if n_k_p_r is None or k_p_r_ is None or weight_3d_k_p_r_ is None:
-        flag_calc = 1
+    flag_calc = 0;
+    if n_k_p_r is None or k_p_r_ is None or weight_3d_k_p_r_ is None: flag_calc = 1 ;
 
-    if flag_calc:
-        print(f" %% Warning, precomputation required")
+    if flag_calc: print(f" %% Warning, precomputation required") ;
 
-    if template_k_eq_d is None:
-        template_k_eq_d = -1
+    if template_k_eq_d is None: template_k_eq_d = -1 ;
     if n_w_0in_ is None:
-        if flag_verbose > 0:
-            print(f" %% calculating n_w_0in_")
-        l_max_upb = matlab_scalar_round(2 * np.pi * k_p_r_max)
-        n_w_max = 2 * (l_max_upb + 1)
-        n_w_0in_ = n_w_max * np.ones(n_k_p_r, dtype=int)
+        if flag_verbose > 0: print(f" %% calculating n_w_0in_") ;
+        l_max_upb = matlab_scalar_round(2 * pi * k_p_r_max) ;
+        n_w_max = 2 * (l_max_upb + 1) ;
+        n_w_0in_ = n_w_max * torch.ones(n_k_p_r).to(dtype=torch.int32) ;
+    #end;%if;
 
-    n_w_ = np.zeros(n_k_p_r, dtype=int)
+    n_w_ = torch.zeros(n_k_p_r).to(dtype=torch.int32)
     if template_k_eq_d > 0:
         if flag_verbose > 0:
             print(f" %% template_k_eq_d > 0")
         for nk_p_r in range(n_k_p_r):
-            k_p_r = k_p_r_[nk_p_r]
-            n_equator = 3 + matlab_scalar_round(2 * np.pi * k_p_r / template_k_eq_d)
-            n_polar_a = 3 + matlab_scalar_round(n_equator / 2)
-            n_w_[nk_p_r] = 2 * n_polar_a
+            k_p_r = k_p_r_[nk_p_r].item() ;
+            n_equator = 3 + matlab_scalar_round(2 * pi * k_p_r / template_k_eq_d) ;
+            n_polar_a = 3 + matlab_scalar_round(n_equator / 2) ;
+            n_w_[nk_p_r] = 2 * n_polar_a ;
     else:
-        if flag_verbose > 0:
-            print(f" %% template_k_eq_d <= 0")
-        n_w_ = n_w_0in_
-        assert len(n_w_) == n_k_p_r and np.min(n_w_) > 0
+        if flag_verbose > 0: print(f" %% template_k_eq_d <= 0") ;
+        n_w_ = n_w_0in_.detach().clone() ;
+        assert n_w_.numel() == n_k_p_r and torch.min(n_w_) > 0 ;
+    #end;%ifelse;
 
-    n_w_ = np.array(n_w_, dtype=int)
-    n_w_max = np.max(n_w_)
-    n_w_sum = np.sum(n_w_)
-    n_w_csum_ = np.cumsum(np.concatenate(([0], n_w_)))
+    n_w_max = int(torch.max(n_w_).item()) ;
+    n_w_sum = int(torch.sum(n_w_).item()) ;
+    n_w_csum_ = cumsum_0(n_w_);
 
-    if flag_verbose > 0:
-        print(f" %% n_w_max {n_w_max} n_w_sum {n_w_sum}")
+    if flag_verbose > 0: print(f" %% n_w_max {n_w_max} n_w_sum {n_w_sum}") ;
 
-    weight_2d_k_p_r_ = 2 * np.pi * np.reshape(weight_3d_k_p_r_, n_k_p_r) / np.maximum(1e-12,k_p_r_)
+    weight_2d_k_p_r_ = 2 * pi * torch.reshape(weight_3d_k_p_r_, (n_k_p_r,)) / torch.maximum(torch.tensor([1e-12]),k_p_r_) ; weight_2d_k_p_r_ = weight_2d_k_p_r_.to(dtype=torch.float32);
 
-    weight_2d_k_p_wk_ = np.zeros(n_w_sum)
+    weight_2d_k_p_wk_ = torch.zeros(n_w_sum).to(dtype=torch.float32) ;
     for nk_p_r in range(n_k_p_r):
-        tmp_index_ = n_w_csum_[nk_p_r] + np.arange(n_w_[nk_p_r])
-        weight_2d_k_p_wk_[tmp_index_] = weight_2d_k_p_r_[nk_p_r] / np.maximum(1, n_w_[nk_p_r]) / (2 * np.pi) ** 2
+        tmp_index_ = int(n_w_csum_[nk_p_r].item()) + torch.arange(int(n_w_[nk_p_r].item()),dtype=torch.int32) ;
+        weight_2d_k_p_wk_[tmp_index_] = weight_2d_k_p_r_[nk_p_r].item() / max(1,int(n_w_[nk_p_r].item())) / (2 * pi) ** 2 ;
+    #end;%for;
 
-    k_c_0_wk_ = np.zeros(n_w_sum)
-    k_c_1_wk_ = np.zeros(n_w_sum)
-    k_p_r_wk_ = np.zeros(n_w_sum)
-    k_p_w_wk_ = np.zeros(n_w_sum)
+    k_c_0_wk_ = torch.zeros(n_w_sum).to(dtype=torch.float32);
+    k_c_1_wk_ = torch.zeros(n_w_sum).to(dtype=torch.float32);
+    k_p_r_wk_ = torch.zeros(n_w_sum).to(dtype=torch.float32);
+    k_p_w_wk_ = torch.zeros(n_w_sum).to(dtype=torch.float32);
 
-    na = 0
+    na = 0;
     for nk_p_r in range(n_k_p_r):
-        n_w = n_w_[nk_p_r]
-        k_p_r = k_p_r_[nk_p_r]
+        n_w = int(n_w_[nk_p_r].item()) ;
+        k_p_r = k_p_r_[nk_p_r].item() ;
         for nw in range(n_w):
-            gamma_z = (2 * np.pi) * nw / np.maximum(1, n_w)
-            cc = np.cos(gamma_z)
-            sc = np.sin(gamma_z)
-            k_c_0_wk_[na] = k_p_r * cc
-            k_c_1_wk_[na] = k_p_r * sc
-            k_p_r_wk_[na] = k_p_r
-            k_p_w_wk_[na] = gamma_z
-            na += 1
+            gamma_z = (2 * pi) * nw / max(1, n_w) ;
+            cc = np.cos(gamma_z) ;
+            sc = np.sin(gamma_z) ;
+            k_c_0_wk_[na] = k_p_r * cc ;
+            k_c_1_wk_[na] = k_p_r * sc ;
+            k_p_r_wk_[na] = k_p_r ;
+            k_p_w_wk_[na] = gamma_z ;
+            na += 1 ;
+        #end;%for;
+    #end;%for;
 
-    if flag_verbose > 0:
-        print(f" %% [finished get_weight_2d_2]")
+    if flag_verbose > 0: print(f" %% [finished get_weight_2d_2]") ;
 
     return (
         n_w_,
@@ -215,4 +216,4 @@ def get_weight_2d_2(
         k_p_w_wk_,
         k_c_0_wk_,
         k_c_1_wk_,
-    )
+    ) ;

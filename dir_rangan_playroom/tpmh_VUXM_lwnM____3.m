@@ -1,18 +1,33 @@
-function VUXM_lwnM____ = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M,M_k_q__,n_UX_rank,UX__,X_weight_r_);
+function ...
+[ ...
+  VUXM_lwnM____ ...
+] = ....
+tpmh_VUXM_lwnM____3( ...
+ FTK ...
+,n_k_p_r ...
+,n_w_ ...
+,n_M ...
+,M_k_q__ ...
+,n_UX_rank ...
+,UX_kn__ ...
+,X_weight_r_ ...
+);
 
-verbose=0;
+flag_verbose=0;
 n_w_max = max(n_w_); n_w_2 = round(n_w_max/2);
 l_max = max(abs(FTK.svd_l_));
 %%%%%%%%;
 
 %%%%%%%%;
 tmp_t = tic();
-V_r__ = reshape(FTK.svd_polyval_V_r_,[FTK.n_svd_l,n_k_p_r]);
-tmp_t = toc(tmp_t); if (verbose); disp(sprintf(' %% V_r__ %0.6fs',tmp_t)); end;
+if isfield(FTK,'svd_polyval_V_r_'); V_r__ = reshape(FTK.svd_polyval_V_r_,[FTK.n_svd_l,n_k_p_r]); end;
+if isfield(FTK,'svd_chebval_V_r_'); V_r__ = reshape(FTK.svd_chebval_V_r_,[FTK.n_svd_l,n_k_p_r]); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% V_r__ %0.6fs',tmp_t)); end;
 V_UX_lrn___ = zeros(FTK.n_svd_l,n_k_p_r,n_UX_rank);
 for nUX_rank=0:n_UX_rank-1;
-V_UX_lrn___(:,:,1+nUX_rank) = V_r__*diag(UX__(:,1+nUX_rank).*X_weight_r_(:));
+V_UX_lrn___(:,:,1+nUX_rank) = V_r__*diag(UX_kn__(:,1+nUX_rank).*X_weight_r_(:));
 end;%for nUX_rank=0:n_UX_rank-1;
+V_UX_nrl___ = permute(V_UX_lrn___,1+[2,1,0]);
 %%%%%%%%;
 index_nw_out__ = cell(1+2*l_max,1);
 index_nw_0in__ = cell(1+2*l_max,1);
@@ -44,7 +59,28 @@ index_nw_centered_0in_start_(1+l_max+l_shift) = 1+max(0,+l_shift);
 index_nw_centered_0in_final_(1+l_max+l_shift) = n_w_max-1+min(0,+l_shift);
 end;%for l_shift=-l_max:+l_max;
 %%%%%%%%;
-M_k_q_centered_rwM___ = permute(reshape(M_k_q__,[n_w_max,n_k_p_r,n_M]),[2,1,3]);
+M_k_q_centered_rwM___ = permute(reshape(M_k_q__,[n_w_max,n_k_p_r,n_M]),1+[1,0,2]);
+M_k_q_centered_rwM___ = M_k_q_centered_rwM___(:,1+index_nw_centered_from_zerobased_,:);
+%%%%%%%%;
+VUXM_centered_nwMl____ = zeros(n_UX_rank,n_w_max,n_M,FTK.n_svd_l);
+for nl=0:FTK.n_svd_l-1;
+l_shift = FTK.svd_l_(1+nl);
+index_nw_centered_out_start = index_nw_centered_out_start_(1+l_max+l_shift);
+index_nw_centered_out_final = index_nw_centered_out_final_(1+l_max+l_shift);
+index_nw_centered_0in_start = index_nw_centered_0in_start_(1+l_max+l_shift);
+index_nw_centered_0in_final = index_nw_centered_0in_final_(1+l_max+l_shift);
+index_nw_centered_out_ = [index_nw_centered_out_start:index_nw_centered_out_final];
+index_nw_centered_0in_ = [index_nw_centered_0in_start:index_nw_centered_0in_final];
+n_nw = numel(index_nw_centered_out_);
+VUXM_centered_nwMl____(:,1+index_nw_centered_out_,:,1+nl) = reshape(V_UX_nrl___(:,:,1+nl)*reshape(M_k_q_centered_rwM___(:,1+index_nw_centered_0in_,:),[n_k_p_r,n_nw*n_M]) / max(1,n_w_max),[n_UX_rank,n_nw,n_M]) ;
+end;%for nl=0:FTK.n_svd_l-1;
+VUXM_lwnM____ = permute(VUXM_centered_nwMl____(:,1+index_nw_zerobased_from_centered_,:,:),1+[3,1,0,2]);
+
+%{
+%%%%%%%%;
+% alternative (slower) calculation. ;
+%%%%%%%%;
+M_k_q_centered_rwM___ = permute(reshape(M_k_q__,[n_w_max,n_k_p_r,n_M]),1+[1,0,2]);
 M_k_q_centered_rwM___ = M_k_q_centered_rwM___(:,1+index_nw_centered_from_zerobased_,:);
 %%%%%%%%;
 VUXM_centered_lwMn____ = zeros(FTK.n_svd_l,n_w_max,n_M,n_UX_rank);
@@ -63,5 +99,5 @@ VUXM_centered_lwMn____(1+nl,1+index_nw_centered_out_,1+nM,1+nUX_rank) = V_UX_lrn
 end;%for nM=0:n_M-1;
 end;%for nUX_rank=0:n_UX_rank-1;
 end;%for nl=0:FTK.n_svd_l-1;
-VUXM_lwnM____ = permute(VUXM_centered_lwMn____(:,1+index_nw_zerobased_from_centered_,:,:),[1,2,4,3]);
-
+VUXM_lwnM____ = permute(VUXM_centered_lwMn____(:,1+index_nw_zerobased_from_centered_,:,:),1+[0,1,3,2]);
+%}
