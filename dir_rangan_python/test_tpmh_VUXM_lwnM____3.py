@@ -1,27 +1,11 @@
-import numpy as np ; pi = np.pi ; i = 1j ; import torch ; import timeit ;
-from matlab_index_2d_0 import matlab_index_2d_0 ;
-from matlab_index_3d_0 import matlab_index_3d_0 ;
-from matlab_index_4d_0 import matlab_index_4d_0 ;
-from matlab_scalar_round import matlab_scalar_round ;
+exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ; #<-- warning, avoid recursion. ;
 from get_weight_3d_1 import get_weight_3d_1 ;
 from get_weight_2d_2 import get_weight_2d_2 ;
 from principled_marching_empirical_cost_matrix_1 import principled_marching_empirical_cost_matrix_1 ;
 from interp_p_to_q import interp_p_to_q ;
-from ampmh_FTK_2 import ampmh_FTK_2 ;
+from tfh_FTK_2 import tfh_FTK_2 ;
 from tpmh_VUXM_lwnM____3 import tpmh_VUXM_lwnM____3 ;
-numel_unique = lambda a : np.unique(a.numpy().ravel()).size ;
-cumsum_0 = lambda a : torch.cumsum(torch.concatenate((torch.tensor([0]),a)) , 0).to(torch.int32) ;
-fnorm = lambda a : torch.linalg.norm(a).item() ;
-mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
-msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
-mts = lambda a : tuple(len(a) - x - 1 for x in a) ; #<-- for permute (i.e., tuple subtract (...)). ;
-tic = lambda : timeit.default_timer() ;
-toc = lambda a : tic() - a ;
-mmmm = lambda A , B : torch.einsum( msr('ab') + ',' + msr('bc') + '->' + msr('ac') , A , B ) ; #<-- matlab matrix matrix multiplication. ;
-mmvm = lambda A , B : torch.einsum( msr('ab') + ',' +  msr('b') + '->' +  msr('a') , A , B ) ; #<-- matlab matrix vector multiplication. ;
-mvmm = lambda A , B : torch.einsum(  msr('b') + ',' + msr('bc') + '->' +  msr('c') , A , B ) ; #<-- matlab vector matrix multiplication. ;
-mvvm = lambda A , B : torch.einsum(  msr('b') + ',' +  msr('b') + '->' +   msr('') , A , B ) ; #<-- matlab vector vector multiplication. ;
-n_1 = int(1); n_2 = int(2); n_3 = int(3);
+from tpmh_VUXM_gpu_lwnM____4 import tpmh_VUXM_gpu_lwnM____4 ;
 
 flag_verbose=1; flag_disp=0;nf=0;
 print(f' %% testing tpmh_VUXM_lwnM____3');
@@ -97,10 +81,16 @@ UX_kn__.ravel()[tmp_index_] = tmp_UX_kn__.ravel()[tmp_index_].to(dtype=torch.flo
 
 #%%%%%%%%;
 delta_r_max = 0.5/np.maximum(1e-12,k_p_r_max); svd_eps = 1e-6; n_delta_v_requested = 128;
-FTK = ampmh_FTK_2(n_k_p_r,k_p_r_.to(dtype=torch.float64),k_p_r_max,delta_r_max,svd_eps,n_delta_v_requested);
+FTK = tfh_FTK_2(n_k_p_r,k_p_r_.to(dtype=torch.float64),k_p_r_max,delta_r_max,svd_eps,n_delta_v_requested);
 CTF_M_k_p_wkM__ = CTF_k_p_wk_.to(dtype=torch.complex64) * M_k_p_wkM__.to(dtype=torch.complex64) ;
 CTF_M_k_q_wkM__ = interp_p_to_q(n_k_p_r,n_w_,n_w_sum,CTF_M_k_p_wkM__);
 svd_VUXCTFM_lwnM____ = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M,CTF_M_k_q_wkM__,pm_n_UX_rank,UX_kn__,X_weight_r_);
+#%%%%%%%%;
+device_use = 'cpu';
+svd_VUXCTFM_cpu_lwnM____ = tpmh_VUXM_gpu_lwnM____4(device_use,FTK,n_k_p_r,n_w_,n_M,CTF_M_k_q_wkM__,pm_n_UX_rank,UX_kn__,X_weight_r_);
+#%%%%%%%%;
+device_use = 'cuda';
+svd_VUXCTFM_gpu_lwnM____ = tpmh_VUXM_gpu_lwnM____4(device_use,FTK,n_k_p_r,n_w_,n_M,CTF_M_k_q_wkM__,pm_n_UX_rank,UX_kn__,X_weight_r_);
 #%%%%%%%%;
 
 dir_base = '/data/rangan' ;
@@ -112,4 +102,10 @@ np.savetxt(fname_ascii,UX_kn__.numpy().ravel());
 fname_ascii = dir_ascii + '/svd_VUXCTFM_lwnM____.ascii'
 print(f' %% writing fname_ascii: {fname_ascii}');
 np.savetxt(fname_ascii,svd_VUXCTFM_lwnM____.numpy().ravel());
+fname_ascii = dir_ascii + '/svd_VUXCTFM_cpu_lwnM____.ascii'
+print(f' %% writing fname_ascii: {fname_ascii}');
+np.savetxt(fname_ascii,svd_VUXCTFM_cpu_lwnM____.numpy().ravel());
+fname_ascii = dir_ascii + '/svd_VUXCTFM_gpu_lwnM____.ascii'
+print(f' %% writing fname_ascii: {fname_ascii}');
+np.savetxt(fname_ascii,svd_VUXCTFM_gpu_lwnM____.cpu().numpy().ravel());
 

@@ -1,18 +1,5 @@
-import numpy as np ; pi = np.pi ; i = 1j ; import torch ; import timeit ;
-from matlab_index_2d_0 import matlab_index_2d_0 ;
-from matlab_index_3d_0 import matlab_index_3d_0 ;
-from matlab_index_4d_0 import matlab_index_4d_0 ;
+exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ;
 from ylgndr_2 import ylgndr_2 ;
-mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
-msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
-mts = lambda a : tuple(len(a) - x - 1 for x in a) ; #<-- for permute (i.e., tuple subtract (...)). ;
-tic = lambda : timeit.default_timer() ;
-toc = lambda a : tic() - a ;
-mmmm = lambda A , B : torch.einsum( msr('ab') + ',' + msr('bc') + '->' + msr('ac') , A , B ) ; #<-- matlab matrix matrix multiplication. ;
-mmvm = lambda A , B : torch.einsum( msr('ab') + ',' +  msr('b') + '->' +  msr('a') , A , B ) ; #<-- matlab matrix vector multiplication. ;
-mvmm = lambda A , B : torch.einsum(  msr('b') + ',' + msr('bc') + '->' +  msr('c') , A , B ) ; #<-- matlab vector matrix multiplication. ;
-mvvm = lambda A , B : torch.einsum(  msr('b') + ',' +  msr('b') + '->' +   msr('') , A , B ) ; #<-- matlab vector vector multiplication. ;
-n_1 = int(1); n_2 = int(2); n_3 = int(3);
 
 def wignerd_c(
     parameter=None,
@@ -52,11 +39,11 @@ def wignerd_c(
 
   if flag_precomputation:
     if (flag_verbose>0): print(f' %% flag_precomputation: {flag_precomputation} l_max {l_max}');
-    V_lmm___ = [[] for _ in range(1+l_max)]; #<-- cell array. ;
-    L_lm__ = [[] for _ in range(1+l_max)]; #<-- cell array. ;
+    V_lmm___ = cell(1+l_max); #<-- cell array. ;
+    L_lm__ = cell(1+l_max); #<-- cell array. ;
     for l_val in range(l_max+1):
       m_val_ = torch.arange(-l_val,+l_val+1).to(dtype=torch.int32);
-      n_m_val = m_val_.numel();
+      n_m_val = numel(m_val_);
       X_ = torch.sqrt( (l_val + m_val_) * (1 + l_val - m_val_) ); 
       X_frwd_ = -X_ ;
       X_back_ = +torch.flip(X_,(0,));
@@ -69,13 +56,13 @@ def wignerd_c(
   #end;%if flag_precomputation;
 
   d0W_ = None; d1W_ = None;  d2W_ = None;
-  if (flag_d0): d0W_ = [[] for _ in range(1+l_max)]; d0W_[0] = torch.ones(mtr((1,1))).to(dtype=torch.float32);
-  if (flag_d1): d1W_ = [[] for _ in range(1+l_max)]; d1W_[0] = torch.zeros(mtr((1,1))).to(dtype=torch.float32);
-  if (flag_d2): d2W_ = [[] for _ in range(1+l_max)]; d2W_[0] = torch.zeros(mtr((1,1))).to(dtype=torch.float32);
+  if (flag_d0): d0W_ = cell(1+l_max); d0W_[0] = torch.ones(mtr((1,1))).to(dtype=torch.float32);
+  if (flag_d1): d1W_ = cell(1+l_max); d1W_[0] = torch.zeros(mtr((1,1))).to(dtype=torch.float32);
+  if (flag_d2): d2W_ = cell(1+l_max); d2W_[0] = torch.zeros(mtr((1,1))).to(dtype=torch.float32);
   #%%%%%%%%;
   for l_val in range(1,l_max+1):
     m_val_ = torch.arange(-l_val,+l_val+1).to(dtype=torch.int32);
-    n_m_val = m_val_.numel();
+    n_m_val = numel(m_val_);
     sgn_ = (-1)**m_val_ * (m_val_>=0) + (+1)*(m_val_< 0);
     sgn__ = torch.reshape(sgn_,mtr((n_m_val,1))) * torch.reshape(sgn_,mtr((1,n_m_val))) ;
     V_mm__ = V_lmm___[l_val];

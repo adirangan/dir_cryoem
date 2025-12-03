@@ -1,10 +1,6 @@
-import numpy as np ; pi = np.pi ; import torch ; import timeit ;
-from matlab_index_2d_0 import matlab_index_2d_0 ;
-from matlab_index_3d_0 import matlab_index_3d_0 ;
-from matlab_index_4d_0 import matlab_index_4d_0 ;
+exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ;
+from ylgndr_2 import ylgndr_2 ;
 from get_Ylm__2 import get_Ylm__2 ;
-mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
-efind = lambda a : torch.where(a)[0] ;
 
 def get_Ylm_condense_wrap_0(
   flag_verbose=None,
@@ -19,9 +15,9 @@ def get_Ylm_condense_wrap_0(
 
   n_lm_k_ = (l_max_+1)**2 ;
   n_k_per_shell_k_ = torch.zeros(n_k_p_r).to(dtype=torch.int32) ;
-  index_sub_ka__ = [ [] for _ in range(n_k_p_r) ]; #<-- list of n_k_p_r empty lists. ;
-  k_p_azimu_b_sub_ka__ = [ [] for _ in range(n_k_p_r) ]; #<-- list of n_k_p_r empty lists. ;
-  k_p_polar_a_sub_ka__ = [ [] for _ in range(n_k_p_r) ]; #<-- list of n_k_p_r empty lists. ;
+  index_sub_ka__ = cell(n_k_p_r); #<-- list of n_k_p_r empty lists. ;
+  k_p_azimu_b_sub_ka__ = cell(n_k_p_r); #<-- list of n_k_p_r empty lists. ;
+  k_p_polar_a_sub_ka__ = cell(n_k_p_r); #<-- list of n_k_p_r empty lists. ;
 
   for nk_p_r in range(n_k_p_r):
     n_k_all_csum = int(n_k_all_csum_[nk_p_r].item());
@@ -42,9 +38,9 @@ def get_Ylm_condense_wrap_0(
 
   np_u_n_k_per_shell_,_,np_index_nu_n_k_per_shell_from_nk_p_r_ = np.unique(n_k_per_shell_k_.numpy().ravel(),return_index=True,return_inverse=True);
   u_n_k_per_shell_ = torch.tensor(np_u_n_k_per_shell_).to(dtype=torch.int32);
-  n_u_n_k_per_shell = u_n_k_per_shell_.numel();
+  n_u_n_k_per_shell = numel(u_n_k_per_shell_);
   index_nu_n_k_per_shell_from_nk_p_r_ = torch.tensor(np_index_nu_n_k_per_shell_from_nk_p_r_).to(dtype=torch.int32);
-  index_k_per_shell_uka__ = [ [] for _ in range(n_u_n_k_per_shell) ]; #<-- list of n_u_n_k_per_shell empty lists. ;
+  index_k_per_shell_uka__ = cell(n_u_n_k_per_shell); #<-- list of n_u_n_k_per_shell empty lists. ;
   l_max_uk_ = torch.zeros(n_u_n_k_per_shell).to(dtype=torch.int32);
   for nu_n_k_per_shell in range(n_u_n_k_per_shell):
     u_n_k_per_shell = int(u_n_k_per_shell_[nu_n_k_per_shell].item());
@@ -54,8 +50,8 @@ def get_Ylm_condense_wrap_0(
 
   n_lm_uk_ = (l_max_uk_+1)**2;
   n_k_per_shell_uk_ = torch.zeros(n_u_n_k_per_shell).to(dtype=torch.int32);
-  k_p_azimu_b_sub_uka__ = [ [] for _ in range(n_u_n_k_per_shell) ]; #<-- list of n_u_n_k_per_shell empty lists. ;
-  k_p_polar_a_sub_uka__ = [ [] for _ in range(n_u_n_k_per_shell) ]; #<-- list of n_u_n_k_per_shell empty lists. ;
+  k_p_azimu_b_sub_uka__ = cell(n_u_n_k_per_shell); #<-- list of n_u_n_k_per_shell empty lists. ;
+  k_p_polar_a_sub_uka__ = cell(n_u_n_k_per_shell); #<-- list of n_u_n_k_per_shell empty lists. ;
   for nu_n_k_per_shell in range(n_u_n_k_per_shell):
     u_n_k_per_shell = int(u_n_k_per_shell_[nu_n_k_per_shell].item());
     index_k_per_shell_uka__[nu_n_k_per_shell] = efind(n_k_per_shell_k_==u_n_k_per_shell);
@@ -66,11 +62,11 @@ def get_Ylm_condense_wrap_0(
 
   if flag_verbose > 1: print(f' %% [entering {str_thisfunction}] n_k_all {n_k_all}, n_lm_sum {torch.sum(n_lm_k_).item()}, n_u_n_k_per_shell {n_u_n_k_per_shell}') ;
 
-  Ylm_uklma___ = [ [] for _ in range(n_u_n_k_per_shell) ]; #<-- list of n_u_n_k_per_shell empty lists. ;
+  Ylm_uklma___ = cell(n_u_n_k_per_shell); #<-- list of n_u_n_k_per_shell empty lists. ;
   for nu_n_k_per_shell in range(n_u_n_k_per_shell):
     k_p_azimu_b_sub_ = k_p_azimu_b_sub_uka__[nu_n_k_per_shell];
     k_p_polar_a_sub_ = k_p_polar_a_sub_uka__[nu_n_k_per_shell];
-    n_k_per_shell = k_p_polar_a_sub_.numel();
+    n_k_per_shell = numel(k_p_polar_a_sub_);
     l_max = int(l_max_uk_[nu_n_k_per_shell].item());
     n_l_max = l_max+1; flag_flip=0;
     n_lm = (l_max+1)**2;

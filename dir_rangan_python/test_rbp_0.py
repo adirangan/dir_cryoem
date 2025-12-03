@@ -11,6 +11,7 @@ from get_weight_2d_2 import get_weight_2d_2 ;
 from rotate_p_to_p_fftw_using_numpy import rotate_p_to_p_fftw_using_numpy ;
 from rotate_p_to_p_fftw import rotate_p_to_p_fftw ;
 from scipy.sparse import csr_matrix ;
+numel = lambda a : int(a.numel()) ;
 cumsum_0 = lambda a : torch.cumsum(torch.concatenate((torch.tensor([0]),a)) , 0).to(torch.int32) ;
 fnorm = lambda a : torch.linalg.norm(a).item() ;
 mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
@@ -84,7 +85,7 @@ def test_rbp_0(
         print(f" %% setting viewing_k_eq_d_double = {viewing_k_eq_d_double:.6f}");
     #end;%if (flag_verbose>0);
 
-    k_p_r_max = k_int/(2*pi); k_eq_d = k_eq_d_double/(2*pi); str_T_vs_L = 'T';
+    k_p_r_max = k_int/(2*pi); k_eq_d = k_eq_d_double/(2*pi); str_T_vs_L = 'L';
     flag_uniform_over_n_k_p_r = 1; flag_uniform_over_polar_a = 0;
     (
         n_qk,
@@ -93,7 +94,7 @@ def test_rbp_0(
         k_p_azimu_b_qk_,
         k_p_polar_a_qk_,
         weight_3d_k_p_qk_,
-        weight_shell_k_,
+        weight_shell_qk_,
         n_k_p_r,
         k_p_r_,
         weight_3d_k_p_r_,
@@ -123,7 +124,7 @@ def test_rbp_0(
     #end;%if (flag_verbose>0);
         
     index_outer_shell_ = torch.arange(int(n_qk_csum_[n_k_p_r-1].item()),int(n_qk_csum_[n_k_p_r-1+1].item())).to(dtype=torch.int32);
-    n_outer_shell = index_outer_shell_.numel();
+    n_outer_shell = numel(index_outer_shell_);
     k_outer_shell_r_q_ = k_p_r_qk_[index_outer_shell_];
     assert(np.std(k_outer_shell_r_q_.numpy(),ddof=1)< 1e-3);
     k_outer_shell_azimu_b_q_ = k_p_azimu_b_qk_[index_outer_shell_];
@@ -363,7 +364,7 @@ def test_rbp_0(
     #end;%if (flag_verbose>2);
 
     polar_a_a_ = polar_a_ka__[0].ravel();
-    n_polar_a = polar_a_a_.numel();
+    n_polar_a = numel(polar_a_a_);
     assert(np.std(np.diff(polar_a_a_.numpy()),ddof=1)<1e-3);
     dpolar_a = np.mean(np.diff(polar_a_a_.numpy())) #<-- will be negative. ;
     n_azimu_b_a_ = n_azimu_b_ka__[0].ravel();

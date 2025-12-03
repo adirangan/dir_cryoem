@@ -3,6 +3,7 @@ from matlab_index_2d_0 import matlab_index_2d_0 ;
 from matlab_index_3d_0 import matlab_index_3d_0 ;
 from matlab_index_4d_0 import matlab_index_4d_0 ;
 from matlab_scalar_round import matlab_scalar_round ;
+numel = lambda a : int(a.numel()) ;
 numel_unique = lambda a : np.unique(a.numpy().ravel()).size ;
 mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
 msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
@@ -23,8 +24,8 @@ def interp_p_to_q(
     if (flag_verbose): print(f' %% [entering {str_thisfunction}]');
     #%%%%%%%%;
 
-    n_S = int( int(S_p_.numel()) / int(n_A) );
-    if S_p_.numel()!=n_A*n_S: print(f' %% Warning, n_A {n_A} n_S {n_S} in {str_thisfunction}');
+    n_S = int( numel(S_p_) / int(n_A) );
+    if numel(S_p_)!=n_A*n_S: print(f' %% Warning, n_A {n_A} n_S {n_S} in {str_thisfunction}');
 
     #%%%%%%%%%%%%%%%%;
     if numel_unique(n_w_) > 1:
@@ -62,7 +63,7 @@ def interp_p_to_q(
     if numel_unique(n_w_)==1:
         n_w = int(n_w_[0].item());
         S_q_ = torch.tensor(np.fft.fft(torch.reshape(S_p_,mtr((n_w,n_r,n_S))).numpy(),axis=2-0)/np.maximum(1,np.sqrt(n_w))).to(dtype=torch.complex64).ravel();
-        assert(S_q_.numel()==S_p_.numel());
+        assert(numel(S_q_)==numel(S_p_));
     #end;%if (numel(unique(n_w_))==1);
     #%%%%%%%%%%%%%%%%;
 

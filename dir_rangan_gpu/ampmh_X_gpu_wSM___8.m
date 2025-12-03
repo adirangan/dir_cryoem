@@ -75,8 +75,8 @@ tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% UX_M_l2_gpu_dM__ %0.6
 end;%if ~strcmp(class(UX_M_l2_gpu_dM__),'gpuArray');
 %%%%;
 tmp_t = tic();
-svd_U_d_expiw_gpu_s__ = gpuArray( (FTK.svd_U_d_expiw_s__));
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% svd_U_d_expiw_gpu_s__ %0.6fs',tmp_t)); end;%if (flag_verbose>0);
+svd_U_d_expiw_s_gpu__ = gpuArray( (FTK.svd_U_d_expiw_s__));
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% svd_U_d_expiw_s_gpu__ %0.6fs',tmp_t)); end;%if (flag_verbose>0);
 %%%%;
 
 I_value_gpu_wSM___ = [];
@@ -172,7 +172,7 @@ if (n_S_sub>0);
 svd_SVUXM_gpu_lwsM____ = svd_SVUXM_gpu_lwSM____(:,:,1+index_S_in_Sbatch_,:);
 %%%%%%%%;
 tmp_t = tic(); nop=0;
-svd_USESVUXM_gpu_dwSM____ = real(reshape(svd_U_d_expiw_gpu_s__*reshape(svd_SVUXM_gpu_lwsM____,[FTK.n_svd_l,n_w_max*n_S_sub*n_M_sub]),[FTK.n_delta_v,n_w_max,n_S_sub,n_M_sub]));
+svd_USESVUXM_gpu_dwSM____ = real(reshape(svd_U_d_expiw_s_gpu__*reshape(svd_SVUXM_gpu_lwsM____,[FTK.n_svd_l,n_w_max*n_S_sub*n_M_sub]),[FTK.n_delta_v,n_w_max,n_S_sub,n_M_sub]));
 %%%%%%%%;
 l2_gpu_dSM___ = permute(reshape(reshape(sqrt(CTF_UX_S_l2_gpu_(1+index_S_in_Sbatch_)),[n_S_sub,1])*reshape(sqrt(UX_M_l2_gpu_dM__(:,1+index_M_in_Mbatch_)),[1,FTK.n_delta_v*n_M_sub]),[n_S_sub,FTK.n_delta_v,n_M_sub]),[2,1,3]);
 n2_gpu_dSM___ = 1./max(1e-14,l2_gpu_dSM___);

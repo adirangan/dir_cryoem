@@ -60,7 +60,7 @@ flag_verbose = parameter.flag_verbose;
 if isempty(N_wavelength); N_wavelength = 0; end;
 if N_wavelength~=0; disp(sprintf(' %% Warning, N_wavelength~=0 in %s, returning',str_thisfunction)); return; end;
 
-if (flag_verbose); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
+if (flag_verbose>0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
 
 l_max_max = max(l_max_);
 n_l_max = 1+l_max_max;
@@ -69,25 +69,48 @@ n_polar_a = n_m_max; polar_a_ = transpose(linspace(-1*pi,+1*pi,n_polar_a+1)); po
 n_azimu_b = n_m_max; azimu_b_ = transpose(linspace( 0*pi,+2*pi,n_azimu_b+1)); azimu_b_ = azimu_b_(1:end-1);
 n_gamma_z = n_m_max; gamma_z_ = transpose(linspace( 0*pi,+2*pi,n_gamma_z+1)); gamma_z_ = gamma_z_(1:end-1);
 if isempty(n_UZ_rank); n_UZ_rank = 0; end;
-if isempty(U_lz__); U_lz__ = zeros(n_l_max,n_UZ_rank); end;
+if isempty(U_lz__); U_lz__ = eye(n_l_max,n_UZ_rank); end;
 if isempty(d_mmlb____);
 t_0in = tic;
+t_out_sub_0 = 0;
+t_out_sub_1 = 0;
 d_mmlb____ = zeros(n_m_max,n_m_max,n_l_max,n_polar_a);
 d_mmzb____ = zeros(n_m_max,n_m_max,n_UZ_rank,n_polar_a);
 for npolar_a=0:n_polar_a-1;
-if (flag_verbose); if (mod(npolar_a,16)==0); disp(sprintf(' %% npolar_a %d/%d',npolar_a,n_polar_a)); end; end;
+if (flag_verbose>0); if (mod(npolar_a,16)==0); disp(sprintf(' %% npolar_a %d/%d',npolar_a,n_polar_a)); end; end;
 polar_a = polar_a_(1+npolar_a);
-W_ = wignerd_b(l_max_max,-polar_a);
+t_0in_sub_0 = tic();
+if l_max_max< 88; W_ = wignerd_b(l_max_max,-polar_a); end; %<-- low-order. ;
+if l_max_max>=88;
+if ~exist('V_lmm___','var'); V_lmm___=[]; end;
+if ~exist('L_lm__','var'); L_lm__=[]; end;
+[ ...
+ W_ ...
+,V_lmm___ ...
+,L_lm__ ...
+] = ...
+wignerd_c( ...
+ l_max_max ...
+,-polar_a ...
+,V_lmm___ ...
+,L_lm__ ...
+) ;
+end;%if l_max_max>=88; %<-- high-order. ;
+t_out_sub_0 = t_out_sub_0 + toc(t_0in_sub_0);
+t_0in_sub_1 = tic();
 n_W_ = zeros(1,1+l_max_max); for (l_val=0:l_max_max); n_W_(1+l_val) = numel(W_{1+l_val}); end;
 d_mml___ = zeros(n_m_max,n_m_max,1+l_max_max);
 for l_val=0:l_max_max;
 d_mml___(1+l_max_max + [-l_val:+l_val],1+l_max_max + [-l_val:+l_val],1+l_val) = W_{1+l_val};
 end;%for l_val=0:l_max_max;
-d_mmz___ = reshape(reshape(d_mml___,[n_m_max*n_m_max,n_l_max])*UZ__,[n_m_max,n_m_max,n_UZ_rank]);
 d_mmlb____(:,:,:,1+npolar_a) = d_mml___;
+if (n_UZ_rank> 0);
+d_mmz___ = reshape(reshape(d_mml___,[n_m_max*n_m_max,n_l_max])*U_lz__,[n_m_max,n_m_max,n_UZ_rank]);
 d_mmzb____(:,:,:,1+npolar_a) = d_mmz___;
+end;%if (n_UZ_rank> 0);
+t_out_sub_1 = t_out_sub_1 + toc(t_0in_sub_1);
 end;%for npolar_a=0:n_polar_a-1;
-t_out = toc(t_0in); if (flag_verbose); disp(sprintf(' %% calculate d_: t %0.6f',t_out)); end;
+t_out = toc(t_0in); if (flag_verbose>0); disp(sprintf(' %% calculate d_: t %0.6fs = %0.6fs + %0.6fs',t_out,t_out_sub_0,t_out_sub_1)); end;
 end;%if isempty(d_mmlb____);
 
 t_0in = tic;
@@ -100,7 +123,7 @@ b_k_Y_orig_mkl___ = permute(b_k_Y_orig_mlk___,[1,3,2]);
 b_k_Y_flip_yk_ = spharm_normalize_2(n_k_p_r,k_p_r_,weight_3d_k_p_r_,l_max_,flipY(n_k_p_r,l_max_,b_k_Y_));
 b_k_Y_flip_mlk___ = convert_spharm_to_spharm___0(n_k_p_r,l_max_,b_k_Y_flip_yk_);
 b_k_Y_flip_mkl___ = permute(b_k_Y_flip_mlk___,[1,3,2]);
-t_out = toc(t_0in); if (flag_verbose); disp(sprintf(' %% prepare arrays: t %0.6f',t_out)); end;
+t_out = toc(t_0in); if (flag_verbose>0); disp(sprintf(' %% prepare arrays: t %0.6fs',t_out)); end;
 
 %%%%%%%%;
 t_0in = tic;
@@ -144,7 +167,7 @@ end;%if (n_UZ_rank> 0);
 polar_a_orig = polar_a_(ij_polar_a_orig);
 azimu_b_orig = azimu_b_(ij_azimu_b_orig);
 gamma_z_orig = gamma_z_(ij_gamma_z_orig);
-t_out = toc(t_0in); if (flag_verbose); disp(sprintf(' %% calculate X_: t %0.6f',t_out)); end;
+t_out = toc(t_0in); if (flag_verbose>0); disp(sprintf(' %% calculate X_: t %0.6fs',t_out)); end;
 %%%%%%%%;
 t_0in = tic;
 if (n_UZ_rank<=0);
@@ -187,7 +210,7 @@ end;%if (n_UZ_rank> 0);
 polar_a_flip = polar_a_(ij_polar_a_flip);
 azimu_b_flip = azimu_b_(ij_azimu_b_flip);
 gamma_z_flip = gamma_z_(ij_gamma_z_flip);
-t_out = toc(t_0in); if (flag_verbose); disp(sprintf(' %% calculate X_: t %0.6f',t_out)); end;
+t_out = toc(t_0in); if (flag_verbose>0); disp(sprintf(' %% calculate X_: t %0.6fs',t_out)); end;
 %%%%%%%%;
 if (X_best_orig>=X_best_flip);
 flag_flip = 0;
@@ -257,4 +280,4 @@ rotate_viewing_angles_from_rotate_spharm_to_spharm_0( ...
 end;%if ( ~isempty( viewing_euler_polar_a_pre_ ) & ~isempty( viewing_euler_azimu_b_pre_ ) & ~isempty( viewing_euler_gamma_z_pre_ ) );
 %%%%%%%%;
 
-if (flag_verbose); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;
+if (flag_verbose>0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;

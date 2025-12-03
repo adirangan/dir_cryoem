@@ -43,9 +43,9 @@ pm_template_2( ...
 % ;
 % flag_verbose = integer verbosity_level. ;
 % l_max = spherical harmonic order on each shell. ;
-%         corresponds to n_lm = (l_max+1)^2 coefficients. ;
+%         corresponds to n_y = (l_max+1)^2 coefficients. ;
 % n_a = integer number of shells. ;
-% a_k_Y_ya__ = complex array of size (n_lm,n_a). ;
+% a_k_Y_ya__ = complex array of size (n_y,n_a). ;
 %              coefficients are ordered in a row, with m varying quickly, l varying slowly. ;
 % viewing_euler_k_eq_d = real equatorial-distance used for sampling viewing angles and templates. ;
 % template_inplane_k_eq_d = real equatorial-distance used for sampling inplane-shifts along each template. ;
@@ -79,12 +79,12 @@ k_p_r_max = 1;
 k_p_r_ = ones(n_k_p_r,1);
 weight_k_p_r_ = ones(n_k_p_r,1);
 l_max = 80;
-n_lm = (l_max+1)^2;
+n_y = (l_max+1)^2;
 l_max_ = l_max*ones(n_k_p_r,1);
-n_lm_sum = sum((1+l_max_).^2);
-a_k_Y_ = (mod(transpose([0:n_lm_sum-1]),89)-44)/89 + i*(mod(transpose([0:n_lm_sum-1]),97)-48)/97;
-if (flag_verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(real(a_k_Y_),n_lm,n_k_p_r,' %% a_k_Y_ya_real___: '); end;
-if (flag_verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(imag(a_k_Y_),n_lm,n_k_p_r,' %% a_k_Y_ya_imag___: '); end;
+n_y_sum = sum((1+l_max_).^2);
+a_k_Y_ = (mod(transpose([0:n_y_sum-1]),89)-44)/89 + i*(mod(transpose([0:n_y_sum-1]),97)-48)/97;
+if (flag_verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(real(a_k_Y_),n_y,n_k_p_r,' %% a_k_Y_ya_real___: '); end;
+if (flag_verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(imag(a_k_Y_),n_y,n_k_p_r,' %% a_k_Y_ya_imag___: '); end;
 viewing_euler_k_eq_d = 1/(2*pi);
 template_inplane_k_eq_d = -1;
 n_w_max = max(6,98);
@@ -105,7 +105,7 @@ pm_template_2( ...
  flag_verbose ...
 ,l_max ...
 ,n_k_p_r ...
-,reshape(a_k_Y_,[n_lm,n_k_p_r]) ...
+,reshape(a_k_Y_,[n_y,n_k_p_r]) ...
 ,viewing_euler_k_eq_d ...
 ,template_inplane_k_eq_d ...
 ,n_w_max ...
@@ -125,7 +125,7 @@ pm_template_2( ...
  flag_verbose ...
 ,l_max ...
 ,n_k_p_r ...
-,reshape(a_k_Y_,[n_lm,n_k_p_r]) ...
+,reshape(a_k_Y_,[n_y,n_k_p_r]) ...
 ,viewing_euler_k_eq_d ...
 ,template_inplane_k_eq_d ...
 ,n_w_max ...
@@ -183,13 +183,13 @@ if (nargin<1+na); sqrt_rat4__ = []; end; na=na+1;
 
 if flag_verbose; disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
 
-n_lm = (l_max+1)^2;
+n_y = (l_max+1)^2;
 m_max_ = -l_max : +l_max;
 n_m_max = length(m_max_); %<-- 2*l_max+1;
-if (flag_verbose); disp(sprintf(' %% l_max %d n_lm %d',l_max,n_lm)); end;
-if (isempty(a_k_Y_ya__)); a_k_Y_ya__ = zeros(n_lm,1); end;
-if (flag_verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(real(a_k_Y_ya__),n_lm,n_a,' %% a_k_Y_ya_real___: '); end;
-if (flag_verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(imag(a_k_Y_ya__),n_lm,n_a,' %% a_k_Y_ya_imag___: '); end;
+if (flag_verbose); disp(sprintf(' %% l_max %d n_y %d',l_max,n_y)); end;
+if (isempty(a_k_Y_ya__)); a_k_Y_ya__ = zeros(n_y,1); end;
+if (flag_verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(real(a_k_Y_ya__),n_y,n_a,' %% a_k_Y_ya_real___: '); end;
+if (flag_verbose>2); fprintf(1,' %% \t\n'); darray_printf_margin(imag(a_k_Y_ya__),n_y,n_a,' %% a_k_Y_ya_imag___: '); end;
 
 %%%%%%%%;
 if (flag_verbose); disp(sprintf(' %% First determine the viewing angles.')); end;

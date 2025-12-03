@@ -3,6 +3,7 @@ from matlab_index_2d_0 import matlab_index_2d_0 ;
 from matlab_index_3d_0 import matlab_index_3d_0 ;
 from matlab_index_4d_0 import matlab_index_4d_0 ;
 from matlab_scalar_round import matlab_scalar_round ;
+numel = lambda a : int(a.numel()) ;
 mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
 msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
 mts = lambda a : tuple(len(a) - x - 1 for x in a) ; #<-- for permute (i.e., tuple subtract (...)). ;
@@ -34,15 +35,15 @@ def get_r8_delta_2(
             [r8_Y__,r8_X__] = torch.meshgrid(r8_y_,r8_x_,indexing='ij'); #%<-- reversed to match matlab. ;
             R__ = torch.sqrt(r8_X__**2 + r8_Y__**2);
             tmp_index_ = efind(R__.ravel()<=r8_delta_r_max+tolerance_margin);
-            if tmp_index_.numel()>=n_delta_v_0in: continue_flag=0;
-            if tmp_index_.numel()< n_delta_v_0in:
+            if numel(tmp_index_)>=n_delta_v_0in: continue_flag=0;
+            if numel(tmp_index_)< n_delta_v_0in:
                 n_x = n_x + 1; continue_flag=1;
             #end;%if;
         #end;%while;
-        n_delta_v_out = tmp_index_.numel();
+        n_delta_v_out = numel(tmp_index_);
         r8_delta_x_ = r8_X__.ravel()[tmp_index_];
         r8_delta_y_ = r8_Y__.ravel()[tmp_index_];
-        r8_0 = torch.tensor(0.0).to(dtype=torch.float64);
+        r8_0 = torch.zeros(1).to(dtype=torch.float64);
         if (np.mod(n_x,2)==0): n_delta_v_out = n_delta_v_out + 1;
         if (np.mod(n_x,2)==0): r8_delta_x_ = torch.concatenate((r8_0,r8_delta_x_.ravel()),0).to(dtype=torch.float64);
         if (np.mod(n_x,2)==0): r8_delta_y_ = torch.concatenate((r8_0,r8_delta_y_.ravel()),0).to(dtype=torch.float64);

@@ -2,6 +2,7 @@ import numpy as np ; pi = np.pi ; import torch ;
 from matlab_index_2d_0 import matlab_index_2d_0 ;
 from matlab_index_3d_0 import matlab_index_3d_0 ;
 from matlab_index_4d_0 import matlab_index_4d_0 ;
+numel = lambda a : int(a.numel()) ;
 mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
 
 def ylgndr_2(
@@ -64,7 +65,7 @@ def ylgndr_2(
   flag_d1 = flag_d;
   flag_d2 = flag_dd;
 
-  n_x = x_.numel();
+  n_x = numel(x_);
   x_ = x_.flatten();
   d0u_ = -torch.sqrt((1 - x_) * (1 + x_));
   d1u_ = x_ / torch.sqrt((1 - x_) * (1 + x_));

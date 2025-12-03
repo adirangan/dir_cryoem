@@ -45,15 +45,15 @@ weight_Y_val_(tmp_ij_) = weight_3d_k_p_r_(nk_p_r);
 e_k_Y_(1+na) = 1;
 na=na+n_lm_(nk_p_r);
 end;%for nk_p_r=1:n_k_p_r;
-weight_Y_ = sparse(weight_Y_row_,weight_Y_col_,weight_Y_val_,n_lm_sum,n_lm_sum);
-e_avg = ctranspose(e_k_Y_)*(weight_Y_*e_k_Y_);
+%weight_Y_ = sparse(weight_Y_row_,weight_Y_col_,weight_Y_val_,n_lm_sum,n_lm_sum);
+e_avg = ctranspose(e_k_Y_)*(weight_Y_val_.*e_k_Y_);
 u_k_Y_ = e_k_Y_./max(sqrt(e_avg),1e-12);
-a_avg = ctranspose(u_k_Y_)*(weight_Y_*a_k_Y_);
+a_avg = ctranspose(u_k_Y_)*(weight_Y_val_.*a_k_Y_);
 a_k_Y_norm_ = (a_k_Y_ - flag_center_vs_notcenter*a_avg*u_k_Y_); %<-- centering. ;
-a_std = sqrt(ctranspose(a_k_Y_norm_)*(weight_Y_*a_k_Y_norm_));
+a_std = sqrt(ctranspose(a_k_Y_norm_)*(weight_Y_val_.*a_k_Y_norm_));
 a_k_Y_norm_ = a_k_Y_norm_./max(a_std,1e-12);
-a_norm_avg = ctranspose(u_k_Y_)*(weight_Y_*a_k_Y_norm_);
+a_norm_avg = ctranspose(u_k_Y_)*(weight_Y_val_.*a_k_Y_norm_);
 a_k_Y_norm_norm_ = (a_k_Y_norm_ - flag_center_vs_notcenter*a_norm_avg*u_k_Y_); %<-- centering. ;
-a_norm_std = sqrt(ctranspose(a_k_Y_norm_norm_)*(weight_Y_*a_k_Y_norm_norm_));
+a_norm_std = sqrt(ctranspose(a_k_Y_norm_norm_)*(weight_Y_val_.*a_k_Y_norm_norm_));
 
 

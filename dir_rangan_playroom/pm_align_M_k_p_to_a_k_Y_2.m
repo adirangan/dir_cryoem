@@ -39,8 +39,7 @@ pm_align_M_k_p_to_a_k_Y_2( ...
 ,image_delta_y_true_M_ ...
 );
 
-verbose=1;
-if (verbose); disp(sprintf(' %% [entering pm_align_M_k_p_to_a_k_Y_2]')); end;
+str_thisfunction = 'pm_align_M_k_p_to_a_k_Y_2';
 
 na=0;
 if (nargin<1+na); parameter=[]; end; na=na+1;
@@ -70,29 +69,34 @@ parameter = struct('type','parameter');
 end;%if isempty(parameter);
 %%%%%%%%;
 if (~isfield(parameter,'tolerance_master')); parameter.tolerance_master = 1e-2; end; %<-- parameter_bookmark. ;
-if (~isfield(parameter,'flag_recalc')); parameter.flag_recalc = 0; end; %<-- parameter_bookmark. ;
-if (~isfield(parameter,'fname_align_a_k_Y_pre')); parameter.fname_align_a_k_Y_pre = []; end; %<-- parameter_bookmark. ;
-if (~isfield(parameter,'tolerance_pm')); parameter.tolerance_pm = parameter.tolerance_master; end; %<-- parameter_bookmark. ;
-if (~isfield(parameter,'rseed')); parameter.rseed = 0; end; %<-- parameter_bookmark. ;
-if (~isfield(parameter,'n_iteration')); parameter.n_iteration = 1; end; %<-- parameter_bookmark. ;
-if (~isfield(parameter,'delta_r_max')); parameter.delta_r_max = 0.1; end; %<-- parameter_bookmark. ;
-if (~isfield(parameter,'delta_r_upb')); parameter.delta_r_upb = 2*parameter.delta_r_max; end; %<-- parameter_bookmark. ;
-if (~isfield(parameter,'n_delta_v_requested')); parameter.n_delta_v_requested = 0; end; %<-- parameter_bookmark. ;
-if (~isfield(parameter,'flag_MS_vs_SM')); parameter.flag_MS_vs_SM = 0; end; %<-- parameter_bookmark. ;
-if (~isfield(parameter,'template_viewing_k_eq_d')); parameter.template_viewing_k_eq_d = 1.0/max(1e-12,k_p_r_max); end; %<-- parameter_bookmark. ;
-%%%%%%%%;
-flag_recalc = parameter.flag_recalc;
 tolerance_master = parameter.tolerance_master;
+if (~isfield(parameter,'flag_verbose')); parameter.flag_verbose = 1; end; %<-- parameter_bookmark. ;
+flag_verbose = parameter.flag_verbose;
+if (~isfield(parameter,'flag_recalc')); parameter.flag_recalc = 0; end; %<-- parameter_bookmark. ;
+flag_recalc = parameter.flag_recalc;
+if (~isfield(parameter,'fname_align_a_k_Y_pre')); parameter.fname_align_a_k_Y_pre = []; end; %<-- parameter_bookmark. ;
+fname_align_a_k_Y_pre = parameter.fname_align_a_k_Y_pre;
+if (~isfield(parameter,'tolerance_pm')); parameter.tolerance_pm = parameter.tolerance_master; end; %<-- parameter_bookmark. ;
 tolerance_pm = parameter.tolerance_pm;
+if (~isfield(parameter,'rseed')); parameter.rseed = 0; end; %<-- parameter_bookmark. ;
 rseed = parameter.rseed;
+if (~isfield(parameter,'n_iteration')); parameter.n_iteration = 1; end; %<-- parameter_bookmark. ;
 n_iteration = parameter.n_iteration;
+if (~isfield(parameter,'delta_r_max')); parameter.delta_r_max = 0.1; end; %<-- parameter_bookmark. ;
 delta_r_max = parameter.delta_r_max;
+if (~isfield(parameter,'delta_r_upb')); parameter.delta_r_upb = 2*parameter.delta_r_max; end; %<-- parameter_bookmark. ;
 delta_r_upb = parameter.delta_r_upb;
+if (~isfield(parameter,'n_delta_v_requested')); parameter.n_delta_v_requested = 0; end; %<-- parameter_bookmark. ;
 n_delta_v_requested = parameter.n_delta_v_requested;
+if (~isfield(parameter,'flag_MS_vs_SM')); parameter.flag_MS_vs_SM = 0; end; %<-- parameter_bookmark. ;
 flag_MS_vs_SM = parameter.flag_MS_vs_SM;
+if (~isfield(parameter,'template_viewing_k_eq_d')); parameter.template_viewing_k_eq_d = 1.0/max(1e-12,k_p_r_max); end; %<-- parameter_bookmark. ;
 template_viewing_k_eq_d = parameter.template_viewing_k_eq_d;
-svd_eps = tolerance_master;
+if (~isfield(parameter,'svd_eps')); parameter.svd_eps = tolerance_master; end; %<-- parameter_bookmark. ;
+svd_eps = parameter.svd_eps;
 %%%%%%%%;
+
+if (flag_verbose>0); disp(sprintf(' %% [entering %s]',str_thisfunction)); end;
 
 %%%%%%%%;
 n_w_max = max(n_w_);
@@ -226,7 +230,7 @@ X_2d_xavg_dx_kkc___(:,:,1+ncluster) = X_2d_xavg_dx_kk__;
 X_2d_xavg_dx_weight_rc__(:,1+ncluster) = X_2d_xavg_dx_weight_r_;
 clear X_2d_xavg_dx_kk__ X_2d_xavg_dx_weight_r_ ;
 end;%for ncluster=0:n_cluster-1;
-tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% X_2d_xavg_dx_kkc___: %0.3fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% X_2d_xavg_dx_kkc___: %0.3fs',tmp_t)); end;
 %%%%%%%%;
 tmp_t = tic();
 UX_knc___ = zeros(n_k_p_r,n_UX_rank,n_cluster);
@@ -239,26 +243,26 @@ pm_n_UX_rank = max(find(tmp_SX_/max(tmp_SX_)> tolerance_pm));
 UX_knc___(:,:,1+ncluster) = tmp_UX__(:,1+[0:n_UX_rank-1]);
 SX_kc__(:,1+ncluster) = tmp_SX_(1+[0:n_UX_rank-1]);
 pm_n_UX_rank_c_(1+ncluster) = pm_n_UX_rank;
-if (verbose>1); disp(sprintf(' %% ncluster %.2d/%.2d: pm_n_UX_rank %d/%d',ncluster,n_cluster,pm_n_UX_rank,n_UX_rank)); end;
+if (flag_verbose>1); disp(sprintf(' %% ncluster %.2d/%.2d: pm_n_UX_rank %d/%d',ncluster,n_cluster,pm_n_UX_rank,n_UX_rank)); end;
 end;%for ncluster=0:n_cluster-1;
-tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% UX_knc___: %0.3fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% UX_knc___: %0.3fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,'X__',tmp_t);
 %%%%%%%%;
 
 pm_n_UX_rank_max = max(pm_n_UX_rank_c_);
 pm_n_lm_max_max = (1+l_max_max)^2;
-if (verbose);
+if (flag_verbose>0);
 for ncluster=0:n_cluster-1;
 pm_n_UX_rank = pm_n_UX_rank_c_(1+ncluster);
 disp(sprintf(' %% ncluster %.2d/%.2d --> pm_n_UX_rank %d/%d',ncluster,n_cluster,pm_n_UX_rank,pm_n_UX_rank_max));
 end;%for ncluster=0:n_cluster-1;
-end;%if (verbose);
+end;%if (flag_verbose>0);
 
 FTK = [];
 if isempty(FTK);
 tmp_t = tic();
 FTK = ampmh_FTK_1(n_k_p_r,k_p_r_,k_p_r_max,delta_r_max,svd_eps,n_delta_v_requested);
-tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% FTK: %0.3fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% FTK: %0.3fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,'ampmh_FTK_1',tmp_t);
 end;%if isempty(FTK);
 assert(FTK.svd_d_max>=delta_r_max);
@@ -266,7 +270,7 @@ assert(FTK.n_delta_v>=n_delta_v_requested);
 
 %%%%%%%%;
 tmp_t = tic();
-tmp_verbose=0;
+tmp_flag_verbose=0;
 [ ...
  S_k_p_wkS__ ...
 ,~ ...
@@ -275,7 +279,7 @@ tmp_verbose=0;
 ,template_viewing_polar_a_all_ ...
 ] = ...
 pm_template_2( ...
- tmp_verbose ...
+ tmp_flag_verbose ...
 ,l_max_max ...
 ,n_k_p_r ...
 ,a_k_Y_true_yk__ ...
@@ -284,7 +288,7 @@ pm_template_2( ...
 ,n_w_max ...
 );
 S_k_p_wkS__ = reshape(S_k_p_wkS__,[n_w_max*n_k_p_r,n_S]);
-tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% pm_template_2 (n_S %d): %0.3fs',n_S,tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% pm_template_2 (n_S %d): %0.3fs',n_S,tmp_t)); end;
 %%%%%%%%;
 S_k_q_wkS__ = zeros(n_w_sum,n_S);
 for nS=0:n_S-1;
@@ -338,12 +342,12 @@ for niteration=0:n_iteration-1;
 % Construct M_k_q_wkM__ while taking into account the translations. ;
 %%%%%%%%;
 tmp_M_index_ = efind(flag_image_delta_upd_M_); tmp_n_M = numel(tmp_M_index_);
-if (verbose>0); disp(sprintf(' %% updating M_k_q_wkM__ for tmp_n_M %d/%d images',tmp_n_M,n_M)); end;
+if (flag_verbose>0); disp(sprintf(' %% updating M_k_q_wkM__ for tmp_n_M %d/%d images',tmp_n_M,n_M)); end;
 tmp_t = tic();
 M_k_q_wkM__(:,1+tmp_M_index_) = zeros(n_w_sum,tmp_n_M);
 for tmp_nM=0:tmp_n_M-1;
 nM = tmp_M_index_(1+tmp_nM);
-M_k_p_ = ...
+M_k_p_wk_ = ...
 transf_p_to_p( ...
  n_k_p_r ...
 ,k_p_r_ ...
@@ -358,10 +362,10 @@ interp_p_to_q( ...
  n_k_p_r ...
 ,n_w_ ...
 ,n_w_sum ...
-,M_k_p_ ...
+,M_k_p_wk_ ...
 );
 end;%for tmp_nM=0:tmp_n_M-1;
-tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% M_k_q_wkM__: %0.3fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% M_k_q_wkM__ (interp_p_to_q): %0.3fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,'M_k_q_wkM__',tmp_t);
 %%%%%%%%;
 % Now form svd_VUXM_lwnM____ using these translated images. ;
@@ -378,14 +382,14 @@ if (tmp_n_M_sub> 0);
 svd_VUXM_lwnM____(:,:,1:pm_n_UX_rank,1+tmp_M_index_sub_) = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,tmp_n_M_sub,M_k_q_wkM__(:,1+tmp_M_index_sub_),pm_n_UX_rank,UX_kn__,X_2d_xavg_dx_weight_r_);
 end;%if (tmp_n_M_sub> 0);
 end;%for ncluster=0:n_cluster-1;
-tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% svd_VUXM_lwnM____: %0.3fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% svd_VUXM_lwnM____ (tpmh_VUXM_lwnM____3): %0.3fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,'svd_VUXM_lwnM____',tmp_t);
 %%%%%%%%;
 % Now calculate norms of the translated images. ;
 %%%%%%%%;
 tmp_t = tic();
 UX_M_l2_dM__(:,1+tmp_M_index_) = ampmh_UX_M_l2_dM__1(FTK,n_w_,tmp_n_M,pm_n_UX_rank_max,svd_VUXM_lwnM____(:,:,:,1+tmp_M_index_));
-tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% UX_M_l2_dM__: %0.3fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% UX_M_l2_dM__ (ampmh_UX_M_l2_dM__1): %0.3fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,'ampmh_UX_M_l2_dM__1',tmp_t);
 %%%%%%%%;
 % Now, form principal-images (using the displacement-updates). ;
@@ -394,7 +398,7 @@ parameter = parameter_timing_update(parameter,'ampmh_UX_M_l2_dM__1',tmp_t);
 %%%%%%%%;
 tmp_t = tic();
 [UX_M_k_q_wnM___,UX_M_k_p_wnM___] = ampmh_UX_M_k_p_wnM___0(FTK,n_w_,pm_n_UX_rank_max,n_M,svd_VUXM_lwnM____,+image_delta_x_upd_M_,+image_delta_y_upd_M_);
-tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% UX_M_k_q_wnM___: %0.6fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% UX_M_k_q_wnM___ (ampmh_UX_M_k_p_wnM___0): %0.6fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,'ampmh_UX_M_k_p_wnM___0',tmp_t);
 %%%%%%%%;
 flag_image_delta_upd_M_ = zeros(n_M,1);
@@ -421,14 +425,15 @@ qbp_6( ...
 ,+image_delta_x_acc_M_+image_delta_x_upd_M_ ...
 ,+image_delta_y_acc_M_+image_delta_y_upd_M_ ...
 );
-tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% a_k_Y_reco_yk_: %0.3fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% a_k_Y_reco_yk_ (qbp_6): %0.3fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,'qbp_6',tmp_t);
 %%%%%%%%;
 % Now correlate the two models. ;
 %%%%%%%%;
+tmp_t=tic();
 [~,corr_a_k_Y] = ...
 register_spharm_to_spharm_3( ...
- 0*verbose ...
+ 0*flag_verbose ...
 ,n_k_p_r ...
 ,k_p_r_ ...
 ,weight_3d_k_p_r_ ...
@@ -436,7 +441,9 @@ register_spharm_to_spharm_3( ...
 ,a_k_Y_true_yk_ ...
 ,a_k_Y_reco_yk_ ...
 );
-if (verbose); disp(sprintf(' %% niteration %d/%d, correlation %0.4f',niteration,n_iteration,corr_a_k_Y)); end;
+if (flag_verbose>0); disp(sprintf(' %% niteration %d/%d, correlation %0.4f',niteration,n_iteration,corr_a_k_Y)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% corr_a_k_Y (register_spharm_to_spharm_3): %0.3fs',tmp_t)); end;
+parameter = parameter_timing_update(parameter,'register_spharm_to_spharm_3',tmp_t);
 %%%%%%%%;
 % Now store image-parameters. ;
 %%%%%%%%;
@@ -498,7 +505,7 @@ ampmh_X_cluster_wrap_SM__10( ...
 ,index_nM_from_ncluster__ ...
 ,n_index_nM_from_ncluster_ ...
 );
-tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% X_SM__: %0.3fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% X_SM__ (ampmh_X_cluster_wrap_SM__10): %0.3fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,'ampmh_X_cluster_wrap_SM__10',tmp_t);
 %%%%%%%%;
 % Use current correlations to update current euler-angles. ;
@@ -528,7 +535,7 @@ ampmh_MS_vs_SM_2( ...
 ,gamma_z_SM__ ...
 ,I_value_SM__ ...
 );
-tmp_t = toc(tmp_t); if (verbose>1); disp(sprintf(' %% MS_vs_SM: update euler_polar_a_M_ euler_azimu_b_M_ euler_gamma_z_M_ : %0.3fs',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% MS_vs_SM: update euler_polar_a_M_ euler_azimu_b_M_ euler_gamma_z_M_ (ampmh_MS_vs_SM_2): %0.3fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,'ampmh_MS_vs_SM_2',tmp_t);
 %%%%%%%%;
 % update translations. ;
@@ -545,7 +552,7 @@ image_delta_x_nrm_M_ = image_delta_x_tot_M_;
 image_delta_y_nrm_M_ = image_delta_y_tot_M_;
 tmp_index_ = efind(image_delta_r_tot_M_> delta_r_upb);
 if (numel(tmp_index_)> 0);
-if (verbose>1); disp(sprintf(' %% normalizing %d/%d image displacements',numel(tmp_index_),n_M)); end;
+if (flag_verbose>1); disp(sprintf(' %% normalizing %d/%d image displacements',numel(tmp_index_),n_M)); end;
 image_delta_x_nrm_M_(1+tmp_index_) = image_delta_x_tot_M_(1+tmp_index_)*delta_r_upb./image_delta_r_tot_M_(1+tmp_index_);
 image_delta_y_nrm_M_(1+tmp_index_) = image_delta_y_tot_M_(1+tmp_index_)*delta_r_upb./image_delta_r_tot_M_(1+tmp_index_);
 image_delta_x_upd_M_(1+tmp_index_) = image_delta_x_nrm_M_(1+tmp_index_) - image_delta_x_acc_M_(1+tmp_index_);
@@ -555,7 +562,7 @@ flag_image_delta_upd_M_ = zeros(n_M,1);
 image_delta_r_upd_posnorm_M_ = sqrt(image_delta_x_upd_M_.^2 + image_delta_y_upd_M_.^2);
 tmp_index_ = efind( (image_delta_r_upd_prenorm_M_>=delta_r_upd_threshold) | (image_delta_r_upd_posnorm_M_>=delta_r_upd_threshold) );
 if (numel(tmp_index_)> 0);
-if (verbose>1); disp(sprintf(' %% accumulating %d/%d image displacements',numel(tmp_index_),n_M)); end;
+if (flag_verbose>1); disp(sprintf(' %% accumulating %d/%d image displacements',numel(tmp_index_),n_M)); end;
 flag_image_delta_upd_M_(1+tmp_index_) = 1;
 image_delta_x_acc_M_(1+tmp_index_) = image_delta_x_acc_M_(1+tmp_index_) + image_delta_x_upd_M_(1+tmp_index_);
 image_delta_y_acc_M_(1+tmp_index_) = image_delta_y_acc_M_(1+tmp_index_) + image_delta_y_upd_M_(1+tmp_index_);
@@ -675,4 +682,5 @@ end;%if (~isempty(parameter.fname_align_a_k_Y_pre));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 end;%if flag_found & flag_true;
 
-if (verbose); disp(sprintf(' %% [finished pm_align_M_k_p_to_a_k_Y_2]')); end;
+if (flag_verbose>0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;
+

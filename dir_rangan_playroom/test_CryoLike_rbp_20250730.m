@@ -66,7 +66,7 @@ if (flag_verbose>0); disp(sprintf(' %% setting viewing_k_eq_d_double = %0.6f %%<
 %%%%%%%%;
 % Now set up k-quadrature on sphere. ;
 %%%%%%%%;
-k_p_r_max = k_int/(2*pi); k_eq_d = k_eq_d_double/(2*pi); str_T_vs_L = 'T';
+k_p_r_max = k_int/(2*pi); k_eq_d = k_eq_d_double/(2*pi); str_T_vs_L = 'L';
 flag_uniform_over_n_k_p_r = 1; flag_uniform_over_polar_a = 0; %<-- This is set to match test_ssnll_from_a_k_Y_12 ;
 [ ...
  n_qk ...

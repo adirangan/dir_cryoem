@@ -358,7 +358,7 @@ index_nM_from_ncluster__{1+ncluster} = efind(index_ncluster_from_nM_==ncluster);
 n_index_nM_from_ncluster_(1+ncluster) = numel(index_nM_from_ncluster__{1+ncluster});
 end;%for ncluster=0:n_cluster-1;
 %%%%%%%%;
-% design pricipal-modes. ;
+% design principal-modes. ;
 %%%%%%%%;
 n_UX_rank = n_k_p_r-1; %<-- just to check dimensions.; 
 UX_knc___ = zeros(n_k_p_r,n_UX_rank,n_cluster);

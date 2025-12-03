@@ -145,7 +145,7 @@ n_m = 1+2*nl;
 %polar_a_   = linspace( 0 ,   pi , 2+2*nl );  % Altitude /Latitude /Elevation ;
 azimu_b_ = sort(2*pi*rand(1,ceil(sqrt(n_oversample*n_m))));
 polar_a_   = sort(1*pi*rand(1,ceil(sqrt(n_oversample*n_m))));
-[azimu_b__,polar_a__] = meshgrid(azimu_b_,polar_a_);
+[polar_a__,azimu_b__] = ndgrid(polar_a_,azimu_b_);
 Ylm_orig_ = ylm_1(nl,azimu_b__,polar_a__);
 cb = cos(+beta); sb = sin(+beta); sg = -1;
 Xn__ = sin(polar_a__).*cos(azimu_b__);

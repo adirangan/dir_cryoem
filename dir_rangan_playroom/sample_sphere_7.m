@@ -6,7 +6,7 @@ function ...
 ,k_p_azimu_b_qk_ ...
 ,k_p_polar_a_qk_ ...
 ,weight_3d_k_p_qk_ ...
-,weight_shell_k_ ...
+,weight_shell_qk_ ...
 ,n_k_p_r ...
 ,k_p_r_ ...
 ,weight_3d_k_p_r_ ...
@@ -53,7 +53,7 @@ sample_sphere_7( ...
 % k_p_azimu_b_qk_: real array of size n_qk. azimu_b values for each point. ;
 % k_p_polar_a_qk_: real array of size n_qk. polar_a values for each point. ;
 % weight_3d_k_p_qk_: real array of size n_qk. quadrature weights for each point: designed so that sum(weight_3d_k_p_qk_) = volume of sphere = 4/3*pi*k_p_r_max^3. ;
-% weight_shell_k_: real array of size n_qk. quadrature weights for each shell (in sequence). ;
+% weight_shell_qk_: real array of size n_qk. quadrature weights for each shell (in sequence). ;
 % n_k_p_r: integer number of shells. ;
 % k_p_r_: real array of size n_k_p_r. k-values for each shell. ;
 % weight_3d_k_p_r_: real array of size n_k_p_r. quadrature weights for each shell. These are designed so that 4*pi*sum(weight_3d_k_p_r_) = volume of sphere. ;
@@ -110,7 +110,7 @@ if isempty(flag_uniform_over_polar_a); flag_uniform_over_polar_a=0; end;
 if (flag_verbose>2); disp(sprintf(' %% [entering sample_sphere_7]')); end;
 %%%%%%%%;
 n_k_p_r = 1+ceil(k_p_r_max/max(1e-12,k_eq_d)); [a_jx_,a_jw_] = jacpts(n_k_p_r,0,2);
-k_p_r_ = (a_jx_+1.0)*k_p_r_max/2; weight_3d_k_p_r_ = a_jw_*(k_p_r_max/2)^3;
+k_p_r_ = (a_jx_+1.0)*k_p_r_max/2; weight_3d_k_p_r_ = reshape(a_jw_*(k_p_r_max/2)^3,[n_k_p_r,1]);
 J_node_ = a_jx_ ; J_weight_ = a_jw_ ;
 J_chebfun_ = cell(1+n_k_p_r,1+n_k_p_r); J_polyval_ = zeros(1+n_k_p_r,n_k_p_r);
 for nk_p_r=0:n_k_p_r;
@@ -132,7 +132,7 @@ k_p_r_qk_ = zeros(n_qk,1);
 k_p_azimu_b_qk_ = zeros(n_qk,1);
 k_p_polar_a_qk_ = zeros(n_qk,1);
 weight_3d_k_p_qk_ = zeros(n_qk,1);
-weight_shell_k_ = zeros(n_qk,1);
+weight_shell_qk_ = zeros(n_qk,1);
 n_polar_a_k_ = zeros(n_k_p_r,1);
 polar_a_k_ = zeros(n_k_p_r,1);
 polar_a_ka__ = cell(n_k_p_r,1);
@@ -163,7 +163,7 @@ ij_ = ix + (0:n_qk_csum-1);
 k_p_r_qk_(1+ij_) = k_p_r*ones(n_qk_csum,1);
 k_p_azimu_b_qk_(1+ij_) = k_p_azimu_b_sub_;
 k_p_polar_a_qk_(1+ij_) = k_p_polar_a_sub_;
-weight_shell_k_(1+ij_) = weight_k_sub_;
+weight_shell_qk_(1+ij_) = weight_k_sub_;
 weight_3d_k_p_qk_(1+ij_) = weight_k_sub_ * weight_3d_k_p_r_(1+nk_p_r) / max(1e-12,k_p_r).^2;
 n_polar_a_k_(1+nk_p_r) = n_polar_a;
 polar_a_ka__{1+nk_p_r} = polar_a_;

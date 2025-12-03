@@ -5,7 +5,7 @@ from matlab_index_4d_0 import matlab_index_4d_0 ;
 from matlab_scalar_round import matlab_scalar_round ;
 from get_weight_3d_1 import get_weight_3d_1 ;
 from get_weight_2d_2 import get_weight_2d_2 ;
-from ampmh_FTK_2 import ampmh_FTK_2 ;
+from tfh_FTK_2 import tfh_FTK_2 ;
 from tfpmh_Z_wSM___12 import tfpmh_Z_wSM___12 ;
 numel_unique = lambda a : np.unique(a.numpy().ravel()).size ;
 cumsum_0 = lambda a : torch.cumsum(torch.concatenate((torch.tensor([0]),a)) , 0).to(torch.int32) ;
@@ -83,7 +83,7 @@ tmp_n = int(np.maximum(n_k_p_r,pm_n_UX_rank)); pm_UX_kn__ = torch.eye(tmp_n).to(
 pm_X_weight_r_ = torch.sqrt(weight_2d_k_p_r_);
 #%%%%;
 delta_r_max = 0.5/np.maximum(1e-12,k_p_r_max); svd_eps = 1e-3; n_delta_v_requested = 7;
-FTK = ampmh_FTK_2(n_k_p_r,k_p_r_.to(dtype=torch.float64),float(k_p_r_max),float(delta_r_max),float(svd_eps),n_delta_v_requested);
+FTK = tfh_FTK_2(n_k_p_r,k_p_r_.to(dtype=torch.float64),float(k_p_r_max),float(delta_r_max),float(svd_eps),n_delta_v_requested);
 n_delta_v = FTK['n_delta_v'];
 n_svd_l = FTK['n_svd_l'];
 
@@ -97,8 +97,8 @@ parameter['flag_dwSM'] = 1;
 (
     parameter,
     tfpmh_Z_wSM___,
-    tfpmh_UX_R_CTF_S_l2_wS__,
-    tfpmh_R_CTF_S_l2_wS__,
+    tfpmh_UX_CTF_R_S_l2_wS__,
+    tfpmh_CTF_R_S_l2_wS__,
     tfpmh_UX_T_M_l2_dM__,
     tfpmh_UX_M_l2_M_,
     tfpmh_X_wSM___,
@@ -134,12 +134,12 @@ dir_ascii = dir_base + '/dir_cryoem/dir_rangan_python/dir_ascii' ;
 fname_ascii = dir_ascii + '/tfpmh_Z_wSM___.ascii' ;
 print(f' %% writing fname_ascii: {fname_ascii}');
 np.savetxt(fname_ascii,tfpmh_Z_wSM___.numpy().ravel());
-fname_ascii = dir_ascii + '/tfpmh_UX_R_CTF_S_l2_wS__.ascii' ;
+fname_ascii = dir_ascii + '/tfpmh_UX_CTF_R_S_l2_wS__.ascii' ;
 print(f' %% writing fname_ascii: {fname_ascii}');
-np.savetxt(fname_ascii,tfpmh_UX_R_CTF_S_l2_wS__.numpy().ravel());
-fname_ascii = dir_ascii + '/tfpmh_R_CTF_S_l2_wS__.ascii' ;
+np.savetxt(fname_ascii,tfpmh_UX_CTF_R_S_l2_wS__.numpy().ravel());
+fname_ascii = dir_ascii + '/tfpmh_CTF_R_S_l2_wS__.ascii' ;
 print(f' %% writing fname_ascii: {fname_ascii}');
-np.savetxt(fname_ascii,tfpmh_R_CTF_S_l2_wS__.numpy().ravel());
+np.savetxt(fname_ascii,tfpmh_CTF_R_S_l2_wS__.numpy().ravel());
 fname_ascii = dir_ascii + '/tfpmh_UX_T_M_l2_dM__.ascii' ;
 print(f' %% writing fname_ascii: {fname_ascii}');
 np.savetxt(fname_ascii,tfpmh_UX_T_M_l2_dM__.numpy().ravel());
@@ -182,8 +182,8 @@ parameter['flag_dwSM'] = 0;
 (
     parameter,
     tfpmh_Z_SM__,
-    tfpmh_UX_R_CTF_S_l2_wS__,
-    tfpmh_R_CTF_S_l2_wS__,
+    tfpmh_UX_CTF_R_S_l2_wS__,
+    tfpmh_CTF_R_S_l2_wS__,
     tfpmh_UX_T_M_l2_dM__,
     tfpmh_UX_M_l2_M_,
     tfpmh_X_SM__,
@@ -214,12 +214,12 @@ parameter['flag_dwSM'] = 0;
 fname_ascii = dir_ascii + '/tfpmh_Z_SM__.ascii' ;
 print(f' %% writing fname_ascii: {fname_ascii}');
 np.savetxt(fname_ascii,tfpmh_Z_SM__.numpy().ravel());
-fname_ascii = dir_ascii + '/tfpmh_UX_R_CTF_S_l2_wS__.ascii' ;
+fname_ascii = dir_ascii + '/tfpmh_UX_CTF_R_S_l2_wS__.ascii' ;
 print(f' %% writing fname_ascii: {fname_ascii}');
-np.savetxt(fname_ascii,tfpmh_UX_R_CTF_S_l2_wS__.numpy().ravel());
-fname_ascii = dir_ascii + '/tfpmh_R_CTF_S_l2_wS__.ascii' ;
+np.savetxt(fname_ascii,tfpmh_UX_CTF_R_S_l2_wS__.numpy().ravel());
+fname_ascii = dir_ascii + '/tfpmh_CTF_R_S_l2_wS__.ascii' ;
 print(f' %% writing fname_ascii: {fname_ascii}');
-np.savetxt(fname_ascii,tfpmh_R_CTF_S_l2_wS__.numpy().ravel());
+np.savetxt(fname_ascii,tfpmh_CTF_R_S_l2_wS__.numpy().ravel());
 fname_ascii = dir_ascii + '/tfpmh_UX_T_M_l2_dM__.ascii' ;
 print(f' %% writing fname_ascii: {fname_ascii}');
 np.savetxt(fname_ascii,tfpmh_UX_T_M_l2_dM__.numpy().ravel());

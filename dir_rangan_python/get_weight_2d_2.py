@@ -3,7 +3,7 @@ from matlab_index_2d_0 import matlab_index_2d_0 ;
 from matlab_index_3d_0 import matlab_index_3d_0 ;
 from matlab_index_4d_0 import matlab_index_4d_0 ;
 from matlab_scalar_round import matlab_scalar_round
-from matlab_scalar_round import matlab_scalar_round
+numel = lambda a : int(a.numel()) ;
 cumsum_0 = lambda a : torch.cumsum(torch.concatenate((torch.tensor([0]),a)) , 0).to(torch.int32) ;
 mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
 
@@ -168,7 +168,7 @@ def get_weight_2d_2(
     else:
         if flag_verbose > 0: print(f" %% template_k_eq_d <= 0") ;
         n_w_ = n_w_0in_.detach().clone() ;
-        assert n_w_.numel() == n_k_p_r and torch.min(n_w_) > 0 ;
+        assert numel(n_w_) == n_k_p_r and torch.min(n_w_) > 0 ;
     #end;%ifelse;
 
     n_w_max = int(torch.max(n_w_).item()) ;

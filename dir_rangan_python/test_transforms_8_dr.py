@@ -1,12 +1,5 @@
 #import os; os.chdir('/data/rangan/dir_cryoem/dir_rangan_python');
-import sys ;
-import numpy as np ; pi = np.pi ; i = 1j ; import torch ; import timeit ;
-from matlab_index_2d_0 import matlab_index_2d_0 ;
-from matlab_index_3d_0 import matlab_index_3d_0 ;
-from matlab_index_4d_0 import matlab_index_4d_0 ;
-from matlab_scalar_round import matlab_scalar_round ;
-from i4_torch_arange import i4_torch_arange ;
-from fnorm_disp import fnorm_disp ;
+exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ; #<-- warning, avoid recursion. ;
 from cg_rhs_2 import cg_rhs_2 ;
 from sample_sphere_7 import sample_sphere_7 ;
 from sample_shell_6 import sample_shell_6 ;
@@ -17,35 +10,22 @@ from xxnufft3d3 import xxnufft3d3 ;
 from h2d import h2d ;
 from h3d import h3d ;
 from interp_k_p_to_x_c_xxnufft import interp_k_p_to_x_c_xxnufft ;
-from ampmh_FTK_2 import ampmh_FTK_2 ;
+from tfh_FTK_2 import tfh_FTK_2 ;
 from transf_p_to_p import transf_p_to_p ;
 from I_PxxP import I_PxxP ;
 from plane_wave_expansion_1 import plane_wave_expansion_1 ;
 from convert_k_p_to_spharm_4 import convert_k_p_to_spharm_4 ;
+from convert_k_p_to_spharm_uniform_over_n_k_p_r_5 import convert_k_p_to_spharm_uniform_over_n_k_p_r_5 ;
 from convert_spharm_to_k_p_4 import convert_spharm_to_k_p_4 ;
+from convert_spharm_to_k_p_uniform_over_n_k_p_r_5 import convert_spharm_to_k_p_uniform_over_n_k_p_r_5 ;
 from local_yk__from_yk_ import local_yk__from_yk_ ;
 from local_yk_from_yk__ import local_yk_from_yk__ ;
 from pm_template_2 import pm_template_2 ;
 from interp_p_to_q import interp_p_to_q ;
-from periodize import periodize ;
 from I_xPPx_0 import I_xPPx_0 ;
 from principled_marching_empirical_cost_matrix_1 import principled_marching_empirical_cost_matrix_1 ;
 from tpmh_VUXM_lwnM____3 import tpmh_VUXM_lwnM____3 ;
 from tfpmh_UX_T_M_l2_dM__1 import tfpmh_UX_T_M_l2_dM__1 ;
-from intersect_0 import intersect_0 ;
-cumsum_0 = lambda a : torch.cumsum(torch.concatenate((torch.tensor([0]),a)) , 0).to(torch.int32) ;
-fnorm = lambda a : torch.linalg.norm(a).item() ;
-mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
-msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
-mts = lambda a : tuple(len(a) - x - 1 for x in a) ; #<-- for permute (i.e., tuple subtract (...)). ;
-tic = lambda : timeit.default_timer() ;
-toc = lambda a : tic() - a ;
-mmmm = lambda A , B : torch.einsum( msr('ab') + ',' + msr('bc') + '->' + msr('ac') , A , B ) ; #<-- matlab matrix matrix multiplication. ;
-mmvm = lambda A , B : torch.einsum( msr('ab') + ',' +  msr('b') + '->' +  msr('a') , A , B ) ; #<-- matlab matrix vector multiplication. ;
-mvmm = lambda A , B : torch.einsum(  msr('b') + ',' + msr('bc') + '->' +  msr('c') , A , B ) ; #<-- matlab vector matrix multiplication. ;
-mvvm = lambda A , B : torch.einsum(  msr('b') + ',' +  msr('b') + '->' +   msr('') , A , B ) ; #<-- matlab vector vector multiplication. ;
-efind = lambda a : torch.where(a)[0] ;
-n_1 = int(1); n_2 = int(2); n_3 = int(3);
 
 str_thisfunction = 'test_transforms_8_dr' ;
 flag_verbose = 1 ; # verbosity level.
@@ -71,22 +51,22 @@ r'''
 half_diameter_x_c = 1.0d0;
 diameter_x_c = 2.0d0*half_diameter_x_c;
 x_p_r_max = half_diameter_x_c;
-x_c_0_ = linspace(-x_p_r_max,+x_p_r_max,n_x_c);
-x_c_1_ = linspace(-x_p_r_max,+x_p_r_max,n_x_c);
-x_c_2_ = linspace(-x_p_r_max,+x_p_r_max,n_x_c);
+x_c_0_ = linspace(-x_p_r_max,+x_p_r_max,n_x_c); d_x_0 = mean(diff(x_c_0_));
+x_c_1_ = linspace(-x_p_r_max,+x_p_r_max,n_x_c); d_x_1 = mean(diff(x_c_1_));
+x_c_2_ = linspace(-x_p_r_max,+x_p_r_max,n_x_c); d_x_2 = mean(diff(x_c_2_));
 [x_c_0___,x_c_1___,x_c_2___] = ndgrid(x_c_0_,x_c_1_,x_c_2_); n_xxx_c = n_x_c^3;
-weight_xxx_c = (2*x_p_r_max/n_x_c)^3;
+weight_xxx_c = d_x_0 * d_x_1 * d_x_2 ;
 '''
 
 # Define spatial grid.
 half_diameter_x_c = 1.0;
 diameter_x_c = 2.0 * half_diameter_x_c;
 x_p_r_max = half_diameter_x_c;
-x_c_0_ = torch.linspace(-x_p_r_max, +x_p_r_max, n_x_c).to(torch.float32);
-x_c_1_ = torch.linspace(-x_p_r_max, +x_p_r_max, n_x_c).to(torch.float32);
-x_c_2_ = torch.linspace(-x_p_r_max, +x_p_r_max, n_x_c).to(torch.float32);
+x_c_0_ = torch.linspace(-x_p_r_max, +x_p_r_max, n_x_c).to(torch.float32); d_x_0 = x_c_0_[1].item()-x_c_0_[0].item();
+x_c_1_ = torch.linspace(-x_p_r_max, +x_p_r_max, n_x_c).to(torch.float32); d_x_1 = x_c_1_[1].item()-x_c_1_[0].item();
+x_c_2_ = torch.linspace(-x_p_r_max, +x_p_r_max, n_x_c).to(torch.float32); d_x_2 = x_c_2_[1].item()-x_c_2_[0].item();
 x_c_2___, x_c_1___, x_c_0___ = torch.meshgrid(x_c_2_, x_c_1_, x_c_0_, indexing='ij') ; n_xxx_c = n_x_c ** 3 ; #<-- reversed to match matlab. ;
-weight_xxx_c = (2 * x_p_r_max / n_x_c) ** 3;
+weight_xxx_c = d_x_0 * d_x_1 * d_x_2 ;
 
 r'''
 %%%%%%%%;
@@ -284,7 +264,7 @@ delta_b_c_3s__ = torch.transpose(
         [ +1.2, -0.7 ]
     ]) / (2 * k_p_r_max) 
 , 1 , 0 ).to(torch.float32);
-n_source = delta_a_c_3s__.shape[0];
+n_source = size(delta_a_c_3s__,1);
 a_k_p_form_ = torch.zeros(n_qk).to(dtype=torch.complex64);
 b_k_p_form_ = torch.zeros(n_qk).to(dtype=torch.complex64);
 for nsource in range(n_source):
@@ -750,20 +730,20 @@ l_max_ = zeros(n_k_p_r,1);
 for nk_p_r=0:n_k_p_r-1;
 l_max_(1+nk_p_r) = max(0,min(l_max_upb,1+ceil(2*pi*k_p_r_(1+nk_p_r))));
 end;%for nk_p_r=0:n_k_p_r-1;
-n_lm_ = (l_max_+1).^2;
-n_lm_max = max(n_lm_);
-n_lm_sum = sum(n_lm_);
-n_lm_csum_ = cumsum([0;n_lm_]);
+n_y_ = (l_max_+1).^2;
+n_y_max = max(n_y_);
+n_y_sum = sum(n_y_);
+n_y_csum_ = cumsum([0;n_y_]);
 l_max_max = max(l_max_); dWtdkd__l_max_max = 2*l_max_max;
 m_max_ = -l_max_max : +l_max_max;
 n_m_max = length(m_max_);
-Y_l_val_ = zeros(n_lm_sum,1);
-Y_m_val_ = zeros(n_lm_sum,1);
-Y_k_val_ = zeros(n_lm_sum,1);
+Y_l_val_ = zeros(n_y_sum,1);
+Y_m_val_ = zeros(n_y_sum,1);
+Y_k_val_ = zeros(n_y_sum,1);
 for nk_p_r=0:n_k_p_r-1;
 l_max = l_max_(1+nk_p_r);
-tmp_l_val_ = zeros(n_lm_(1+nk_p_r),1);
-tmp_m_val_ = zeros(n_lm_(1+nk_p_r),1);
+tmp_l_val_ = zeros(n_y_(1+nk_p_r),1);
+tmp_m_val_ = zeros(n_y_(1+nk_p_r),1);
 na=0; 
 for l_val=0:l_max;
 for m_val=-l_val:+l_val;
@@ -772,14 +752,14 @@ tmp_m_val_(1+na) = m_val;
 na=na+1;
 end;%for m_val=-l_val:+l_val;
 end;%for l_val=0:l_max;
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm_(1+nk_p_r)-1);
+tmp_index_ = n_y_csum_(1+nk_p_r) + (0:n_y_(1+nk_p_r)-1);
 Y_l_val_(1+tmp_index_) = tmp_l_val_;
 Y_m_val_(1+tmp_index_) = tmp_m_val_;
 Y_k_val_(1+tmp_index_) = k_p_r_(1+nk_p_r);
 end;%for nk_p_r=0:n_k_p_r-1;
-weight_Y_ = zeros(n_lm_sum,1);
+weight_Y_ = zeros(n_y_sum,1);
 for nk_p_r=0:n_k_p_r-1;
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm_(1+nk_p_r)-1);
+tmp_index_ = n_y_csum_(1+nk_p_r) + (0:n_y_(1+nk_p_r)-1);
 weight_Y_(1+tmp_index_) = weight_3d_k_p_r_(1+nk_p_r);
 end;%for nk_p_r=0:n_k_p_r-1;
 '''
@@ -788,20 +768,20 @@ l_max_ = torch.zeros(n_k_p_r).to(torch.int32);
 for nk_p_r in range(n_k_p_r):
     l_max_[nk_p_r] = max(0,min(l_max_upb,1+np.ceil(2*pi*k_p_r_[nk_p_r].item())));
 #end;%for nk_p_r=0:n_k_p_r-1;
-n_lm_ = (l_max_+1)**2;
-n_lm_max = int(torch.max(n_lm_).item());
-n_lm_sum = int(torch.sum(n_lm_).item());
-n_lm_csum_ = cumsum_0(n_lm_);
+n_y_ = (l_max_+1)**2;
+n_y_max = int(torch.max(n_y_).item());
+n_y_sum = int(torch.sum(n_y_).item());
+n_y_csum_ = cumsum_0(n_y_);
 l_max_max = int(torch.max(l_max_).item()); dWtdkd__l_max_max = 2*l_max_max;
 m_max_ = torch.arange(-l_max_max,+l_max_max+1).to(torch.int32);
-n_m_max = m_max_.numel();
-Y_l_val_ = torch.zeros(n_lm_sum).to(torch.int32);
-Y_m_val_ = torch.zeros(n_lm_sum).to(torch.int32);
-Y_k_val_ = torch.zeros(n_lm_sum).to(torch.float32);
+n_m_max = numel(m_max_);
+Y_l_val_ = torch.zeros(n_y_sum).to(torch.int32);
+Y_m_val_ = torch.zeros(n_y_sum).to(torch.int32);
+Y_k_val_ = torch.zeros(n_y_sum).to(torch.float32);
 for nk_p_r in range(n_k_p_r):
     l_max = int(l_max_[nk_p_r].item());
-    tmp_l_val_ = torch.zeros(int(n_lm_[nk_p_r].item())).to(torch.int32);
-    tmp_m_val_ = torch.zeros(int(n_lm_[nk_p_r].item())).to(torch.int32);
+    tmp_l_val_ = torch.zeros(int(n_y_[nk_p_r].item())).to(torch.int32);
+    tmp_m_val_ = torch.zeros(int(n_y_[nk_p_r].item())).to(torch.int32);
     na=0; 
     for l_val in range(l_max+1):
         for m_val in range(-l_val,+l_val+1):
@@ -810,20 +790,20 @@ for nk_p_r in range(n_k_p_r):
             na=na+1;
         #end;%for m_val=-l_val:+l_val;
     #end;%for l_val=0:l_max;
-    tmp_index_lhs_ = int(n_lm_csum_[nk_p_r].item()) + torch.arange(int(n_lm_[nk_p_r].item())).to(torch.int32);
+    tmp_index_lhs_ = int(n_y_csum_[nk_p_r].item()) + torch.arange(int(n_y_[nk_p_r].item())).to(torch.int32);
     Y_l_val_[tmp_index_lhs_] = tmp_l_val_;
     Y_m_val_[tmp_index_lhs_] = tmp_m_val_;
     Y_k_val_[tmp_index_lhs_] = k_p_r_[nk_p_r].item();
 #end;%for nk_p_r=0:n_k_p_r-1;
-weight_Y_ = torch.zeros(n_lm_sum).to(torch.float32);
+weight_Y_ = torch.zeros(n_y_sum).to(torch.float32);
 for nk_p_r in range(n_k_p_r):
-    tmp_index_lhs_ = int(n_lm_csum_[nk_p_r].item()) + torch.arange(int(n_lm_[nk_p_r].item())).to(torch.int32);
+    tmp_index_lhs_ = int(n_y_csum_[nk_p_r].item()) + torch.arange(int(n_y_[nk_p_r].item())).to(torch.int32);
     weight_Y_[tmp_index_lhs_] = weight_3d_k_p_r_[nk_p_r].item();
 #end;%for nk_p_r=0:n_k_p_r-1;
 
 r'''
 %%%%%%%%;
-a_k_Y_form_ = zeros(n_lm_sum,1);
+a_k_Y_form_ = zeros(n_y_sum,1);
 for nsource=0:n_source-1;
 a_k_Y_form_ = a_k_Y_form_ + plane_wave_expansion_1(n_k_p_r,k_p_r_,delta_a_c_3s__(:,1+nsource),l_max_);
 end;%for nsource=0:n_source-1;
@@ -868,7 +848,7 @@ tmp_t = toc(tmp_t); disp(sprintf(' %% a_k_Y_quad_ time %0.2fs',tmp_t));
 fnorm_disp(flag_verbose,'a_k_Y_form_',a_k_Y_form_,'a_k_Y_quad_',a_k_Y_quad_,' %%<-- should be <1e-2');
 '''
 
-a_k_Y_form_ = torch.zeros(n_lm_sum).to(dtype=torch.complex64);
+a_k_Y_form_ = torch.zeros(n_y_sum).to(dtype=torch.complex64);
 for nsource in range(n_source):
     a_k_Y_form_ = a_k_Y_form_ + plane_wave_expansion_1(n_k_p_r,k_p_r_,delta_a_c_3s__[nsource,:],l_max_);
 #end;%for nsource=0:n_source-1;
@@ -1090,7 +1070,7 @@ r'''
 a_k_Y_form_yk__ = local_yk__from_yk_(n_k_p_r,l_max_,a_k_Y_form_);
 a_k_Y_form_yk___ = zeros(1+l_max_max,n_m_max,n_k_p_r);
 for nk_p_r=0:n_k_p_r-1;
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm_(1+nk_p_r)-1);
+tmp_index_ = n_y_csum_(1+nk_p_r) + (0:n_y_(1+nk_p_r)-1);
 tmp_a_k_Y_form_lm_ = a_k_Y_form_(1+tmp_index_);
 tmp_a_k_Y_form_lm__ = zeros(1+l_max_max,n_m_max);
 l_max = l_max_(1+nk_p_r);
@@ -1112,13 +1092,13 @@ for nk_p_r=0:n_k_p_r-1;
 l_max=l_max_(1+nk_p_r);
 for l_val=0:l_max;
 for m_val=-l_val:+l_val;
-assert(a_k_Y_form_(1+n_lm_csum_(1+nk_p_r)+l_val*(l_val+1)+m_val)==a_k_Y_form_yk__(1+l_val*(l_val+1)+m_val,1+nk_p_r));
-assert(a_k_Y_form_(1+n_lm_csum_(1+nk_p_r)+l_val*(l_val+1)+m_val)==a_k_Y_form_yk___(1+l_val,1+l_max_max+m_val,1+nk_p_r));
+assert(a_k_Y_form_(1+n_y_csum_(1+nk_p_r)+l_val*(l_val+1)+m_val)==a_k_Y_form_yk__(1+l_val*(l_val+1)+m_val,1+nk_p_r));
+assert(a_k_Y_form_(1+n_y_csum_(1+nk_p_r)+l_val*(l_val+1)+m_val)==a_k_Y_form_yk___(1+l_val,1+l_max_max+m_val,1+nk_p_r));
 na=na+1;
 end;%for m_val=-l_val:+l_val;
 end;%for l_val=0:l_max;
 end;%for nk_p_r=0:n_k_p_r-1;
-assert(na==n_lm_sum);
+assert(na==n_y_sum);
 end;%if flag_check;
 %%%%%%%%;
 a_k_Y_form_lkm___ = permute(a_k_Y_form_yk___,[1,3,2]);
@@ -1130,7 +1110,7 @@ disp(sprintf(' %% a_k_Y_l2_quad %+0.6f a_k_p_l2_form %+0.6f',a_k_Y_l2_quad,a_k_p
 a_k_Y_form_yk__ = local_yk__from_yk_(n_k_p_r,l_max_,a_k_Y_form_);
 a_k_Y_form_yk___ = torch.zeros(mtr((1+l_max_max,n_m_max,n_k_p_r))).to(dtype=torch.complex64);
 for nk_p_r in range(n_k_p_r):
-    tmp_index_ = int(n_lm_csum_[nk_p_r].item()) + torch.arange(int(n_lm_[nk_p_r].item())).to(torch.int32) ;
+    tmp_index_ = int(n_y_csum_[nk_p_r].item()) + torch.arange(int(n_y_[nk_p_r].item())).to(torch.int32) ;
     tmp_a_k_Y_form_lm_ = a_k_Y_form_[tmp_index_];
     tmp_a_k_Y_form_lm__ = torch.zeros(mtr((1+l_max_max,n_m_max))).to(dtype=torch.complex64);
     l_max = int(l_max_[nk_p_r].item());
@@ -1154,8 +1134,8 @@ if flag_check:
         l_max=int(l_max_[nk_p_r].item());
         for l_val in range(l_max+1):
             for m_val in range(-l_val,+l_val+1):
-                tmp_index_rhs_ = matlab_index_2d_0(n_lm_max,l_val*(l_val+1)+m_val,n_k_p_r,nk_p_r);
-                tmp_index_lhs_ = torch.tensor([int(n_lm_csum_[nk_p_r].item()) + l_val*(l_val+1) + m_val ]).to(torch.int32);
+                tmp_index_rhs_ = matlab_index_2d_0(n_y_max,l_val*(l_val+1)+m_val,n_k_p_r,nk_p_r);
+                tmp_index_lhs_ = torch.tensor([int(n_y_csum_[nk_p_r].item()) + l_val*(l_val+1) + m_val ]).to(torch.int32);
                 tmp_lhs = a_k_Y_form_[tmp_index_lhs_].item();
                 tmp_rhs = a_k_Y_form_yk__.ravel()[tmp_index_rhs_].item();
                 if (flag_verbose>2):
@@ -1173,13 +1153,248 @@ if flag_check:
             #end;%for m_val=-l_val:+l_val;
         #end;%for l_val=0:l_max;
     #end;%for nk_p_r=0:n_k_p_r-1;
-    assert(na==n_lm_sum);
+    assert(na==n_y_sum);
 #end;%if flag_check;
 #%%%%%%%%;
 a_k_Y_form_lkm___ = torch.permute(a_k_Y_form_yk___,mtr(mts((0,2,1))));
 #%%%%%%%%;
 a_k_Y_l2_quad = torch.sum( mmvm( (torch.conj(a_k_Y_form_yk__)*a_k_Y_form_yk__).to(dtype=torch.complex64) , weight_3d_k_p_r_.to(dtype=torch.complex64) ) ).item();
 print(f' %% a_k_Y_l2_quad {np.abs(a_k_Y_l2_quad):+0.6f} a_k_p_l2_form {np.abs(a_k_p_l2_form):+0.6f}') ;
+
+r'''
+%%%%%%%%;
+% test convert_k_p_to_spharm_uniform_over_n_k_p_r_5. ;
+%%%%%%%%;
+tmp_t = tic;
+if ~exist('Ylm_uklma___','var'); Ylm_uklma___ = []; end;
+if ~exist('k_p_azimu_b_sub_uka__','var'); k_p_azimu_b_sub_uka__ = []; end;
+if ~exist('k_p_polar_a_sub_uka__','var'); k_p_polar_a_sub_uka__ = []; end;
+if ~exist('l_max_uk_','var'); l_max_uk_ = []; end;
+if ~exist('index_nu_n_k_per_shell_from_nk_p_r_','var'); index_nu_n_k_per_shell_from_nk_p_r_ = []; end;
+if ~exist('index_k_per_shell_uka__','var'); index_k_per_shell_uka__ = []; end;
+[ ...
+ a_k_Y_quad_4_ ...
+,Ylm_uklma___ ...
+,k_p_azimu_b_sub_uka__ ...
+,k_p_polar_a_sub_uka__ ...
+,l_max_uk_ ...
+,index_nu_n_k_per_shell_from_nk_p_r_ ...
+,index_k_per_shell_uka__ ...
+] = ...
+convert_k_p_to_spharm_4( ...
+ 0*flag_verbose ...
+,n_qk ...
+,n_qk_csum_ ...
+,k_p_r_qk_ ...
+,k_p_azimu_b_qk_ ...
+,k_p_polar_a_qk_ ...
+,weight_3d_k_p_qk_ ...
+,weight_shell_qk_ ...
+,n_k_p_r ...
+,k_p_r_ ...
+,weight_3d_k_p_r_ ...
+,l_max_ ...
+,a_k_p_form_ ...
+,Ylm_uklma___ ...
+,k_p_azimu_b_sub_uka__ ...
+,k_p_polar_a_sub_uka__ ...
+,l_max_uk_ ...
+,index_nu_n_k_per_shell_from_nk_p_r_ ...
+,index_k_per_shell_uka__ ...
+);
+tmp_t = toc(tmp_t); disp(sprintf(' %% a_k_Y_quad_4_ time %0.2fs',tmp_t));
+%%%%%%%%;
+tmp_t = tic;
+if ~exist('sqrt_2lp1_','var'); sqrt_2lp1_ = []; end;
+if ~exist('sqrt_2mp1_','var'); sqrt_2mp1_ = []; end;
+if ~exist('sqrt_rat0_m_','var'); sqrt_rat0_m_ = []; end;
+if ~exist('sqrt_rat3_lm__','var'); sqrt_rat3_lm__ = []; end;
+if ~exist('sqrt_rat4_lm__','var'); sqrt_rat4_lm__ = []; end;
+[ ...
+ a_k_Y_quad_5_ ...
+,sqrt_2lp1_ ...
+,sqrt_2mp1_ ...
+,sqrt_rat0_m_ ...
+,sqrt_rat3_lm__ ...
+,sqrt_rat4_lm__ ...
+] = ...
+convert_k_p_to_spharm_uniform_over_n_k_p_r_5( ...
+ 0*flag_verbose ...
+,n_qk ...
+,n_qk_csum_ ...
+,k_p_r_qk_ ...
+,k_p_azimu_b_qk_ ...
+,k_p_polar_a_qk_ ...
+,weight_3d_k_p_qk_ ...
+,weight_shell_qk_ ...
+,n_k_p_r ...
+,k_p_r_ ...
+,weight_3d_k_p_r_ ...
+,l_max_ ...
+,a_k_p_form_ ...
+,sqrt_2lp1_ ...
+,sqrt_2mp1_ ...
+,sqrt_rat0_m_ ...
+,sqrt_rat3_lm__ ...
+,sqrt_rat4_lm__ ...
+);
+tmp_t = toc(tmp_t); disp(sprintf(' %% a_k_Y_quad_5_ time %0.2fs',tmp_t));
+%%%%%%%%;
+fnorm_disp(flag_verbose,'a_k_Y_quad_4_',a_k_Y_quad_4_,'a_k_Y_quad_5_',a_k_Y_quad_5_,' %%<-- should be zero');
+%%%%%%%%;
+'''
+
+tmp_t = tic();
+if 'Ylm_uklma___' not in locals(): Ylm_uklma___ = None ; #end;
+if 'k_p_azimu_b_sub_uka__' not in locals(): k_p_azimu_b_sub_uka__ = None ; #end;
+if 'k_p_polar_a_sub_uka__' not in locals(): k_p_polar_a_sub_uka__ = None ; #end;
+if 'l_max_uk_' not in locals(): l_max_uk_ = None ; #end;
+if 'index_nu_n_k_per_shell_from_nk_p_r_' not in locals(): index_nu_n_k_per_shell_from_nk_p_r_ = None ; #end;
+if 'index_k_per_shell_uka__' not in locals(): index_k_per_shell_uka__ = None ; #end;
+(
+    a_k_Y_quad_4_,
+    Ylm_uklma___,
+    k_p_azimu_b_sub_uka__,
+    k_p_polar_a_sub_uka__,
+    l_max_uk_,
+    index_nu_n_k_per_shell_from_nk_p_r_,
+    index_k_per_shell_uka__,
+) = convert_k_p_to_spharm_4(
+    0*flag_verbose,
+    n_qk,
+    n_qk_csum_,
+    k_p_r_qk_,
+    k_p_azimu_b_qk_,
+    k_p_polar_a_qk_,
+    weight_3d_k_p_qk_,
+    weight_shell_qk_,
+    n_k_p_r,
+    k_p_r_,
+    weight_3d_k_p_r_,
+    l_max_,
+    a_k_p_form_,
+    Ylm_uklma___,
+    k_p_azimu_b_sub_uka__,
+    k_p_polar_a_sub_uka__,
+    l_max_uk_,
+    index_nu_n_k_per_shell_from_nk_p_r_,
+    index_k_per_shell_uka__,
+);
+tmp_t = toc(tmp_t); disp(sprintf(' %% a_k_Y_quad_4_ time %0.2fs',tmp_t));
+#%%%%%%%%;
+tmp_t = tic();
+if 'sqrt_2lp1_' not in locals(): sqrt_2lp1_ = None; #end;
+if 'sqrt_2mp1_' not in locals(): sqrt_2mp1_ = None; #end;
+if 'sqrt_rat0_m_' not in locals(): sqrt_rat0_m_ = None; #end;
+if 'sqrt_rat3_lm__' not in locals(): sqrt_rat3_lm__ = None; #end;
+if 'sqrt_rat4_lm__' not in locals(): sqrt_rat4_lm__ = None; #end;
+(
+    a_k_Y_quad_5_,
+    sqrt_2lp1_,
+    sqrt_2mp1_,
+    sqrt_rat0_m_,
+    sqrt_rat3_lm__,
+    sqrt_rat4_lm__,
+) = convert_k_p_to_spharm_uniform_over_n_k_p_r_5(
+    0*flag_verbose,
+    n_qk,
+    n_qk_csum_,
+    k_p_r_qk_,
+    k_p_azimu_b_qk_,
+    k_p_polar_a_qk_,
+    weight_3d_k_p_qk_,
+    weight_shell_qk_,
+    n_k_p_r,
+    k_p_r_,
+    weight_3d_k_p_r_,
+    l_max_,
+    a_k_p_form_,
+    sqrt_2lp1_,
+    sqrt_2mp1_,
+    sqrt_rat0_m_,
+    sqrt_rat3_lm__,
+    sqrt_rat4_lm__,
+);
+tmp_t = toc(tmp_t); disp(sprintf(' %% a_k_Y_quad_5_ time %0.2fs',tmp_t));
+#%%%%%%%%;
+fnorm_disp(flag_verbose,'a_k_Y_quad_4_',a_k_Y_quad_4_,'a_k_Y_quad_5_',a_k_Y_quad_5_,' %%<-- should be zero');
+#%%%%%%%%;
+
+tmp_t = tic();
+if 'Ylm_uklma___' not in locals(): Ylm_uklma___ = None ; #end;
+if 'k_p_azimu_b_sub_uka__' not in locals(): k_p_azimu_b_sub_uka__ = None ; #end;
+if 'k_p_polar_a_sub_uka__' not in locals(): k_p_polar_a_sub_uka__ = None ; #end;
+if 'l_max_uk_' not in locals(): l_max_uk_ = None ; #end;
+if 'index_nu_n_k_per_shell_from_nk_p_r_' not in locals(): index_nu_n_k_per_shell_from_nk_p_r_ = None ; #end;
+if 'index_k_per_shell_uka__' not in locals(): index_k_per_shell_uka__ = None ; #end;
+(
+    a_k_p_quad_4_,
+    Ylm_uklma___,
+    k_p_azimu_b_sub_uka__,
+    k_p_polar_a_sub_uka__,
+    l_max_uk_,
+    index_nu_n_k_per_shell_from_nk_p_r_,
+    index_k_per_shell_uka__,
+) = convert_spharm_to_k_p_4(
+    0*flag_verbose,
+    n_qk,
+    n_qk_csum_,
+    k_p_r_qk_,
+    k_p_azimu_b_qk_,
+    k_p_polar_a_qk_,
+    weight_3d_k_p_qk_,
+    weight_shell_qk_,
+    n_k_p_r,
+    k_p_r_,
+    weight_3d_k_p_r_,
+    l_max_,
+    a_k_Y_form_,
+    Ylm_uklma___,
+    k_p_azimu_b_sub_uka__,
+    k_p_polar_a_sub_uka__,
+    l_max_uk_,
+    index_nu_n_k_per_shell_from_nk_p_r_,
+    index_k_per_shell_uka__,
+);
+tmp_t = toc(tmp_t); disp(sprintf(' %% a_k_p_quad_4_ time %0.2fs',tmp_t));
+#%%%%%%%%;
+tmp_t = tic();
+if 'sqrt_2lp1_' not in locals(): sqrt_2lp1_ = None; #end;
+if 'sqrt_2mp1_' not in locals(): sqrt_2mp1_ = None; #end;
+if 'sqrt_rat0_m_' not in locals(): sqrt_rat0_m_ = None; #end;
+if 'sqrt_rat3_lm__' not in locals(): sqrt_rat3_lm__ = None; #end;
+if 'sqrt_rat4_lm__' not in locals(): sqrt_rat4_lm__ = None; #end;
+(
+    a_k_p_quad_5_,
+    sqrt_2lp1_,
+    sqrt_2mp1_,
+    sqrt_rat0_m_,
+    sqrt_rat3_lm__,
+    sqrt_rat4_lm__,
+) = convert_spharm_to_k_p_uniform_over_n_k_p_r_5(
+    0*flag_verbose,
+    n_qk,
+    n_qk_csum_,
+    k_p_r_qk_,
+    k_p_azimu_b_qk_,
+    k_p_polar_a_qk_,
+    weight_3d_k_p_qk_,
+    weight_shell_qk_,
+    n_k_p_r,
+    k_p_r_,
+    weight_3d_k_p_r_,
+    l_max_,
+    a_k_Y_form_,
+    sqrt_2lp1_,
+    sqrt_2mp1_,
+    sqrt_rat0_m_,
+    sqrt_rat3_lm__,
+    sqrt_rat4_lm__,
+);
+tmp_t = toc(tmp_t); disp(sprintf(' %% a_k_p_quad_5_ time %0.2fs',tmp_t));
+#%%%%%%%%;
+fnorm_disp(flag_verbose,'a_k_p_quad_4_',a_k_p_quad_4_,'a_k_p_quad_5_',a_k_p_quad_5_,' %%<-- should be zero');
+#%%%%%%%%;
 
 r'''
 %%%%%%%%;
@@ -1263,7 +1478,7 @@ pm_template_2( ...
  0*flag_verbose ...
 ,l_max_max ...
 ,n_k_p_r ...
-,reshape(a_k_Y_form_yk__,[n_lm_max,n_k_p_r]) ...
+,reshape(a_k_Y_form_yk__,[n_y_max,n_k_p_r]) ...
 ,template_k_eq_d_double/max(1e-12,k_p_r_max) ...
 ,-1 ...
 ,n_w_max ...
@@ -1285,7 +1500,7 @@ S_k_p_l2_quad_S_ = reshape(sum(bsxfun(@times,conj(S_k_p_wkS__).*S_k_p_wkS__,resh
     0*flag_verbose,
     l_max_max,
     n_k_p_r,
-    torch.reshape(a_k_Y_form_yk__,mtr((n_lm_max,n_k_p_r))),
+    torch.reshape(a_k_Y_form_yk__,mtr((n_y_max,n_k_p_r))),
     template_k_eq_d_double/np.maximum(1e-12,k_p_r_max),
     -1,
     n_w_max,
@@ -1452,7 +1667,7 @@ flag_delta = 1;
 #%%%%%%%%;
 if flag_delta==0: delta_r_max = 0.0/np.maximum(1e-12,k_p_r_max); svd_eps = 1e-6; n_delta_v_requested =   1;
 if flag_delta!=0: delta_r_max = 0.5/np.maximum(1e-12,k_p_r_max); svd_eps = 1e-6; n_delta_v_requested = 128;
-FTK = ampmh_FTK_2(n_k_p_r,k_p_r_.to(dtype=torch.float64),float(k_p_r_max),float(delta_r_max),float(svd_eps),n_delta_v_requested);
+FTK = tfh_FTK_2(n_k_p_r,k_p_r_.to(dtype=torch.float64),float(k_p_r_max),float(delta_r_max),float(svd_eps),n_delta_v_requested);
 #%%%%%%%%;
 n_delta_v = FTK['n_delta_v'];
 
@@ -1618,16 +1833,16 @@ r'''
 
 %%%%%%%%;
 % Now construct the template-norms: ;
-% <(R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_,(R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_> ;
+% <CTF_k_p_wk_.*(R(+gamma_z)*S_k_p_wk_),CTF_k_p_wk_.*(R(+gamma_z)*S_k_p_wk_)> ;
 % Note that this does not involve collapsing onto principal-modes. ;
 %%%%%%%%;
-R_CTF_S_l2_wSC_quad___ = zeros(n_w_max,n_S,n_CTF);
+CTF_R_S_l2_wSC_quad___ = zeros(n_w_max,n_S,n_CTF);
 SS_k_p_wkS__ = conj(S_k_p_wkS__).*S_k_p_wkS__;
 SS_k_q_wkS__ = reshape(interp_p_to_q_block_0(n_k_p_r,n_w_,n_w_sum,SS_k_p_wkS__),[n_w_sum,n_S]);
 CC_k_p_wkC__ = conj(CTF_k_p_wkC__).*CTF_k_p_wkC__;
 CC_k_q_wkC__ = reshape(interp_p_to_q_block_0(n_k_p_r,n_w_,n_w_sum,CC_k_p_wkC__),[n_w_sum,n_CTF]);
 for nCTF=0:n_CTF-1;
-R_CTF_S_l2_wSC_quad___(:,:,1+nCTF) = ifft(squeeze(sum(bsxfun(@times,reshape(bsxfun(@times,conj(CC_k_q_wkC__(:,1+nCTF)),SS_k_q_wkS__),[n_w_max,n_k_p_r,n_S]),reshape(weight_2d_k_p_r_,[1,n_k_p_r,1])),1+1)));
+CTF_R_S_l2_wSC_quad___(:,:,1+nCTF) = ifft(squeeze(sum(bsxfun(@times,reshape(bsxfun(@times,CC_k_q_wkC__(:,1+nCTF),conj(SS_k_q_wkS__)),[n_w_max,n_k_p_r,n_S]),reshape(weight_2d_k_p_r_,[1,n_k_p_r,1])),1+1)));
 end;%for nCTF=0:n_CTF-1;
 %%%%%%%%;
 % Now check one template. ;
@@ -1639,34 +1854,34 @@ tmp_gamma_z = 0.0;
 tmp_R_S__ = Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
 nCTF = max(0,min(n_CTF-1,round(n_CTF*1/3)));
 tmp_CTF_phi = CTF_phi_C_(1+nCTF);
-R_CTF_S_l2_w_quad_ = R_CTF_S_l2_wSC_quad___(:,1+nS,1+nCTF);
-R_CTF_S_l2_w_qua2_ = zeros(n_w_max,1);
-R_CTF_S_l2_w_form_ = zeros(n_w_max,1);
+CTF_R_S_l2_w_quad_ = CTF_R_S_l2_wSC_quad___(:,1+nS,1+nCTF);
+CTF_R_S_l2_w_qua2_ = zeros(n_w_max,1);
+CTF_R_S_l2_w_form_ = zeros(n_w_max,1);
 for nw=0:n_w_max-1;
 gamma_z = gamma_z_(1+nw);
-R_CTF_S_k_p_wk_ = S_k_p_wkS__(:,1+nS).*rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,CTF_k_p_wkC__(:,1+nCTF),+gamma_z);
-R_CTF_S_l2_w_qua2_(1+nw) = sum(conj(R_CTF_S_k_p_wk_).*R_CTF_S_k_p_wk_.*weight_2d_wk_)*(2*pi)^2;
+CTF_R_S_k_p_wk_ = CTF_k_p_wkC__(:,1+nCTF).*rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,S_k_p_wkS__(:,1+nS),+gamma_z);
+CTF_R_S_l2_w_qua2_(1+nw) = sum(conj(CTF_R_S_k_p_wk_).*CTF_R_S_k_p_wk_.*weight_2d_wk_)*(2*pi)^2;
 for nsource0=0:n_source-1;
 tmp_S_delta_0_3_ = tmp_R_S__*delta_a_c_3s__(:,1+nsource0); tmp_S_delta_0_2_ = tmp_S_delta_0_3_(1:2);
 for nsource1=0:n_source-1;
 tmp_S_delta_1_3_ = tmp_R_S__*delta_a_c_3s__(:,1+nsource1); tmp_S_delta_1_2_ = tmp_S_delta_1_3_(1:2);
-R_CTF_S_l2_w_form_(1+nw) = R_CTF_S_l2_w_form_(1+nw) + I_xPPx_0(k_p_r_max,tmp_CTF_phi+gamma_z,tmp_S_delta_0_2_,tmp_CTF_phi+gamma_z,tmp_S_delta_1_2_);
+CTF_R_S_l2_w_form_(1+nw) = CTF_R_S_l2_w_form_(1+nw) + I_xPPx_0(k_p_r_max,tmp_CTF_phi-gamma_z,tmp_S_delta_0_2_,tmp_CTF_phi-gamma_z,tmp_S_delta_1_2_);
 end;%for nsource0=0:n_source-1;
 end;%for nsource1=0:n_source-1;
 end;%for nw=0:n_w_max-1;
-fnorm_disp(flag_verbose,'R_CTF_S_l2_w_qua2_',R_CTF_S_l2_w_qua2_,'R_CTF_S_l2_w_quad_',R_CTF_S_l2_w_quad_,' %%<-- should be zero');
-fnorm_disp(flag_verbose,'R_CTF_S_l2_w_qua2_',R_CTF_S_l2_w_qua2_,'R_CTF_S_l2_w_form_',R_CTF_S_l2_w_form_,' %%<-- should be <1e-6');
-fnorm_disp(flag_verbose,'R_CTF_S_l2_w_quad_',R_CTF_S_l2_w_quad_,'R_CTF_S_l2_w_form_',R_CTF_S_l2_w_form_,' %%<-- should be <1e-6');
+fnorm_disp(flag_verbose,'CTF_R_S_l2_w_qua2_',CTF_R_S_l2_w_qua2_,'CTF_R_S_l2_w_quad_',CTF_R_S_l2_w_quad_,' %%<-- should be zero');
+fnorm_disp(flag_verbose,'CTF_R_S_l2_w_qua2_',CTF_R_S_l2_w_qua2_,'CTF_R_S_l2_w_form_',CTF_R_S_l2_w_form_,' %%<-- should be <1e-6');
+fnorm_disp(flag_verbose,'CTF_R_S_l2_w_quad_',CTF_R_S_l2_w_quad_,'CTF_R_S_l2_w_form_',CTF_R_S_l2_w_form_,' %%<-- should be <1e-6');
 %%%%%%%%;
 '''
 
-R_CTF_S_l2_wSC_quad___ = torch.zeros(mtr((n_w_max,n_S,n_CTF))).to(dtype=torch.float32);
+CTF_R_S_l2_wSC_quad___ = torch.zeros(mtr((n_w_max,n_S,n_CTF))).to(dtype=torch.float32);
 SS_k_p_wkS__ = torch.conj(S_k_p_wkS__) * S_k_p_wkS__;
 SS_k_q_wkS__ = torch.reshape(interp_p_to_q(n_k_p_r,n_w_,n_w_sum,SS_k_p_wkS__),mtr((n_w_sum,n_S)));
 CC_k_p_wkC__ = torch.conj(CTF_k_p_wkC__) * CTF_k_p_wkC__;
 CC_k_q_wkC__ = torch.reshape(interp_p_to_q(n_k_p_r,n_w_,n_w_sum,CC_k_p_wkC__),mtr((n_w_sum,n_CTF)));
 for nCTF in range(n_CTF):
-    R_CTF_S_l2_wSC_quad___[nCTF,:,:] = torch.real(torch.fft.ifft(torch.reshape(torch.sum(torch.reshape(torch.conj(CC_k_q_wkC__[nCTF,:].ravel())*SS_k_q_wkS__,mtr((n_w_max,n_k_p_r,n_S))) * torch.reshape(weight_2d_k_p_r_,mtr((1,n_k_p_r,1))) , 2-1),mtr((n_w_max,n_S))),dim=1-0));
+    CTF_R_S_l2_wSC_quad___[nCTF,:,:] = torch.real(torch.fft.ifft(torch.reshape(torch.sum(torch.reshape(CC_k_q_wkC__[nCTF,:].ravel()*torch.conj(SS_k_q_wkS__),mtr((n_w_max,n_k_p_r,n_S))) * torch.reshape(weight_2d_k_p_r_,mtr((1,n_k_p_r,1))) , 2-1),mtr((n_w_max,n_S))),dim=1-0));
 #end;%for nCTF=0:n_CTF-1;
 #%%%%%%%%;
 nS = int(np.maximum(0,np.minimum(n_S-1,matlab_scalar_round(n_S*1/5))));
@@ -1676,36 +1891,36 @@ tmp_gamma_z = 0.0;
 tmp_R_S__ = mmmm( Rz(-tmp_gamma_z) , mmmm( Ry(-tmp_polar_a) , Rz(-tmp_azimu_b) ) );
 nCTF = int(np.maximum(0,np.minimum(n_CTF-1,matlab_scalar_round(n_CTF*1/3))));
 tmp_CTF_phi = CTF_phi_C_[nCTF].item();
-R_CTF_S_l2_w_quad_ = R_CTF_S_l2_wSC_quad___[nCTF,nS,:].ravel();
-R_CTF_S_l2_w_qua2_ = torch.zeros(n_w_max).to(dtype=torch.float32);
-R_CTF_S_l2_w_form_ = torch.zeros(n_w_max).to(dtype=torch.float32);
+CTF_R_S_l2_w_quad_ = CTF_R_S_l2_wSC_quad___[nCTF,nS,:].ravel();
+CTF_R_S_l2_w_qua2_ = torch.zeros(n_w_max).to(dtype=torch.float32);
+CTF_R_S_l2_w_form_ = torch.zeros(n_w_max).to(dtype=torch.float32);
 for nw in range(n_w_max):
     gamma_z = gamma_z_[nw].item();
-    R_CTF_S_k_p_wk_ = S_k_p_wkS__[nS,:].ravel() * rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,CTF_k_p_wkC__[nCTF,:].ravel(),+gamma_z);
-    R_CTF_S_l2_w_qua2_[nw] = np.real(torch.sum(torch.conj(R_CTF_S_k_p_wk_.ravel()) * R_CTF_S_k_p_wk_.ravel() * weight_2d_wk_.ravel()).item()*(2*pi)**2);
+    CTF_R_S_k_p_wk_ = CTF_k_p_wkC__[nCTF,:].ravel() * rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,S_k_p_wkS__[nS,:].ravel(),+gamma_z);
+    CTF_R_S_l2_w_qua2_[nw] = np.real(torch.sum(torch.conj(CTF_R_S_k_p_wk_.ravel()) * CTF_R_S_k_p_wk_.ravel() * weight_2d_wk_.ravel()).item()*(2*pi)**2);
     for nsource0 in range(n_source):
         tmp_S_delta_0_3_ = mmvm(tmp_R_S__,delta_a_c_3s__[nsource0,:].ravel()); tmp_S_delta_0_2_ = tmp_S_delta_0_3_[0:2].ravel();
         for nsource1 in range(n_source):
             tmp_S_delta_1_3_ = mmvm(tmp_R_S__,delta_a_c_3s__[nsource1,:].ravel()); tmp_S_delta_1_2_ = tmp_S_delta_1_3_[0:2].ravel();
-            R_CTF_S_l2_w_form_[nw] = R_CTF_S_l2_w_form_[nw].item() + I_xPPx_0(k_p_r_max,tmp_CTF_phi+gamma_z,tmp_S_delta_0_2_,tmp_CTF_phi+gamma_z,tmp_S_delta_1_2_);
+            CTF_R_S_l2_w_form_[nw] = CTF_R_S_l2_w_form_[nw].item() + I_xPPx_0(k_p_r_max,tmp_CTF_phi-gamma_z,tmp_S_delta_0_2_,tmp_CTF_phi-gamma_z,tmp_S_delta_1_2_);
         #end;%for nsource0=0:n_source-1;
     #end;%for nsource1=0:n_source-1;
 #end;%for nw=0:n_w_max-1;
-fnorm_disp(flag_verbose,'R_CTF_S_l2_w_qua2_',R_CTF_S_l2_w_qua2_,'R_CTF_S_l2_w_quad_',R_CTF_S_l2_w_quad_,' %%<-- should be zero');
-fnorm_disp(flag_verbose,'R_CTF_S_l2_w_qua2_',R_CTF_S_l2_w_qua2_,'R_CTF_S_l2_w_form_',R_CTF_S_l2_w_form_,' %%<-- should be <1e-6');
-fnorm_disp(flag_verbose,'R_CTF_S_l2_w_quad_',R_CTF_S_l2_w_quad_,'R_CTF_S_l2_w_form_',R_CTF_S_l2_w_form_,' %%<-- should be <1e-6');
+fnorm_disp(flag_verbose,'CTF_R_S_l2_w_qua2_',CTF_R_S_l2_w_qua2_,'CTF_R_S_l2_w_quad_',CTF_R_S_l2_w_quad_,' %%<-- should be zero');
+fnorm_disp(flag_verbose,'CTF_R_S_l2_w_qua2_',CTF_R_S_l2_w_qua2_,'CTF_R_S_l2_w_form_',CTF_R_S_l2_w_form_,' %%<-- should be <1e-6');
+fnorm_disp(flag_verbose,'CTF_R_S_l2_w_quad_',CTF_R_S_l2_w_quad_,'CTF_R_S_l2_w_form_',CTF_R_S_l2_w_form_,' %%<-- should be <1e-6');
 #%%%%%%%%;
 dir_base = '/data/rangan' ;
 dir_ascii = dir_base + '/dir_cryoem/dir_rangan_python/dir_ascii' ;
-fname_ascii = dir_ascii + '/R_CTF_S_l2_w_quad_.ascii' ;
+fname_ascii = dir_ascii + '/CTF_R_S_l2_w_quad_.ascii' ;
 print(f" %% writing {fname_ascii}");
-np.savetxt(fname_ascii,R_CTF_S_l2_w_quad_.numpy().ravel());
-fname_ascii = dir_ascii + '/R_CTF_S_l2_w_qua2_.ascii' ;
+np.savetxt(fname_ascii,CTF_R_S_l2_w_quad_.numpy().ravel());
+fname_ascii = dir_ascii + '/CTF_R_S_l2_w_qua2_.ascii' ;
 print(f" %% writing {fname_ascii}");
-np.savetxt(fname_ascii,R_CTF_S_l2_w_qua2_.numpy().ravel());
-fname_ascii = dir_ascii + '/R_CTF_S_l2_w_form_.ascii' ;
+np.savetxt(fname_ascii,CTF_R_S_l2_w_qua2_.numpy().ravel());
+fname_ascii = dir_ascii + '/CTF_R_S_l2_w_form_.ascii' ;
 print(f" %% writing {fname_ascii}");
-np.savetxt(fname_ascii,R_CTF_S_l2_w_form_.numpy().ravel());
+np.savetxt(fname_ascii,CTF_R_S_l2_w_form_.numpy().ravel());
 #%%%%%%%%;
 
 r'''
@@ -1713,6 +1928,7 @@ flag_pm = 1;
 %%%%%%%%%%%%%%%%;
 % Now calculate innerproduct Z_dwSM____. ;
 % Here we account for anisotropic CTF. ;
+% Note that this calculation assumes the radial-projection is nearly lossless. ;
 %%%%%%%%%%%%%%%%;
 n_UX_rank = n_k_p_r-1; %<-- just to check dimensions. Note that, in principle, this could be different for different nCTF. ; 
 pm_n_UX_rank = n_UX_rank; %<-- just to check dimension. ;
@@ -1826,28 +2042,28 @@ flag_pm = 1;
 device_use = 'cpu'; #<-- batch sizes uncontrolled below, cannot easily push onto cuda. ;
 n_UX_rank = n_k_p_r-1; #%<-- just to check dimensions. Note that, in principle, this could be different for different nCTF. ; 
 pm_n_UX_rank = n_UX_rank; #%<-- just to check dimension. Note that, in principle, this could be different for different nCTF. ; 
-Z_dwSM_ampm____ = torch.zeros(mtr((n_delta_v,n_w_max,n_S,n_M))).to(dtype=torch.complex64,device=device_use);
-UX_M_l2_M_ = torch.zeros(n_M).to(dtype=torch.float32,device=device_use);
-UX_T_M_l2_dM__ = torch.zeros(mtr((n_delta_v,n_M))).to(dtype=torch.float32,device=device_use);
-UX_knC___ = torch.zeros(mtr((n_k_p_r,n_UX_rank,n_CTF))).to(dtype=torch.float32,device=device_use);
-X_weight_rC__ = torch.zeros(mtr((n_k_p_r,n_CTF))).to(dtype=torch.float32,device=device_use);
+Z_dwSM_ampm____ = torch.zeros(mtr((n_delta_v,n_w_max,n_S,n_M))).to(dtype=torch.complex64);
+UX_M_l2_M_ = torch.zeros(n_M).to(dtype=torch.float32);
+UX_T_M_l2_dM__ = torch.zeros(mtr((n_delta_v,n_M))).to(dtype=torch.float32);
+UX_knC___ = torch.zeros(mtr((n_k_p_r,n_UX_rank,n_CTF))).to(dtype=torch.float32);
+X_weight_rC__ = torch.zeros(mtr((n_k_p_r,n_CTF))).to(dtype=torch.float32);
 #%%%%%%%%;
 for nCTF in range(n_CTF):
     if (flag_verbose): print(f' %% nCTF {nCTF}/{n_CTF}');
     CTF_k_p_wk_ = CTF_k_p_wkC__[nCTF,:].ravel();
     if (flag_verbose>1): print(f' %% nCTF {nCTF}/{n_CTF}, CTF_k_p_wk_: {fnorm(CTF_k_p_wk_)}');
-    index_M_sub_ = efind(index_nCTF_from_nM_==nCTF); n_M_sub = index_M_sub_.numel();
+    index_M_sub_ = efind(index_nCTF_from_nM_==nCTF); n_M_sub = numel(index_M_sub_);
     tmp_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_M,index_M_sub_);
-    M_sub_k_p_wkM__ = torch.reshape(M_k_p_wkM__.ravel()[tmp_index_rhs_],mtr((n_w_sum,index_M_sub_.numel())));
+    M_sub_k_p_wkM__ = torch.reshape(M_k_p_wkM__.ravel()[tmp_index_rhs_],mtr((n_w_sum,numel(index_M_sub_))));
     if (flag_verbose>1): print(f' %% nCTF {nCTF}/{n_CTF}, M_sub_k_p_wkM__: {fnorm(M_sub_k_p_wkM__)}');
     M_sub_k_q_wkM__ = interp_p_to_q(n_k_p_r,n_w_,n_w_sum,M_sub_k_p_wkM__);
     if (flag_verbose>1): print(f' %% nCTF {nCTF}/{n_CTF}, M_sub_k_q_wkM__: {fnorm(M_sub_k_q_wkM__)}');
     #%%%%;
-    tmp_n = int(np.maximum(n_k_p_r,n_UX_rank)); UX_kn__ = torch.eye(tmp_n).to(dtype=torch.float32); tmp_index_rhs_ = matlab_index_2d_0(tmp_n,torch.arange(n_k_p_r),tmp_n,torch.arange(n_UX_rank)); UX_kn__ = torch.reshape(UX_kn__.ravel()[tmp_index_rhs_],mtr((n_k_p_r,n_UX_rank))).to(dtype=torch.float32,device=device_use);
+    tmp_n = int(np.maximum(n_k_p_r,n_UX_rank)); UX_kn__ = torch.eye(tmp_n).to(dtype=torch.float32); tmp_index_rhs_ = matlab_index_2d_0(tmp_n,torch.arange(n_k_p_r),tmp_n,torch.arange(n_UX_rank)); UX_kn__ = torch.reshape(UX_kn__.ravel()[tmp_index_rhs_],mtr((n_k_p_r,n_UX_rank))).to(dtype=torch.float32);
     X_weight_r_ = torch.sqrt(weight_2d_k_p_r_);
     if (flag_verbose>1): print(f' %% nCTF {nCTF}/{n_CTF}, X_weight_r_: {fnorm(X_weight_r_)}');
     if  flag_pm:
-        UX_kn__ = torch.zeros(mtr((n_k_p_r,n_UX_rank))).to(dtype=torch.float32,device=device_use);
+        UX_kn__ = torch.zeros(mtr((n_k_p_r,n_UX_rank))).to(dtype=torch.float32);
         X_weight_r_ = torch.zeros(n_k_p_r).to(dtype=torch.float32);
         (
             X_kk__,
@@ -1860,7 +2076,7 @@ for nCTF in range(n_CTF):
             n_M_sub,
             M_sub_k_p_wkM__,
         );
-        tmp_UX_kn__ , tmp_SX_k_ , tmp_VX_kn__ = torch.linalg.svd(X_kk__.T,full_matrices=False); tmp_UX_kn__ = tmp_UX_kn__.T; #%<-- extra transposes to match matlat. ;
+        tmp_UX_kn__ , tmp_SX_k_ , tmp_VX_kn__ = torch.linalg.svd(X_kk__.T,full_matrices=False); tmp_UX_kn__ = tmp_UX_kn__.T; #%<-- extra transposes to match matlab. ;
         tmp_UX_kn__ = tmp_UX_kn__[0:n_UX_rank,:]; tmp_SX_k_ = tmp_SX_k_[0:n_UX_rank]; tmp_VX_kn__ = tmp_VX_kn__[0:n_UX_rank,:];
         UX_kn__ = tmp_UX_kn__;
     #end;%if  flag_pm;
@@ -1869,10 +2085,10 @@ for nCTF in range(n_CTF):
     X_weight_rC__[nCTF,:] = X_weight_r_;
     #%%%%;
     tmp_t = tic();
-    CTF_M_sub_k_p_wkM__ = torch.reshape(CTF_k_p_wk_,mtr((n_w_sum,1))) * torch.reshape(M_sub_k_p_wkM__,mtr((n_w_sum,n_M_sub))).to(dtype=torch.complex64,device=device_use);
-    CTF_M_sub_k_q_wkM__ = interp_p_to_q(n_k_p_r,n_w_,n_w_sum,CTF_M_sub_k_p_wkM__).to(dtype=torch.complex64,device=device_use);
-    svd_VUXCTFM_sub_lwnM____ = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M_sub,CTF_M_sub_k_q_wkM__,pm_n_UX_rank,UX_kn__,X_weight_r_).to(dtype=torch.complex64,device=device_use);
-    svd_VUXM_sub_lwnM____ = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M_sub,M_sub_k_q_wkM__,pm_n_UX_rank,UX_kn__,X_weight_r_).to(dtype=torch.complex64,device=device_use);
+    CTF_M_sub_k_p_wkM__ = torch.reshape(CTF_k_p_wk_,mtr((n_w_sum,1))) * torch.reshape(M_sub_k_p_wkM__,mtr((n_w_sum,n_M_sub))).to(dtype=torch.complex64);
+    CTF_M_sub_k_q_wkM__ = interp_p_to_q(n_k_p_r,n_w_,n_w_sum,CTF_M_sub_k_p_wkM__).to(dtype=torch.complex64);
+    svd_VUXCTFM_sub_lwnM____ = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M_sub,CTF_M_sub_k_q_wkM__,pm_n_UX_rank,UX_kn__,X_weight_r_).to(dtype=torch.complex64);
+    svd_VUXM_sub_lwnM____ = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M_sub,M_sub_k_q_wkM__,pm_n_UX_rank,UX_kn__,X_weight_r_).to(dtype=torch.complex64);
     tmp_t = toc(tmp_t);
     if (flag_verbose): print(f' %% tmpmh_VUXM_lwnM____3: {tmp_t:.2f}s');
     if (flag_verbose>1): print(f' %% nCTF {nCTF}/{n_CTF}, CTF_M_sub_k_p_wkM__: {fnorm(CTF_M_sub_k_p_wkM__)}');
@@ -1881,42 +2097,42 @@ for nCTF in range(n_CTF):
     if (flag_verbose>1): print(f' %% nCTF {nCTF}/{n_CTF}, svd_VUXM_sub_lwnM____: {fnorm(svd_VUXM_sub_lwnM____)}');
     #%%%%;
     tmp_t = tic();
-    UX_T_M_sub_l2_dM__ = tfpmh_UX_T_M_l2_dM__1(FTK,n_w_,n_M_sub,pm_n_UX_rank,svd_VUXM_sub_lwnM____).to(dtype=torch.float32,device=device_use);
+    UX_T_M_sub_l2_dM__ = tfpmh_UX_T_M_l2_dM__1(FTK,n_w_,n_M_sub,pm_n_UX_rank,svd_VUXM_sub_lwnM____).to(dtype=torch.float32);
     tmp_t = toc(tmp_t); 
     if (flag_verbose): print(f' %% tfpmh_UX_T_M_sub_l2_dm__1: {tmp_t:.2f}s');
     tmp_index_d0 = intersect_0(efind(torch.abs(FTK['r8_delta_x_'])< 1e-6),efind(torch.abs(FTK['r8_delta_y_'])< 1e-6))[0];
-    assert(tmp_index_d0.numel()==1); #%<-- should be zero-displacement. ;
+    assert(numel(tmp_index_d0)==1); #%<-- should be zero-displacement. ;
     tmp_index_rhs_ = matlab_index_2d_0(FTK['n_delta_v'],tmp_index_d0,n_M_sub,':');
-    UX_M_sub_l2_M_ = UX_T_M_sub_l2_dM__.ravel()[tmp_index_rhs_].ravel(); assert(UX_M_sub_l2_M_.numel()==n_M_sub);
+    UX_M_sub_l2_M_ = UX_T_M_sub_l2_dM__.ravel()[tmp_index_rhs_].ravel(); assert(numel(UX_M_sub_l2_M_)==n_M_sub);
     if (flag_verbose>1): print(f' %% nCTF {nCTF}/{n_CTF}, UX_M_sub_l2_M_: {fnorm(UX_M_sub_l2_M_)}');
     #%%%%;
     tmp_t = tic();
-    UX_S_k_q_wnS__ = torch.reshape(torch.permute(torch.reshape(mmmm( torch.reshape(S_k_q_wSk___.to(dtype=torch.complex64),mtr((n_w_max*n_S,n_k_p_r)))*torch.reshape(X_weight_r_.to(dtype=torch.complex64),mtr((1,n_k_p_r))) , UX_kn__.to(dtype=torch.complex64) ),mtr((n_w_max,n_S,pm_n_UX_rank))),mtr(mts((0,2,1)))),mtr((n_w_max*pm_n_UX_rank,n_S))).to(dtype=torch.complex64,device=device_use);
+    UX_S_k_q_wnS__ = torch.reshape(torch.permute(torch.reshape(mmmm( torch.reshape(S_k_q_wSk___.to(dtype=torch.complex64),mtr((n_w_max*n_S,n_k_p_r)))*torch.reshape(X_weight_r_.to(dtype=torch.complex64),mtr((1,n_k_p_r))) , UX_kn__.to(dtype=torch.complex64) ),mtr((n_w_max,n_S,pm_n_UX_rank))),mtr(mts((0,2,1)))),mtr((n_w_max*pm_n_UX_rank,n_S))).to(dtype=torch.complex64);
     tmp_t = toc(tmp_t);
     if (flag_verbose): print(f' %% UX_S_k_q_wnS__: {tmp_t:.2f}s');
     if (flag_verbose>1): print(f' %% nCTF {nCTF}/{n_CTF}, UX_S_k_q_wnS__: {fnorm(UX_S_k_q_wnS__)}');
     #%%%%;
     tmp_t = tic();
-    UX_S_k_q_nSw___ = torch.permute(torch.reshape(UX_S_k_q_wnS__.to(dtype=torch.complex64),mtr((n_w_max,n_UX_rank,n_S))),mtr(mts((1,2,0)))).to(dtype=torch.complex64,device=device_use);
+    UX_S_k_q_nSw___ = torch.permute(torch.reshape(UX_S_k_q_wnS__.to(dtype=torch.complex64),mtr((n_w_max,n_UX_rank,n_S))),mtr(mts((1,2,0)))).to(dtype=torch.complex64);
     tmp_t_sub = tic();
     if (flag_verbose>1): print(f' %% nCTF {nCTF}/{n_CTF}, UX_S_k_q_nSw___: {fnorm(UX_S_k_q_nSw___)}');
-    svd_VUXCTFM_sub_nMwl____ = torch.permute(svd_VUXCTFM_sub_lwnM____.to(dtype=torch.complex64),mtr(mts((2,3,1,0)))).to(dtype=torch.complex64,device=device_use);
+    svd_VUXCTFM_sub_nMwl____ = torch.permute(svd_VUXCTFM_sub_lwnM____.to(dtype=torch.complex64),mtr(mts((2,3,1,0)))).to(dtype=torch.complex64);
     tmp_t_sub = toc(tmp_t_sub);
     if (flag_verbose): print(f' %% svd_VUXCTFM_sub_nMwl____: {tmp_t_sub:.2f}s');
     if (flag_verbose>1): print(f' %% nCTF {nCTF}/{n_CTF}, svd_VUXCTFM_sub_nMwl____: {fnorm(svd_VUXCTFM_sub_nMwl____)}');
     tmp_t_sub = tic();
     str_einsum = msr('nSw') + ',' + msr('nMwl') + '->' + msr('SMwl') ;
-    svd_SVUXCTFM_sub_SMwl____ = torch.einsum(str_einsum,torch.conj(UX_S_k_q_nSw___).to(dtype=torch.complex64),svd_VUXCTFM_sub_nMwl____.to(dtype=torch.complex64)).to(dtype=torch.complex64,device=device_use);
+    svd_SVUXCTFM_sub_SMwl____ = torch.einsum(str_einsum,torch.conj(UX_S_k_q_nSw___).to(dtype=torch.complex64),svd_VUXCTFM_sub_nMwl____.to(dtype=torch.complex64)).to(dtype=torch.complex64);
     tmp_t_sub = toc(tmp_t_sub);
     if (flag_verbose>1): print(f' %% svd_SVUXCTFM_sub_SMwl____: {tmp_t_sub:.6f}s');
     if (flag_verbose>1): print(f' %% nCTF {nCTF}/{n_CTF}, svd_SVUXCTFM_sub_SMwl____: {fnorm(svd_SVUXCTFM_sub_SMwl____)}');
     tmp_t_sub = tic();
-    svd_SVUXCTFM_sub_lwSM____ = torch.fft.ifft(torch.permute(svd_SVUXCTFM_sub_SMwl____.to(dtype=torch.complex64),mtr(mts((3,2,0,1)))),dim=3-1).to(dtype=torch.complex64,device=device_use)*n_w_max;
+    svd_SVUXCTFM_sub_lwSM____ = torch.fft.ifft(torch.permute(svd_SVUXCTFM_sub_SMwl____.to(dtype=torch.complex64),mtr(mts((3,2,0,1)))),dim=3-1).to(dtype=torch.complex64)*n_w_max;
     tmp_t_sub = toc(tmp_t_sub);
     if (flag_verbose>1): print(f' %% svd_SVUXCTFM_sub_lwSM____: {tmp_t_sub:.6f}s');
     if (flag_verbose>1): print(f' %% nCTF {nCTF}/{n_CTF}, svd_SVUXCTFM_sub_lwSM____: {fnorm(svd_SVUXCTFM_sub_lwSM____)}');
     tmp_t_sub = tic();
-    svd_USESVUXCTFM_sub_dwSM____ = torch.reshape( mmmm( torch.reshape(FTK['c16_svd_U_d_expiw_s__'].to(dtype=torch.complex64),mtr((FTK['n_delta_v'],FTK['n_svd_l']))) , torch.reshape(svd_SVUXCTFM_sub_lwSM____.to(dtype=torch.complex64),mtr((FTK['n_svd_l'],n_w_max*n_S*n_M_sub))) ),mtr((FTK['n_delta_v'],n_w_max,n_S,n_M_sub))).to(dtype=torch.complex64,device=device_use);
+    svd_USESVUXCTFM_sub_dwSM____ = torch.reshape( mmmm( torch.reshape(FTK['c16_svd_U_d_expiw_s__'].to(dtype=torch.complex64),mtr((FTK['n_delta_v'],FTK['n_svd_l']))) , torch.reshape(svd_SVUXCTFM_sub_lwSM____.to(dtype=torch.complex64),mtr((FTK['n_svd_l'],n_w_max*n_S*n_M_sub))) ),mtr((FTK['n_delta_v'],n_w_max,n_S,n_M_sub))).to(dtype=torch.complex64);
     tmp_t_sub = toc(tmp_t_sub);
     if (flag_verbose>1): print(f' %% svd_USESVUXCTFM_sub_dwSM____: {tmp_t_sub:.6f}s');
     if (flag_verbose>1): print(f' %% nCTF {nCTF}/{n_CTF}, svd_USESVUXCTFM_sub_dwSM____: {fnorm(svd_USESVUXCTFM_sub_dwSM____)}');
@@ -1953,11 +2169,12 @@ r'''
 % Now re-construct the template-norms, this time limited to radial principal-modes: ;
 % <((R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_) * wUX_kn__),((R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_) * wUX_kn__)> ;
 % Note that this does yes involve collapsing onto principal-modes. ;
+% Note that this calculation assumes the radial-projection is nearly lossless. ;
 %%%%%%%%;
 pm_n_k_p_r = pm_n_UX_rank; pm_n_w_max = n_w_max;
 pm_n_w_ = pm_n_w_max*ones(pm_n_k_p_r,1);
 pm_n_w_sum = pm_n_k_p_r*pm_n_w_max;
-UX_R_CTF_S_l2_wSC_quad___ = zeros(n_w_max,n_S,n_CTF);
+UX_CTF_R_S_l2_wSC_quad___ = zeros(n_w_max,n_S,n_CTF);
 SS_k_p_wkS__ = conj(S_k_p_wkS__).*S_k_p_wkS__;
 SS_k_q_wkS__ = reshape(interp_p_to_q_block_0(n_k_p_r,n_w_,n_w_sum,SS_k_p_wkS__),[n_w_sum,n_S]);
 CC_k_p_wkC__ = conj(CTF_k_p_wkC__).*CTF_k_p_wkC__;
@@ -1968,7 +2185,7 @@ X_weight_r_ = X_weight_rC__(:,1+nCTF);
 wUX_kn__ = diag(X_weight_r_)*UX_kn__;
 UX_SS_k_q_wnS__ = reshape(permute(pagemtimes(transpose(wUX_kn__),permute(reshape(SS_k_q_wkS__,[n_w_max,n_k_p_r,n_S]),1+[1,0,2])),1+[1,0,2]),[pm_n_w_sum,n_S]);
 UX_CC_k_q_wn_ = reshape(reshape(CC_k_q_wkC__(:,1+nCTF),[n_w_max,n_k_p_r])*wUX_kn__,[pm_n_w_sum,1]);
-UX_R_CTF_S_l2_wSC_quad___(:,:,1+nCTF) = ifft(squeeze(sum(reshape(bsxfun(@times,conj(UX_CC_k_q_wn_),UX_SS_k_q_wnS__),[pm_n_w_max,pm_n_k_p_r,n_S]),1+1)));
+UX_CTF_R_S_l2_wSC_quad___(:,:,1+nCTF) = ifft(squeeze(sum(reshape(bsxfun(@times,UX_CC_k_q_wn_,conj(UX_SS_k_q_wnS__)),[pm_n_w_max,pm_n_k_p_r,n_S]),1+1)));
 clear UX_kn__ X_weight_r_ wUX_kn__ ;
 end;%for nCTF=0:n_CTF-1;
 %%%%%%%%;
@@ -1977,29 +2194,29 @@ end;%for nCTF=0:n_CTF-1;
 nS = max(0,min(n_S-1,round(n_S*1/5)));
 nCTF = max(0,min(n_CTF-1,round(n_CTF*2/3)));
 UX_kn__ = UX_knC___(:,:,1+nCTF); X_weight_r_ = X_weight_rC__(:,1+nCTF); wUX_kn__ = diag(X_weight_r_)*UX_kn__;
-R_CTF_S_l2_w_quad_ = R_CTF_S_l2_wSC_quad___(:,1+nS,1+nCTF);
-UX_R_CTF_S_l2_w_quad_ = UX_R_CTF_S_l2_wSC_quad___(:,1+nS,1+nCTF);
-R_CTF_S_l2_w_qua2_ = zeros(n_w_max,1);
-UX_R_CTF_S_l2_w_qua2_ = zeros(n_w_max,1);
+CTF_R_S_l2_w_quad_ = CTF_R_S_l2_wSC_quad___(:,1+nS,1+nCTF);
+UX_CTF_R_S_l2_w_quad_ = UX_CTF_R_S_l2_wSC_quad___(:,1+nS,1+nCTF);
+CTF_R_S_l2_w_qua2_ = zeros(n_w_max,1);
+UX_CTF_R_S_l2_w_qua2_ = zeros(n_w_max,1);
 for nw=0:n_w_max-1;
 gamma_z = gamma_z_(1+nw);
-R_CTF_S_k_p_wk_ = S_k_p_wkS__(:,1+nS).*rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,CTF_k_p_wkC__(:,1+nCTF),+gamma_z);
-R_CTF_S_l2_w_qua2_(1+nw) = sum(conj(R_CTF_S_k_p_wk_).*R_CTF_S_k_p_wk_.*weight_2d_wk_)*(2*pi)^2;
-UX_R_CTF_S_k_p_wn_ = reshape(reshape(S_k_p_wkS__(:,1+nS).*rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,CTF_k_p_wkC__(:,1+nCTF),+gamma_z),[n_w_max,n_k_p_r])*wUX_kn__,[pm_n_w_sum,1]);
-UX_R_CTF_S_l2_w_qua2_(1+nw) = sum(conj(UX_R_CTF_S_k_p_wn_).*UX_R_CTF_S_k_p_wn_)/max(1,n_w_max);
+CTF_R_S_k_p_wk_ = CTF_k_p_wkC__(:,1+nCTF).*rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,S_k_p_wkS__(:,1+nS),+gamma_z);
+CTF_R_S_l2_w_qua2_(1+nw) = sum(conj(CTF_R_S_k_p_wk_).*CTF_R_S_k_p_wk_.*weight_2d_wk_)*(2*pi)^2;
+UX_CTF_R_S_k_p_wn_ = reshape(reshape(CTF_k_p_wkC__(:,1+nCTF).*rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,S_k_p_wkS__(:,1+nS),+gamma_z),[n_w_max,n_k_p_r])*wUX_kn__,[pm_n_w_sum,1]);
+UX_CTF_R_S_l2_w_qua2_(1+nw) = sum(conj(UX_CTF_R_S_k_p_wn_).*UX_CTF_R_S_k_p_wn_)/max(1,n_w_max);
 end;%for nw=0:n_w_max-1;
-clear UX_kn__ X_weight_r_ wUX_kn__ UX_R_CTF_S_k_p_wn_ ;
-fnorm_disp(flag_verbose,'R_CTF_S_l2_w_qua2_',R_CTF_S_l2_w_qua2_,'R_CTF_S_l2_w_quad_',R_CTF_S_l2_w_quad_,' %%<-- should be zero');
-fnorm_disp(flag_verbose,'R_CTF_S_l2_w_qua2_',R_CTF_S_l2_w_qua2_,'UX_R_CTF_S_l2_w_quad_',UX_R_CTF_S_l2_w_quad_,' %%<-- should be zero');
-fnorm_disp(flag_verbose,'UX_R_CTF_S_l2_w_qua2_',UX_R_CTF_S_l2_w_qua2_,'R_CTF_S_l2_w_quad_',R_CTF_S_l2_w_quad_,' %%<-- should be zero');
-fnorm_disp(flag_verbose,'UX_R_CTF_S_l2_w_qua2_',UX_R_CTF_S_l2_w_qua2_,'UX_R_CTF_S_l2_w_quad_',UX_R_CTF_S_l2_w_quad_,' %%<-- should be zero');
+clear UX_kn__ X_weight_r_ wUX_kn__ UX_CTF_R_S_k_p_wn_ ;
+fnorm_disp(flag_verbose,'CTF_R_S_l2_w_qua2_',CTF_R_S_l2_w_qua2_,'CTF_R_S_l2_w_quad_',CTF_R_S_l2_w_quad_,' %%<-- should be zero');
+fnorm_disp(flag_verbose,'CTF_R_S_l2_w_qua2_',CTF_R_S_l2_w_qua2_,'UX_CTF_R_S_l2_w_quad_',UX_CTF_R_S_l2_w_quad_,' %%<-- should be zero');
+fnorm_disp(flag_verbose,'UX_CTF_R_S_l2_w_qua2_',UX_CTF_R_S_l2_w_qua2_,'CTF_R_S_l2_w_quad_',CTF_R_S_l2_w_quad_,' %%<-- should be zero');
+fnorm_disp(flag_verbose,'UX_CTF_R_S_l2_w_qua2_',UX_CTF_R_S_l2_w_qua2_,'UX_CTF_R_S_l2_w_quad_',UX_CTF_R_S_l2_w_quad_,' %%<-- should be zero');
 %%%%%%%%;
 '''
 
 pm_n_k_p_r = int(pm_n_UX_rank); pm_n_w_max = int(n_w_max);
 pm_n_w_ = pm_n_w_max*torch.ones(pm_n_k_p_r).to(dtype=torch.int32);
 pm_n_w_sum = int(pm_n_k_p_r*pm_n_w_max);
-UX_R_CTF_S_l2_wSC_quad___ = torch.zeros(mtr((n_w_max,n_S,n_CTF))).to(dtype=torch.float32);
+UX_CTF_R_S_l2_wSC_quad___ = torch.zeros(mtr((n_w_max,n_S,n_CTF))).to(dtype=torch.float32);
 SS_k_p_wkS__ = torch.conj(S_k_p_wkS__) * S_k_p_wkS__;
 SS_k_q_wkS__ = torch.reshape(interp_p_to_q(n_k_p_r,n_w_,n_w_sum,SS_k_p_wkS__),mtr((n_w_sum,n_S)));
 CC_k_p_wkC__ = torch.conj(CTF_k_p_wkC__) * CTF_k_p_wkC__;
@@ -2009,9 +2226,9 @@ for nCTF in range(n_CTF):
     X_weight_r_ = X_weight_rC__[nCTF,:].ravel();
     wUX_kn__ = torch.reshape(X_weight_r_,mtr((n_k_p_r,1))) * torch.reshape(UX_kn__,mtr((n_k_p_r,pm_n_k_p_r)));
     str_einsum = msr('kn') + ',' + msr('wkS') + '->' + msr('wnS') ;
-    UX_SS_k_q_wnS__ = torch.reshape(torch.einsum(str_einsum,wUX_kn__.to(dtype=torch.complex64),torch.reshape(SS_k_q_wkS__,mtr((n_w_max,n_k_p_r,n_S))).to(dtype=torch.complex64)),mtr((pm_n_w_sum,n_S))).to(dtype=torch.complex64,device=device_use);
-    UX_CC_k_q_wn_ = torch.reshape(mmmm( torch.reshape(CC_k_q_wkC__[nCTF,:].to(dtype=torch.complex64),mtr((n_w_max,n_k_p_r))) , wUX_kn__.to(dtype=torch.complex64) ),mtr((pm_n_w_sum,1))).to(dtype=torch.complex64,device=device_use);
-    UX_R_CTF_S_l2_wSC_quad___[nCTF,:,:] = torch.real(torch.fft.ifft(torch.reshape(torch.sum(torch.reshape(torch.conj(UX_CC_k_q_wn_) * UX_SS_k_q_wnS__,mtr((pm_n_w_max,pm_n_k_p_r,n_S))),2-1),mtr((pm_n_w_max,n_S))),dim=1-0)).to(dtype=torch.float32);
+    UX_SS_k_q_wnS__ = torch.reshape(torch.einsum(str_einsum,wUX_kn__.to(dtype=torch.complex64),torch.reshape(SS_k_q_wkS__,mtr((n_w_max,n_k_p_r,n_S))).to(dtype=torch.complex64)),mtr((pm_n_w_sum,n_S))).to(dtype=torch.complex64);
+    UX_CC_k_q_wn_ = torch.reshape(mmmm( torch.reshape(CC_k_q_wkC__[nCTF,:].to(dtype=torch.complex64),mtr((n_w_max,n_k_p_r))) , wUX_kn__.to(dtype=torch.complex64) ),mtr((pm_n_w_sum,1))).to(dtype=torch.complex64);
+    UX_CTF_R_S_l2_wSC_quad___[nCTF,:,:] = torch.real(torch.fft.ifft(torch.reshape(torch.sum(torch.reshape(UX_CC_k_q_wn_.ravel() * torch.conj(UX_SS_k_q_wnS__),mtr((pm_n_w_max,pm_n_k_p_r,n_S))),2-1),mtr((pm_n_w_max,n_S))),dim=1-0)).to(dtype=torch.float32);
     del UX_kn__;del X_weight_r_;del wUX_kn__;
 #end;%for nCTF=0:n_CTF-1;
 #%%%%%%%%;
@@ -2019,22 +2236,22 @@ nS = int(np.maximum(0,np.minimum(n_S-1,matlab_scalar_round(n_S*1/5))));
 nCTF = int(np.maximum(0,np.minimum(n_CTF-1,matlab_scalar_round(n_CTF*2/3))));
 UX_kn__ = torch.reshape(UX_knC___[nCTF,:,:],mtr((n_k_p_r,pm_n_k_p_r))); X_weight_r_ = X_weight_rC__[nCTF,:].ravel(); 
 wUX_kn__ = torch.reshape(X_weight_r_,mtr((n_k_p_r,1))) * torch.reshape(UX_kn__,mtr((n_k_p_r,pm_n_k_p_r)));
-R_CTF_S_l2_w_quad_ = R_CTF_S_l2_wSC_quad___[nCTF,nS,:].ravel();
-UX_R_CTF_S_l2_w_quad_ = UX_R_CTF_S_l2_wSC_quad___[nCTF,nS,:].ravel();
-R_CTF_S_l2_w_qua2_ = torch.zeros(n_w_max).to(dtype=torch.float32);
-UX_R_CTF_S_l2_w_qua2_ = torch.zeros(n_w_max).to(dtype=torch.float32);
+CTF_R_S_l2_w_quad_ = CTF_R_S_l2_wSC_quad___[nCTF,nS,:].ravel();
+UX_CTF_R_S_l2_w_quad_ = UX_CTF_R_S_l2_wSC_quad___[nCTF,nS,:].ravel();
+CTF_R_S_l2_w_qua2_ = torch.zeros(n_w_max).to(dtype=torch.float32);
+UX_CTF_R_S_l2_w_qua2_ = torch.zeros(n_w_max).to(dtype=torch.float32);
 for nw in range(n_w_max):
     gamma_z = gamma_z_[nw].item();
-    R_CTF_S_k_p_wk_ = S_k_p_wkS__[nS,:].ravel() * rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,CTF_k_p_wkC__[nCTF,:].ravel(),+gamma_z);
-    R_CTF_S_l2_w_qua2_[nw] = np.real(torch.sum(torch.conj(R_CTF_S_k_p_wk_.ravel()) * R_CTF_S_k_p_wk_.ravel() * weight_2d_wk_.ravel()).item()*(2*pi)**2);
-    UX_R_CTF_S_k_p_wn_ = mmmm( torch.reshape(S_k_p_wkS__[nS,:].ravel()*rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,CTF_k_p_wkC__[nCTF,:].ravel(),+gamma_z),mtr((n_w_max,n_k_p_r))).to(dtype=torch.complex64) , wUX_kn__.to(dtype=torch.complex64) ).ravel();
-    UX_R_CTF_S_l2_w_qua2_[nw] = np.real(torch.sum(torch.conj(UX_R_CTF_S_k_p_wn_.ravel()) * UX_R_CTF_S_k_p_wn_.ravel()).item()/np.maximum(1,n_w_max));
+    CTF_R_S_k_p_wk_ = CTF_k_p_wkC__[nCTF,:].ravel() * rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,S_k_p_wkS__[nS,:].ravel(),+gamma_z);
+    CTF_R_S_l2_w_qua2_[nw] = np.real(torch.sum(torch.conj(CTF_R_S_k_p_wk_.ravel()) * CTF_R_S_k_p_wk_.ravel() * weight_2d_wk_.ravel()).item()*(2*pi)**2);
+    UX_CTF_R_S_k_p_wn_ = mmmm( torch.reshape(CTF_k_p_wkC__[nCTF,:].ravel()*rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,S_k_p_wkS__[nS,:].ravel(),+gamma_z),mtr((n_w_max,n_k_p_r))).to(dtype=torch.complex64) , wUX_kn__.to(dtype=torch.complex64) ).ravel();
+    UX_CTF_R_S_l2_w_qua2_[nw] = np.real(torch.sum(torch.conj(UX_CTF_R_S_k_p_wn_.ravel()) * UX_CTF_R_S_k_p_wn_.ravel()).item()/np.maximum(1,n_w_max));
 #end;%for nw=0:n_w_max-1;
-del UX_kn__;del X_weight_r_;del wUX_kn__;del UX_R_CTF_S_k_p_wn_;
-fnorm_disp(flag_verbose,'R_CTF_S_l2_w_qua2_',R_CTF_S_l2_w_qua2_,'R_CTF_S_l2_w_quad_',R_CTF_S_l2_w_quad_,' %%<-- should be zero');
-fnorm_disp(flag_verbose,'R_CTF_S_l2_w_qua2_',R_CTF_S_l2_w_qua2_,'UX_R_CTF_S_l2_w_quad_',UX_R_CTF_S_l2_w_quad_,' %%<-- should be zero');
-fnorm_disp(flag_verbose,'UX_R_CTF_S_l2_w_qua2_',UX_R_CTF_S_l2_w_qua2_,'R_CTF_S_l2_w_quad_',R_CTF_S_l2_w_quad_,' %%<-- should be zero');
-fnorm_disp(flag_verbose,'UX_R_CTF_S_l2_w_qua2_',UX_R_CTF_S_l2_w_qua2_,'UX_R_CTF_S_l2_w_quad_',UX_R_CTF_S_l2_w_quad_,' %%<-- should be zero');
+del UX_kn__;del X_weight_r_;del wUX_kn__;del UX_CTF_R_S_k_p_wn_;
+fnorm_disp(flag_verbose,'CTF_R_S_l2_w_qua2_',CTF_R_S_l2_w_qua2_,'CTF_R_S_l2_w_quad_',CTF_R_S_l2_w_quad_,' %%<-- should be zero');
+fnorm_disp(flag_verbose,'CTF_R_S_l2_w_qua2_',CTF_R_S_l2_w_qua2_,'UX_CTF_R_S_l2_w_quad_',UX_CTF_R_S_l2_w_quad_,' %%<-- should be zero');
+fnorm_disp(flag_verbose,'UX_CTF_R_S_l2_w_qua2_',UX_CTF_R_S_l2_w_qua2_,'CTF_R_S_l2_w_quad_',CTF_R_S_l2_w_quad_,' %%<-- should be zero');
+fnorm_disp(flag_verbose,'UX_CTF_R_S_l2_w_qua2_',UX_CTF_R_S_l2_w_qua2_,'UX_CTF_R_S_l2_w_quad_',UX_CTF_R_S_l2_w_quad_,' %%<-- should be zero');
 #%%%%%%%%;
 
 r'''

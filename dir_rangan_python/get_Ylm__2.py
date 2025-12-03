@@ -1,11 +1,5 @@
-import numpy as np ; pi = np.pi ; i = 1j ; import torch ; import timeit ;
-from matlab_index_2d_0 import matlab_index_2d_0 ;
-from matlab_index_3d_0 import matlab_index_3d_0 ;
-from matlab_index_4d_0 import matlab_index_4d_0 ;
+exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ;
 from ylgndr_2 import ylgndr_2 ;
-mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
-mts = lambda a : tuple(len(a) - x - 1 for x in a) ; #<-- for permute (i.e., tuple subtract (...)). ;
-efind = lambda a : torch.where(a)[0] ;
 
 def get_Ylm__2(
   parameter=None,
@@ -48,13 +42,13 @@ def get_Ylm__2(
 
   if flag_verbose > 0: print(f" %% [entering {str_thisfunction}]") ;
 
-  if flag_d0: d0Y_lmj___ = [ [] for _ in range(n_l) ]; #<-- list of n_l empty lists. ;
-  if flag_d1: d1Y_lmj___ = [ [] for _ in range(n_l) ]; #<-- list of n_l empty lists. ;
-  if flag_d2: d2Y_lmj___ = [ [] for _ in range(n_l) ]; #<-- list of n_l empty lists. ;
+  if flag_d0: d0Y_lmj___ = cell(n_l); #<-- list of n_l empty lists. ;
+  if flag_d1: d1Y_lmj___ = cell(n_l); #<-- list of n_l empty lists. ;
+  if flag_d2: d2Y_lmj___ = cell(n_l); #<-- list of n_l empty lists. ;
   np_polar_a_unique_,np_index_unique_,np_index_return_ = np.unique(polar_a_all_.numpy().ravel(),return_index=True,return_inverse=True);
   l_max = max(1,torch.max(l_val_).item());
   polar_a_unique_ = torch.tensor(np_polar_a_unique_).to(dtype=torch.float32);
-  n_sub = polar_a_unique_.numel();
+  n_sub = numel(polar_a_unique_);
   cos_polar_a_unique_ = torch.cos(polar_a_unique_);
   sin_polar_a_unique_ = torch.sin(polar_a_unique_);
   tmp_t = timeit.default_timer();

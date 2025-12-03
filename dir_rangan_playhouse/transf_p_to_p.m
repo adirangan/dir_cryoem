@@ -176,6 +176,7 @@ if n_delta_v> 1;
 M_p_(1+tmp_index_) = transf_p_to_p(n_r,grid_p_,n_w_,n_w_sum,S_p_(1+tmp_index_),delta_x_(1+nS),delta_y_(1+nS));
 end;%if n_delta_v> 1;
 end;%for nS=0:n_S-1;
+M_p_ = reshape(M_p_,size(S_p_));
 end;%if n_S> 1;
 %%%%%%%%;
 end;%if  flag_each | (numel(unique(n_w_))> 1);
@@ -190,6 +191,7 @@ k_c_1_wk_ = reshape(+sin(gamma_z_)*transpose(grid_p_),[n_w_sum,1]);
 L_c_wkv__ = k_c_0_wk_*reshape(delta_x_,[1,n_delta_v]) + k_c_1_wk_*reshape(delta_y_,[1,n_delta_v]) ;
 C_c_wkv__ = exp(-i*2*pi*L_c_wkv__);
 M_p_ = reshape(C_c_wkv__.*reshape(S_p_,[n_w_sum,n_S]),[n_w_sum*n_S,1]);
+M_p_ = reshape(M_p_,size(S_p_));
 end;%if ~flag_each & (numel(unique(n_w_))==1);
 %%%%%%%%%%%%%%%%;
 

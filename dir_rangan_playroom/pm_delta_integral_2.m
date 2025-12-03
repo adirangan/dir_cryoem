@@ -42,12 +42,12 @@ for nk_p_r=0:n_k_p_r-1;
 k_p_r = k_p_r_(1+nk_p_r);
 %I_neg_(1+nk_p_r) = integral(@(d) besselj(0,twopi*k_p_r*d).*rmu(d,delta_sigma),0,+Inf)*twopi^2;
 ks = twopi*k_p_r*delta_sigma; ksks4 = ks^2/4;
-if (ksks4> 0);
+if (ks> 1e-3); %<-- I_neg is within ~1e-6 of 2*pi for ks<=1e-3. ;
 I_neg_(1+nk_p_r) = twopi*(0.5*ks*sqrt(pi/2)*exp(-ksks4)*(besseli(-0.5,ksks4) - besseli(+0.5,ksks4)));
-end;%if (ksks4> 0);
-if (ksks4<=0);
+end;%if (ks> 1e-3);
+if (ks<=1e-3);
 I_neg_(1+nk_p_r) = twopi;
-end;%if (ksks4<=0);
+end;%if (ks<=1e-3);
 end;%for nk_p_r=0:n_k_p_r-1;
 
 I_pos__ = zeros(n_k_p_r,n_k_p_r);

@@ -1,11 +1,7 @@
-import numpy as np ; pi = np.pi ; import torch ; import timeit ;
-from matlab_index_2d_0 import matlab_index_2d_0 ;
-from matlab_index_3d_0 import matlab_index_3d_0 ;
-from matlab_index_4d_0 import matlab_index_4d_0 ;
+exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ;
 from scipy.special import roots_jacobi
 from scipy.special import eval_jacobi
 from sample_shell_6 import sample_shell_6
-mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
 
 r'''
 function ...
@@ -16,7 +12,7 @@ function ...
 ,k_p_azimu_b_qk_ ...
 ,k_p_polar_a_qk_ ...
 ,weight_3d_k_p_qk_ ...
-,weight_shell_k_ ...
+,weight_shell_qk_ ...
 ,n_k_p_r ...
 ,k_p_r_ ...
 ,weight_3d_k_p_r_ ...
@@ -63,7 +59,7 @@ sample_sphere_7( ...
 % k_p_azimu_b_qk_: real array of size n_qk. azimu_b values for each point. ;
 % k_p_polar_a_qk_: real array of size n_qk. polar_a values for each point. ;
 % weight_3d_k_p_qk_: real array of size n_qk. quadrature weights for each point: designed so that sum(weight_3d_k_p_qk_) = volume of sphere = 4/3*pi*k_p_r_max^3. ;
-% weight_shell_k_: real array of size n_qk. quadrature weights for each shell (in sequence). ;
+% weight_shell_qk_: real array of size n_qk. quadrature weights for each shell (in sequence). ;
 % n_k_p_r: integer number of shells. ;
 % k_p_r_: real array of size n_k_p_r. k-values for each shell. ;
 % weight_3d_k_p_r_: real array of size n_k_p_r. quadrature weights for each shell. These are designed so that 4*pi*sum(weight_3d_k_p_r_) = volume of sphere. ;
@@ -142,7 +138,7 @@ k_p_r_qk_ = zeros(n_qk,1);
 k_p_azimu_b_qk_ = zeros(n_qk,1);
 k_p_polar_a_qk_ = zeros(n_qk,1);
 weight_3d_k_p_qk_ = zeros(n_qk,1);
-weight_shell_k_ = zeros(n_qk,1);
+weight_shell_qk_ = zeros(n_qk,1);
 n_polar_a_k_ = zeros(n_k_p_r,1);
 polar_a_k_ = zeros(n_k_p_r,1);
 n_azimu_b_ka__ = cell(n_k_p_r,1);
@@ -172,7 +168,7 @@ ij_ = ix + (0:n_qk_csum-1);
 k_p_r_qk_(1+ij_) = k_p_r*ones(n_qk_csum,1);
 k_p_azimu_b_qk_(1+ij_) = k_p_azimu_b_sub_;
 k_p_polar_a_qk_(1+ij_) = k_p_polar_a_sub_;
-weight_shell_k_(1+ij_) = weight_k_sub_;
+weight_shell_qk_(1+ij_) = weight_k_sub_;
 weight_3d_k_p_qk_(1+ij_) = weight_k_sub_ * weight_3d_k_p_r_(1+nk_p_r) / max(1e-12,k_p_r).^2;
 n_polar_a_k_(1+nk_p_r) = n_polar_a;
 polar_a_ka__{1+nk_p_r} = polar_a_;
@@ -212,7 +208,7 @@ def sample_sphere_7(
 
     if flag_verbose > 2: print("Entering sample_sphere_7") ;
 
-    n_k_p_r = 1 + int(np.ceil(k_p_r_max / max(1e-12, k_eq_d))) ;
+    n_k_p_r = 1 + int(np.ceil(k_p_r_max / np.maximum(1e-12, k_eq_d))) ;
     a_jx_, a_jw_ = roots_jacobi(n_k_p_r, 0, 2) ;
     a_jx_ = torch.tensor(a_jx_).to(dtype=torch.float32).flatten();
     a_jw_ = torch.tensor(a_jw_).to(dtype=torch.float32).flatten();
@@ -227,7 +223,7 @@ def sample_sphere_7(
 
     for nk_p_r in range(n_k_p_r):
         k_p_r = k_p_r_[nk_p_r].item() ;
-        k_eq_d_use = k_eq_d if flag_uniform_over_n_k_p_r == 0 else k_eq_d * k_p_r / max(1e-12, k_p_r_max) ;
+        k_eq_d_use = k_eq_d if flag_uniform_over_n_k_p_r == 0 else k_eq_d * k_p_r / np.maximum(1e-12, k_p_r_max) ;
         n_qk_csum,*_ = sample_shell_6(k_p_r, k_eq_d_use, str_T_vs_L, flag_uniform_over_polar_a)[:1] ;
         n_qk_csum_[nk_p_r] = n_qk ;
         n_qk += int(n_qk_csum) ;
@@ -239,15 +235,15 @@ def sample_sphere_7(
     k_p_azimu_b_qk_ = torch.zeros(n_qk).to(dtype=torch.float32) ;
     k_p_polar_a_qk_ = torch.zeros(n_qk).to(dtype=torch.float32) ;
     weight_3d_k_p_qk_ = torch.zeros(n_qk).to(dtype=torch.float32) ;
-    weight_shell_k_ = torch.zeros(n_qk).to(dtype=torch.float32) ;
+    weight_shell_qk_ = torch.zeros(n_qk).to(dtype=torch.float32) ;
     n_polar_a_k_ = torch.zeros(n_k_p_r).to(dtype=torch.int32) ;
-    polar_a_ka__ = [[] for _ in range(n_k_p_r)] ; #<-- cell array. ;
-    n_azimu_b_ka__ = [[] for _ in range(n_k_p_r)] ; #<-- cell array. ;
+    polar_a_ka__ = cell(n_k_p_r) ; #<-- cell array. ;
+    n_azimu_b_ka__ = cell(n_k_p_r) ; #<-- cell array. ;
 
     ix = 0 ;
     for nk_p_r in range(n_k_p_r):
         k_p_r = k_p_r_[nk_p_r].item() ;
-        k_eq_d_use = k_eq_d if flag_uniform_over_n_k_p_r == 0 else k_eq_d * k_p_r / max(1e-12, k_p_r_max) ;
+        k_eq_d_use = k_eq_d if flag_uniform_over_n_k_p_r == 0 else k_eq_d * k_p_r / np.maximum(1e-12, k_p_r_max) ;
         (
             n_qk_csum,
             k_p_azimu_b_sub_,
@@ -269,8 +265,8 @@ def sample_sphere_7(
         k_p_r_qk_[ij_] = k_p_r ;
         k_p_azimu_b_qk_[ij_] = k_p_azimu_b_sub_ ;
         k_p_polar_a_qk_[ij_] = k_p_polar_a_sub_ ;
-        weight_shell_k_[ij_] = weight_k_sub_ ;
-        weight_3d_k_p_qk_[ij_] = weight_k_sub_ * weight_3d_k_p_r_[nk_p_r] / max(1e-12, k_p_r) ** 2 ;
+        weight_shell_qk_[ij_] = weight_k_sub_ ;
+        weight_3d_k_p_qk_[ij_] = weight_k_sub_ * weight_3d_k_p_r_[nk_p_r].item() / np.maximum(1e-12, k_p_r) ** 2 ;
         n_polar_a_k_[nk_p_r] = n_polar_a ;
         polar_a_ka__[nk_p_r] = polar_a_ ; #<-- cell array. ;
         n_azimu_b_ka__[nk_p_r] = n_azimu_b_ ; #<-- cell array. ;
@@ -290,7 +286,7 @@ def sample_sphere_7(
         k_p_azimu_b_qk_,
         k_p_polar_a_qk_,
         weight_3d_k_p_qk_,
-        weight_shell_k_,
+        weight_shell_qk_,
         n_k_p_r,
         k_p_r_,
         weight_3d_k_p_r_,

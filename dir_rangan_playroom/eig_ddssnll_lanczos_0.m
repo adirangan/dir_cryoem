@@ -203,7 +203,7 @@ if isempty(beta_i_); beta_i_ = zeros(0,1); end;
 if isempty(n_CTF);
 n_CTF = 1;
 CTF_k_p_r_kC__ = ones(n_k_p_r,n_CTF);
-CTF_k_p_r_wkC__ = ones(n_w_sum,n_CTF);
+CTF_k_p_wkC__ = ones(n_w_sum,n_CTF);
 index_nCTF_from_nM_ = zeros(n_M,1);
 end;%if isempty(n_CTF);
 %%%%;

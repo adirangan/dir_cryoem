@@ -39,6 +39,7 @@ for nS=0:n_S-1;
 tmp_index_ = nS*n_A + [0:n_A-1];
 S_q_(1+tmp_index_) = interp_p_to_q(n_r,n_w_,n_A,S_p_(1+tmp_index_));
 end;%for nS=0:n_S-1;
+S_q_ = reshape(S_q_,size(S_p_));
 end;%if n_S> 1;
 %%%%%%%%;
 end;%if (numel(unique(n_w_))> 1);
@@ -48,6 +49,7 @@ end;%if (numel(unique(n_w_))> 1);
 if (numel(unique(n_w_))==1);
 n_w = n_w_(1+0);
 S_q_ = reshape(fft(reshape(S_p_,[n_w,n_r,n_S]),[],1+0)/max(1,sqrt(n_w)),[numel(S_p_),1]);
+S_q_ = reshape(S_q_,size(S_p_));
 end;%if (numel(unique(n_w_))==1);
 %%%%%%%%%%%%%%%%;
 

@@ -4,6 +4,7 @@ from matlab_index_3d_0 import matlab_index_3d_0 ;
 from matlab_index_4d_0 import matlab_index_4d_0 ;
 from matlab_scalar_round import matlab_scalar_round ;
 from r8_chebval_0 import r8_chebval_0 ;
+numel = lambda a : int(a.numel()) ;
 mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
 msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
 mts = lambda a : tuple(len(a) - x - 1 for x in a) ; #<-- for permute (i.e., tuple subtract (...)). ;
@@ -39,7 +40,7 @@ def get_r8_svd_chebval_V_r_0(
         r8_svd_chebval_V_r_lr__[:,nl] = r8_chebval_0(n_svd_r,r8_svd_V_r_chebcoef_[tmp_index_rhs_],n_r,tmp_r8_svd_r_);
     #end;%for nl=0:n_svd_l-1;
     r8_svd_chebval_V_r_ = r8_svd_chebval_V_r_lr__.ravel();
-    assert(r8_svd_chebval_V_r_.numel()==n_svd_l*n_r);
+    assert(numel(r8_svd_chebval_V_r_)==n_svd_l*n_r);
 
     if (flag_verbose>0): print(f' %% [finished {str_thisfunction}]');
     return(r8_svd_chebval_V_r_);

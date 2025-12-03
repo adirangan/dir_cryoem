@@ -5,6 +5,7 @@ from matlab_index_4d_0 import matlab_index_4d_0 ;
 from matlab_scalar_round import matlab_scalar_round ;
 from fnorm_disp import fnorm_disp
 from periodize import periodize
+numel = lambda a : int(a.numel()) ;
 fnorm = lambda a : torch.linalg.norm(a).item() ;
 mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
 msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
@@ -29,7 +30,7 @@ def cg_rhs_2(
     if (flag_verbose>0): print(f" %% [entering {str_thisfunction}]");
     ################################################################;
 
-    if viewing_gamma_z_M_ is None or viewing_gamma_z_M_.numel() == 0: viewing_gamma_z_M_ = torch.zeros(n_M).to(dtype=torch.float32);
+    if viewing_gamma_z_M_ is None or numel(viewing_gamma_z_M_) == 0: viewing_gamma_z_M_ = torch.zeros(n_M).to(dtype=torch.float32);
     if flag_cleanup is None: flag_cleanup = 1;
     flag_1 = 1;
     flag_d = 0;
@@ -39,13 +40,13 @@ def cg_rhs_2(
     tolerance_cg_rhs_upb = 1.0/np.sqrt(1e-16);
 
     if flag_1:
-        sa_wM__ = torch.tile(torch.sin(viewing_polar_a_M_).reshape(n_M,1), (1,n_w)) ;
-        ca_wM__ = torch.tile(torch.cos(viewing_polar_a_M_).reshape(n_M,1), (1,n_w)) ;
-        sb_wM__ = torch.tile(torch.sin(viewing_azimu_b_M_).reshape(n_M,1), (1,n_w)) ;
-        cb_wM__ = torch.tile(torch.cos(viewing_azimu_b_M_).reshape(n_M,1), (1,n_w)) ;
-        viewing_gamma_z_M_ = viewing_gamma_z_M_.reshape(n_M,1) ;
-        inplane_gamma_z_w_ = (2*pi*torch.arange(n_w) / np.maximum(1,n_w)).reshape(1,n_w) ;
-        combine_gamma_z_wM__ = torch.tile(inplane_gamma_z_w_, (n_M,1)) - torch.tile(viewing_gamma_z_M_, (1,n_w)) ;
+        sa_wM__ = torch.tile(torch.reshape(torch.sin(viewing_polar_a_M_),mtr((1,n_M))), mtr((n_w,1))) ;
+        ca_wM__ = torch.tile(torch.reshape(torch.cos(viewing_polar_a_M_),mtr((1,n_M))), mtr((n_w,1))) ;
+        sb_wM__ = torch.tile(torch.reshape(torch.sin(viewing_azimu_b_M_),mtr((1,n_M))), mtr((n_w,1))) ;
+        cb_wM__ = torch.tile(torch.reshape(torch.cos(viewing_azimu_b_M_),mtr((1,n_M))), mtr((n_w,1))) ;
+        viewing_gamma_z_M_ = torch.reshape(viewing_gamma_z_M_,mtr((1,n_M))) ;
+        inplane_gamma_z_w_ = torch.reshape((2*pi*torch.arange(n_w) / np.maximum(1,n_w)),mtr((n_w,1)));
+        combine_gamma_z_wM__ = torch.tile(inplane_gamma_z_w_, mtr((1,n_M))) - torch.tile(viewing_gamma_z_M_, mtr((n_w,1))) ;
         sc_wM__ = torch.sin(combine_gamma_z_wM__) ;
         cc_wM__ = torch.cos(combine_gamma_z_wM__) ;
         k_c_0_wM__ = cb_wM__*ca_wM__*cc_wM__ - sb_wM__*sc_wM__ ;

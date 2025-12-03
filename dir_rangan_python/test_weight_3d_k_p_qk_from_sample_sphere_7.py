@@ -32,7 +32,7 @@ def test_weight_3d_k_p_qk_from_sample_sphere_7(
         k_p_azimu_b_qk_,
         k_p_polar_a_qk_,
         weight_3d_k_p_qk_,
-        weight_shell_k_,
+        weight_shell_qk_,
         n_k_p_r,
         k_p_r_,
         weight_3d_k_p_r_,

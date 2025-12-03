@@ -45,11 +45,11 @@ dh3d_ = @(kd) 12*pi*( (kd.^2/3 - 1) .* sin(kd) + (kd).*cos(kd) ) ./ kd.^4 ;
 half_diameter_x_c = 1.0d0;
 diameter_x_c = 2.0d0*half_diameter_x_c;
 x_p_r_max = half_diameter_x_c;
-x_c_0_ = linspace(-x_p_r_max,+x_p_r_max,n_x_c);
-x_c_1_ = linspace(-x_p_r_max,+x_p_r_max,n_x_c);
-x_c_2_ = linspace(-x_p_r_max,+x_p_r_max,n_x_c);
+x_c_0_ = linspace(-x_p_r_max,+x_p_r_max,n_x_c); d_x_0 = mean(diff(x_c_0_));
+x_c_1_ = linspace(-x_p_r_max,+x_p_r_max,n_x_c); d_x_1 = mean(diff(x_c_1_));
+x_c_2_ = linspace(-x_p_r_max,+x_p_r_max,n_x_c); d_x_2 = mean(diff(x_c_2_));
 [x_c_0___,x_c_1___,x_c_2___] = ndgrid(x_c_0_,x_c_1_,x_c_2_); n_xxx_c = n_x_c^3;
-weight_xxx_c = (2*x_p_r_max/n_x_c)^3;
+weight_xxx_c = d_x_0 * d_x_1 * d_x_2 ;
 %%%%%%%%;
 if (flag_disp>0);
 figure(1+nf);nf=nf+1;clf;figbig;
@@ -552,20 +552,20 @@ l_max_ = zeros(n_k_p_r,1);
 for nk_p_r=0:n_k_p_r-1;
 l_max_(1+nk_p_r) = max(0,min(l_max_upb,1+ceil(2*pi*k_p_r_(1+nk_p_r))));
 end;%for nk_p_r=0:n_k_p_r-1;
-n_lm_ = (l_max_+1).^2;
-n_lm_max = max(n_lm_);
-n_lm_sum = sum(n_lm_);
-n_lm_csum_ = cumsum([0;n_lm_]);
+n_y_ = (l_max_+1).^2;
+n_y_max = max(n_y_);
+n_y_sum = sum(n_y_);
+n_y_csum_ = cumsum([0;n_y_]);
 l_max_max = max(l_max_); dWtdkd__l_max_max = 2*l_max_max;
 m_max_ = -l_max_max : +l_max_max;
 n_m_max = length(m_max_);
-Y_l_val_ = zeros(n_lm_sum,1);
-Y_m_val_ = zeros(n_lm_sum,1);
-Y_k_val_ = zeros(n_lm_sum,1);
+Y_l_val_ = zeros(n_y_sum,1);
+Y_m_val_ = zeros(n_y_sum,1);
+Y_k_val_ = zeros(n_y_sum,1);
 for nk_p_r=0:n_k_p_r-1;
 l_max = l_max_(1+nk_p_r);
-tmp_l_val_ = zeros(n_lm_(1+nk_p_r),1);
-tmp_m_val_ = zeros(n_lm_(1+nk_p_r),1);
+tmp_l_val_ = zeros(n_y_(1+nk_p_r),1);
+tmp_m_val_ = zeros(n_y_(1+nk_p_r),1);
 na=0; 
 for l_val=0:l_max;
 for m_val=-l_val:+l_val;
@@ -574,18 +574,18 @@ tmp_m_val_(1+na) = m_val;
 na=na+1;
 end;%for m_val=-l_val:+l_val;
 end;%for l_val=0:l_max;
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm_(1+nk_p_r)-1);
+tmp_index_ = n_y_csum_(1+nk_p_r) + (0:n_y_(1+nk_p_r)-1);
 Y_l_val_(1+tmp_index_) = tmp_l_val_;
 Y_m_val_(1+tmp_index_) = tmp_m_val_;
 Y_k_val_(1+tmp_index_) = k_p_r_(1+nk_p_r);
 end;%for nk_p_r=0:n_k_p_r-1;
-weight_Y_ = zeros(n_lm_sum,1);
+weight_Y_ = zeros(n_y_sum,1);
 for nk_p_r=0:n_k_p_r-1;
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm_(1+nk_p_r)-1);
+tmp_index_ = n_y_csum_(1+nk_p_r) + (0:n_y_(1+nk_p_r)-1);
 weight_Y_(1+tmp_index_) = weight_3d_k_p_r_(1+nk_p_r);
 end;%for nk_p_r=0:n_k_p_r-1;
 %%%%%%%%;
-a_k_Y_form_ = zeros(n_lm_sum,1);
+a_k_Y_form_ = zeros(n_y_sum,1);
 for nsource=0:n_source-1;
 a_k_Y_form_ = a_k_Y_form_ + plane_wave_expansion_1(n_k_p_r,k_p_r_,delta_a_c_3s__(:,1+nsource),l_max_);
 end;%for nsource=0:n_source-1;
@@ -718,7 +718,7 @@ fnorm_disp(flag_verbose,'a_k_Y_quad_',a_k_Y_quad_,'a_k_Y_reco_',a_k_Y_reco_,' %%
 a_k_Y_form_yk__ = local_yk__from_yk_(n_k_p_r,l_max_,a_k_Y_form_);
 a_k_Y_form_yk___ = zeros(1+l_max_max,n_m_max,n_k_p_r);
 for nk_p_r=0:n_k_p_r-1;
-tmp_index_ = n_lm_csum_(1+nk_p_r) + (0:n_lm_(1+nk_p_r)-1);
+tmp_index_ = n_y_csum_(1+nk_p_r) + (0:n_y_(1+nk_p_r)-1);
 tmp_a_k_Y_form_lm_ = a_k_Y_form_(1+tmp_index_);
 tmp_a_k_Y_form_lm__ = zeros(1+l_max_max,n_m_max);
 l_max = l_max_(1+nk_p_r);
@@ -740,19 +740,181 @@ for nk_p_r=0:n_k_p_r-1;
 l_max=l_max_(1+nk_p_r);
 for l_val=0:l_max;
 for m_val=-l_val:+l_val;
-assert(a_k_Y_form_(1+n_lm_csum_(1+nk_p_r)+l_val*(l_val+1)+m_val)==a_k_Y_form_yk__(1+l_val*(l_val+1)+m_val,1+nk_p_r));
-assert(a_k_Y_form_(1+n_lm_csum_(1+nk_p_r)+l_val*(l_val+1)+m_val)==a_k_Y_form_yk___(1+l_val,1+l_max_max+m_val,1+nk_p_r));
+assert(a_k_Y_form_(1+n_y_csum_(1+nk_p_r)+l_val*(l_val+1)+m_val)==a_k_Y_form_yk__(1+l_val*(l_val+1)+m_val,1+nk_p_r));
+assert(a_k_Y_form_(1+n_y_csum_(1+nk_p_r)+l_val*(l_val+1)+m_val)==a_k_Y_form_yk___(1+l_val,1+l_max_max+m_val,1+nk_p_r));
 na=na+1;
 end;%for m_val=-l_val:+l_val;
 end;%for l_val=0:l_max;
 end;%for nk_p_r=0:n_k_p_r-1;
-assert(na==n_lm_sum);
+assert(na==n_y_sum);
 end;%if flag_check;
 %%%%%%%%;
 a_k_Y_form_lkm___ = permute(a_k_Y_form_yk___,1+[0,2,1]);
 %%%%%%%%;
 a_k_Y_l2_quad = sum((conj(a_k_Y_form_yk__).*a_k_Y_form_yk__)*reshape(weight_3d_k_p_r_,[n_k_p_r,1]));
 disp(sprintf(' %% a_k_Y_l2_quad %+0.6f a_k_p_l2_form %+0.6f',a_k_Y_l2_quad,a_k_p_l2_form));
+
+%%%%%%%%;
+% test convert_k_p_to_spharm_uniform_over_n_k_p_r_5. ;
+%%%%%%%%;
+tmp_t = tic;
+if ~exist('Ylm_uklma___','var'); Ylm_uklma___ = []; end;
+if ~exist('k_p_azimu_b_sub_uka__','var'); k_p_azimu_b_sub_uka__ = []; end;
+if ~exist('k_p_polar_a_sub_uka__','var'); k_p_polar_a_sub_uka__ = []; end;
+if ~exist('l_max_uk_','var'); l_max_uk_ = []; end;
+if ~exist('index_nu_n_k_per_shell_from_nk_p_r_','var'); index_nu_n_k_per_shell_from_nk_p_r_ = []; end;
+if ~exist('index_k_per_shell_uka__','var'); index_k_per_shell_uka__ = []; end;
+[ ...
+ a_k_Y_quad_4_ ...
+,Ylm_uklma___ ...
+,k_p_azimu_b_sub_uka__ ...
+,k_p_polar_a_sub_uka__ ...
+,l_max_uk_ ...
+,index_nu_n_k_per_shell_from_nk_p_r_ ...
+,index_k_per_shell_uka__ ...
+] = ...
+convert_k_p_to_spharm_4( ...
+ 0*flag_verbose ...
+,n_qk ...
+,n_qk_csum_ ...
+,k_p_r_qk_ ...
+,k_p_azimu_b_qk_ ...
+,k_p_polar_a_qk_ ...
+,weight_3d_k_p_qk_ ...
+,weight_shell_qk_ ...
+,n_k_p_r ...
+,k_p_r_ ...
+,weight_3d_k_p_r_ ...
+,l_max_ ...
+,a_k_p_form_ ...
+,Ylm_uklma___ ...
+,k_p_azimu_b_sub_uka__ ...
+,k_p_polar_a_sub_uka__ ...
+,l_max_uk_ ...
+,index_nu_n_k_per_shell_from_nk_p_r_ ...
+,index_k_per_shell_uka__ ...
+);
+tmp_t = toc(tmp_t); disp(sprintf(' %% a_k_Y_quad_4_ time %0.2fs',tmp_t));
+%%%%%%%%;
+tmp_t = tic;
+if ~exist('sqrt_2lp1_','var'); sqrt_2lp1_ = []; end;
+if ~exist('sqrt_2mp1_','var'); sqrt_2mp1_ = []; end;
+if ~exist('sqrt_rat0_m_','var'); sqrt_rat0_m_ = []; end;
+if ~exist('sqrt_rat3_lm__','var'); sqrt_rat3_lm__ = []; end;
+if ~exist('sqrt_rat4_lm__','var'); sqrt_rat4_lm__ = []; end;
+[ ...
+ a_k_Y_quad_5_ ...
+,sqrt_2lp1_ ...
+,sqrt_2mp1_ ...
+,sqrt_rat0_m_ ...
+,sqrt_rat3_lm__ ...
+,sqrt_rat4_lm__ ...
+] = ...
+convert_k_p_to_spharm_uniform_over_n_k_p_r_5( ...
+ 0*flag_verbose ...
+,n_qk ...
+,n_qk_csum_ ...
+,k_p_r_qk_ ...
+,k_p_azimu_b_qk_ ...
+,k_p_polar_a_qk_ ...
+,weight_3d_k_p_qk_ ...
+,weight_shell_qk_ ...
+,n_k_p_r ...
+,k_p_r_ ...
+,weight_3d_k_p_r_ ...
+,l_max_ ...
+,a_k_p_form_ ...
+,sqrt_2lp1_ ...
+,sqrt_2mp1_ ...
+,sqrt_rat0_m_ ...
+,sqrt_rat3_lm__ ...
+,sqrt_rat4_lm__ ...
+);
+tmp_t = toc(tmp_t); disp(sprintf(' %% a_k_Y_quad_5_ time %0.2fs',tmp_t));
+%%%%%%%%;
+fnorm_disp(flag_verbose,'a_k_Y_quad_4_',a_k_Y_quad_4_,'a_k_Y_quad_5_',a_k_Y_quad_5_,' %%<-- should be zero');
+%%%%%%%%;
+
+%%%%%%%%;
+% test convert_spharm_to_k_p_uniform_over_n_k_p_r_5. ;
+%%%%%%%%;
+tmp_t = tic;
+if ~exist('Ylm_uklma___','var'); Ylm_uklma___ = []; end;
+if ~exist('k_p_azimu_b_sub_uka__','var'); k_p_azimu_b_sub_uka__ = []; end;
+if ~exist('k_p_polar_a_sub_uka__','var'); k_p_polar_a_sub_uka__ = []; end;
+if ~exist('l_max_uk_','var'); l_max_uk_ = []; end;
+if ~exist('index_nu_n_k_per_shell_from_nk_p_r_','var'); index_nu_n_k_per_shell_from_nk_p_r_ = []; end;
+if ~exist('index_k_per_shell_uka__','var'); index_k_per_shell_uka__ = []; end;
+[ ...
+ a_k_p_quad_4_ ...
+,Ylm_uklma___ ...
+,k_p_azimu_b_sub_uka__ ...
+,k_p_polar_a_sub_uka__ ...
+,l_max_uk_ ...
+,index_nu_n_k_per_shell_from_nk_p_r_ ...
+,index_k_per_shell_uka__ ...
+] = ...
+convert_spharm_to_k_p_4( ...
+ 0*flag_verbose ...
+,n_qk ...
+,n_qk_csum_ ...
+,k_p_r_qk_ ...
+,k_p_azimu_b_qk_ ...
+,k_p_polar_a_qk_ ...
+,weight_3d_k_p_qk_ ...
+,weight_shell_qk_ ...
+,n_k_p_r ...
+,k_p_r_ ...
+,weight_3d_k_p_r_ ...
+,l_max_ ...
+,a_k_Y_form_ ...
+,Ylm_uklma___ ...
+,k_p_azimu_b_sub_uka__ ...
+,k_p_polar_a_sub_uka__ ...
+,l_max_uk_ ...
+,index_nu_n_k_per_shell_from_nk_p_r_ ...
+,index_k_per_shell_uka__ ...
+);
+tmp_t = toc(tmp_t); disp(sprintf(' %% a_k_p_quad_4_ time %0.2fs',tmp_t));
+%%%%%%%%;
+tmp_t = tic;
+if ~exist('sqrt_2lp1_','var'); sqrt_2lp1_ = []; end;
+if ~exist('sqrt_2mp1_','var'); sqrt_2mp1_ = []; end;
+if ~exist('sqrt_rat0_m_','var'); sqrt_rat0_m_ = []; end;
+if ~exist('sqrt_rat3_lm__','var'); sqrt_rat3_lm__ = []; end;
+if ~exist('sqrt_rat4_lm__','var'); sqrt_rat4_lm__ = []; end;
+[ ...
+ a_k_p_quad_5_ ...
+,sqrt_2lp1_ ...
+,sqrt_2mp1_ ...
+,sqrt_rat0_m_ ...
+,sqrt_rat3_lm__ ...
+,sqrt_rat4_lm__ ...
+] = ...
+convert_spharm_to_k_p_uniform_over_n_k_p_r_5( ...
+ 0*flag_verbose ...
+,n_qk ...
+,n_qk_csum_ ...
+,k_p_r_qk_ ...
+,k_p_azimu_b_qk_ ...
+,k_p_polar_a_qk_ ...
+,weight_3d_k_p_qk_ ...
+,weight_shell_qk_ ...
+,n_k_p_r ...
+,k_p_r_ ...
+,weight_3d_k_p_r_ ...
+,l_max_ ...
+,a_k_Y_form_ ...
+,sqrt_2lp1_ ...
+,sqrt_2mp1_ ...
+,sqrt_rat0_m_ ...
+,sqrt_rat3_lm__ ...
+,sqrt_rat4_lm__ ...
+);
+tmp_t = toc(tmp_t); disp(sprintf(' %% a_k_p_quad_5_ time %0.2fs',tmp_t));
+%%%%%%%%;
+fnorm_disp(flag_verbose,'a_k_p_quad_4_',a_k_p_quad_4_,'a_k_p_quad_5_',a_k_p_quad_5_,' %%<-- should be zero');
+%%%%%%%%;
 
 %%%%%%%%;
 % define rotations in 2d and 3d. ;
@@ -791,7 +953,7 @@ pm_template_2( ...
  0*flag_verbose ...
 ,l_max_max ...
 ,n_k_p_r ...
-,reshape(a_k_Y_form_yk__,[n_lm_max,n_k_p_r]) ...
+,reshape(a_k_Y_form_yk__,[n_y_max,n_k_p_r]) ...
 ,template_k_eq_d_double/max(1e-12,k_p_r_max) ...
 ,-1 ...
 ,n_w_max ...
@@ -1025,7 +1187,7 @@ a_k_Y_l2_rota = sum(conj(a_k_Y_rota_yk__).*a_k_Y_rota_yk__*reshape(weight_3d_k_p
 %%%%;
 Q_k_q_wk_ = zeros(n_w_sum,1);
 for nk_p_r=0:n_k_p_r-1;
-tmp_index_ = n_lm_csum_(1+nk_p_r) + [0:n_lm_(1+nk_p_r)-1];
+tmp_index_ = n_y_csum_(1+nk_p_r) + [0:n_y_(1+nk_p_r)-1];
 a_k_Y_sub_ = a_k_Y_rota_(1+tmp_index_);
 l_max = l_max_(1+nk_p_r);
 for nw=0:n_w_max-1;
@@ -1044,7 +1206,7 @@ end;%for nk_p_r=0:n_k_p_r-1;
 %%%%;
 R_k_q_wk_ = zeros(n_w_sum,1);
 for nk_p_r=0:n_k_p_r-1;
-tmp_index_ = n_lm_csum_(1+nk_p_r) + [0:n_lm_(1+nk_p_r)-1];
+tmp_index_ = n_y_csum_(1+nk_p_r) + [0:n_y_(1+nk_p_r)-1];
 a_k_Y_sub_ = a_k_Y_form_(1+tmp_index_);
 l_max = l_max_(1+nk_p_r);
 for nw=0:n_w_max-1;
@@ -1382,7 +1544,7 @@ flag_delta = 1;
 %%%%%%%%;
 if ~flag_delta; delta_r_max = 0.0/max(1e-12,k_p_r_max); svd_eps = 1e-6; n_delta_v_requested =   1; end;
 if  flag_delta; delta_r_max = 0.5/max(1e-12,k_p_r_max); svd_eps = 1e-6; n_delta_v_requested = 128; end;
-FTK = ampmh_FTK_2(n_k_p_r,k_p_r_,k_p_r_max,delta_r_max,svd_eps,n_delta_v_requested);
+FTK = tfh_FTK_2(n_k_p_r,k_p_r_,k_p_r_max,delta_r_max,svd_eps,n_delta_v_requested);
 %%%%%%%%;
 n_delta_v = FTK.n_delta_v;
 
@@ -1474,16 +1636,16 @@ fnorm_disp(flag_verbose,'tmp_0_w_',tmp_0_w_,'tmp_1_w_',tmp_1_w_,' %%<-- should b
 
 %%%%%%%%;
 % Now construct the template-norms: ;
-% <(R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_,(R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_> ;
+% <CTF_k_p_wk_.*(R(+gamma_z)*S_k_p_wk_),CTF_k_p_wk_.*(R(+gamma_z)*S_k_p_wk_)> ;
 % Note that this does not involve collapsing onto principal-modes. ;
 %%%%%%%%;
-R_CTF_S_l2_wSC_quad___ = zeros(n_w_max,n_S,n_CTF);
+CTF_R_S_l2_wSC_quad___ = zeros(n_w_max,n_S,n_CTF);
 SS_k_p_wkS__ = conj(S_k_p_wkS__).*S_k_p_wkS__;
 SS_k_q_wkS__ = reshape(interp_p_to_q_block_0(n_k_p_r,n_w_,n_w_sum,SS_k_p_wkS__),[n_w_sum,n_S]);
 CC_k_p_wkC__ = conj(CTF_k_p_wkC__).*CTF_k_p_wkC__;
 CC_k_q_wkC__ = reshape(interp_p_to_q_block_0(n_k_p_r,n_w_,n_w_sum,CC_k_p_wkC__),[n_w_sum,n_CTF]);
 for nCTF=0:n_CTF-1;
-R_CTF_S_l2_wSC_quad___(:,:,1+nCTF) = ifft(squeeze(sum(bsxfun(@times,reshape(bsxfun(@times,conj(CC_k_q_wkC__(:,1+nCTF)),SS_k_q_wkS__),[n_w_max,n_k_p_r,n_S]),reshape(weight_2d_k_p_r_,[1,n_k_p_r,1])),1+1)));
+CTF_R_S_l2_wSC_quad___(:,:,1+nCTF) = ifft(squeeze(sum(bsxfun(@times,reshape(bsxfun(@times,CC_k_q_wkC__(:,1+nCTF),conj(SS_k_q_wkS__)),[n_w_max,n_k_p_r,n_S]),reshape(weight_2d_k_p_r_,[1,n_k_p_r,1])),1+1)));
 end;%for nCTF=0:n_CTF-1;
 %%%%%%%%;
 % Now check one template. ;
@@ -1495,24 +1657,24 @@ tmp_gamma_z = 0.0;
 tmp_R_S__ = Rz(-tmp_gamma_z)*Ry(-tmp_polar_a)*Rz(-tmp_azimu_b);
 nCTF = max(0,min(n_CTF-1,round(n_CTF*1/3)));
 tmp_CTF_phi = CTF_phi_C_(1+nCTF);
-R_CTF_S_l2_w_quad_ = R_CTF_S_l2_wSC_quad___(:,1+nS,1+nCTF);
-R_CTF_S_l2_w_qua2_ = zeros(n_w_max,1);
-R_CTF_S_l2_w_form_ = zeros(n_w_max,1);
+CTF_R_S_l2_w_quad_ = CTF_R_S_l2_wSC_quad___(:,1+nS,1+nCTF);
+CTF_R_S_l2_w_qua2_ = zeros(n_w_max,1);
+CTF_R_S_l2_w_form_ = zeros(n_w_max,1);
 for nw=0:n_w_max-1;
 gamma_z = gamma_z_(1+nw);
-R_CTF_S_k_p_wk_ = S_k_p_wkS__(:,1+nS).*rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,CTF_k_p_wkC__(:,1+nCTF),+gamma_z);
-R_CTF_S_l2_w_qua2_(1+nw) = sum(conj(R_CTF_S_k_p_wk_).*R_CTF_S_k_p_wk_.*weight_2d_wk_)*(2*pi)^2;
+CTF_R_S_k_p_wk_ = CTF_k_p_wkC__(:,1+nCTF).*rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,S_k_p_wkS__(:,1+nS),+gamma_z);
+CTF_R_S_l2_w_qua2_(1+nw) = sum(conj(CTF_R_S_k_p_wk_).*CTF_R_S_k_p_wk_.*weight_2d_wk_)*(2*pi)^2;
 for nsource0=0:n_source-1;
 tmp_S_delta_0_3_ = tmp_R_S__*delta_a_c_3s__(:,1+nsource0); tmp_S_delta_0_2_ = tmp_S_delta_0_3_(1:2);
 for nsource1=0:n_source-1;
 tmp_S_delta_1_3_ = tmp_R_S__*delta_a_c_3s__(:,1+nsource1); tmp_S_delta_1_2_ = tmp_S_delta_1_3_(1:2);
-R_CTF_S_l2_w_form_(1+nw) = R_CTF_S_l2_w_form_(1+nw) + I_xPPx_0(k_p_r_max,tmp_CTF_phi+gamma_z,tmp_S_delta_0_2_,tmp_CTF_phi+gamma_z,tmp_S_delta_1_2_);
+CTF_R_S_l2_w_form_(1+nw) = CTF_R_S_l2_w_form_(1+nw) + I_xPPx_0(k_p_r_max,tmp_CTF_phi-gamma_z,tmp_S_delta_0_2_,tmp_CTF_phi-gamma_z,tmp_S_delta_1_2_);
 end;%for nsource0=0:n_source-1;
 end;%for nsource1=0:n_source-1;
 end;%for nw=0:n_w_max-1;
-fnorm_disp(flag_verbose,'R_CTF_S_l2_w_qua2_',R_CTF_S_l2_w_qua2_,'R_CTF_S_l2_w_quad_',R_CTF_S_l2_w_quad_,' %%<-- should be zero');
-fnorm_disp(flag_verbose,'R_CTF_S_l2_w_qua2_',R_CTF_S_l2_w_qua2_,'R_CTF_S_l2_w_form_',R_CTF_S_l2_w_form_,' %%<-- should be <1e-6');
-fnorm_disp(flag_verbose,'R_CTF_S_l2_w_quad_',R_CTF_S_l2_w_quad_,'R_CTF_S_l2_w_form_',R_CTF_S_l2_w_form_,' %%<-- should be <1e-6');
+fnorm_disp(flag_verbose,'CTF_R_S_l2_w_qua2_',CTF_R_S_l2_w_qua2_,'CTF_R_S_l2_w_quad_',CTF_R_S_l2_w_quad_,' %%<-- should be zero');
+fnorm_disp(flag_verbose,'CTF_R_S_l2_w_qua2_',CTF_R_S_l2_w_qua2_,'CTF_R_S_l2_w_form_',CTF_R_S_l2_w_form_,' %%<-- should be <1e-6');
+fnorm_disp(flag_verbose,'CTF_R_S_l2_w_quad_',CTF_R_S_l2_w_quad_,'CTF_R_S_l2_w_form_',CTF_R_S_l2_w_form_,' %%<-- should be <1e-6');
 %%%%%%%%;
 % check against dir_ascii. ;
 %%%%%%%%;
@@ -1520,9 +1682,9 @@ dir_ascii = '../dir_rangan_python/dir_ascii';
 n_ascii = 3;
 for nascii=0:n_ascii-1;
 na=0;
-if nascii==na; tmp_str_ascii = 'R_CTF_S_l2_w_quad_'; tmp_local = R_CTF_S_l2_w_quad_; tab_p=0; end; na=na+1;
-if nascii==na; tmp_str_ascii = 'R_CTF_S_l2_w_qua2_'; tmp_local = R_CTF_S_l2_w_qua2_; tab_p=0; end; na=na+1;
-if nascii==na; tmp_str_ascii = 'R_CTF_S_l2_w_form_'; tmp_local = R_CTF_S_l2_w_form_; tab_p=0; end; na=na+1;
+if nascii==na; tmp_str_ascii = 'CTF_R_S_l2_w_quad_'; tmp_local = CTF_R_S_l2_w_quad_; tab_p=0; end; na=na+1;
+if nascii==na; tmp_str_ascii = 'CTF_R_S_l2_w_qua2_'; tmp_local = CTF_R_S_l2_w_qua2_; tab_p=0; end; na=na+1;
+if nascii==na; tmp_str_ascii = 'CTF_R_S_l2_w_form_'; tmp_local = CTF_R_S_l2_w_form_; tab_p=0; end; na=na+1;
 fname_ascii = sprintf('%s/%s.ascii',dir_ascii,tmp_str_ascii);
 if ~exist(fname_ascii,'file'); disp(sprintf(' %% Warning, %s not found',fname_ascii)); end;
 if  exist(fname_ascii,'file');
@@ -1535,11 +1697,24 @@ fnorm_disp(flag_verbose,tmp_str_ascii,tmp_local,'ascii',tmp_ascii,' %% <-- shoul
 end;%if  exist(fname_ascii,'file');
 end;%for nascii=0:n_ascii-1;
 %%%%%%%%;
+% Now construct the template-norms: ;
+% <(R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_,(R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_> ;
+% when gamma_z==0 (used when CTF is isotropic). ;
+% Note that this does not involve collapsing onto principal-modes. ;
+%%%%%%%%;
+CTF_R_S_l2_SC_quad__ = zeros(n_S,n_CTF);
+SS_k_p_wkS__ = conj(S_k_p_wkS__).*S_k_p_wkS__;
+CC_k_p_wkC__ = conj(CTF_k_p_wkC__).*CTF_k_p_wkC__;
+CTF_R_S_l2_SC_quad__ = squeeze(sum(bsxfun(@times,bsxfun(@times,reshape(CC_k_p_wkC__,[n_w_sum,1,n_CTF]),reshape(conj(SS_k_p_wkS__),[n_w_sum,n_S,1])),reshape(weight_2d_wk_,[n_w_sum,1,1])),1+0)) * (2*pi)^2;
+CTF_R_S_l2_SC_quad__ = real(CTF_R_S_l2_SC_quad__);
+fnorm_disp(flag_verbose,'squeeze(CTF_R_S_l2_wSC_quad___(1+0,:,:))',squeeze(CTF_R_S_l2_wSC_quad___(1+0,:,:)),'CTF_R_S_l2_SC_quad__',CTF_R_S_l2_SC_quad__,' %%<-- should be zero');
+%%%%%%%%;
 
 flag_pm = 1;
 %%%%%%%%%%%%%%%%;
 % Now calculate innerproduct Z_dwSM____. ;
 % Here we account for anisotropic CTF. ;
+% Note that this calculation assumes the radial-projection is nearly lossless. ;
 %%%%%%%%%%%%%%%%;
 n_UX_rank = n_k_p_r-1; %<-- just to check dimensions. Note that, in principle, this could be different for different nCTF. ; 
 pm_n_UX_rank = n_UX_rank; %<-- just to check dimension. ;
@@ -1686,13 +1861,46 @@ end;%for nascii=0:n_ascii-1;
 
 %%%%%%%%;
 % Now re-construct the template-norms, this time limited to radial principal-modes: ;
+% <((R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_) * pm_wUX_kn__),((R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_) * pm_wUX_kn__)> ;
+% Note that this does yes involve collapsing onto principal-modes. ;
+% Note that this calculation assumes the radial-projection is nearly lossless. ;
+%%%%%%%%;
+pm_UX_kn__ = UX_knC___(:,:,1+0);
+pm_X_weight_r_ = X_weight_rC__(:,1+0);
+pm_n_k_p_r = pm_n_UX_rank; pm_n_w_max = n_w_max;
+pm_n_w_ = pm_n_w_max*ones(pm_n_k_p_r,1);
+pm_n_w_sum = pm_n_k_p_r*pm_n_w_max;
+pm_wUX_kn__ = diag(pm_X_weight_r_)*pm_UX_kn__;
+UX_CTF_R_S_l2_wSC_quad___ = zeros(n_w_max,n_S,n_CTF);
+UX_SS_k_q_wnS__ = reshape(permute(pagemtimes(transpose(pm_wUX_kn__),permute(reshape(SS_k_q_wkS__,[n_w_max,n_k_p_r,n_S]),1+[1,0,2])),1+[1,0,2]),[pm_n_w_sum,n_S]);
+UX_CC_k_q_wnC__ = reshape(permute(pagemtimes(transpose(pm_wUX_kn__),permute(reshape(CC_k_q_wkC__,[n_w_max,n_k_p_r,n_CTF]),1+[1,0,2])),1+[1,0,2]),[pm_n_w_sum,n_CTF]);
+UX_CTF_R_S_l2_wSC_quad___ = ifft(squeeze(sum(reshape(bsxfun(@times,reshape(UX_CC_k_q_wnC__,[pm_n_w_sum,1,n_CTF]),reshape(conj(UX_SS_k_q_wnS__),[pm_n_w_sum,n_S,1])),[pm_n_w_max,pm_n_k_p_r,n_S,n_CTF]),1+1)));
+UX_CTF_R_S_l2_wSC_quad___ = real(UX_CTF_R_S_l2_wSC_quad___);
+%%%%%%%%;
+% Now re-construct the template-norms, this time limited to radial principal-modes: ;
+% <((R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_) * pm_wUX_kn__),((R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_) * pm_wUX_kn__)> ;
+% when gamma_z==0 (used when CTF is isotropic). ;
+% Note that this does yes involve collapsing onto principal-modes. ;
+%%%%%%%%;
+UX_CTF_R_S_l2_SC_quad__ = zeros(n_S,n_CTF);
+UX_SS_k_p_wnS__ = reshape(permute(pagemtimes(transpose(pm_wUX_kn__),permute(reshape(SS_k_p_wkS__,[n_w_max,n_k_p_r,n_S]),1+[1,0,2])),1+[1,0,2]),[pm_n_w_sum,n_S]);
+UX_CC_k_p_wnC__ = reshape(permute(pagemtimes(transpose(pm_wUX_kn__),permute(reshape(CC_k_p_wkC__,[n_w_max,n_k_p_r,n_CTF]),1+[1,0,2])),1+[1,0,2]),[pm_n_w_sum,n_CTF]);
+UX_CTF_R_S_l2_SC_quad__ = squeeze(sum(bsxfun(@times,reshape(UX_CC_k_q_wnC__,[pm_n_w_sum,1,n_CTF]),reshape(conj(UX_SS_k_q_wnS__),[pm_n_w_sum,n_S,1])),1+0)) / max(1,pm_n_w_max) ;
+UX_CTF_R_S_l2_SC_quad__ = real(UX_CTF_R_S_l2_SC_quad__);
+fnorm_disp(flag_verbose,'squeeze(UX_CTF_R_S_l2_wSC_quad___(1+0,:,:))',squeeze(UX_CTF_R_S_l2_wSC_quad___(1+0,:,:)),'UX_CTF_R_S_l2_SC_quad__',UX_CTF_R_S_l2_SC_quad__,' %%<-- should be zero');
+fnorm_disp(flag_verbose,'CTF_R_S_l2_SC_quad__',CTF_R_S_l2_SC_quad__,'UX_CTF_R_S_l2_SC_quad__',UX_CTF_R_S_l2_SC_quad__,' %%<-- should be zero');
+fnorm_disp(flag_verbose,'CTF_R_S_l2_wSC_quad___',CTF_R_S_l2_wSC_quad___,'UX_CTF_R_S_l2_wSC_quad___',UX_CTF_R_S_l2_wSC_quad___,' %%<-- should be zero');
+
+%%%%%%%%;
+% Now re-construct the template-norms, this time limited to radial principal-modes: ;
 % <((R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_) * wUX_kn__),((R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_) * wUX_kn__)> ;
 % Note that this does yes involve collapsing onto principal-modes. ;
+% Note that this calculation assumes the radial-projection is nearly lossless. ;
 %%%%%%%%;
 pm_n_k_p_r = pm_n_UX_rank; pm_n_w_max = n_w_max;
 pm_n_w_ = pm_n_w_max*ones(pm_n_k_p_r,1);
 pm_n_w_sum = pm_n_k_p_r*pm_n_w_max;
-UX_R_CTF_S_l2_wSC_quad___ = zeros(n_w_max,n_S,n_CTF);
+UX_CTF_R_S_l2_wSC_quad___ = zeros(n_w_max,n_S,n_CTF);
 SS_k_p_wkS__ = conj(S_k_p_wkS__).*S_k_p_wkS__;
 SS_k_q_wkS__ = reshape(interp_p_to_q_block_0(n_k_p_r,n_w_,n_w_sum,SS_k_p_wkS__),[n_w_sum,n_S]);
 CC_k_p_wkC__ = conj(CTF_k_p_wkC__).*CTF_k_p_wkC__;
@@ -1703,7 +1911,7 @@ X_weight_r_ = X_weight_rC__(:,1+nCTF);
 wUX_kn__ = diag(X_weight_r_)*UX_kn__;
 UX_SS_k_q_wnS__ = reshape(permute(pagemtimes(transpose(wUX_kn__),permute(reshape(SS_k_q_wkS__,[n_w_max,n_k_p_r,n_S]),1+[1,0,2])),1+[1,0,2]),[pm_n_w_sum,n_S]);
 UX_CC_k_q_wn_ = reshape(reshape(CC_k_q_wkC__(:,1+nCTF),[n_w_max,n_k_p_r])*wUX_kn__,[pm_n_w_sum,1]);
-UX_R_CTF_S_l2_wSC_quad___(:,:,1+nCTF) = ifft(squeeze(sum(reshape(bsxfun(@times,conj(UX_CC_k_q_wn_),UX_SS_k_q_wnS__),[pm_n_w_max,pm_n_k_p_r,n_S]),1+1)));
+UX_CTF_R_S_l2_wSC_quad___(:,:,1+nCTF) = ifft(squeeze(sum(reshape(bsxfun(@times,UX_CC_k_q_wn_,conj(UX_SS_k_q_wnS__)),[pm_n_w_max,pm_n_k_p_r,n_S]),1+1)));
 clear UX_kn__ X_weight_r_ wUX_kn__ ;
 end;%for nCTF=0:n_CTF-1;
 %%%%%%%%;
@@ -1712,22 +1920,22 @@ end;%for nCTF=0:n_CTF-1;
 nS = max(0,min(n_S-1,round(n_S*1/5)));
 nCTF = max(0,min(n_CTF-1,round(n_CTF*2/3)));
 UX_kn__ = UX_knC___(:,:,1+nCTF); X_weight_r_ = X_weight_rC__(:,1+nCTF); wUX_kn__ = diag(X_weight_r_)*UX_kn__;
-R_CTF_S_l2_w_quad_ = R_CTF_S_l2_wSC_quad___(:,1+nS,1+nCTF);
-UX_R_CTF_S_l2_w_quad_ = UX_R_CTF_S_l2_wSC_quad___(:,1+nS,1+nCTF);
-R_CTF_S_l2_w_qua2_ = zeros(n_w_max,1);
-UX_R_CTF_S_l2_w_qua2_ = zeros(n_w_max,1);
+CTF_R_S_l2_w_quad_ = CTF_R_S_l2_wSC_quad___(:,1+nS,1+nCTF);
+UX_CTF_R_S_l2_w_quad_ = UX_CTF_R_S_l2_wSC_quad___(:,1+nS,1+nCTF);
+CTF_R_S_l2_w_qua2_ = zeros(n_w_max,1);
+UX_CTF_R_S_l2_w_qua2_ = zeros(n_w_max,1);
 for nw=0:n_w_max-1;
 gamma_z = gamma_z_(1+nw);
-R_CTF_S_k_p_wk_ = S_k_p_wkS__(:,1+nS).*rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,CTF_k_p_wkC__(:,1+nCTF),+gamma_z);
-R_CTF_S_l2_w_qua2_(1+nw) = sum(conj(R_CTF_S_k_p_wk_).*R_CTF_S_k_p_wk_.*weight_2d_wk_)*(2*pi)^2;
-UX_R_CTF_S_k_p_wn_ = reshape(reshape(S_k_p_wkS__(:,1+nS).*rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,CTF_k_p_wkC__(:,1+nCTF),+gamma_z),[n_w_max,n_k_p_r])*wUX_kn__,[pm_n_w_sum,1]);
-UX_R_CTF_S_l2_w_qua2_(1+nw) = sum(conj(UX_R_CTF_S_k_p_wn_).*UX_R_CTF_S_k_p_wn_)/max(1,n_w_max);
+CTF_R_S_k_p_wk_ = CTF_k_p_wkC__(:,1+nCTF).*rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,S_k_p_wkS__(:,1+nS),+gamma_z);
+CTF_R_S_l2_w_qua2_(1+nw) = sum(conj(CTF_R_S_k_p_wk_).*CTF_R_S_k_p_wk_.*weight_2d_wk_)*(2*pi)^2;
+UX_CTF_R_S_k_p_wn_ = reshape(reshape(CTF_k_p_wkC__(:,1+nCTF).*rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,S_k_p_wkS__(:,1+nS),+gamma_z),[n_w_max,n_k_p_r])*wUX_kn__,[pm_n_w_sum,1]);
+UX_CTF_R_S_l2_w_qua2_(1+nw) = sum(conj(UX_CTF_R_S_k_p_wn_).*UX_CTF_R_S_k_p_wn_)/max(1,n_w_max);
 end;%for nw=0:n_w_max-1;
-clear UX_kn__ X_weight_r_ wUX_kn__ UX_R_CTF_S_k_p_wn_ ;
-fnorm_disp(flag_verbose,'R_CTF_S_l2_w_qua2_',R_CTF_S_l2_w_qua2_,'R_CTF_S_l2_w_quad_',R_CTF_S_l2_w_quad_,' %%<-- should be zero');
-fnorm_disp(flag_verbose,'R_CTF_S_l2_w_qua2_',R_CTF_S_l2_w_qua2_,'UX_R_CTF_S_l2_w_quad_',UX_R_CTF_S_l2_w_quad_,' %%<-- should be zero');
-fnorm_disp(flag_verbose,'UX_R_CTF_S_l2_w_qua2_',UX_R_CTF_S_l2_w_qua2_,'R_CTF_S_l2_w_quad_',R_CTF_S_l2_w_quad_,' %%<-- should be zero');
-fnorm_disp(flag_verbose,'UX_R_CTF_S_l2_w_qua2_',UX_R_CTF_S_l2_w_qua2_,'UX_R_CTF_S_l2_w_quad_',UX_R_CTF_S_l2_w_quad_,' %%<-- should be zero');
+clear UX_kn__ X_weight_r_ wUX_kn__ UX_CTF_R_S_k_p_wn_ ;
+fnorm_disp(flag_verbose,'CTF_R_S_l2_w_qua2_',CTF_R_S_l2_w_qua2_,'CTF_R_S_l2_w_quad_',CTF_R_S_l2_w_quad_,' %%<-- should be zero');
+fnorm_disp(flag_verbose,'CTF_R_S_l2_w_qua2_',CTF_R_S_l2_w_qua2_,'UX_CTF_R_S_l2_w_quad_',UX_CTF_R_S_l2_w_quad_,' %%<-- should be zero');
+fnorm_disp(flag_verbose,'UX_CTF_R_S_l2_w_qua2_',UX_CTF_R_S_l2_w_qua2_,'CTF_R_S_l2_w_quad_',CTF_R_S_l2_w_quad_,' %%<-- should be zero');
+fnorm_disp(flag_verbose,'UX_CTF_R_S_l2_w_qua2_',UX_CTF_R_S_l2_w_qua2_,'UX_CTF_R_S_l2_w_quad_',UX_CTF_R_S_l2_w_quad_,' %%<-- should be zero');
 %%%%%%%%;
 
 %%%%%%%%;
@@ -1846,9 +2054,9 @@ for nM=0:n_M-1;
 if (flag_verbose>0); if mod(nM,32)==0; disp(sprintf(' %% nM %.3d/%.3d',nM,n_M)); end; end;
 nCTF = index_nCTF_from_nM_(1+nM);
 tmp_UX_T_M_l2_d_ = UX_T_M_l2_dM__(:,1+nM);
-tmp_UX_R_CTF_S_l2_wS__ = flipud(UX_R_CTF_S_l2_wSC_quad___(:,:,1+nCTF));
+tmp_UX_CTF_R_S_l2_wS__ = flipud(UX_CTF_R_S_l2_wSC_quad___(:,:,1+nCTF));
 tmp_Z_dwS_ampm___ = Z_dwSM_ampm____(:,:,:,1+nM);
-tmp_X_dwS_ampm___ = bsxfun(@rdivide,bsxfun(@rdivide,tmp_Z_dwS_ampm___,max(1e-12,reshape(sqrt(tmp_UX_R_CTF_S_l2_wS__),[1,n_w_max,n_S]))),max(1e-12,reshape(sqrt(tmp_UX_T_M_l2_d_),[n_delta_v,1,1])));
+tmp_X_dwS_ampm___ = bsxfun(@rdivide,bsxfun(@rdivide,tmp_Z_dwS_ampm___,max(1e-12,reshape(sqrt(tmp_UX_CTF_R_S_l2_wS__),[1,n_w_max,n_S]))),max(1e-12,reshape(sqrt(tmp_UX_T_M_l2_d_),[n_delta_v,1,1])));
 [~,tmp_ij] = max(tmp_X_dwS_ampm___,[],'all','linear'); tmp_index = tmp_ij-1;
 tmp_index_tmp = tmp_index;
 tmp_nd = mod(tmp_index_tmp,n_delta_v); tmp_index_tmp = (tmp_index_tmp - tmp_nd)/max(1,n_delta_v);
@@ -1875,9 +2083,9 @@ for nM=0:n_M-1;
 if (flag_verbose>0); if mod(nM,32)==0; disp(sprintf(' %% nM %.3d/%.3d',nM,n_M)); end; end;
 nCTF = index_nCTF_from_nM_(1+nM);
 tmp_UX_T_M_l2_d_ = UX_T_M_l2_dM__(:,1+nM);
-tmp_UX_R_CTF_S_l2_wS__ = flipud(UX_R_CTF_S_l2_wSC_quad___(:,:,1+nCTF));
+tmp_UX_CTF_R_S_l2_wS__ = flipud(UX_CTF_R_S_l2_wSC_quad___(:,:,1+nCTF));
 tmp_Z_dwS_ampm___ = Z_dwSM_ampm____(:,:,:,1+nM);
-tmp_X_dwS_ampm___ = bsxfun(@rdivide,bsxfun(@rdivide,tmp_Z_dwS_ampm___,max(1e-12,reshape(sqrt(tmp_UX_R_CTF_S_l2_wS__),[1,n_w_max,n_S]))),max(1e-12,reshape(sqrt(tmp_UX_T_M_l2_d_),[n_delta_v,1,1])));
+tmp_X_dwS_ampm___ = bsxfun(@rdivide,bsxfun(@rdivide,tmp_Z_dwS_ampm___,max(1e-12,reshape(sqrt(tmp_UX_CTF_R_S_l2_wS__),[1,n_w_max,n_S]))),max(1e-12,reshape(sqrt(tmp_UX_T_M_l2_d_),[n_delta_v,1,1])));
 [tmp_X_dwS_sort_,tmp_ij_] = sort(tmp_X_dwS_ampm___(:),'ascend'); [~,tmp_ji_] = sort(tmp_ij_,'ascend'); tmp_index_ = tmp_ij_-1;
 tmp_index_tmp_ = tmp_index_;
 tmp_nd_ = mod(tmp_index_tmp_,n_delta_v); tmp_index_tmp_ = (tmp_index_tmp_ - tmp_nd_)/max(1,n_delta_v);
@@ -1931,8 +2139,8 @@ tmp_parameter.flag_optimize_over_gamma_z = 0;
 [ ...
  tmp_parameter ...
 ,tmp_Z_wSM___ ...
-,tmp_UX_R_CTF_S_l2_wS__ ...
-,tmp_R_CTF_S_l2_wS__ ...
+,tmp_UX_CTF_R_S_l2_wS__ ...
+,tmp_CTF_R_S_l2_wS__ ...
 ,tmp_UX_T_M_l2_dM__ ...
 ,tmp_UX_M_l2_M_ ...
 ,tmp_X_wSM___ ...
@@ -1961,8 +2169,8 @@ tfpmh_Z_wSM___12( ...
 ,pm_X_weight_r_ ...
 ,FTK ...
 );
-fnorm_disp(flag_verbose,'tmp_R_CTF_S_l2_wS__',tmp_R_CTF_S_l2_wS__,'R_CTF_S_l2_wSC_quad___(:,:,1+nCTF)',R_CTF_S_l2_wSC_quad___(:,:,1+nCTF));
-fnorm_disp(flag_verbose,'tmp_UX_R_CTF_S_l2_wS__',tmp_UX_R_CTF_S_l2_wS__,'UX_R_CTF_S_l2_wSC_quad___(:,:,1+nCTF)',UX_R_CTF_S_l2_wSC_quad___(:,:,1+nCTF));
+fnorm_disp(flag_verbose,'tmp_CTF_R_S_l2_wS__',tmp_CTF_R_S_l2_wS__,'CTF_R_S_l2_wSC_quad___(:,:,1+nCTF)',CTF_R_S_l2_wSC_quad___(:,:,1+nCTF));
+fnorm_disp(flag_verbose,'tmp_UX_CTF_R_S_l2_wS__',tmp_UX_CTF_R_S_l2_wS__,'UX_CTF_R_S_l2_wSC_quad___(:,:,1+nCTF)',UX_CTF_R_S_l2_wSC_quad___(:,:,1+nCTF));
 fnorm_disp(flag_verbose,'tmp_UX_T_M_l2_dM__',tmp_UX_T_M_l2_dM__,'UX_T_M_l2_dM__(:,1+index_M_sub_)',UX_T_M_l2_dM__(:,1+index_M_sub_));
 fnorm_disp(flag_verbose,'tmp_UX_M_l2_M_',tmp_UX_M_l2_M_,'UX_M_l2_M_(1+index_M_sub_)',UX_M_l2_M_(1+index_M_sub_));
 tmp_Z_dwSM_ampm____ = Z_dwSM_ampm____(:,:,:,1+index_M_sub_);
@@ -1977,7 +2185,7 @@ nw = max(0,min(n_w_max-1,floor(n_w_max*rand())));
 nS = max(0,min(n_S-1,floor(n_S*rand())));
 ndelta = tmp_index_sub_wSM___(1+nw,1+nS,1+nM_sub);
 tmp_Z_ampm = tmp_Z_dwSM_ampm____(1+ndelta,1+nw,1+nS,1+nM_sub);
-tmp_X_ampm = tmp_Z_ampm/max(1e-12,sqrt(UX_R_CTF_S_l2_wSC_quad___(1+nw,1+nS,1+nCTF)))/max(1e-12,sqrt(tmp_UX_T_M_l2_dM__(1+ndelta,1+nM_sub)));
+tmp_X_ampm = tmp_Z_ampm/max(1e-12,sqrt(UX_CTF_R_S_l2_wSC_quad___(1+nw,1+nS,1+nCTF)))/max(1e-12,sqrt(tmp_UX_T_M_l2_dM__(1+ndelta,1+nM_sub)));
 tmp_Z_tfpm = tmp_Z_wSM___(1+nw,1+nS,1+nM_sub);
 tmp_X_tfpm = tmp_X_wSM___(1+nw,1+nS,1+nM_sub);
 tmp_Z_errrel = tmp_Z_errrel + fnorm(tmp_Z_ampm-tmp_Z_tfpm)/max(1e-12,fnorm(tmp_Z_ampm));
@@ -1999,8 +2207,8 @@ tmp_parameter.flag_optimize_over_gamma_z = 1;
 [ ...
  tmp_parameter ...
 ,tmp_Z_SM__ ...
-,tmp_UX_R_CTF_S_l2_wS__ ...
-,tmp_R_CTF_S_l2_wS__ ...
+,tmp_UX_CTF_R_S_l2_wS__ ...
+,tmp_CTF_R_S_l2_wS__ ...
 ,tmp_UX_T_M_l2_dM__ ...
 ,tmp_UX_M_l2_M_ ...
 ,tmp_X_SM__ ...
@@ -2029,8 +2237,8 @@ tfpmh_Z_wSM___12( ...
 ,pm_X_weight_r_ ...
 ,FTK ...
 );
-fnorm_disp(flag_verbose,'tmp_R_CTF_S_l2_wS__',tmp_R_CTF_S_l2_wS__,'R_CTF_S_l2_wSC_quad___(:,:,1+nCTF)',R_CTF_S_l2_wSC_quad___(:,:,1+nCTF));
-fnorm_disp(flag_verbose,'tmp_UX_R_CTF_S_l2_wS__',tmp_UX_R_CTF_S_l2_wS__,'UX_R_CTF_S_l2_wSC_quad___(:,:,1+nCTF)',UX_R_CTF_S_l2_wSC_quad___(:,:,1+nCTF));
+fnorm_disp(flag_verbose,'tmp_CTF_R_S_l2_wS__',tmp_CTF_R_S_l2_wS__,'CTF_R_S_l2_wSC_quad___(:,:,1+nCTF)',CTF_R_S_l2_wSC_quad___(:,:,1+nCTF));
+fnorm_disp(flag_verbose,'tmp_UX_CTF_R_S_l2_wS__',tmp_UX_CTF_R_S_l2_wS__,'UX_CTF_R_S_l2_wSC_quad___(:,:,1+nCTF)',UX_CTF_R_S_l2_wSC_quad___(:,:,1+nCTF));
 fnorm_disp(flag_verbose,'tmp_UX_T_M_l2_dM__',tmp_UX_T_M_l2_dM__,'UX_T_M_l2_dM__(:,1+index_M_sub_)',UX_T_M_l2_dM__(:,1+index_M_sub_));
 fnorm_disp(flag_verbose,'tmp_UX_M_l2_M_',tmp_UX_M_l2_M_,'UX_M_l2_M_(1+index_M_sub_)',UX_M_l2_M_(1+index_M_sub_));
 tmp_Z_dwSM_ampm____ = Z_dwSM_ampm____(:,:,:,1+index_M_sub_);
@@ -2046,7 +2254,7 @@ ndw = tmp_index_sub_SM__(1+nS,1+nM_sub);
 ndelta = mod(ndw,n_delta_v);
 nw = (ndw-ndelta)/max(1,n_delta_v);
 tmp_Z_ampm = tmp_Z_dwSM_ampm____(1+ndelta,1+nw,1+nS,1+nM_sub);
-tmp_X_ampm = tmp_Z_ampm/max(1e-12,sqrt(UX_R_CTF_S_l2_wSC_quad___(1+nw,1+nS,1+nCTF)))/max(1e-12,sqrt(tmp_UX_T_M_l2_dM__(1+ndelta,1+nM_sub)));
+tmp_X_ampm = tmp_Z_ampm/max(1e-12,sqrt(UX_CTF_R_S_l2_wSC_quad___(1+nw,1+nS,1+nCTF)))/max(1e-12,sqrt(tmp_UX_T_M_l2_dM__(1+ndelta,1+nM_sub)));
 tmp_Z_tfpm = tmp_Z_SM__(1+nS,1+nM_sub);
 tmp_X_tfpm = tmp_X_SM__(1+nS,1+nM_sub);
 tmp_Z_errrel = tmp_Z_errrel + fnorm(tmp_Z_ampm-tmp_Z_tfpm)/max(1e-12,fnorm(tmp_Z_ampm));

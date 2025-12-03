@@ -18,6 +18,7 @@ n_w_sum = sum(n_w_);
 n_w_csum_ = cumsum([0;n_w_]);
 
 M_k_q_wkM__ = interp_p_to_q(n_k_p_r,n_w_,n_w_sum,M_k_p_wkM__);
+
 if numel(unique(n_w_))> 1;
 M_k_q_rwM___ = reshape(innerproduct_q_k_stretch_quad_stack____1(n_k_p_r,n_w_,n_M,M_k_q_wkM__,0),[n_k_p_r,n_w_max,n_M]);
 end;%if numel(unique(n_w_))> 1;

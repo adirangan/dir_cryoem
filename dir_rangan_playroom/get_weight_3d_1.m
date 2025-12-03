@@ -23,5 +23,5 @@ if isempty(k_eq_d); k_eq_d = 1.0/(2*pi); end;
 if isempty(str_T_vs_L); str_T_vs_L = 'L'; end;
 
 n_k_p_r = 1+ceil(k_p_r_max/k_eq_d); [a_jx_,a_jw_] = jacpts(n_k_p_r,0,2);
-k_p_r_ = (a_jx_+1.0)*k_p_r_max/2; weight_3d_k_p_r_ = a_jw_*(k_p_r_max/2)^3;
+k_p_r_ = (a_jx_+1.0)*k_p_r_max/2; weight_3d_k_p_r_ = reshape(a_jw_*(k_p_r_max/2)^3,[n_k_p_r,1]);
 

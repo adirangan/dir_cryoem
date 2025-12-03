@@ -1,4 +1,5 @@
 import numpy as np ; import torch ;
+numel = lambda a : int(a.numel()) ;
 
 '''
 function output = colormap_81s(n_c,gamma1,gamma2,gamma3);
@@ -106,7 +107,7 @@ def colormap_81s(n_c=64, gamma1=0.5, gamma2=1.5, gamma3=1.5):
         gamma1_ = np.linspace(0, 2, 9);
         gamma2_ = np.linspace(0, 2, 9);
         gamma3_ = np.arange(0.25, 1.75 + 0.25, 0.25);
-        n_g3 = gamma3_.numel();
+        n_g3 = numel(gamma3_);
         for ng3 in range(n_g3):
             gamma3 = gamma3_[ng3];
             n_c = 64;

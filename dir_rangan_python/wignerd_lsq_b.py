@@ -1,13 +1,5 @@
-import numpy as np ; pi = np.pi ; i = 1j ; import torch ; import timeit ;
-from matlab_index_2d_0 import matlab_index_2d_0 ;
-from matlab_index_3d_0 import matlab_index_3d_0 ;
-from matlab_index_4d_0 import matlab_index_4d_0 ;
+exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ;
 from ylgndr_2 import ylgndr_2 ;
-mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
-msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
-mts = lambda a : tuple(len(a) - x - 1 for x in a) ; #<-- for permute (i.e., tuple subtract (...)). ;
-tic = lambda : timeit.default_timer() ;
-toc = lambda a : tic() - a ;
 
 def wignerd_lsq_b(
         n_l=None,
@@ -22,7 +14,7 @@ def wignerd_lsq_b(
     azimu_b_ = torch.tensor(np.sort(2*pi*np.random.rand(n_azimu_b))).to(dtype=torch.float32);
     n_polar_a = int(np.ceil(np.sqrt(n_oversample*1*n_m_max)));
     polar_a_ = torch.tensor(np.sort(1*pi*np.random.rand(n_polar_a))).to(dtype=torch.float32);
-    [azimu_b_ori__,polar_a_ori__] = torch.meshgrid(azimu_b_,polar_a_,indexing='ij');
+    [azimu_b_ori__,polar_a_ori__] = torch.meshgrid(azimu_b_,polar_a_,indexing='ij'); #<-- reversed to match matlab. ;
     #%%%%;
     tmp_t = tic();
     (
@@ -86,7 +78,7 @@ def wignerd_lsq_b(
     expi_mab___ = torch.exp(+i*torch.reshape(m_max_,mtr((n_m_max,1)))*torch.reshape(azimu_b_rot__,mtr((1,n_polar_a,n_azimu_b))));
     Y_rot_lmab____ = L_rot_lmab____ * torch.reshape(expi_mab___,mtr((1,n_m_max,n_polar_a,n_azimu_b)));
     #%%%%;
-    W_ = [[] for _ in range(1+l_max)]; #<-- cell array. ;
+    W_ = cell(1+l_max); #<-- cell array. ;
     tmp_t = tic();
     for l_val in range(l_max+1):
         tmp_index_rhs_ = matlab_index_4d_0(1+l_max,l_val,n_m_max,l_max+torch.arange(-l_val,+l_val+1),n_polar_a,':',n_azimu_b,':');

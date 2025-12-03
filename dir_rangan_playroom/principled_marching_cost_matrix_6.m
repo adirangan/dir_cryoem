@@ -43,8 +43,8 @@ if (nargin<1+na);,pm_delta_integral_tolerance=[]; end; na=na+1;
 
 if isempty(CTF_k_p_r_xcor_kk__); CTF_k_p_r_xcor_kk__ = ones(n_k_p_r,n_k_p_r); end;
 if isempty(delta_sigma); delta_sigma = 0; end;
-if isempty(pm_delta_integral_tolerance); pm_delta_integral_tolerance = 1e-2; end;
-if (pm_delta_integral_tolerance<=0); pm_delta_integral_tolerance = 1e-2; end;
+if isempty(pm_delta_integral_tolerance); pm_delta_integral_tolerance = 1e-3; end;
+if (pm_delta_integral_tolerance<=0); pm_delta_integral_tolerance = 1e-3; end;
 
 verbose=1;
 if (isempty(n_molecule)); n_molecule = 1; molecule_density_ = ones(n_molecule,1); end;
@@ -58,7 +58,7 @@ n_lm_csum_ = cumsum([0;n_lm_]);
 l_max_max = max(l_max_); dWtdkd__l_max_max = 2*l_max_max;
 m_max_ = -l_max_max : +l_max_max;
 n_m_max = 1+2*l_max_max;
-n_polar_a = n_m_max; polar_a_ = linspace(-pi,pi,n_polar_a+1); polar_a_ = polar_a_(1:end-1);
+n_polar_a = n_m_max; polar_a_ = linspace(-pi,pi,n_polar_a+1); polar_a_ = transpose(polar_a_(1:end-1));
 weight_so3 = (2*pi)*(2*pi)*4; %<-- total volume of so3. ;
 a_k_Y___ = zeros(n_lm_max,n_k_p_r);
 for nmolecule=0:n_molecule-1;

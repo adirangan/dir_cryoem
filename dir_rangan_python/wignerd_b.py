@@ -1,11 +1,5 @@
-import numpy as np ; pi = np.pi ; i = 1j ; import torch ; import timeit ;
-from matlab_index_2d_0 import matlab_index_2d_0 ;
-from matlab_index_3d_0 import matlab_index_3d_0 ;
-from matlab_index_4d_0 import matlab_index_4d_0 ;
+exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ;
 from ylgndr_2 import ylgndr_2 ;
-mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
-msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
-mts = lambda a : tuple(len(a) - x - 1 for x in a) ; #<-- for permute (i.e., tuple subtract (...)). ;
 
 def A1(nl,nmn,nmp):
     numerator   = (nl+nmn)*(nl+nmn-1);
@@ -76,7 +70,7 @@ def wignerd_b(
 
     if (n_l>=88): print(f' %% Warning, n_l={n_l}>=88 in wignerd_b');
     cb = np.cos(beta/2); sb = np.sin(beta/2); 
-    W_ = [[] for _ in range(1+n_l)]; #<-- cell array. ;
+    W_ = cell(1+n_l); #<-- cell array. ;
     W_[0] = torch.ones(mtr((1,1))).to(dtype=torch.float32);
     for nl in range(1,n_l+1):
         nlp = nl-1;

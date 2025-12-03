@@ -9,6 +9,7 @@ from sample_sphere_7 import sample_sphere_7 ;
 from get_Ylm__2 import get_Ylm__2 ;
 from get_Ylm_condense_wrap_0 import get_Ylm_condense_wrap_0 ;
 from fnorm_disp import fnorm_disp ;
+numel = lambda a : int(a.numel()) ;
 
 flag_verbose=1;
 print(' %% testing get_Ylm_condense_wrap_0');
@@ -93,7 +94,7 @@ for nk_int in range(3,3+1):
         fname_ascii = dir_ascii + '/index_k_per_shell_0a_.ascii' ;
         print(f" %% writing {fname_ascii}");
         np.savetxt(fname_ascii,index_k_per_shell_uka__[0].numpy().ravel());
-        n_uklma = Ylm_uklma___[0].numel();
+        n_uklma = numel(Ylm_uklma___[0]);
         print(f' %% k_int {k_int:02d} --> n_k_p_r {n_k_p_r:03d} l_max_upb {l_max_upb:03d} n_u {n_u:02d} n_uklma {n_uklma:06d} --> Ylm_uklma___: {(n_uklma*16/1e9):0.6f}GB')
         #%%%%;
     #end;%for k_int = [ 8,16,32,48,64];

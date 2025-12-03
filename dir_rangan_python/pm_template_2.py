@@ -5,6 +5,7 @@ from matlab_index_4d_0 import matlab_index_4d_0 ;
 from matlab_scalar_round import matlab_scalar_round ;
 from sample_shell_6 import sample_shell_6 ;
 from ylgndr_2 import ylgndr_2 ;
+numel = lambda a : int(a.numel()) ;
 cumsum_0 = lambda a : torch.cumsum(torch.concatenate((torch.tensor([0]),a)) , 0).to(torch.int32) ;
 mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
 msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
@@ -40,11 +41,11 @@ def pm_template_2(
     if (flag_verbose): print(f' %% [entering {str_thisfunction}]');
     #%%%%%%%%;
 
-    n_lm = (l_max+1)**2;
+    n_y = (l_max+1)**2;
     m_max_ = torch.arange(-l_max,+l_max+1).to(dtype=torch.int32);
-    n_m_max = m_max_.numel(); #%<-- 2*l_max+1;
-    if (flag_verbose): print(f' %% l_max {l_max} n_lm {n_lm}');
-    if a_k_Y_ya__ is None: a_k_Y_ya__ = torch.zeros(mtr((n_lm,1))).to(dtype=torch.complex64);
+    n_m_max = numel(m_max_); #%<-- 2*l_max+1;
+    if (flag_verbose): print(f' %% l_max {l_max} n_y {n_y}');
+    if a_k_Y_ya__ is None: a_k_Y_ya__ = torch.zeros(mtr((n_y,1))).to(dtype=torch.complex64);
 
     #%%%%%%%%;
     if (flag_verbose): print(f' %% First determine the viewing angles.');
@@ -75,11 +76,11 @@ def pm_template_2(
     if n_viewing_polar_a is None:
         np_viewing_polar_a_ = np.unique(viewing_polar_a_S_.numpy().ravel(),return_index=False,return_inverse=False);
         viewing_polar_a_ = torch.tensor(np_viewing_polar_a_).to(dtype=torch.float32);
-        n_viewing_polar_a = viewing_polar_a_.numel();
+        n_viewing_polar_a = numel(viewing_polar_a_);
         n_viewing_azimu_b_ = torch.zeros(n_viewing_polar_a).to(dtype=torch.int32);
         for nviewing_polar_a in range(n_viewing_polar_a):
             viewing_polar_a = viewing_polar_a_[nviewing_polar_a].item();
-            n_viewing_azimu_b_[nviewing_polar_a] = efind(torch.abs(viewing_polar_a_S_-viewing_polar_a)< 1e-12).numel();
+            n_viewing_azimu_b_[nviewing_polar_a] = numel(efind(torch.abs(viewing_polar_a_S_-viewing_polar_a)< 1e-12));
         #end;%for nviewing_polar_a=0:n_viewing_polar_a-1;
     #end;%if isempty(n_viewing_polar_a);
     #%%%%;    
@@ -258,7 +259,7 @@ def pm_template_2(
     for na_batch in range(n_a_batch):
         index_a_ = n_a_per_a_batch*na_batch + torch.arange(n_a_per_a_batch).to(dtype=torch.int32);
         index_a_ = index_a_[index_a_<n_a];
-        n_a_sub = index_a_.numel();
+        n_a_sub = numel(index_a_);
         if (n_a_sub>0):
             tmp_index_rhs_ = matlab_index_3d_0(1+l_max,':',n_a,index_a_,n_m_max,':');
             tmp_a_k_Y_lam___ = torch.reshape(a_k_Y_lam___.ravel()[tmp_index_rhs_],mtr((1+l_max,n_a_sub,n_m_max)));

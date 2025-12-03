@@ -3,6 +3,7 @@ from matlab_index_2d_0 import matlab_index_2d_0 ;
 from matlab_index_3d_0 import matlab_index_3d_0 ;
 from matlab_index_4d_0 import matlab_index_4d_0 ;
 from matlab_scalar_round import matlab_scalar_round ;
+numel = lambda a : int(a.numel()) ;
 cumsum_0 = lambda a : torch.cumsum(torch.concatenate((torch.tensor([0]),a)) , 0).to(torch.int32) ;
 fnorm = lambda a : torch.linalg.norm(a).item() ;
 mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
@@ -78,8 +79,8 @@ def tfpmh_Z_wSM___12(
     #%%%%%%%%;
     if flag_optimize_over_gamma_z==0:
         Z_wSM___ = torch.zeros(mtr((n_w_max,n_S,n_M))).to(dtype=torch.float32);
-        UX_R_CTF_S_l2_wS__ = torch.zeros(mtr((n_w_max,n_S))).to(dtype=torch.float32);
-        R_CTF_S_l2_wS__ = torch.zeros(mtr((n_w_max,n_S))).to(dtype=torch.float32);
+        UX_CTF_R_S_l2_wS__ = torch.zeros(mtr((n_w_max,n_S))).to(dtype=torch.float32);
+        CTF_R_S_l2_wS__ = torch.zeros(mtr((n_w_max,n_S))).to(dtype=torch.float32);
         UX_T_M_l2_dM__ = torch.zeros(mtr((n_delta_v,n_M))).to(dtype=torch.float32);
         UX_M_l2_M_ = torch.zeros(n_M).to(dtype=torch.float32);
         X_wSM___ = torch.zeros(mtr((n_w_max,n_S,n_M))).to(dtype=torch.float32);
@@ -90,8 +91,8 @@ def tfpmh_Z_wSM___12(
     #end;%if flag_optimize_over_gamma_z==0;
     if flag_optimize_over_gamma_z==1:
         Z_SM__ = torch.zeros(mtr((n_S,n_M))).to(dtype=torch.float32);
-        UX_R_CTF_S_l2_wS__ = torch.zeros(n_S).to(dtype=torch.float32);
-        R_CTF_S_l2_wS__ = torch.zeros(n_S).to(dtype=torch.float32);
+        UX_CTF_R_S_l2_wS__ = torch.zeros(n_S).to(dtype=torch.float32);
+        CTF_R_S_l2_wS__ = torch.zeros(n_S).to(dtype=torch.float32);
         UX_T_M_l2_dM__ = torch.zeros(mtr((n_delta_v,n_M))).to(dtype=torch.float32);
         UX_M_l2_M_ = torch.zeros(n_M).to(dtype=torch.float32);
         X_SM__ = torch.zeros(mtr((n_S,n_M))).to(dtype=torch.float32);
@@ -124,8 +125,8 @@ def tfpmh_Z_wSM___12(
         n_wS_GB = n_w_max*n_S*n_byte_per_float32/1e9;
         n_dM_GB = n_delta_v*n_M*n_byte_per_float32/1e9;
         n_M_GB = n_M*n_byte_per_float32/1e9;
-        tmp_str = 'UX_R_CTF_S_l2_wS__'; print(f' %% memory: {tmp_str} --> {n_wS_GB} GB');
-        tmp_str = 'R_CTF_S_l2_wS__'; print(f' %% memory: {tmp_str} --> {n_wS_GB} GB');
+        tmp_str = 'UX_CTF_R_S_l2_wS__'; print(f' %% memory: {tmp_str} --> {n_wS_GB} GB');
+        tmp_str = 'CTF_R_S_l2_wS__'; print(f' %% memory: {tmp_str} --> {n_wS_GB} GB');
         tmp_str = 'UX_T_M_l2_dM__'; print(f' %% memory: {tmp_str} --> {n_dM_GB} GB');
         tmp_str = 'UX_M_l2_M_'; print(f' %% memory: {tmp_str} --> {n_M_GB} GB');
         if flag_optimize_over_gamma_z==0:
@@ -151,13 +152,13 @@ def tfpmh_Z_wSM___12(
     #% <(R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_,(R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_> ;
     #% Note that this does not involve collapsing onto principal-modes. ;
     #%%%%%%%%;
-    R_CTF_S_l2_wS__ = torch.zeros(mtr((n_w_max,n_S))).to(dtype=torch.float32);
+    CTF_R_S_l2_wS__ = torch.zeros(mtr((n_w_max,n_S))).to(dtype=torch.float32);
     SS_k_p_wkS__ = torch.conj(S_k_p_wkS__)*S_k_p_wkS__;
     SS_k_q_wkS__ = torch.reshape(interp_p_to_q(n_k_p_r,n_w_,n_w_sum,SS_k_p_wkS__),mtr((n_w_sum,n_S)));
     CC_k_p_wk_ = torch.conj(CTF_k_p_wk_)*CTF_k_p_wk_;
     CC_k_q_wk_ = torch.reshape(interp_p_to_q(n_k_p_r,n_w_,n_w_sum,CC_k_p_wk_),mtr((n_w_sum,1)));
-    R_CTF_S_l2_wS__ = torch.fft.ifft(torch.reshape(torch.sum(torch.reshape(torch.conj(CC_k_q_wk_)*SS_k_q_wkS__,mtr((n_w_max,n_k_p_r,n_S)))*torch.reshape(weight_2d_k_p_r_,mtr((1,n_k_p_r,1))),2-1),mtr((n_w_max,n_S))),dim=1-0);
-    R_CTF_S_l2_wS__ = torch.real(R_CTF_S_l2_wS__);
+    CTF_R_S_l2_wS__ = torch.fft.ifft(torch.reshape(torch.sum(torch.reshape(CC_k_q_wk_*torch.conj(SS_k_q_wkS__),mtr((n_w_max,n_k_p_r,n_S)))*torch.reshape(weight_2d_k_p_r_,mtr((1,n_k_p_r,1))),2-1),mtr((n_w_max,n_S))),dim=1-0);
+    CTF_R_S_l2_wS__ = torch.real(CTF_R_S_l2_wS__);
     #%%%%%%%%;
     #% Now re-construct the template-norms, this time limited to radial principal-modes: ;
     #% <((R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_) * pm_wUX_kn__),((R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_) * pm_wUX_kn__)> ;
@@ -166,12 +167,12 @@ def tfpmh_Z_wSM___12(
     pm_n_k_p_r = pm_n_UX_rank; pm_n_w_max = n_w_max;
     pm_n_w_ = pm_n_w_max*torch.ones(pm_n_k_p_r).to(dtype=torch.int32);
     pm_n_w_sum = int(pm_n_k_p_r*pm_n_w_max);
-    UX_R_CTF_S_l2_wS__ = torch.zeros(mtr((n_w_max,n_S))).to(dtype=torch.float32);
+    UX_CTF_R_S_l2_wS__ = torch.zeros(mtr((n_w_max,n_S))).to(dtype=torch.float32);
     pm_wUX_kn__ = torch.reshape(pm_X_weight_r_,mtr((n_k_p_r,1)))*torch.reshape(pm_UX_kn__,mtr((n_k_p_r,pm_n_k_p_r)));
     str_einsum = msr('kn') + ',' + msr('wkS') + '->' + msr('wnS') ;
-    UX_SS_k_q_wnS__ = torch.reshape(torch.einsum(str_einsum,pm_wUX_kn__.to(dtype=torch.complex64),torch.reshape(SS_k_q_wkS__,mtr((n_w_max,n_k_p_r,n_S))).to(dtype=torch.complex64)),mtr((pm_n_w_sum,n_S))).to(dtype=torch.complex64,device=device_use);
-    UX_CC_k_q_wn_ = torch.reshape(mmmm( torch.reshape(CC_k_q_wk_.to(dtype=torch.complex64),mtr((n_w_max,n_k_p_r))) , pm_wUX_kn__.to(dtype=torch.complex64) ),mtr((pm_n_w_sum,1))).to(dtype=torch.complex64,device=device_use);
-    UX_R_CTF_S_l2_wS__ = torch.real(torch.fft.ifft(torch.reshape(torch.sum(torch.reshape(torch.conj(UX_CC_k_q_wn_) * UX_SS_k_q_wnS__,mtr((pm_n_w_max,pm_n_k_p_r,n_S))),2-1),mtr((pm_n_w_max,n_S))),dim=1-0)).to(dtype=torch.float32);
+    UX_SS_k_q_wnS__ = torch.reshape(torch.einsum(str_einsum,pm_wUX_kn__.to(dtype=torch.complex64),torch.reshape(SS_k_q_wkS__,mtr((n_w_max,n_k_p_r,n_S))).to(dtype=torch.complex64)),mtr((pm_n_w_sum,n_S))).to(dtype=torch.complex64);
+    UX_CC_k_q_wn_ = torch.reshape(mmmm( torch.reshape(CC_k_q_wk_.to(dtype=torch.complex64),mtr((n_w_max,n_k_p_r))) , pm_wUX_kn__.to(dtype=torch.complex64) ),mtr((pm_n_w_sum,1))).to(dtype=torch.complex64);
+    UX_CTF_R_S_l2_wS__ = torch.real(torch.fft.ifft(torch.reshape(torch.sum(torch.reshape(UX_CC_k_q_wn_ * torch.conj(UX_SS_k_q_wnS__),mtr((pm_n_w_max,pm_n_k_p_r,n_S))),2-1),mtr((pm_n_w_max,n_S))),dim=1-0)).to(dtype=torch.float32);
     #%%%%%%%%
 
     flag_continue=1;
@@ -189,7 +190,7 @@ def tfpmh_Z_wSM___12(
     for nMbatch in range(n_Mbatch):
     #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
         index_nM_in_Mbatch_ = int(nMbatch*n_M_per_Mbatch) + torch.arange(0,n_M_per_Mbatch).to(dtype=torch.int32);
-        index_nM_in_Mbatch_ = index_nM_in_Mbatch_[efind(index_nM_in_Mbatch_<n_M)]; n_M_sub = index_nM_in_Mbatch_.numel();
+        index_nM_in_Mbatch_ = index_nM_in_Mbatch_[efind(index_nM_in_Mbatch_<n_M)]; n_M_sub = numel(index_nM_in_Mbatch_);
         if (flag_verbose>1): print(f' %% nMbatch {nMbatch}/{n_Mbatch} index_nM_in_Mbatch_ {index_nM_in_Mbatch_[0].item()}-->{index_nM_in_Mbatch_[n_M_sub-1].item()}');
         if (flag_verbose>0 and np.mod(nMbatch,1)==0): print(f' %% nMbatch {nMbatch}/{n_Mbatch} index_nM_in_Mbatch_ {index_nM_in_Mbatch_[0].item()}-->{index_nM_in_Mbatch_[n_M_sub-1].item()}');
         #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
@@ -212,28 +213,28 @@ def tfpmh_Z_wSM___12(
             #% Prepare quasi-images. ;
             #%%%%;
             tmp_t = tic();
-            svd_VUXCTFM_sub_lwnM____ = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M_sub,CTF_M_sub_k_q_wkM__,pm_n_UX_rank,pm_UX_kn__,pm_X_weight_r_);
+            svd_V_UX_CTF_M_sub_lwnM____ = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M_sub,CTF_M_sub_k_q_wkM__,pm_n_UX_rank,pm_UX_kn__,pm_X_weight_r_);
             tmp_t = toc(tmp_t); 
-            if (flag_verbose>1): print(f' %% svd_VUXCTFM_sub_lwnM____: %0.2fs',tmp_t);
+            if (flag_verbose>1): print(f' %% svd_V_UX_CTF_M_sub_lwnM____: %0.2fs',tmp_t);
             tmp_t = tic();
-            svd_VUXM_sub_lwnM____ = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M_sub,M_sub_k_q_wkM__,pm_n_UX_rank,pm_UX_kn__,pm_X_weight_r_);
+            svd_V_UX_M_sub_lwnM____ = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M_sub,M_sub_k_q_wkM__,pm_n_UX_rank,pm_UX_kn__,pm_X_weight_r_);
             tmp_t = toc(tmp_t); 
-            if (flag_verbose>1): print(f' %% svd_VUXM_sub_lwnM____: %0.2fs',tmp_t);
+            if (flag_verbose>1): print(f' %% svd_V_UX_M_sub_lwnM____: %0.2fs',tmp_t);
             tmp_t = tic();
-            svd_VUXCTFM_sub_nMwl____ = torch.permute(svd_VUXCTFM_sub_lwnM____.to(dtype=torch.complex64),mtr(mts((2,3,1,0)))).to(dtype=torch.complex64,device=device_use);
+            svd_V_UX_CTF_M_sub_nMwl____ = torch.permute(svd_V_UX_CTF_M_sub_lwnM____.to(dtype=torch.complex64),mtr(mts((2,3,1,0)))).to(dtype=torch.complex64);
             tmp_t = toc(tmp_t); 
-            if (flag_verbose>1): print(f' %% svd_VUXCTFM_sub_nMwl____: %0.2fs',tmp_t);
+            if (flag_verbose>1): print(f' %% svd_V_UX_CTF_M_sub_nMwl____: %0.2fs',tmp_t);
             #%%%%;
             #% Now calculate norms of the translated images. ;
             #%%%%;
             tmp_t = tic();
-            UX_T_M_sub_l2_dM__ = tfpmh_UX_T_M_l2_dM__1(FTK,n_w_,n_M_sub,pm_n_UX_rank,svd_VUXM_sub_lwnM____);
+            UX_T_M_sub_l2_dM__ = tfpmh_UX_T_M_l2_dM__1(FTK,n_w_,n_M_sub,pm_n_UX_rank,svd_V_UX_M_sub_lwnM____);
             tmp_t = toc(tmp_t); 
             if (flag_verbose>1): print(f' %% tfpmh_UX_T_M_sub_l2_dm__1: %0.2fs',tmp_t);
             tmp_index_d0 = intersect_0(efind(torch.abs(FTK['r8_delta_x_'])< 1e-6),efind(torch.abs(FTK['r8_delta_y_'])< 1e-6))[0];
-            assert(tmp_index_d0.numel()==1); #%<-- should be a single index corresponding to zero-displacement. ;
+            assert(numel(tmp_index_d0)==1); #%<-- should be a single index corresponding to zero-displacement. ;
             tmp_index_rhs_ = matlab_index_2d_0(FTK['n_delta_v'],tmp_index_d0,n_M_sub,':');
-            UX_M_sub_l2_M_ = UX_T_M_sub_l2_dM__.ravel()[tmp_index_rhs_].ravel(); assert(UX_M_sub_l2_M_.numel()==n_M_sub);
+            UX_M_sub_l2_M_ = UX_T_M_sub_l2_dM__.ravel()[tmp_index_rhs_].ravel(); assert(numel(UX_M_sub_l2_M_)==n_M_sub);
             #%%%%;
             #% Store results. ;
             #%%%%;
@@ -244,7 +245,7 @@ def tfpmh_Z_wSM___12(
             for nSbatch in range(n_Sbatch):
             #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
                 index_nS_in_Sbatch_ = int(nSbatch*n_S_per_Sbatch) + torch.arange(n_S_per_Sbatch).to(dtype=torch.int32);
-                index_nS_in_Sbatch_ = index_nS_in_Sbatch_[efind(index_nS_in_Sbatch_<n_S)]; n_S_sub = index_nS_in_Sbatch_.numel();
+                index_nS_in_Sbatch_ = index_nS_in_Sbatch_[efind(index_nS_in_Sbatch_<n_S)]; n_S_sub = numel(index_nS_in_Sbatch_);
                 if (flag_verbose>2): print(f' %% nSbatch {nSbatch}/{n_Sbatch} index_nS_in_Sbatch_ {index_nS_in_Sbatch_[0].item()}-->{index_nS_in_Sbatch_[n_S_sub-1].item()}');
                 if (flag_verbose>1 and np.mod(nSbatch,32)==0): print(f' %% nSbatch {nSbatch}/{n_Sbatch} index_nS_in_Sbatch_ {index_nS_in_Sbatch_[0].item()}-->{index_nS_in_Sbatch_[n_S_sub-1].item()}');
                 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
@@ -258,11 +259,11 @@ def tfpmh_Z_wSM___12(
                     #% Prepare UX_S_k_q_wnS__. ;
                     #%%%%;
                     tmp_t = tic();
-                    UX_S_sub_k_q_wnS__ = torch.reshape(torch.permute(torch.reshape(mmmm( torch.reshape(S_sub_k_q_wSk___.to(dtype=torch.complex64),mtr((n_w_max*n_S_sub,n_k_p_r)))*torch.reshape(pm_X_weight_r_.to(dtype=torch.complex64),mtr((1,n_k_p_r))) , pm_UX_kn__.to(dtype=torch.complex64) ),mtr((n_w_max,n_S_sub,pm_n_UX_rank))),mtr(mts((0,2,1)))),mtr((n_w_max*pm_n_UX_rank,n_S_sub))).to(dtype=torch.complex64,device=device_use);
+                    UX_S_sub_k_q_wnS__ = torch.reshape(torch.permute(torch.reshape(mmmm( torch.reshape(S_sub_k_q_wSk___.to(dtype=torch.complex64),mtr((n_w_max*n_S_sub,n_k_p_r)))*torch.reshape(pm_X_weight_r_.to(dtype=torch.complex64),mtr((1,n_k_p_r))) , pm_UX_kn__.to(dtype=torch.complex64) ),mtr((n_w_max,n_S_sub,pm_n_UX_rank))),mtr(mts((0,2,1)))),mtr((n_w_max*pm_n_UX_rank,n_S_sub))).to(dtype=torch.complex64);
                     tmp_t = toc(tmp_t); 
                     if (flag_verbose>1): print(f' %% UX_S_sub_k_q_wnS__: %0.2fs',tmp_t);
                     tmp_t = tic();
-                    UX_S_sub_k_q_nSw___ = torch.permute(torch.reshape(UX_S_sub_k_q_wnS__.to(dtype=torch.complex64),mtr((n_w_max,pm_n_UX_rank,n_S_sub))),mtr(mts((1,2,0)))).to(dtype=torch.complex64,device=device_use);
+                    UX_S_sub_k_q_nSw___ = torch.permute(torch.reshape(UX_S_sub_k_q_wnS__.to(dtype=torch.complex64),mtr((n_w_max,pm_n_UX_rank,n_S_sub))),mtr(mts((1,2,0)))).to(dtype=torch.complex64);
                     tmp_t = toc(tmp_t); 
                     if (flag_verbose>1): print(f' %% UX_S_sub_k_q_nSw__: %0.2fs',tmp_t);
                     #%%%%;
@@ -270,25 +271,25 @@ def tfpmh_Z_wSM___12(
                     #%%%%;
                     tmp_t = tic();
                     str_einsum = msr('nSw') + ',' + msr('nMwl') + '->' + msr('SMwl') ;
-                    svd_S_sub_VUXCTFM_sub_SMwl____ = torch.einsum(str_einsum,torch.conj(UX_S_sub_k_q_nSw___).to(dtype=torch.complex64),svd_VUXCTFM_sub_nMwl____.to(dtype=torch.complex64)).to(dtype=torch.complex64,device=device_use);
+                    svd_S_sub_V_UX_CTF_M_sub_SMwl____ = torch.einsum(str_einsum,torch.conj(UX_S_sub_k_q_nSw___).to(dtype=torch.complex64),svd_V_UX_CTF_M_sub_nMwl____.to(dtype=torch.complex64)).to(dtype=torch.complex64);
                     tmp_t = toc(tmp_t); 
-                    if (flag_verbose>1): print(f' %% svd_S_sub_VUXCTFM_sub_SMwl____: %0.6fs',tmp_t);
+                    if (flag_verbose>1): print(f' %% svd_S_sub_V_UX_CTF_M_sub_SMwl____: %0.6fs',tmp_t);
                     tmp_t = tic();
-                    svd_S_sub_VUXCTFM_sub_lwSM____ = torch.fft.ifft(torch.permute(svd_S_sub_VUXCTFM_sub_SMwl____.to(dtype=torch.complex64),mtr(mts((3,2,0,1)))),dim=3-1).to(dtype=torch.complex64,device=device_use)*n_w_max;
+                    svd_S_sub_V_UX_CTF_M_sub_lwSM____ = torch.fft.ifft(torch.permute(svd_S_sub_V_UX_CTF_M_sub_SMwl____.to(dtype=torch.complex64),mtr(mts((3,2,0,1)))),dim=3-1).to(dtype=torch.complex64)*n_w_max;
                     tmp_t = toc(tmp_t); 
-                    if (flag_verbose>1): print(f' %% svd_S_sub_VUXCTFM_sub_lwSM____: %0.6fs',tmp_t);
+                    if (flag_verbose>1): print(f' %% svd_S_sub_V_UX_CTF_M_sub_lwSM____: %0.6fs',tmp_t);
                     tmp_t = tic();
-                    svd_USES_sub_VUXCTFM_sub_dwSM____ = torch.reshape( mmmm( torch.reshape(FTK['c16_svd_U_d_expiw_s__'].to(dtype=torch.complex64),mtr((FTK['n_delta_v'],FTK['n_svd_l']))) , torch.reshape(svd_S_sub_VUXCTFM_sub_lwSM____.to(dtype=torch.complex64),mtr((FTK['n_svd_l'],n_w_max*n_S_sub*n_M_sub))) ),mtr((FTK['n_delta_v'],n_w_max,n_S_sub,n_M_sub))).to(dtype=torch.complex64,device=device_use);
+                    svd_UES_S_sub_V_UX_CTF_M_sub_dwSM____ = torch.reshape( mmmm( torch.reshape(FTK['c16_svd_U_d_expiw_s__'].to(dtype=torch.complex64),mtr((FTK['n_delta_v'],FTK['n_svd_l']))) , torch.reshape(svd_S_sub_V_UX_CTF_M_sub_lwSM____.to(dtype=torch.complex64),mtr((FTK['n_svd_l'],n_w_max*n_S_sub*n_M_sub))) ),mtr((FTK['n_delta_v'],n_w_max,n_S_sub,n_M_sub))).to(dtype=torch.complex64);
                     tmp_t = toc(tmp_t); 
-                    if (flag_verbose>1): print(f' %% svd_USES_sub_VUXCTFM_sub_dwSM____: %0.6fs',tmp_t);
-                    Z_sub_dwSM____  = torch.real(svd_USES_sub_VUXCTFM_sub_dwSM____);
+                    if (flag_verbose>1): print(f' %% svd_UES_S_sub_V_UX_CTF_M_sub_dwSM____: %0.6fs',tmp_t);
+                    Z_sub_dwSM____  = torch.real(svd_UES_S_sub_V_UX_CTF_M_sub_dwSM____);
                     #%%%%;
                     #% Calculate correlation. ;
                     #%%%%;
                     tmp_t = tic();
                     tmp_index_rhs_ = matlab_index_2d_0(n_w_max,':',n_S,index_nS_in_Sbatch_);
-                    UX_R_CTF_S_sub_l2_wS__ = torch.reshape(UX_R_CTF_S_l2_wS__.ravel()[tmp_index_rhs_],mtr((n_w_max,n_S_sub)));
-                    X_sub_dwSM____ = Z_sub_dwSM____ / torch.maximum(torch.tensor(1e-6).to(dtype=torch.float32),torch.reshape(torch.sqrt(UX_R_CTF_S_sub_l2_wS__),mtr((1,n_w_max,n_S_sub,1)))) / torch.maximum(torch.tensor(1e-6).to(dtype=torch.float32),torch.reshape(torch.sqrt(UX_T_M_sub_l2_dM__),mtr((n_delta_v,1,1,n_M_sub)))) ;
+                    UX_CTF_R_S_sub_l2_wS__ = torch.reshape(UX_CTF_R_S_l2_wS__.ravel()[tmp_index_rhs_],mtr((n_w_max,n_S_sub)));
+                    X_sub_dwSM____ = Z_sub_dwSM____ / torch.maximum(torch.tensor(1e-6).to(dtype=torch.float32),torch.reshape(torch.sqrt(UX_CTF_R_S_sub_l2_wS__),mtr((1,n_w_max,n_S_sub,1)))) / torch.maximum(torch.tensor(1e-6).to(dtype=torch.float32),torch.reshape(torch.sqrt(UX_T_M_sub_l2_dM__),mtr((n_delta_v,1,1,n_M_sub)))) ;
                     tmp_t = toc(tmp_t); 
                     if (flag_verbose>1): print(f' %% X_sub_dwSM____: %0.6fs',tmp_t);
                     #%%%%;
@@ -384,8 +385,8 @@ def tfpmh_Z_wSM___12(
     return(
         parameter,
         Z_wSM___,
-        UX_R_CTF_S_l2_wS__,
-        R_CTF_S_l2_wS__,
+        UX_CTF_R_S_l2_wS__,
+        CTF_R_S_l2_wS__,
         UX_T_M_l2_dM__,
         UX_M_l2_M_,
         X_wSM___,

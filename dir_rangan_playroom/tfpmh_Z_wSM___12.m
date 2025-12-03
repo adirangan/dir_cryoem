@@ -2,8 +2,8 @@ function ...
 [ ...
  parameter ...
 ,Z_wSM___ ...
-,UX_R_CTF_S_l2_wS__ ...
-,R_CTF_S_l2_wS__ ...
+,UX_R_CTF_R_S_l2_wS__ ...
+,CTF_R_S_l2_wS__ ...
 ,UX_T_M_l2_dM__ ...
 ,UX_M_l2_M_ ...
 ,X_wSM___ ...
@@ -32,6 +32,9 @@ tfpmh_Z_wSM___12( ...
 ,pm_X_weight_r_ ...
 ,FTK ...
 );
+%%%%%%%%;
+% Note that this takes in a single (anisotropic) CTF_k_p_wk_, ;
+% assumed to be applied to all the n_M images. ;
 %%%%%%%%;
 
 str_thisfunction = 'tfpmh_Z_wSM___12';
@@ -89,8 +92,8 @@ n_svd_l = FTK.n_svd_l;
 %%%%%%%%;
 if flag_optimize_over_gamma_z==0;
 Z_wSM___ = zeros(n_w_max,n_S,n_M);
-UX_R_CTF_S_l2_wS__ = zeros(n_w_max,n_S);
-R_CTF_S_l2_wS__ = zeros(n_w_max,n_S);
+UX_R_CTF_R_S_l2_wS__ = zeros(n_w_max,n_S);
+CTF_R_S_l2_wS__ = zeros(n_w_max,n_S);
 UX_T_M_l2_dM__ = zeros(n_delta_v,n_M);
 UX_M_l2_M_ = zeros(n_M,1);
 X_wSM___ = zeros(n_w_max,n_S,n_M);
@@ -101,8 +104,8 @@ index_sub_wSM___ = zeros(n_w_max,n_S,n_M);
 end;%if flag_optimize_over_gamma_z==0;
 if flag_optimize_over_gamma_z==1;
 Z_SM__ = zeros(n_S,n_M);
-UX_R_CTF_S_l2_wS__ = zeros(n_S);
-R_CTF_S_l2_wS__ = zeros(n_S);
+UX_R_CTF_R_S_l2_wS__ = zeros(n_S);
+CTF_R_S_l2_wS__ = zeros(n_S);
 UX_T_M_l2_dM__ = zeros(n_delta_v,n_M);
 UX_M_l2_M_ = zeros(n_M,1);
 X_SM__ = zeros(n_S,n_M);
@@ -130,8 +133,8 @@ end;%if (n_dwSM_GB<=memory_limit_GB);
 end;%if flag_dwSM;
 
 if (flag_verbose>0); 
-tmp_str = 'UX_R_CTF_S_l2_wS__'; disp(sprintf(' %% memory: %s --> %0.6f GB',tmp_str,whos(tmp_str).bytes/1e9));
-tmp_str = 'R_CTF_S_l2_wS__'; disp(sprintf(' %% memory: %s --> %0.6f GB',tmp_str,whos(tmp_str).bytes/1e9));
+tmp_str = 'UX_R_CTF_R_S_l2_wS__'; disp(sprintf(' %% memory: %s --> %0.6f GB',tmp_str,whos(tmp_str).bytes/1e9));
+tmp_str = 'CTF_R_S_l2_wS__'; disp(sprintf(' %% memory: %s --> %0.6f GB',tmp_str,whos(tmp_str).bytes/1e9));
 tmp_str = 'UX_T_M_l2_dM__'; disp(sprintf(' %% memory: %s --> %0.6f GB',tmp_str,whos(tmp_str).bytes/1e9));
 tmp_str = 'UX_M_l2_M_'; disp(sprintf(' %% memory: %s --> %0.6f GB',tmp_str,whos(tmp_str).bytes/1e9));
 if flag_optimize_over_gamma_z==0;
@@ -157,13 +160,13 @@ end;%if (flag_verbose>0);
 % <(R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_,(R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_> ;
 % Note that this does not involve collapsing onto principal-modes. ;
 %%%%%%%%;
-R_CTF_S_l2_wS__ = zeros(n_w_max,n_S);
+CTF_R_S_l2_wS__ = zeros(n_w_max,n_S);
 SS_k_p_wkS__ = conj(S_k_p_wkS__).*S_k_p_wkS__;
 SS_k_q_wkS__ = reshape(interp_p_to_q(n_k_p_r,n_w_,n_w_sum,SS_k_p_wkS__),[n_w_sum,n_S]);
 CC_k_p_wk_ = conj(CTF_k_p_wk_).*CTF_k_p_wk_;
 CC_k_q_wk_ = reshape(interp_p_to_q(n_k_p_r,n_w_,n_w_sum,CC_k_p_wk_),[n_w_sum,1]);
-R_CTF_S_l2_wS__ = ifft(squeeze(sum(bsxfun(@times,reshape(bsxfun(@times,conj(CC_k_q_wk_),SS_k_q_wkS__),[n_w_max,n_k_p_r,n_S]),reshape(weight_2d_k_p_r_,[1,n_k_p_r,1])),1+1)));
-R_CTF_S_l2_wS__ = real(R_CTF_S_l2_wS__);
+CTF_R_S_l2_wS__ = ifft(squeeze(sum(bsxfun(@times,reshape(bsxfun(@times,CC_k_q_wk_,conj(SS_k_q_wkS__)),[n_w_max,n_k_p_r,n_S]),reshape(weight_2d_k_p_r_,[1,n_k_p_r,1])),1+1)));
+CTF_R_S_l2_wS__ = real(CTF_R_S_l2_wS__);
 %%%%%%%%;
 % Now re-construct the template-norms, this time limited to radial principal-modes: ;
 % <((R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_) * pm_wUX_kn__),((R(+gamma_z)*CTF_k_p_wk_).*S_k_p_wk_) * pm_wUX_kn__)> ;
@@ -172,12 +175,12 @@ R_CTF_S_l2_wS__ = real(R_CTF_S_l2_wS__);
 pm_n_k_p_r = pm_n_UX_rank; pm_n_w_max = n_w_max;
 pm_n_w_ = pm_n_w_max*ones(pm_n_k_p_r,1);
 pm_n_w_sum = pm_n_k_p_r*pm_n_w_max;
-UX_R_CTF_S_l2_wS__ = zeros(n_w_max,n_S);
+UX_R_CTF_R_S_l2_wS__ = zeros(n_w_max,n_S);
 pm_wUX_kn__ = diag(pm_X_weight_r_)*pm_UX_kn__;
 UX_SS_k_q_wnS__ = reshape(permute(pagemtimes(transpose(pm_wUX_kn__),permute(reshape(SS_k_q_wkS__,[n_w_max,n_k_p_r,n_S]),1+[1,0,2])),1+[1,0,2]),[pm_n_w_sum,n_S]);
 UX_CC_k_q_wn_ = reshape(reshape(CC_k_q_wk_,[n_w_max,n_k_p_r])*pm_wUX_kn__,[pm_n_w_sum,1]);
-UX_R_CTF_S_l2_wS__ = ifft(squeeze(sum(reshape(bsxfun(@times,conj(UX_CC_k_q_wn_),UX_SS_k_q_wnS__),[pm_n_w_max,pm_n_k_p_r,n_S]),1+1)));
-UX_R_CTF_S_l2_wS__ = real(UX_R_CTF_S_l2_wS__);
+UX_R_CTF_R_S_l2_wS__ = ifft(squeeze(sum(reshape(bsxfun(@times,UX_CC_k_q_wn_,conj(UX_SS_k_q_wnS__)),[pm_n_w_max,pm_n_k_p_r,n_S]),1+1)));
+UX_R_CTF_R_S_l2_wS__ = real(UX_R_CTF_R_S_l2_wS__);
 %%%%%%%%
 
 flag_continue=1;
@@ -217,22 +220,22 @@ parameter = parameter_timing_update(parameter,sprintf('%s: CTF_M_sub_k_q_wkM__',
 % Prepare quasi-images. ;
 %%%%;
 tmp_t = tic();
-svd_VUXCTFM_sub_lwnM____ = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M_sub,CTF_M_sub_k_q_wkM__,pm_n_UX_rank,pm_UX_kn__,pm_X_weight_r_);
-tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% svd_VUXCTFM_sub_lwnM____: %0.2fs',tmp_t)); end;
-parameter = parameter_timing_update(parameter,sprintf('%s: svd_VUXCTFM_sub_lwnM____',str_thisfunction),tmp_t);
+svd_V_UX_CTF_M_sub_lwnM____ = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M_sub,CTF_M_sub_k_q_wkM__,pm_n_UX_rank,pm_UX_kn__,pm_X_weight_r_);
+tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% svd_V_UX_CTF_M_sub_lwnM____: %0.2fs',tmp_t)); end;
+parameter = parameter_timing_update(parameter,sprintf('%s: svd_V_UX_CTF_M_sub_lwnM____',str_thisfunction),tmp_t);
 tmp_t = tic();
-svd_VUXM_sub_lwnM____ = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M_sub,M_sub_k_q_wkM__,pm_n_UX_rank,pm_UX_kn__,pm_X_weight_r_);
-tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% svd_VUXM_sub_lwnM____: %0.2fs',tmp_t)); end;
-parameter = parameter_timing_update(parameter,sprintf('%s: svd_VUXM_sub_lwnM____',str_thisfunction),tmp_t);
+svd_V_UX_M_sub_lwnM____ = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M_sub,M_sub_k_q_wkM__,pm_n_UX_rank,pm_UX_kn__,pm_X_weight_r_);
+tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% svd_V_UX_M_sub_lwnM____: %0.2fs',tmp_t)); end;
+parameter = parameter_timing_update(parameter,sprintf('%s: svd_V_UX_M_sub_lwnM____',str_thisfunction),tmp_t);
 tmp_t = tic();
-svd_VUXCTFM_sub_nMwl____ = permute(svd_VUXCTFM_sub_lwnM____,1+[2,3,1,0]);
-tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% svd_VUXCTFM_sub_nMwl____: %0.2fs',tmp_t)); end;
-parameter = parameter_timing_update(parameter,sprintf('%s: svd_VUXCTFM_sub_nMwl____',str_thisfunction),tmp_t);
+svd_V_UX_CTF_M_sub_nMwl____ = permute(svd_V_UX_CTF_M_sub_lwnM____,1+[2,3,1,0]);
+tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% svd_V_UX_CTF_M_sub_nMwl____: %0.2fs',tmp_t)); end;
+parameter = parameter_timing_update(parameter,sprintf('%s: svd_V_UX_CTF_M_sub_nMwl____',str_thisfunction),tmp_t);
 %%%%;
 % Now calculate norms of the translated images. ;
 %%%%;
 tmp_t = tic();
-UX_T_M_sub_l2_dM__ = tfpmh_UX_T_M_l2_dM__1(FTK,n_w_,n_M_sub,pm_n_UX_rank,svd_VUXM_sub_lwnM____);
+UX_T_M_sub_l2_dM__ = tfpmh_UX_T_M_l2_dM__1(FTK,n_w_,n_M_sub,pm_n_UX_rank,svd_V_UX_M_sub_lwnM____);
 tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% tfpmh_UX_T_M_sub_l2_dm__1: %0.2fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,sprintf('%s: tfpmh_UX_T_M_sub_l2_dm__1',str_thisfunction),tmp_t);
 tmp_index_d0 = intersect(efind(FTK.delta_x_==0),efind(FTK.delta_y_==0)); assert(numel(tmp_index_d0)==1); %<-- should be a single index corresponding to zero-displacement. ;
@@ -270,24 +273,24 @@ parameter = parameter_timing_update(parameter,sprintf('%s: UX_S_sub_k_q_nSw__',s
 % Calculate innerproduct Z_sub_dwSM____. ;
 %%%%;
 tmp_t = tic();
-svd_S_sub_VUXCTFM_sub_SMwl____ = pagemtimes(pagectranspose(UX_S_sub_k_q_nSw___),svd_VUXCTFM_sub_nMwl____);
-tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% svd_S_sub_VUXCTFM_sub_SMwl____: %0.6fs',tmp_t)); end;
-parameter = parameter_timing_update(parameter,sprintf('%s: svd_S_sub_VUXCTFM_sub_SMwl____',str_thisfunction),tmp_t);
+svd_S_sub_V_UX_CTF_M_sub_SMwl____ = pagemtimes(pagectranspose(UX_S_sub_k_q_nSw___),svd_V_UX_CTF_M_sub_nMwl____);
+tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% svd_S_sub_V_UX_CTF_M_sub_SMwl____: %0.6fs',tmp_t)); end;
+parameter = parameter_timing_update(parameter,sprintf('%s: svd_S_sub_V_UX_CTF_M_sub_SMwl____',str_thisfunction),tmp_t);
 tmp_t = tic();
-svd_S_sub_VUXCTFM_sub_lwSM____ = ifft(permute(svd_S_sub_VUXCTFM_sub_SMwl____,1+[3,2,0,1]),[],1+1)*n_w_max;
-tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% svd_S_sub_VUXCTFM_sub_lwSM____: %0.6fs',tmp_t)); end;
-parameter = parameter_timing_update(parameter,sprintf('%s: svd_S_sub_VUXCTFM_sub_lwSM____',str_thisfunction),tmp_t);
+svd_S_sub_V_UX_CTF_M_sub_lwSM____ = ifft(permute(svd_S_sub_V_UX_CTF_M_sub_SMwl____,1+[3,2,0,1]),[],1+1)*n_w_max;
+tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% svd_S_sub_V_UX_CTF_M_sub_lwSM____: %0.6fs',tmp_t)); end;
+parameter = parameter_timing_update(parameter,sprintf('%s: svd_S_sub_V_UX_CTF_M_sub_lwSM____',str_thisfunction),tmp_t);
 tmp_t = tic();
-svd_USES_sub_VUXCTFM_sub_dwSM____ = reshape(FTK.svd_U_d_expiw_s__*reshape(svd_S_sub_VUXCTFM_sub_lwSM____,[n_svd_l,n_w_max*n_S_sub*n_M_sub]),[n_delta_v,n_w_max,n_S_sub,n_M_sub]);
-tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% svd_USES_sub_VUXCTFM_sub_dwSM____: %0.6fs',tmp_t)); end;
-parameter = parameter_timing_update(parameter,sprintf('%s: svd_USES_sub_VUXCTFM_sub_dwSM____',str_thisfunction),tmp_t);
-Z_sub_dwSM____  = real(svd_USES_sub_VUXCTFM_sub_dwSM____);
+svd_UES_S_sub_V_UX_CTF_M_sub_dwSM____ = reshape(FTK.svd_U_d_expiw_s__*reshape(svd_S_sub_V_UX_CTF_M_sub_lwSM____,[n_svd_l,n_w_max*n_S_sub*n_M_sub]),[n_delta_v,n_w_max,n_S_sub,n_M_sub]);
+tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% svd_UES_S_sub_V_UX_CTF_M_sub_dwSM____: %0.6fs',tmp_t)); end;
+parameter = parameter_timing_update(parameter,sprintf('%s: svd_UES_S_sub_V_UX_CTF_M_sub_dwSM____',str_thisfunction),tmp_t);
+Z_sub_dwSM____  = real(svd_UES_S_sub_V_UX_CTF_M_sub_dwSM____);
 %%%%;
 % Calculate correlation. ;
 %%%%;
 tmp_t = tic();
-UX_R_CTF_S_sub_l2_wS__ = UX_R_CTF_S_l2_wS__(:,1+index_nS_in_Sbatch_);
-X_sub_dwSM____ = bsxfun(@rdivide,bsxfun(@rdivide,Z_sub_dwSM____,max(1e-12,reshape(sqrt(UX_R_CTF_S_sub_l2_wS__),[1,n_w_max,n_S_sub,1]))),max(1e-12,reshape(sqrt(UX_T_M_sub_l2_dM__),[n_delta_v,1,1,n_M_sub])));
+UX_R_CTF_R_S_sub_l2_wS__ = UX_R_CTF_R_S_l2_wS__(:,1+index_nS_in_Sbatch_);
+X_sub_dwSM____ = bsxfun(@rdivide,bsxfun(@rdivide,Z_sub_dwSM____,max(1e-12,reshape(sqrt(UX_R_CTF_R_S_sub_l2_wS__),[1,n_w_max,n_S_sub,1]))),max(1e-12,reshape(sqrt(UX_T_M_sub_l2_dM__),[n_delta_v,1,1,n_M_sub])));
 tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% X_sub_dwSM____: %0.6fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,sprintf('%s: X_sub_dwSM____',str_thisfunction),tmp_t);
 %%%%;

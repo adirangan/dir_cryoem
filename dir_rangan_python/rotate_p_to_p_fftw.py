@@ -3,6 +3,7 @@ from matlab_index_2d_0 import matlab_index_2d_0 ;
 from matlab_index_3d_0 import matlab_index_3d_0 ;
 from matlab_index_4d_0 import matlab_index_4d_0 ;
 from matlab_scalar_round import matlab_scalar_round ;
+numel = lambda a : int(a.numel()) ;
 numel_unique = lambda a : np.unique(a.numpy().ravel()).size ;
 mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
 msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
@@ -22,11 +23,11 @@ def rotate_p_to_p_fftw(
     if (flag_verbose): print(f' %% [entering {str_thisfunction}]');
     #%%%%%%%%;
 
-    n_S = int( int(S_p_.numel()) / int(n_w_sum) );
-    if S_p_.numel()!=n_w_sum*n_S: print(f' %% Warning, n_w_sum {n_w_sum} n_S {n_S} in {str_thisfunction}');
+    n_S = int( numel(S_p_) / int(n_w_sum) );
+    if numel(S_p_)!=n_w_sum*n_S: print(f' %% Warning, n_w_sum {n_w_sum} n_S {n_S} in {str_thisfunction}');
 
     if np.isscalar(gamma_z): gamma_z = torch.tensor([gamma_z]) ;
-    n_gamma_z = gamma_z.numel();
+    n_gamma_z = numel(gamma_z);
     gamma_z_ = gamma_z.ravel();
     if (n_gamma_z> 1) & (n_S!=n_gamma_z):
         print(f' %% Warning, n_S {n_S} n_gamma_z {n_gamma_z} in {str_thisfunction}');
@@ -87,7 +88,7 @@ def rotate_p_to_p_fftw(
         tmp_q_ = torch.concatenate( ( torch.arange(0,n_w_max/2) , torch.arange(-n_w_max/2,-1+1) ) , 0 ).to(dtype=torch.int32);
         C_wz__ = torch.exp(-i*tmp_q_*torch.reshape(gamma_z_,mtr((1,n_gamma_z)))).to(dtype=torch.complex64);
         M_p_ = torch.fft.ifft( torch.reshape(C_wz__,mtr((n_w,1,n_gamma_z))) * torch.fft.fft(torch.reshape(S_p_,mtr((n_w,n_r,n_S))),dim=2-0) , dim=2-0 ).to(dtype=torch.complex64).ravel();
-        assert(M_p_.numel()==S_p_.numel());
+        assert(numel(M_p_)==numel(S_p_));
     #end;%if (numel(unique(n_w_))==1);
     #%%%%%%%%%%%%%%%%;
 
