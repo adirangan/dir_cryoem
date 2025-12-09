@@ -88,15 +88,15 @@ def get_Ylm__2(
     tmp_mval_ = torch.abs(torch.arange(-l_max,1+l_max)).to(dtype=torch.int32);
     tmp_jval_ = torch.tensor(np_index_return_).to(dtype=torch.int32);
     #tmp_d0Y_lmj___ = tmp_d0Y_lmj___.index_select(0,tmp_jval_).index_select(1,tmp_mval_) * torch.reshape(expimb_mj__,mtr((1,1+2*l_max,n_all))) / torch.sqrt(torch.tensor(4*pi)) ;
-    tmp_index_ = matlab_index_3d_0(1+l_max,tmp_lval_,1+l_max,tmp_mval_,n_sub,tmp_jval_);
-    tmp_d0Y_lmj___ = torch.reshape(tmp_d0Y_lmj___.flatten()[tmp_index_],mtr((1+l_max,1+2*l_max,n_all))) * torch.reshape(expimb_mj__,mtr((1,1+2*l_max,n_all))) / torch.sqrt(torch.tensor(4*pi)) ;
+    tmp_i8_index_ = matlab_index_3d_0(1+l_max,tmp_lval_,1+l_max,tmp_mval_,n_sub,tmp_jval_);
+    tmp_d0Y_lmj___ = torch.reshape(tmp_d0Y_lmj___.flatten()[tmp_i8_index_],mtr((1+l_max,1+2*l_max,n_all))) * torch.reshape(expimb_mj__,mtr((1,1+2*l_max,n_all))) / torch.sqrt(torch.tensor(4*pi)) ;
     for nl in range(n_l):
       tmp_lval = l_val_[nl].item(); tmp_lval_ = torch.tensor(tmp_lval).to(dtype=torch.int32);
       tmp_mval_ = torch.tensor(l_max+np.arange(-tmp_lval,1+tmp_lval)).to(dtype=torch.int32);
       tmp_jval_ = torch.tensor(np.arange(0,n_all)).to(dtype=torch.int32);
       #d0Y_lmj___[nl] = torch.reshape(tmp_d0Y_lmj___.index_select(0,tmp_jval_).index_select(1,tmp_mval_).index_select(2,tmp_lval_),(n_all,1+2*tmp_lval));
-      tmp_index_ = matlab_index_3d_0(1+l_max,tmp_lval_,1+2*l_max,tmp_mval_,n_all,tmp_jval_);
-      d0Y_lmj___[nl] = torch.reshape(tmp_d0Y_lmj___.flatten()[tmp_index_],mtr((1+2*tmp_lval,n_all))).to(dtype=torch.complex64);
+      tmp_i8_index_ = matlab_index_3d_0(1+l_max,tmp_lval_,1+2*l_max,tmp_mval_,n_all,tmp_jval_);
+      d0Y_lmj___[nl] = torch.reshape(tmp_d0Y_lmj___.flatten()[tmp_i8_index_],mtr((1+2*tmp_lval,n_all))).to(dtype=torch.complex64);
     #end;%for nl=0:n_l-1;
   #end;%if flag_d0;
   if flag_d1:
@@ -106,15 +106,15 @@ def get_Ylm__2(
     tmp_mval_ = torch.abs(torch.arange(-l_max,1+l_max)).to(dtype=torch.int32);
     tmp_jval_ = torch.tensor(np_index_return_).to(dtype=torch.int32);
     #tmp_d1Y_lmj___ = tmp_d1Y_lmj___.index_select(0,tmp_jval_).index_select(1,tmp_mval_) * torch.reshape(expimb_mj__,mtr((1,1+2*l_max,n_all))) / torch.sqrt(torch.tensor(4*pi)) ;
-    tmp_index_ = matlab_index_3d_0(1+l_max,tmp_lval_,1+l_max,tmp_mval_,n_sub,tmp_jval_);
-    tmp_d1Y_lmj___ = torch.reshape(tmp_d1Y_lmj___.flatten()[tmp_index_],mtr((1+l_max,1+2*l_max,n_all))) * torch.reshape(expimb_mj__,mtr((1,1+2*l_max,n_all))) / torch.sqrt(torch.tensor(4*pi)) ;
+    tmp_i8_index_ = matlab_index_3d_0(1+l_max,tmp_lval_,1+l_max,tmp_mval_,n_sub,tmp_jval_);
+    tmp_d1Y_lmj___ = torch.reshape(tmp_d1Y_lmj___.flatten()[tmp_i8_index_],mtr((1+l_max,1+2*l_max,n_all))) * torch.reshape(expimb_mj__,mtr((1,1+2*l_max,n_all))) / torch.sqrt(torch.tensor(4*pi)) ;
     for nl in range(n_l):
       tmp_lval = l_val_[nl].item(); tmp_lval_ = torch.tensor(tmp_lval).to(dtype=torch.int32);
       tmp_mval_ = torch.tensor(l_max+np.arange(-tmp_lval,1+tmp_lval)).to(dtype=torch.int32);
       tmp_jval_ = torch.tensor(np.arange(0,n_all)).to(dtype=torch.int32);
       #d1Y_lmj___[nl] = torch.reshape(tmp_d1Y_lmj___.index_select(0,tmp_jval_).index_select(1,tmp_mval_).index_select(2,tmp_lval_),(n_all,1+2*tmp_lval));
-      tmp_index_ = matlab_index_3d_0(1+l_max,tmp_lval_,1+2*l_max,tmp_mval_,n_all,tmp_jval_);
-      d1Y_lmj___[nl] = torch.reshape(tmp_d1Y_lmj___.flatten()[tmp_index_],mtr((1+2*tmp_lval,n_all))).to(dtype=torch.complex64);
+      tmp_i8_index_ = matlab_index_3d_0(1+l_max,tmp_lval_,1+2*l_max,tmp_mval_,n_all,tmp_jval_);
+      d1Y_lmj___[nl] = torch.reshape(tmp_d1Y_lmj___.flatten()[tmp_i8_index_],mtr((1+2*tmp_lval,n_all))).to(dtype=torch.complex64);
     #end;%for nl=0:n_l-1;
   #end;%if flag_d1;
   if flag_d2:
@@ -124,15 +124,15 @@ def get_Ylm__2(
     tmp_mval_ = torch.abs(torch.arange(-l_max,1+l_max)).to(dtype=torch.int32);
     tmp_jval_ = torch.tensor(np_index_return_).to(dtype=torch.int32);
     #tmp_d2Y_lmj___ = tmp_d2Y_lmj___.index_select(0,tmp_jval_).index_select(1,tmp_mval_) * torch.reshape(expimb_mj__,mtr((1,1+2*l_max,n_all))) / torch.sqrt(torch.tensor(4*pi)) ;
-    tmp_index_ = matlab_index_3d_0(1+l_max,tmp_lval_,1+l_max,tmp_mval_,n_sub,tmp_jval_);
-    tmp_d2Y_lmj___ = torch.reshape(tmp_d2Y_lmj___.flatten()[tmp_index_],mtr((1+l_max,1+2*l_max,n_all))) * torch.reshape(expimb_mj__,mtr((1,1+2*l_max,n_all))) / torch.sqrt(torch.tensor(4*pi)) ;
+    tmp_i8_index_ = matlab_index_3d_0(1+l_max,tmp_lval_,1+l_max,tmp_mval_,n_sub,tmp_jval_);
+    tmp_d2Y_lmj___ = torch.reshape(tmp_d2Y_lmj___.flatten()[tmp_i8_index_],mtr((1+l_max,1+2*l_max,n_all))) * torch.reshape(expimb_mj__,mtr((1,1+2*l_max,n_all))) / torch.sqrt(torch.tensor(4*pi)) ;
     for nl in range(n_l):
       tmp_lval = l_val_[nl].item(); tmp_lval_ = torch.tensor(tmp_lval).to(dtype=torch.int32);
       tmp_mval_ = torch.tensor(l_max+np.arange(-tmp_lval,1+tmp_lval)).to(dtype=torch.int32);
       tmp_jval_ = torch.tensor(np.arange(0,n_all)).to(dtype=torch.int32);
       #d2Y_lmj___[nl] = torch.reshape(tmp_d2Y_lmj___.index_select(0,tmp_jval_).index_select(1,tmp_mval_).index_select(2,tmp_lval_),(n_all,1+2*tmp_lval));
-      tmp_index_ = matlab_index_3d_0(1+l_max,tmp_lval_,1+2*l_max,tmp_mval_,n_all,tmp_jval_);
-      d2Y_lmj___[nl] = torch.reshape(tmp_d2Y_lmj___.flatten()[tmp_index_],mtr((1+2*tmp_lval,n_all))).to(dtype=torch.complex64);
+      tmp_i8_index_ = matlab_index_3d_0(1+l_max,tmp_lval_,1+2*l_max,tmp_mval_,n_all,tmp_jval_);
+      d2Y_lmj___[nl] = torch.reshape(tmp_d2Y_lmj___.flatten()[tmp_i8_index_],mtr((1+2*tmp_lval,n_all))).to(dtype=torch.complex64);
     #end;%for nl=0:n_l-1;
   #end;%if flag_d2;
   tmp_t = timeit.default_timer()-tmp_t;

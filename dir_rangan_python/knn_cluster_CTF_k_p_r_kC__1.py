@@ -41,12 +41,12 @@ def knn_cluster_CTF_k_p_r_kC__1(
         if (flag_verbose>1): disp(sprintf(' %% niteration %d: n_unassigned %d',niteration,n_unassigned)); #end;
         tmp_l2_min,tmp_index_min = torch.min(CTF_k_p_l2_C_[index_unassigned_],dim=0-0);
         if (flag_verbose>1): disp(sprintf(' %% min at index %d (%d) --> %0.6f',tmp_index_min,index_unassigned_(1+tmp_index_min),tmp_l2_min)); #end;
-        tmp_index_rhs_ = matlab_index_2d_0(n_k_p_r,':',n_CTF,index_unassigned_[tmp_index_min]);
-        CTF_cen_k_p_r_k_ = CTF_k_p_r_kC__.ravel()[tmp_index_rhs_];
+        tmp_i8_index_rhs_ = matlab_index_2d_0(n_k_p_r,':',n_CTF,index_unassigned_[tmp_index_min]);
+        CTF_cen_k_p_r_k_ = CTF_k_p_r_kC__.ravel()[tmp_i8_index_rhs_];
         l2_cen = CTF_k_p_l2_C_[index_unassigned_[tmp_index_min]];
         assert(np.abs(l2_cen-tmp_l2_min)<tolerance_machine);
-        tmp_index_rhs_ = matlab_index_2d_0(n_k_p_r,':',n_CTF,index_unassigned_);
-        tmp_l2_ = torch.sqrt(torch.sum(torch.abs(torch.reshape(CTF_k_p_r_kC__.ravel()[tmp_index_rhs_],mtr((n_k_p_r,n_unassigned))) - torch.reshape(CTF_cen_k_p_r_k_,mtr((n_k_p_r,1))))**2 * torch.reshape(weight_2d_k_p_r_,mtr((n_k_p_r,1))),1-0)).ravel(); assert(numel(tmp_l2_)==n_unassigned);
+        tmp_i8_index_rhs_ = matlab_index_2d_0(n_k_p_r,':',n_CTF,index_unassigned_);
+        tmp_l2_ = torch.sqrt(torch.sum(torch.abs(torch.reshape(CTF_k_p_r_kC__.ravel()[tmp_i8_index_rhs_],mtr((n_k_p_r,n_unassigned))) - torch.reshape(CTF_cen_k_p_r_k_,mtr((n_k_p_r,1))))**2 * torch.reshape(weight_2d_k_p_r_,mtr((n_k_p_r,1))),1-0)).ravel(); assert(numel(tmp_l2_)==n_unassigned);
         tmp_index_nearby_ = efind(tmp_l2_/np.maximum(1e-12,tmp_l2_min)<= tolerance_cluster); #%<-- relative difference. ;
         n_nearby = numel(tmp_index_nearby_); #%<-- should be at least 1, including CTF_cen_k_p_r_k_ itself. ;
         if (n_nearby<=0): disp(sprintf(' %% Warning, n_nearby<=0 in knn_cluster_CTF_k_p_r_kC__0')); #end;

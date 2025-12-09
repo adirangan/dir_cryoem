@@ -15,11 +15,17 @@ def matlab_load(
     dictionary_original = dictionary_reversed;
     for key in dictionary_reversed:
         if isinstance(dictionary_reversed[key],np.ndarray):
-            dictionary_original[key] = etumrep(torch.tensor(dictionary_reversed[key]));
+            try: 
+                dictionary_original[key] = etumrep(torch.tensor(dictionary_reversed[key]));
+            except:
+                pass ;
         #end;%if isinstance(dictionary_reversed[key],torch.Tensor): ;
         if isinstance(dictionary_original[key],torch.Tensor):
             if dictionary_original[key].ndim==2:
-                dictionary_original[key] = torch.squeeze(dictionary_original[key]); #%<-- Here we squeeze all vectors. ;
+                try:
+                    dictionary_original[key] = torch.squeeze(dictionary_original[key]); #%<-- Here we squeeze all vectors. ;
+                except:
+                    pass ;
             #end;%if ;
         #end;%if isinstance(dictionary_original[key],torch.Tensor): ;
     #end;%for key in dictionary_reversed: ;

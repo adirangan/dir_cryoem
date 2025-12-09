@@ -90,9 +90,9 @@ def get_Ylm_condense_wrap_0(
       n_m = 2*l_val+1;
       for nm in range(n_m):
         m_val = nm - l_val;
-        tmp_index_lhs_ = matlab_index_2d_0(n_lm,ix1,n_k_per_shell,':');
-        tmp_index_rhs_ = matlab_index_2d_0(1+2*l_val,nm,n_k_per_shell,':');
-        Ylm_lma__.flatten()[tmp_index_lhs_] = Ylm_sub__[l_val].flatten()[tmp_index_rhs_];
+        tmp_i8_index_lhs_ = matlab_index_2d_0(n_lm,ix1,n_k_per_shell,':');
+        tmp_i8_index_rhs_ = matlab_index_2d_0(1+2*l_val,nm,n_k_per_shell,':');
+        Ylm_lma__.flatten()[tmp_i8_index_lhs_] = Ylm_sub__[l_val].flatten()[tmp_i8_index_rhs_];
         ix1 = ix1+1;
       #end;%for nm=0:n_m-1;
     #end;%for l_val=0:l_max;

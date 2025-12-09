@@ -244,8 +244,8 @@ def test_rbp_0(
             tmp_delta_ = mmvm(tmp_R__,delta_a_c_3s__[nsource,:].ravel());
             S_k_p_wk_ = S_k_p_wk_ + torch.exp(+i*2*pi*(k_c_0_wk_*tmp_delta_[0].item() + k_c_1_wk_*tmp_delta_[1].item()));
         #end;for nsource in range(n_source):
-        tmp_index_lhs_ = matlab_index_2d_0(n_w_sum,':',n_S,nS);
-        S_k_p_wkS__.ravel()[tmp_index_lhs_] = S_k_p_wk_.ravel();
+        tmp_i8_index_lhs_ = matlab_index_2d_0(n_w_sum,':',n_S,nS);
+        S_k_p_wkS__.ravel()[tmp_i8_index_lhs_] = S_k_p_wk_.ravel();
     #end;%for nS=0:n_S-1;
 
     if (flag_verbose>2):
@@ -275,8 +275,8 @@ def test_rbp_0(
         CTF_phi = 2*pi*nCTF / np.maximum(1,n_CTF) + pi/2.0;
         CTF_phi_C_[nCTF] = CTF_phi;
         CTF_k_p_wk_ = 2*k_p_r_wk_ * torch.cos(k_p_w_wk_-CTF_phi);
-        tmp_index_lhs_ = matlab_index_2d_0(n_w_sum,':',n_CTF,nCTF);
-        CTF_k_p_wkC__.ravel()[tmp_index_lhs_] = CTF_k_p_wk_.ravel().to(dtype=torch.complex64);
+        tmp_i8_index_lhs_ = matlab_index_2d_0(n_w_sum,':',n_CTF,nCTF);
+        CTF_k_p_wkC__.ravel()[tmp_i8_index_lhs_] = CTF_k_p_wk_.ravel().to(dtype=torch.complex64);
     #end;%for nCTF=0:n_CTF-1;
     index_nCTF_from_nM_ = torch.tensor(np.mod(np.arange(n_M),n_CTF).astype(int)).to(dtype=torch.int32);
 
@@ -303,12 +303,12 @@ def test_rbp_0(
         if (flag_verbose>0):
             if (np.mod(nM,128)==0): print(f' nM {nM}/{n_M}');
         nCTF = index_nCTF_from_nM_[nM].item();
-        tmp_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_CTF,nCTF);
-        CTF_k_p_wk_ = CTF_k_p_wkC__.ravel()[tmp_index_rhs_];
+        tmp_i8_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_CTF,nCTF);
+        CTF_k_p_wk_ = CTF_k_p_wkC__.ravel()[tmp_i8_index_rhs_];
         nS = index_nS_from_nM_[nM].item();
         gamma_z = euler_gamma_z_M_[nM].item();
-        tmp_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_S,nS);
-        S_k_p_wk_ = S_k_p_wkS__.ravel()[tmp_index_rhs_];
+        tmp_i8_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_S,nS);
+        S_k_p_wk_ = S_k_p_wkS__.ravel()[tmp_i8_index_rhs_];
         M_k_p_wk_ = torch.zeros(n_w_sum).to(dtype=torch.complex64);
         M_k_p_wk_ = CTF_k_p_wk_ * torch.tensor(rotate_p_to_p_fftw_using_numpy(n_k_p_r,n_w_.numpy(),n_w_sum,S_k_p_wk_.numpy(),+gamma_z));
         M_k_p_wkM__[nM,:] = M_k_p_wk_;

@@ -79,8 +79,8 @@ def qbp_uniform_over_n_k_p_r_10(
         CTF_k_p_wkC__ = torch.reshape(torch.tile(torch.reshape(CTF_k_p_r_kC__,mtr((1,n_k_p_r,n_CTF))),mtr((n_w_max,1,1))),mtr((n_w_sum,n_CTF))).to(dtype=torch.float32);
     #end;%if (size(CTF_k_p_wkC__,1)==n_k_p_r);
     #%%%%%%%%;
-    tmp_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_CTF,index_nCTF_from_nM_);
-    CTF_k_p_wkM__ = torch.reshape(CTF_k_p_wkC__.ravel()[tmp_index_rhs_],mtr((n_w_sum,n_M))).to(dtype=torch.float32);
+    tmp_i8_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_CTF,index_nCTF_from_nM_);
+    CTF_k_p_wkM__ = torch.reshape(CTF_k_p_wkC__.ravel()[tmp_i8_index_rhs_],mtr((n_w_sum,n_M))).to(dtype=torch.float32);
     #%%%%%%%%;
 
     T_M_k_p_wkM__ = M_k_p_wkM__;
@@ -163,24 +163,24 @@ def qbp_uniform_over_n_k_p_r_10(
 
     tmp_t = tic();
     d0y_lmj___ = torch.permute(d0y_jlm___,mtr(mts((1,2,0)))); #%<-- permutation before inflation is faster. ;
-    tmp_index_rhs_ = matlab_index_3d_0(1+l_max_max,':',1+l_max_max,torch.abs(torch.arange(-l_max_max,+l_max_max+1).to(dtype=torch.int32)),n_polar_a_unique,':');
-    d0y_jml___ = torch.permute(torch.reshape(d0y_lmj___.ravel()[tmp_index_rhs_],mtr((1+l_max_max,1+2*l_max_max,n_polar_a_unique))),mtr(mts((2,1,0)))); #%<-- retain unique cos(polar_a_{j}) for now.; 
+    tmp_i8_index_rhs_ = matlab_index_3d_0(1+l_max_max,':',1+l_max_max,torch.abs(torch.arange(-l_max_max,+l_max_max+1).to(dtype=torch.int32)),n_polar_a_unique,':');
+    d0y_jml___ = torch.permute(torch.reshape(d0y_lmj___.ravel()[tmp_i8_index_rhs_],mtr((1+l_max_max,1+2*l_max_max,n_polar_a_unique))),mtr(mts((2,1,0)))); #%<-- retain unique cos(polar_a_{j}) for now.; 
     d0y_jy__ = torch.zeros(mtr((n_polar_a_unique,n_y_max)));
     for nl in range(numel(l_max_)):
         l_max = int(l_max_[nl].item());
         for l_val in range(l_max+1):
             m_val_ = torch.arange(-l_val,+l_val+1).to(dtype=torch.int32);
-            tmp_index_lhs_ = matlab_index_2d_0(n_polar_a_unique,':',n_y_max,l_val**2+l_val+m_val_);
-            tmp_index_rhs_ = matlab_index_3d_0(n_polar_a_unique,':',1+2*l_max_max,l_max_max+m_val_,1+l_max_max,l_val);
-            d0y_jy__.ravel()[tmp_index_lhs_] = d0y_jml___.ravel()[tmp_index_rhs_];
+            tmp_i8_index_lhs_ = matlab_index_2d_0(n_polar_a_unique,':',n_y_max,l_val**2+l_val+m_val_);
+            tmp_i8_index_rhs_ = matlab_index_3d_0(n_polar_a_unique,':',1+2*l_max_max,l_max_max+m_val_,1+l_max_max,l_val);
+            d0y_jy__.ravel()[tmp_i8_index_lhs_] = d0y_jml___.ravel()[tmp_i8_index_rhs_];
         #end;%for l_val=0:l_max;
     #end;%for nl=0:numel(l_max_)-1;
     tmp_t = toc(tmp_t);
     if (flag_verbose>0): disp(sprintf(' %% d0y_jy__: %0.6fs',tmp_t)); #end;
 
     tmp_t = tic();
-    tmp_index_rhs_ = matlab_index_2d_0(n_polar_a_unique,index_return_,n_y_max,':');
-    d0y_qy__ = torch.reshape(d0y_jy__.ravel()[tmp_index_rhs_],mtr((n_q,n_y_max)));
+    tmp_i8_index_rhs_ = matlab_index_2d_0(n_polar_a_unique,index_return_,n_y_max,':');
+    d0y_qy__ = torch.reshape(d0y_jy__.ravel()[tmp_i8_index_rhs_],mtr((n_q,n_y_max)));
     tmp_t = toc(tmp_t);
     if (flag_verbose>0): disp(sprintf(' %% d0y_jy__: %0.6fs',tmp_t)); #end;
 

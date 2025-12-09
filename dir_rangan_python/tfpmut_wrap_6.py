@@ -55,8 +55,8 @@ def tfpmut_wrap_6(
     if 'rank_pm' not in parameter: parameter['rank_pm'] = 10; #end; %<-- parameter_bookmark. ;
     rank_pm = parameter['rank_pm'];
     if 'rank_CTF' not in parameter:
-        tmp_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_CTF,index_nCTF_from_nM_);
-        _,SCTF_,_ = matlab_svds(torch.reshape(CTF_k_p_wkC__.ravel()[tmp_index_rhs_],mtr((n_w_sum,n_M))),int(np.minimum(n_w_sum,n_M)));
+        tmp_i8_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_CTF,index_nCTF_from_nM_);
+        _,SCTF_,_ = matlab_svds(torch.reshape(CTF_k_p_wkC__.ravel()[tmp_i8_index_rhs_],mtr((n_w_sum,n_M))),int(np.minimum(n_w_sum,n_M)));
         rank_CTF = 1+int(torch.max(efind(SCTF_/np.maximum(tolerance_machine,torch.max(SCTF_).item())>tolerance_master)).item());
         parameter['rank_CTF'] = rank_CTF; #%<-- parameter_bookmark. ;
     #end;%if (~isfield(parameter,'rank_CTF')); 
@@ -187,7 +187,7 @@ def tfpmut_wrap_6(
                 index_nM_from_ncluster_ = index_nM_from_ncluster__[ncluster];
                 n_index_nM_from_ncluster = int(n_index_nM_from_ncluster_[ncluster].item());
                 assert(n_index_nM_from_ncluster==numel(index_nM_from_ncluster_));
-                tmp_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_from_ncluster_);
+                tmp_i8_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_from_ncluster_);
                 (
                     X_2d_Memp_d1_kk__,
                     X_2d_Memp_d1_weight_r_,
@@ -197,7 +197,7 @@ def tfpmut_wrap_6(
                     weight_2d_k_p_r_,
                     n_w_,
                     n_index_nM_from_ncluster,
-                    torch.reshape(M_k_p_wkM__.ravel()[tmp_index_rhs_],mtr((n_w_sum,n_index_nM_from_ncluster))),
+                    torch.reshape(M_k_p_wkM__.ravel()[tmp_i8_index_rhs_],mtr((n_w_sum,n_index_nM_from_ncluster))),
                 )[:2];
                 X_2d_Memp_d1_kkc___[ncluster,:,:] = X_2d_Memp_d1_kk__;
                 X_2d_Memp_d1_weight_rc__[ncluster,:] = X_2d_Memp_d1_weight_r_;
@@ -219,8 +219,8 @@ def tfpmut_wrap_6(
                 index_nM_from_ncluster_ = index_nM_from_ncluster__[ncluster];
                 n_index_nM_from_ncluster = int(n_index_nM_from_ncluster_[ncluster].item());
                 assert(n_index_nM_from_ncluster==numel(index_nM_from_ncluster_));
-                tmp_index_rhs_ = matlab_index_2d_0(n_k_p_r,':',n_CTF,index_nCTF_from_nM_[index_nM_from_ncluster_]);
-                tmp_CTF_k_p_r_xavg_k_ = torch.mean(torch.reshape(CTF_k_p_r_kC__.ravel()[tmp_index_rhs_],mtr((n_k_p_r,n_index_nM_from_ncluster))),dim=1-1).ravel(); assert(numel(tmp_CTF_k_p_r_xavg_k_)==n_k_p_r);
+                tmp_i8_index_rhs_ = matlab_index_2d_0(n_k_p_r,':',n_CTF,index_nCTF_from_nM_[index_nM_from_ncluster_]);
+                tmp_CTF_k_p_r_xavg_k_ = torch.mean(torch.reshape(CTF_k_p_r_kC__.ravel()[tmp_i8_index_rhs_],mtr((n_k_p_r,n_index_nM_from_ncluster))),dim=1-1).ravel(); assert(numel(tmp_CTF_k_p_r_xavg_k_)==n_k_p_r);
                 tmp_CTF_k_p_r_xavg_kk__ = torch.reshape(tmp_CTF_k_p_r_xavg_k_,mtr((n_k_p_r,1)))*torch.reshape(tmp_CTF_k_p_r_xavg_k_,mtr((1,n_k_p_r)));
                 tmp_t=tic();
                 (
@@ -258,8 +258,8 @@ def tfpmut_wrap_6(
             tmp_X_kk__ = torch.reshape(pm_X_kkc___[ncluster,:,:],mtr((n_k_p_r,n_k_p_r)));
             tmp_UX__,tmp_SX_,tmp_VX__ = matlab_svds(tmp_X_kk__,n_UX_rank);
             pm_n_UX_rank = 1+int(torch.max(efind(tmp_SX_/np.maximum(tolerance_machine,torch.max(tmp_SX_).item())> tolerance_pm)).item());
-            tmp_index_rhs_ = matlab_index_2d_0(n_k_p_r,":",n_UX_rank,torch.arange(n_UX_rank));
-            pm_UX_knc___[ncluster,:,:] = torch.reshape(tmp_UX__.ravel()[tmp_index_rhs_],mtr((n_k_p_r,n_UX_rank)));
+            tmp_i8_index_rhs_ = matlab_index_2d_0(n_k_p_r,":",n_UX_rank,torch.arange(n_UX_rank));
+            pm_UX_knc___[ncluster,:,:] = torch.reshape(tmp_UX__.ravel()[tmp_i8_index_rhs_],mtr((n_k_p_r,n_UX_rank)));
             pm_SX_kc__[ncluster,:] = tmp_SX_[torch.arange(n_UX_rank)].ravel();
             pm_n_UX_rank_c_[ncluster] = pm_n_UX_rank;
             if (flag_verbose>1): disp(sprintf(' %% ncluster %.2d/%.2d: pm_n_UX_rank %d/%d',ncluster,n_cluster,pm_n_UX_rank,n_UX_rank)); #end;

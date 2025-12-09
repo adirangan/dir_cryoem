@@ -47,8 +47,8 @@ def gen_Jsvd_FTK_8(
     r8_a_jw_ = torch.tensor(np_a_jw_).to(dtype=torch.float64).ravel();
     r8_a_Jx__ = torch.zeros(mtr((n_a_degree,n_a_degree))).to(dtype=torch.float64);
     for na_degree in range(n_a_degree):
-        tmp_index_rhs_ = matlab_index_2d_0(n_a_degree,na_degree,n_a_degree,torch.arange(na_degree+1).to(dtype=torch.int32));
-        r8_a_Jx__[:,na_degree] = r8_chebval_0(1+na_degree,r8_a_Jp_chebcoef__.ravel()[tmp_index_rhs_],n_a_degree,r8_a_jx_);
+        tmp_i8_index_rhs_ = matlab_index_2d_0(n_a_degree,na_degree,n_a_degree,torch.arange(na_degree+1).to(dtype=torch.int32));
+        r8_a_Jx__[:,na_degree] = r8_chebval_0(1+na_degree,r8_a_Jp_chebcoef__.ravel()[tmp_i8_index_rhs_],n_a_degree,r8_a_jx_);
     #end;%for na_degree=0:n_a_degree-1;
     r8_a_jt_ = r8_a_jx_*r8_a_r + r8_a_m;
     #%%%%%%%%;
@@ -57,8 +57,8 @@ def gen_Jsvd_FTK_8(
     r8_b_jw_ = torch.tensor(np_b_jw_).to(dtype=torch.float64).ravel();
     r8_b_Jx__ = torch.zeros(mtr((n_b_degree,n_b_degree))).to(dtype=torch.float64);
     for nb_degree in range(n_b_degree):
-        tmp_index_rhs_ = matlab_index_2d_0(n_b_degree,nb_degree,n_b_degree,torch.arange(nb_degree+1).to(dtype=torch.int32));
-        r8_b_Jx__[:,nb_degree] = r8_chebval_0(1+nb_degree,r8_b_Jp_chebcoef__.ravel()[tmp_index_rhs_],n_b_degree,r8_b_jx_);
+        tmp_i8_index_rhs_ = matlab_index_2d_0(n_b_degree,nb_degree,n_b_degree,torch.arange(nb_degree+1).to(dtype=torch.int32));
+        r8_b_Jx__[:,nb_degree] = r8_chebval_0(1+nb_degree,r8_b_Jp_chebcoef__.ravel()[tmp_i8_index_rhs_],n_b_degree,r8_b_jx_);
     #end;%for nb_degree=0:n_b_degree-1;
     r8_b_jt_ = r8_b_jx_*r8_b_r + r8_b_m;
     #%%%%%%%%;
@@ -149,8 +149,8 @@ def gen_Jsvd_FTK_8(
         #%%%%%%%%;
         tmp_r8_p_j_chebcoef_ = torch.zeros(FTK['n_d_degree']).to(dtype=torch.float64);
         for nd_degree in range(FTK['n_d_degree']):
-            tmp_index_rhs_ = matlab_index_2d_0(n_b_degree,nd_degree,n_b_degree,torch.arange(nd_degree+1));
-            tmp_r8_j_chebcoef_ = FTK['r8_svd_d_Jp_chebcoef__'].ravel()[tmp_index_rhs_]*FTK['r8_svd_U_d_jacocoef_'][nl,nd_degree];
+            tmp_i8_index_rhs_ = matlab_index_2d_0(n_b_degree,nd_degree,n_b_degree,torch.arange(nd_degree+1));
+            tmp_r8_j_chebcoef_ = FTK['r8_svd_d_Jp_chebcoef__'].ravel()[tmp_i8_index_rhs_]*FTK['r8_svd_U_d_jacocoef_'][nl,nd_degree];
             tmp_index_ = torch.arange(int(np.minimum(FTK['n_d_degree'],numel(tmp_r8_j_chebcoef_)))).to(dtype=torch.int32);
             tmp_r8_p_j_chebcoef_[tmp_index_] = tmp_r8_p_j_chebcoef_.ravel()[tmp_index_] + tmp_r8_j_chebcoef_.ravel()[tmp_index_];
         #end;% for nd_degree=0:FTK['n_d_degree']-1;
@@ -158,8 +158,8 @@ def gen_Jsvd_FTK_8(
         #%%%%%%%%;
         tmp_r8_p_j_chebcoef_ = torch.zeros(FTK['n_r_degree']).to(dtype=torch.float64);
         for nr_degree in range(FTK['n_r_degree']):
-            tmp_index_rhs_ = matlab_index_2d_0(n_a_degree,nr_degree,n_a_degree,torch.arange(nr_degree+1));
-            tmp_r8_j_chebcoef_ = FTK['r8_svd_r_Jp_chebcoef__'].ravel()[tmp_index_rhs_]*FTK['r8_svd_V_r_jacocoef_'][nl,nr_degree];
+            tmp_i8_index_rhs_ = matlab_index_2d_0(n_a_degree,nr_degree,n_a_degree,torch.arange(nr_degree+1));
+            tmp_r8_j_chebcoef_ = FTK['r8_svd_r_Jp_chebcoef__'].ravel()[tmp_i8_index_rhs_]*FTK['r8_svd_V_r_jacocoef_'][nl,nr_degree];
             tmp_index_ = torch.arange(int(np.minimum(FTK['n_r_degree'],numel(tmp_r8_j_chebcoef_)))).to(dtype=torch.int32);
             tmp_r8_p_j_chebcoef_[tmp_index_] = tmp_r8_p_j_chebcoef_.ravel()[tmp_index_] + tmp_r8_j_chebcoef_.ravel()[tmp_index_];
         #end;%for nr_degree=0:FTK['n_r_degree']-1;

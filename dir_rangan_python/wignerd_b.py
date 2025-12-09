@@ -112,8 +112,8 @@ def wignerd_b(
                     tmp = sb*cb*C1(nl,nmn,nmp)*W1 + (cb*cb-sb*sb)*C2(nl,nmn,nmp)*W2 - sb*cb*C3(nl,nmn,nmp)*W3;
                 #end;%if (nl~=-nmp and nl~=+nmp); % use recurrence C ;
                 #%%%%%%%%%%%%%%%%;
-                tmp_index_rhs_ = matlab_index_2d_0(2*nl+1,nl+nmp,2*nl+1,nl+nmn);
-                W.ravel()[tmp_index_rhs_] = tmp;
+                tmp_i8_index_rhs_ = matlab_index_2d_0(2*nl+1,nl+nmp,2*nl+1,nl+nmn);
+                W.ravel()[tmp_i8_index_rhs_] = tmp;
             #end;for nmp = -nl:+nl;
         #end;%for nmn = -nl:+nl; 
         W_[nl] = W;

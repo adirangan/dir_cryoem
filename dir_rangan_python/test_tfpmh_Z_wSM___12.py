@@ -79,7 +79,7 @@ CTF_k_p_wk_ = torch.zeros(n_w_sum).to(dtype=torch.float32);
 CTF_k_p_wk_ = 2*k_p_r_wk_*torch.cos(k_p_w_wk_ - CTF_phi);
 #%%%%;
 pm_n_UX_rank = n_k_p_r-1;
-tmp_n = int(np.maximum(n_k_p_r,pm_n_UX_rank)); pm_UX_kn__ = torch.eye(tmp_n).to(dtype=torch.float32); tmp_index_rhs_ = matlab_index_2d_0(tmp_n,torch.arange(n_k_p_r),tmp_n,torch.arange(pm_n_UX_rank)); pm_UX_kn__ = torch.reshape(pm_UX_kn__.ravel()[tmp_index_rhs_],mtr((n_k_p_r,pm_n_UX_rank))).to(dtype=torch.float32);
+tmp_n = int(np.maximum(n_k_p_r,pm_n_UX_rank)); pm_UX_kn__ = torch.eye(tmp_n).to(dtype=torch.float32); tmp_i8_index_rhs_ = matlab_index_2d_0(tmp_n,torch.arange(n_k_p_r),tmp_n,torch.arange(pm_n_UX_rank)); pm_UX_kn__ = torch.reshape(pm_UX_kn__.ravel()[tmp_i8_index_rhs_],mtr((n_k_p_r,pm_n_UX_rank))).to(dtype=torch.float32);
 pm_X_weight_r_ = torch.sqrt(weight_2d_k_p_r_);
 #%%%%;
 delta_r_max = 0.5/np.maximum(1e-12,k_p_r_max); svd_eps = 1e-3; n_delta_v_requested = 7;

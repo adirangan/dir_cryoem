@@ -46,8 +46,8 @@ def tfpmh_MS_uniform_2(
         n_index_M_unused = numel(index_M_unused_);
         index_nS = int(index_nS_permutation_[tmp_nS].item());
         if (ndims(X_wSM___)==3):
-            tmp_index_rhs_ = matlab_index_3d_0(n_w_max,':',n_S,index_nS,n_M,index_M_unused_);
-            image_X_value,index_wM_best = torch.max(torch.real(X_wSM___.ravel()[tmp_index_rhs_]),dim=0);
+            tmp_i8_index_rhs_ = matlab_index_3d_0(n_w_max,':',n_S,index_nS,n_M,index_M_unused_);
+            image_X_value,index_wM_best = torch.max(torch.real(X_wSM___.ravel()[tmp_i8_index_rhs_]),dim=0);
             image_X_value = image_X_value.item(); index_wM_best = int(index_wM_best.item());
             nw_best = int(np.mod(index_wM_best,n_w_max));
             index_M_best = int(matlab_scalar_round((index_wM_best - nw_best)/np.maximum(1,n_w_max)));
@@ -58,8 +58,8 @@ def tfpmh_MS_uniform_2(
             I_value_best = I_value_wSM___[nM_best,index_nS,nw_best].item();
         #end;%if (ndims(X_wSM___)==3);
         if (ndims(X_wSM___)==2):
-            tmp_index_rhs_ = matlab_index_2d_0(n_S,index_nS,n_M,index_M_unused_);
-            image_X_value,index_M_best = torch.max(torch.real(X_wSM___.ravel()[tmp_index_rhs_]),dim=0);
+            tmp_i8_index_rhs_ = matlab_index_2d_0(n_S,index_nS,n_M,index_M_unused_);
+            image_X_value,index_M_best = torch.max(torch.real(X_wSM___.ravel()[tmp_i8_index_rhs_]),dim=0);
             image_X_value = image_X_value.item(); index_M_best = int(index_M_best.item());
             nM_best = int(index_M_unused_[index_M_best].item());
             gamma_z_best = gamma_z_wSM___[nM_best,index_nS].item();

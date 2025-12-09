@@ -114,8 +114,8 @@ def tfpmut_6(
     #end;%if (size(CTF_k_p_wkC__,1+0)==n_k_p_r);
     #%%%%%%%%;
     CTF_k_p_r_kC__ = torch.reshape(torch.mean(torch.reshape(CTF_k_p_wkC__,mtr((n_w_max,n_k_p_r,n_CTF))),2-0),mtr((n_k_p_r,n_CTF)));
-    tmp_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_CTF,index_nCTF_from_nM_);
-    CTF_k_p_wkM__ = torch.reshape(CTF_k_p_wkC__.ravel()[tmp_index_rhs_],mtr((n_w_sum,n_M)));
+    tmp_i8_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_CTF,index_nCTF_from_nM_);
+    CTF_k_p_wkM__ = torch.reshape(CTF_k_p_wkC__.ravel()[tmp_i8_index_rhs_],mtr((n_w_sum,n_M)));
     #%%%%%%%%;
     #% then calculate average CTFs for each cluster. ;
     #%%%%%%%%;
@@ -124,8 +124,8 @@ def tfpmut_6(
         index_nM_from_ncluster_ = index_nM_from_ncluster__[ncluster];
         n_index_nM_from_ncluster = int(n_index_nM_from_ncluster_[ncluster].item());
         assert(n_index_nM_from_ncluster==numel(index_nM_from_ncluster_));
-        tmp_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_CTF,index_nCTF_from_nM_[index_nM_from_ncluster_]);
-        CTF_k_p_r_xavg_k_ = torch.mean(torch.reshape(CTF_k_p_wkC__.ravel()[tmp_index_rhs_],mtr((n_w_max,n_k_p_r,n_index_nM_from_ncluster))),[2-0,2-2]).ravel(); assert(numel(CTF_k_p_r_xavg_k_)==n_k_p_r);
+        tmp_i8_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_CTF,index_nCTF_from_nM_[index_nM_from_ncluster_]);
+        CTF_k_p_r_xavg_k_ = torch.mean(torch.reshape(CTF_k_p_wkC__.ravel()[tmp_i8_index_rhs_],mtr((n_w_max,n_k_p_r,n_index_nM_from_ncluster))),[2-0,2-2]).ravel(); assert(numel(CTF_k_p_r_xavg_k_)==n_k_p_r);
         CTF_k_p_r_xavg_kc__[ncluster,:] = CTF_k_p_r_xavg_k_;
     #end;%for ncluster=0:n_cluster-1;
     tmp_t = toc(tmp_t);
@@ -268,27 +268,27 @@ def tfpmut_6(
         if (flag_verbose>0): disp(sprintf(' %% %% updating M_pert_k_q_wkM__ for tmp_n_M %d/%d images',tmp_n_M,n_M)); #end;
         tmp_t = tic();
         r'''
-        tmp_index_lhs_wkM_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_to_update_);
-        tmp_index_rhs_wkM_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_to_update_);
-        M_pert_k_p_wkM__.ravel()[tmp_index_lhs_wkM_] = transf_p_to_p(
+        tmp_i8_index_lhs_wkM_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_to_update_);
+        tmp_i8_index_rhs_wkM_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_to_update_);
+        M_pert_k_p_wkM__.ravel()[tmp_i8_index_lhs_wkM_] = transf_p_to_p(
             n_k_p_r,
             k_p_r_,
             n_w_,
             n_w_sum,
-            torch.reshape(M_orig_k_p_wkM__.ravel()[tmp_index_rhs_wkM_],mtr((n_w_sum,tmp_n_M))),
+            torch.reshape(M_orig_k_p_wkM__.ravel()[tmp_i8_index_rhs_wkM_],mtr((n_w_sum,tmp_n_M))),
             +image_delta_x_acc_M_.ravel()[index_nM_to_update_],
             +image_delta_y_acc_M_.ravel()[index_nM_to_update_],
         )[0];
         '''
         for tmp_nM in range(tmp_n_M):
-            tmp_index_lhs_wkM_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_to_update_[tmp_nM].item());
-            tmp_index_rhs_wkM_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_to_update_[tmp_nM].item());
-            M_pert_k_p_wkM__.ravel()[tmp_index_lhs_wkM_] = transf_p_to_p(
+            tmp_i8_index_lhs_wkM_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_to_update_[tmp_nM].item());
+            tmp_i8_index_rhs_wkM_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_to_update_[tmp_nM].item());
+            M_pert_k_p_wkM__.ravel()[tmp_i8_index_lhs_wkM_] = transf_p_to_p(
                 n_k_p_r,
                 k_p_r_,
                 n_w_,
                 n_w_sum,
-                M_orig_k_p_wkM__.ravel()[tmp_index_rhs_wkM_],
+                M_orig_k_p_wkM__.ravel()[tmp_i8_index_rhs_wkM_],
                 +image_delta_x_acc_M_[index_nM_to_update_[tmp_nM].item()].item(),
                 +image_delta_y_acc_M_[index_nM_to_update_[tmp_nM].item()].item(),
             );

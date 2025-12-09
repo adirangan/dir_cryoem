@@ -38,8 +38,8 @@ def get_r8_svd_chebval_U_d_0(
     tmp_r8_svd_d_ = (r8_delta_r_ - r8_svd_d_m)/np.maximum(1e-12,r8_svd_d_c);
     r8_svd_chebval_U_d_ld__ = torch.zeros(mtr((n_svd_l,n_delta_v))).to(dtype=torch.float64);
     for nl in range(n_svd_l):
-        tmp_index_rhs_ = 0+nl*n_svd_d+torch.arange(n_svd_d).to(dtype=torch.int32);
-        r8_svd_chebval_U_d_ld__[:,nl] = r8_chebval_0(n_svd_d,r8_svd_U_d_chebcoef_[tmp_index_rhs_],n_delta_v,tmp_r8_svd_d_);
+        tmp_i8_index_rhs_ = 0+nl*n_svd_d+torch.arange(n_svd_d).to(dtype=torch.int32);
+        r8_svd_chebval_U_d_ld__[:,nl] = r8_chebval_0(n_svd_d,r8_svd_U_d_chebcoef_[tmp_i8_index_rhs_],n_delta_v,tmp_r8_svd_d_);
     #end;%for nl=0:n_svd_l-1;
     r8_svd_chebval_U_d_ = r8_svd_chebval_U_d_ld__.ravel();
     assert(numel(r8_svd_chebval_U_d_)==n_svd_l*n_delta_v);

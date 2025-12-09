@@ -84,14 +84,14 @@ def convert_spharm_to_k_p_4(
             print(f' %% Warning, fnorm(k_p_polar_a_sub_-tmp_k_p_polar_a_sub_) {fnorm(k_p_polar_a_sub_-tmp_k_p_polar_a_sub_):.16f} in {str_thisfunction}') ;
         #end;%if (fnorm(k_p_polar_a_sub_-tmp_k_p_polar_a_sub_)>1e-6);
         tmp_matlab_size_rhs_ = mtr(Ylm_uklma___[nu_n_k_per_shell].size());
-        tmp_index_rhs_ = matlab_index_2d_0(tmp_matlab_size_rhs_[0],torch.arange(n_y),tmp_matlab_size_rhs_[1],':');
-        Ylm_lma__ = torch.reshape(Ylm_uklma___[nu_n_k_per_shell].ravel()[tmp_index_rhs_],mtr((n_y,tmp_matlab_size_rhs_[1])));
+        tmp_i8_index_rhs_ = matlab_index_2d_0(tmp_matlab_size_rhs_[0],torch.arange(n_y),tmp_matlab_size_rhs_[1],':');
+        Ylm_lma__ = torch.reshape(Ylm_uklma___[nu_n_k_per_shell].ravel()[tmp_i8_index_rhs_],mtr((n_y,tmp_matlab_size_rhs_[1])));
         #%%%%;
         tmp_t = timeit.default_timer();
         a_k_qk_sub_ = torch.zeros(mtr((1,n_sub))).to(dtype=torch.complex64);
-        tmp_index_rhs_ = torch.arange(ix,ix+n_y);
+        tmp_i8_index_rhs_ = torch.arange(ix,ix+n_y);
         str_einsum = msr('oy') + ',' + msr('ya') + '->' + msr('a') ;
-        a_k_qk_sub_ = torch.einsum( str_einsum , torch.reshape(a_k_Y_[tmp_index_rhs_],mtr((1,n_y))).to(dtype=torch.complex64) , Ylm_lma__.to(dtype=torch.complex64) ) ;
+        a_k_qk_sub_ = torch.einsum( str_einsum , torch.reshape(a_k_Y_[tmp_i8_index_rhs_],mtr((1,n_y))).to(dtype=torch.complex64) , Ylm_lma__.to(dtype=torch.complex64) ) ;
         ix = ix + n_y;
         a_k_qk_[index_sub_] = a_k_qk_sub_;
         del Ylm_lma__;

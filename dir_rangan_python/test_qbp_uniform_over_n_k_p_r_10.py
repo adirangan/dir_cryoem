@@ -323,9 +323,9 @@ for nCTF in range(n_CTF):
 index_nCTF_from_nM_ = torch.fmod(torch.arange(n_M).to(dtype=torch.float32),n_CTF).to(dtype=torch.int32);
 tmp_q_ = torch.concatenate((torch.arange(0,+n_w_max/2-1+1),torch.arange(-n_w_max/2,-1+1)),0).to(dtype=torch.int32);
 M_k_p_wkM__ = torch.zeros(mtr((n_w_sum,n_M))).to(dtype=torch.complex64);
-tmp_index_rhs_wkC_ = matlab_index_2d_0(n_w_sum,':',n_CTF,index_nCTF_from_nM_);
-tmp_index_rhs_wkS_ = matlab_index_2d_0(n_w_sum,':',n_S,index_nS_from_nM_);
-M_k_p_wkM__ = torch.reshape(transf_p_to_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,torch.reshape(CTF_k_p_wkC__.ravel()[tmp_index_rhs_wkC_],mtr((n_w_sum,n_M))) * torch.reshape(rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,torch.reshape(S_k_p_wkS__.ravel()[tmp_index_rhs_wkS_],mtr((n_w_sum,n_M))),+euler_gamma_z_M_),mtr((n_w_sum,n_M))),-image_delta_x_M_,-image_delta_y_M_),mtr((n_w_sum,n_M))).to(dtype=torch.complex64);
+tmp_i8_index_rhs_wkC_ = matlab_index_2d_0(n_w_sum,':',n_CTF,index_nCTF_from_nM_);
+tmp_i8_index_rhs_wkS_ = matlab_index_2d_0(n_w_sum,':',n_S,index_nS_from_nM_);
+M_k_p_wkM__ = torch.reshape(transf_p_to_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,torch.reshape(CTF_k_p_wkC__.ravel()[tmp_i8_index_rhs_wkC_],mtr((n_w_sum,n_M))) * torch.reshape(rotate_p_to_p_fftw(n_k_p_r,n_w_,n_w_sum,torch.reshape(S_k_p_wkS__.ravel()[tmp_i8_index_rhs_wkS_],mtr((n_w_sum,n_M))),+euler_gamma_z_M_),mtr((n_w_sum,n_M))),-image_delta_x_M_,-image_delta_y_M_),mtr((n_w_sum,n_M))).to(dtype=torch.complex64);
 #%%%%%%%%;
 
 #%%%%%%%%;

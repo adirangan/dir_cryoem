@@ -24,8 +24,8 @@ def principled_marching_empirical_cost_matrix_1(
     #end;%if numel(unique(n_w_))> 1;
     if numel_unique(n_w_)==1:
         M_k_q_rwM___ = torch.permute(torch.reshape(M_k_q_wkM__,mtr((n_w_max,n_k_p_r,n_M))),mtr(mts((1,0,2)))); 
-        tmp_index_lhs_ = matlab_index_3d_0(n_k_p_r,':',n_w_max,int(n_w_max/2),n_M,':');
-        M_k_q_rwM___.ravel()[tmp_index_lhs_] = 0.0;
+        tmp_i8_index_lhs_ = matlab_index_3d_0(n_k_p_r,':',n_w_max,int(n_w_max/2),n_M,':');
+        M_k_q_rwM___.ravel()[tmp_i8_index_lhs_] = 0.0;
     #end;%if numel(unique(n_w_))==1;
 
     X_00_kk__ = torch.zeros(n_k_p_r,n_k_p_r).to(dtype=torch.float32);
@@ -37,8 +37,8 @@ def principled_marching_empirical_cost_matrix_1(
     X_00_kk__ = (2*pi)**2 * X_00_kk__ / np.maximum(1,n_M) ;
 
     X_01_kk__ = torch.zeros(n_k_p_r,n_k_p_r).to(dtype=torch.float32);
-    tmp_index_rhs_ = matlab_index_3d_0(n_k_p_r,':',n_w_max,0,n_M,':');
-    M_k_q_r0M_ = torch.sum(torch.reshape(M_k_q_rwM___.ravel()[tmp_index_rhs_],mtr((n_k_p_r,n_M))),1-1);
+    tmp_i8_index_rhs_ = matlab_index_3d_0(n_k_p_r,':',n_w_max,0,n_M,':');
+    M_k_q_r0M_ = torch.sum(torch.reshape(M_k_q_rwM___.ravel()[tmp_i8_index_rhs_],mtr((n_k_p_r,n_M))),1-1);
     X_01_kk__ = (2*pi)**2 * torch.reshape(torch.conj(M_k_q_r0M_),mtr((n_k_p_r,1))) * torch.reshape(M_k_q_r0M_,mtr((1,n_k_p_r))) / np.maximum(1,n_M**2) ;
 
     X_weight_r_ = torch.zeros(n_k_p_r).to(dtype=torch.float32);

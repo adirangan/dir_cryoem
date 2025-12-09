@@ -140,9 +140,9 @@ def tfpmhp_Z_wSM___14(
         #%%%%;
         if flag_precompute_M_k_q_wkM__==1:
             tmp_t = tic();
-            tmp_index_lhs_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_);
-            tmp_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_);
-            M_k_q_wkM__.ravel()[tmp_index_lhs_] = interp_p_to_q(n_k_p_r,n_w_,n_w_sum,torch.reshape(M_k_p_wkM__.ravel()[tmp_index_rhs_],mtr((n_w_sum,n_M_sub))));
+            tmp_i8_index_lhs_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_);
+            tmp_i8_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_);
+            M_k_q_wkM__.ravel()[tmp_i8_index_lhs_] = interp_p_to_q(n_k_p_r,n_w_,n_w_sum,torch.reshape(M_k_p_wkM__.ravel()[tmp_i8_index_rhs_],mtr((n_w_sum,n_M_sub))));
             tmp_t = toc(tmp_t); 
             if (flag_verbose>1): disp(sprintf(' %% M_k_q_wnM__: %0.6fs',tmp_t)); end;
             parameter = parameter_timing_update(parameter,sprintf('%s: precompute M_k_q_wnM__',str_thisfunction),tmp_t);
@@ -152,9 +152,9 @@ def tfpmhp_Z_wSM___14(
         #%%%%;
         if flag_precompute_svd_V_UX_M_lwnM____==1:
             tmp_t = tic();
-            tmp_index_lhs_ = matlab_index_4d_0(n_svd_l,':',n_w_max,':',pm_n_UX_rank,':',n_M,index_nM_);
-            tmp_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_);
-            svd_V_UX_M_lwnM____.ravel()[tmp_index_lhs_] = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M_sub,torch.reshape(M_k_q_wkM__.ravel()[tmp_index_rhs_],mtr((n_w_sum,n_M_sub))),pm_n_UX_rank,pm_UX_kn__,pm_X_weight_r_).ravel();
+            tmp_i8_index_lhs_ = matlab_index_4d_0(n_svd_l,':',n_w_max,':',pm_n_UX_rank,':',n_M,index_nM_);
+            tmp_i8_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_);
+            svd_V_UX_M_lwnM____.ravel()[tmp_i8_index_lhs_] = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M_sub,torch.reshape(M_k_q_wkM__.ravel()[tmp_i8_index_rhs_],mtr((n_w_sum,n_M_sub))),pm_n_UX_rank,pm_UX_kn__,pm_X_weight_r_).ravel();
             tmp_t = toc(tmp_t);
             if (flag_verbose>1): disp(sprintf(' %% svd_V_UX_M_lwnM____: %0.6fs',tmp_t)); end;
             parameter = parameter_timing_update(parameter,sprintf('%s: precompute svd_V_UX_M_lwnM____',str_thisfunction),tmp_t);
@@ -164,16 +164,16 @@ def tfpmhp_Z_wSM___14(
         #%%%%;
         if flag_precompute_UX_T_M_l2_dM__==1:
             tmp_t = tic();
-            tmp_index_lhs_ = matlab_index_2d_0(n_delta_v,':',n_M,index_nM_);
-            tmp_index_rhs_ = matlab_index_4d_0(n_svd_l,':',n_w_max,':',pm_n_UX_rank,':',n_M,index_nM_);
-            UX_T_M_l2_dM__.ravel()[tmp_index_lhs_] = tfpmh_UX_T_M_l2_dM__1(FTK,n_w_,n_M_sub,pm_n_UX_rank,torch.reshape(svd_V_UX_M_lwnM____.ravel()[tmp_index_rhs_],mtr((n_svd_l,n_w_max,pm_n_UX_rank,n_M_sub)))).ravel();
+            tmp_i8_index_lhs_ = matlab_index_2d_0(n_delta_v,':',n_M,index_nM_);
+            tmp_i8_index_rhs_ = matlab_index_4d_0(n_svd_l,':',n_w_max,':',pm_n_UX_rank,':',n_M,index_nM_);
+            UX_T_M_l2_dM__.ravel()[tmp_i8_index_lhs_] = tfpmh_UX_T_M_l2_dM__1(FTK,n_w_,n_M_sub,pm_n_UX_rank,torch.reshape(svd_V_UX_M_lwnM____.ravel()[tmp_i8_index_rhs_],mtr((n_svd_l,n_w_max,pm_n_UX_rank,n_M_sub)))).ravel();
             tmp_t = toc(tmp_t);
             if (flag_verbose>1): disp(sprintf(' %% tfpmh_UX_T_M_l2_dm__1: %0.6fs',tmp_t)); end;
             parameter = parameter_timing_update(parameter,sprintf('%s: precompute tfpmh_UX_T_M_l2_dm__1',str_thisfunction),tmp_t);
         #end;%if flag_precompute_UX_T_M_l2_dM__==1;
         if flag_precompute_UX_M_l2_M_==1:
-            tmp_index_rhs_ = matlab_index_2d_0(n_delta_v,tmp_index_d0,n_M,index_nM_);
-            UX_M_l2_M_[index_nM_] = UX_T_M_l2_dM__.ravel()[tmp_index_rhs_].ravel();
+            tmp_i8_index_rhs_ = matlab_index_2d_0(n_delta_v,tmp_index_d0,n_M,index_nM_);
+            UX_M_l2_M_[index_nM_] = UX_T_M_l2_dM__.ravel()[tmp_i8_index_rhs_].ravel();
         #end;%if flag_precompute_UX_M_l2_M_==1;
     #%%%%%%%%%%%%%%%%;
     #end;%if ~isempty(index_nM_);
@@ -188,11 +188,11 @@ def tfpmhp_Z_wSM___14(
         #%%%%;
         if flag_precompute_UX_CTF_S_k_q_wnS__==1:
             tmp_t = tic();
-            tmp_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_S,index_nS_);
-            CTF_S_sub_k_p_wkS__ = torch.reshape(torch.reshape(CTF_k_p_r_k_,mtr((1,n_k_p_r))) * torch.reshape(S_k_p_wkS__.ravel()[tmp_index_rhs_],mtr((n_w_max,n_k_p_r,n_S_sub))),mtr((n_w_sum,n_S_sub)));
+            tmp_i8_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_S,index_nS_);
+            CTF_S_sub_k_p_wkS__ = torch.reshape(torch.reshape(CTF_k_p_r_k_,mtr((1,n_k_p_r))) * torch.reshape(S_k_p_wkS__.ravel()[tmp_i8_index_rhs_],mtr((n_w_max,n_k_p_r,n_S_sub))),mtr((n_w_sum,n_S_sub)));
             _,UX_CTF_S_sub_k_p_wnS__ = tfpmhh_pm_wUX_0(parameter,n_k_p_r,pm_n_k_p_r,pm_wUX_kn__,n_w_max,n_S_sub,CTF_S_sub_k_p_wkS__);
-            tmp_index_lhs_ = matlab_index_2d_0(pm_n_w_sum,':',n_S,index_nS_);
-            UX_CTF_S_k_q_wnS__.ravel()[tmp_index_lhs_] = interp_p_to_q(pm_n_k_p_r,pm_n_w_,pm_n_w_sum,UX_CTF_S_sub_k_p_wnS__).ravel();
+            tmp_i8_index_lhs_ = matlab_index_2d_0(pm_n_w_sum,':',n_S,index_nS_);
+            UX_CTF_S_k_q_wnS__.ravel()[tmp_i8_index_lhs_] = interp_p_to_q(pm_n_k_p_r,pm_n_w_,pm_n_w_sum,UX_CTF_S_sub_k_p_wnS__).ravel();
             tmp_t = toc(tmp_t);
             if (flag_verbose>1): disp(sprintf(' %% UX_CTF_S_k_q_wnS__: %0.6fs',tmp_t)); end;
             parameter = parameter_timing_update(parameter,sprintf('%s: precompute UX_CTF_S_k_q_wnS__',str_thisfunction),tmp_t);
@@ -202,8 +202,8 @@ def tfpmhp_Z_wSM___14(
         #%%%%;
         if flag_precompute_UX_CTF_S_l2_S_==1:
             tmp_t = tic();
-            tmp_index_rhs_ = matlab_index_2d_0(pm_n_w_sum,':',n_S,index_nS_);
-            UX_CTF_S_l2_S_[index_nS_] = torch.real(torch.sum(torch.reshape(torch.conj(UX_CTF_S_k_q_wnS__).ravel()[tmp_index_rhs_] * UX_CTF_S_k_q_wnS__.ravel()[tmp_index_rhs_],mtr((pm_n_w_sum,n_S_sub))),dim=1-0) / np.maximum(1,pm_n_w_max)).ravel();
+            tmp_i8_index_rhs_ = matlab_index_2d_0(pm_n_w_sum,':',n_S,index_nS_);
+            UX_CTF_S_l2_S_[index_nS_] = torch.real(torch.sum(torch.reshape(torch.conj(UX_CTF_S_k_q_wnS__).ravel()[tmp_i8_index_rhs_] * UX_CTF_S_k_q_wnS__.ravel()[tmp_i8_index_rhs_],mtr((pm_n_w_sum,n_S_sub))),dim=1-0) / np.maximum(1,pm_n_w_max)).ravel();
             tmp_t = toc(tmp_t);
             if (flag_verbose>1): disp(sprintf(' %% UX_CTF_S_l2_S_: %0.6fs',tmp_t)); end;
             parameter = parameter_timing_update(parameter,sprintf('%s: precompute UX_CTF_S_l2_S_',str_thisfunction),tmp_t);

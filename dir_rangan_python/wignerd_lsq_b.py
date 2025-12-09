@@ -81,9 +81,9 @@ def wignerd_lsq_b(
     W_ = cell(1+l_max); #<-- cell array. ;
     tmp_t = tic();
     for l_val in range(l_max+1):
-        tmp_index_rhs_ = matlab_index_4d_0(1+l_max,l_val,n_m_max,l_max+torch.arange(-l_val,+l_val+1),n_polar_a,':',n_azimu_b,':');
-        Y_ori_mab__ = torch.reshape(Y_ori_lmab____.ravel()[tmp_index_rhs_],mtr((1+2*l_val,n_polar_a*n_azimu_b)));
-        Y_rot_mab__ = torch.reshape(Y_rot_lmab____.ravel()[tmp_index_rhs_],mtr((1+2*l_val,n_polar_a*n_azimu_b)));
+        tmp_i8_index_rhs_ = matlab_index_4d_0(1+l_max,l_val,n_m_max,l_max+torch.arange(-l_val,+l_val+1),n_polar_a,':',n_azimu_b,':');
+        Y_ori_mab__ = torch.reshape(Y_ori_lmab____.ravel()[tmp_i8_index_rhs_],mtr((1+2*l_val,n_polar_a*n_azimu_b)));
+        Y_rot_mab__ = torch.reshape(Y_rot_lmab____.ravel()[tmp_i8_index_rhs_],mtr((1+2*l_val,n_polar_a*n_azimu_b)));
         W_[l_val] = torch.real( torch.reshape(torch.linalg.lstsq(Y_ori_mab__,Y_rot_mab__).solution.ravel(),mtr((1+2*l_val,1+2*l_val))).T ) ; #<-- I believe that, as of 20251021, the torch.linalg.lstsq().solution should be ordered with matlab-compatible indexing. ;
     #end;%for l_val=0:l_max;
     tmp_t = toc(tmp_t);

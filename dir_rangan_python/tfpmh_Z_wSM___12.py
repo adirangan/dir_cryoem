@@ -197,8 +197,8 @@ def tfpmh_Z_wSM___12(
         if (n_M_sub>0):
         #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
             tmp_t = tic();
-            tmp_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_in_Mbatch_);
-            M_sub_k_p_wkM__ = torch.reshape(M_k_p_wkM__.ravel()[tmp_index_rhs_],mtr((n_w_sum,n_M_sub)));
+            tmp_i8_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_in_Mbatch_);
+            M_sub_k_p_wkM__ = torch.reshape(M_k_p_wkM__.ravel()[tmp_i8_index_rhs_],mtr((n_w_sum,n_M_sub)));
             M_sub_k_q_wkM__ = interp_p_to_q(n_k_p_r,n_w_,n_w_sum,M_sub_k_p_wkM__);
             tmp_t = toc(tmp_t); 
             if (flag_verbose>1): print(f' %% M_sub_k_q_wkM__: %0.2fs',tmp_t);
@@ -233,14 +233,14 @@ def tfpmh_Z_wSM___12(
             if (flag_verbose>1): print(f' %% tfpmh_UX_T_M_sub_l2_dm__1: %0.2fs',tmp_t);
             tmp_index_d0 = intersect_0(efind(torch.abs(FTK['r8_delta_x_'])< 1e-6),efind(torch.abs(FTK['r8_delta_y_'])< 1e-6))[0];
             assert(numel(tmp_index_d0)==1); #%<-- should be a single index corresponding to zero-displacement. ;
-            tmp_index_rhs_ = matlab_index_2d_0(FTK['n_delta_v'],tmp_index_d0,n_M_sub,':');
-            UX_M_sub_l2_M_ = UX_T_M_sub_l2_dM__.ravel()[tmp_index_rhs_].ravel(); assert(numel(UX_M_sub_l2_M_)==n_M_sub);
+            tmp_i8_index_rhs_ = matlab_index_2d_0(FTK['n_delta_v'],tmp_index_d0,n_M_sub,':');
+            UX_M_sub_l2_M_ = UX_T_M_sub_l2_dM__.ravel()[tmp_i8_index_rhs_].ravel(); assert(numel(UX_M_sub_l2_M_)==n_M_sub);
             #%%%%;
             #% Store results. ;
             #%%%%;
             UX_M_l2_M_[index_nM_in_Mbatch_] = UX_M_sub_l2_M_;
-            tmp_index_lhs_ = matlab_index_2d_0(n_delta_v,':',n_M,index_nM_in_Mbatch_);
-            UX_T_M_l2_dM__.ravel()[tmp_index_lhs_] = UX_T_M_sub_l2_dM__.ravel();
+            tmp_i8_index_lhs_ = matlab_index_2d_0(n_delta_v,':',n_M,index_nM_in_Mbatch_);
+            UX_T_M_l2_dM__.ravel()[tmp_i8_index_lhs_] = UX_T_M_sub_l2_dM__.ravel();
             #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
             for nSbatch in range(n_Sbatch):
             #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
@@ -251,8 +251,8 @@ def tfpmh_Z_wSM___12(
                 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
                 if (n_S_sub>0):
                 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
-                    tmp_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_S,index_nS_in_Sbatch_);
-                    S_sub_k_p_wkS__ = torch.reshape(S_k_p_wkS__.ravel()[tmp_index_rhs_],mtr((n_w_sum,n_S_sub)));
+                    tmp_i8_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_S,index_nS_in_Sbatch_);
+                    S_sub_k_p_wkS__ = torch.reshape(S_k_p_wkS__.ravel()[tmp_i8_index_rhs_],mtr((n_w_sum,n_S_sub)));
                     S_sub_k_q_wkS__ = interp_p_to_q(n_k_p_r,n_w_,n_w_sum,S_sub_k_p_wkS__);
                     S_sub_k_q_wSk___ = torch.permute(torch.reshape(S_sub_k_q_wkS__,mtr((n_w_max,n_k_p_r,n_S_sub))),mtr(mts((0,2,1))));
                     #%%%%;
@@ -287,8 +287,8 @@ def tfpmh_Z_wSM___12(
                     #% Calculate correlation. ;
                     #%%%%;
                     tmp_t = tic();
-                    tmp_index_rhs_ = matlab_index_2d_0(n_w_max,':',n_S,index_nS_in_Sbatch_);
-                    UX_CTF_R_S_sub_l2_wS__ = torch.reshape(UX_CTF_R_S_l2_wS__.ravel()[tmp_index_rhs_],mtr((n_w_max,n_S_sub)));
+                    tmp_i8_index_rhs_ = matlab_index_2d_0(n_w_max,':',n_S,index_nS_in_Sbatch_);
+                    UX_CTF_R_S_sub_l2_wS__ = torch.reshape(UX_CTF_R_S_l2_wS__.ravel()[tmp_i8_index_rhs_],mtr((n_w_max,n_S_sub)));
                     X_sub_dwSM____ = Z_sub_dwSM____ / torch.maximum(torch.tensor(1e-6).to(dtype=torch.float32),torch.reshape(torch.sqrt(UX_CTF_R_S_sub_l2_wS__),mtr((1,n_w_max,n_S_sub,1)))) / torch.maximum(torch.tensor(1e-6).to(dtype=torch.float32),torch.reshape(torch.sqrt(UX_T_M_sub_l2_dM__),mtr((n_delta_v,1,1,n_M_sub)))) ;
                     tmp_t = toc(tmp_t); 
                     if (flag_verbose>1): print(f' %% X_sub_dwSM____: %0.6fs',tmp_t);
@@ -296,9 +296,9 @@ def tfpmh_Z_wSM___12(
                     #% Store results. ;
                     #%%%%;
                     if flag_dwSM:
-                        tmp_index_lhs_ = matlab_index_4d_0(n_delta_v,':',n_w_max,':',n_S,index_nS_in_Sbatch_,n_M,index_nM_in_Mbatch_);
-                        Z_dwSM____.ravel()[tmp_index_lhs_] = Z_sub_dwSM____.ravel();
-                        X_dwSM____.ravel()[tmp_index_lhs_] = X_sub_dwSM____.ravel();
+                        tmp_i8_index_lhs_ = matlab_index_4d_0(n_delta_v,':',n_w_max,':',n_S,index_nS_in_Sbatch_,n_M,index_nM_in_Mbatch_);
+                        Z_dwSM____.ravel()[tmp_i8_index_lhs_] = Z_sub_dwSM____.ravel();
+                        X_dwSM____.ravel()[tmp_i8_index_lhs_] = X_sub_dwSM____.ravel();
                     #%end;%if flag_dwSM;
                     #%%%%%%%%;
                     if flag_optimize_over_gamma_z==0:
@@ -316,13 +316,13 @@ def tfpmh_Z_wSM___12(
                         tmp_delta_x_wSM___ = FTK['r8_delta_x_'].to(dtype=torch.float32).ravel()[tmp_index_delta_wSM___];
                         tmp_delta_y_wSM___ = FTK['r8_delta_y_'].to(dtype=torch.float32).ravel()[tmp_index_delta_wSM___];
                         tmp_gamma_z_wSM___ = 2*pi*torch.arange(n_w_max).to(dtype=torch.float32)/np.maximum(1,n_w_max);
-                        tmp_index_lhs_ = matlab_index_3d_0(n_w_max,':',n_S,index_nS_in_Sbatch_,n_M,index_nM_in_Mbatch_);
-                        Z_wSM___.ravel()[tmp_index_lhs_] = tmp_Z_wSM___.ravel();
-                        X_wSM___.ravel()[tmp_index_lhs_] = tmp_X_wSM___.ravel();
-                        delta_x_wSM___.ravel()[tmp_index_lhs_] = torch.reshape(tmp_delta_x_wSM___,mtr((n_w_max,n_S_sub,n_M_sub))).ravel();
-                        delta_y_wSM___.ravel()[tmp_index_lhs_] = torch.reshape(tmp_delta_y_wSM___,mtr((n_w_max,n_S_sub,n_M_sub))).ravel();
-                        gamma_z_wSM___.ravel()[tmp_index_lhs_] = (torch.reshape(tmp_gamma_z_wSM___,mtr((n_w_max,1,1)))*torch.ones(mtr((1,n_S_sub,n_M_sub)))).to(dtype=torch.float32).ravel();
-                        index_sub_wSM___.ravel()[tmp_index_lhs_] = torch.reshape(tmp_index_delta_wSM_.to(dtype=torch.int32),mtr((n_w_max,n_S_sub,n_M_sub))).ravel();
+                        tmp_i8_index_lhs_ = matlab_index_3d_0(n_w_max,':',n_S,index_nS_in_Sbatch_,n_M,index_nM_in_Mbatch_);
+                        Z_wSM___.ravel()[tmp_i8_index_lhs_] = tmp_Z_wSM___.ravel();
+                        X_wSM___.ravel()[tmp_i8_index_lhs_] = tmp_X_wSM___.ravel();
+                        delta_x_wSM___.ravel()[tmp_i8_index_lhs_] = torch.reshape(tmp_delta_x_wSM___,mtr((n_w_max,n_S_sub,n_M_sub))).ravel();
+                        delta_y_wSM___.ravel()[tmp_i8_index_lhs_] = torch.reshape(tmp_delta_y_wSM___,mtr((n_w_max,n_S_sub,n_M_sub))).ravel();
+                        gamma_z_wSM___.ravel()[tmp_i8_index_lhs_] = (torch.reshape(tmp_gamma_z_wSM___,mtr((n_w_max,1,1)))*torch.ones(mtr((1,n_S_sub,n_M_sub)))).to(dtype=torch.float32).ravel();
+                        index_sub_wSM___.ravel()[tmp_i8_index_lhs_] = torch.reshape(tmp_index_delta_wSM_.to(dtype=torch.int32),mtr((n_w_max,n_S_sub,n_M_sub))).ravel();
                         tmp_t = toc(tmp_t); 
                         if (flag_verbose>1): print(f' %% X_wSM___: %0.6f',tmp_t);
                     #end;%if flag_optimize_over_gamma_z==0;
@@ -350,13 +350,13 @@ def tfpmh_Z_wSM___12(
                         tmp_delta_x_SM__ = FTK['r8_delta_x_'].to(dtype=torch.float32).ravel()[tmp_index_delta_SM__];
                         tmp_delta_y_SM__ = FTK['r8_delta_y_'].to(dtype=torch.float32).ravel()[tmp_index_delta_SM__];
                         tmp_gamma_z_SM__ = 2*pi*tmp_index_gamma_SM__.to(dtype=torch.float32)/np.maximum(1,n_w_max);
-                        tmp_index_lhs_ = matlab_index_2d_0(n_S,index_nS_in_Sbatch_,n_M,index_nM_in_Mbatch_);
-                        Z_SM__.ravel()[tmp_index_lhs_] = tmp_Z_SM__.ravel();
-                        X_SM__.ravel()[tmp_index_lhs_] = tmp_X_SM__.ravel();
-                        delta_x_SM__.ravel()[tmp_index_lhs_] = torch.reshape(tmp_delta_x_SM__,mtr((n_S_sub,n_M_sub))).ravel();
-                        delta_y_SM__.ravel()[tmp_index_lhs_] = torch.reshape(tmp_delta_y_SM__,mtr((n_S_sub,n_M_sub))).ravel();
-                        gamma_z_SM__.ravel()[tmp_index_lhs_] = torch.reshape(tmp_gamma_z_SM__,mtr((n_S_sub,n_M_sub))).ravel();
-                        index_sub_SM__.ravel()[tmp_index_lhs_] = torch.reshape(tmp_index_dw_SM_.to(dtype=torch.int32),mtr((n_S_sub,n_M_sub))).ravel();
+                        tmp_i8_index_lhs_ = matlab_index_2d_0(n_S,index_nS_in_Sbatch_,n_M,index_nM_in_Mbatch_);
+                        Z_SM__.ravel()[tmp_i8_index_lhs_] = tmp_Z_SM__.ravel();
+                        X_SM__.ravel()[tmp_i8_index_lhs_] = tmp_X_SM__.ravel();
+                        delta_x_SM__.ravel()[tmp_i8_index_lhs_] = torch.reshape(tmp_delta_x_SM__,mtr((n_S_sub,n_M_sub))).ravel();
+                        delta_y_SM__.ravel()[tmp_i8_index_lhs_] = torch.reshape(tmp_delta_y_SM__,mtr((n_S_sub,n_M_sub))).ravel();
+                        gamma_z_SM__.ravel()[tmp_i8_index_lhs_] = torch.reshape(tmp_gamma_z_SM__,mtr((n_S_sub,n_M_sub))).ravel();
+                        index_sub_SM__.ravel()[tmp_i8_index_lhs_] = torch.reshape(tmp_index_dw_SM_.to(dtype=torch.int32),mtr((n_S_sub,n_M_sub))).ravel();
                         tmp_t = toc(tmp_t); 
                         if (flag_verbose>1): print(f' %% X_SM__: %0.6f',tmp_t);
                     #end;%if flag_optimize_over_gamma_z==1;

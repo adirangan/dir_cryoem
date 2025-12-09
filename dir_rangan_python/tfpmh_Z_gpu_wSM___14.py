@@ -227,9 +227,9 @@ def tfpmh_Z_gpu_wSM___14(
         if (n_M_sub>0):
         #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
             tmp_t = tic();
-            tmp_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_in_Mbatch_);
-            #M_sub_k_p_gpu_wkM__ = torch.reshape(M_k_p_wkM__.ravel()[tmp_index_rhs_],mtr((n_w_sum,n_M_sub))).to(dtype=torch.complex64,device=device_use);
-            M_sub_k_q_gpu_wkM__ = torch.reshape(M_k_q_wkM__.ravel()[tmp_index_rhs_],mtr((n_w_sum,n_M_sub))).to(dtype=torch.complex64,device=device_use);
+            tmp_i8_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_in_Mbatch_);
+            #M_sub_k_p_gpu_wkM__ = torch.reshape(M_k_p_wkM__.ravel()[tmp_i8_index_rhs_],mtr((n_w_sum,n_M_sub))).to(dtype=torch.complex64,device=device_use);
+            M_sub_k_q_gpu_wkM__ = torch.reshape(M_k_q_wkM__.ravel()[tmp_i8_index_rhs_],mtr((n_w_sum,n_M_sub))).to(dtype=torch.complex64,device=device_use);
             tmp_t = toc(tmp_t); 
             if (flag_verbose>1): print(f' %% M_sub_k_q_gpu_wkM__: %0.2fs',tmp_t);
             parameter = parameter_timing_update(parameter,sprintf('%s: M_sub_k_q_gpu_wkM__',str_thisfunction),tmp_t);
@@ -247,8 +247,8 @@ def tfpmh_Z_gpu_wSM___14(
             #end;%if flag_precompute_svd_V_UX_M_lwnM____==0;
             if flag_precompute_svd_V_UX_M_lwnM____==1:
                 tmp_t = tic();
-                tmp_index_rhs_ = matlab_index_4d_0(n_svd_l,':',n_w_max,':',size(svd_V_UX_M_lwnM____,2),torch.arange(pm_n_UX_rank),n_M,index_nM_in_Mbatch_);
-                svd_V_UX_M_sub_gpu_lwnM____ = torch.reshape(svd_V_UX_M_lwnM____.ravel()[tmp_index_rhs_],mtr((n_svd_l,n_w_max,pm_n_UX_rank,n_M_sub))).to(dtype=torch.complex64,device=device_use);
+                tmp_i8_index_rhs_ = matlab_index_4d_0(n_svd_l,':',n_w_max,':',size(svd_V_UX_M_lwnM____,2),torch.arange(pm_n_UX_rank),n_M,index_nM_in_Mbatch_);
+                svd_V_UX_M_sub_gpu_lwnM____ = torch.reshape(svd_V_UX_M_lwnM____.ravel()[tmp_i8_index_rhs_],mtr((n_svd_l,n_w_max,pm_n_UX_rank,n_M_sub))).to(dtype=torch.complex64,device=device_use);
                 tmp_t = toc(tmp_t);
                 if (flag_verbose>1): disp(sprintf(' %% loading svd_V_UX_M_sub_gpu_lwnM____: %0.6fs',tmp_t)); #end;
                 parameter = parameter_timing_update(parameter,sprintf('%s: loading svd_V_UX_M_sub_gpu_lwnM____',str_thisfunction),tmp_t);
@@ -298,8 +298,8 @@ def tfpmh_Z_gpu_wSM___14(
                     #%%%%;
                     tmp_t = tic();
                     UX_CTF_S_sub_l2_gpu_S_ = UX_CTF_S_l2_gpu_S_.ravel()[index_nS_in_Sbatch_].to(dtype=torch.float32,device=device_use);
-                    tmp_index_rhs_ = matlab_index_3d_0(pm_n_UX_rank,':',n_S,index_nS_in_Sbatch_,n_w_max,':');
-                    UX_CTF_S_sub_k_q_gpu_nSw___ = torch.reshape(UX_CTF_S_k_q_nSw___.ravel()[tmp_index_rhs_].to(dtype=torch.complex64,device=device_use),mtr((pm_n_UX_rank,n_S_sub,n_w_max))); #%<-- move from cpu to gpu. ;
+                    tmp_i8_index_rhs_ = matlab_index_3d_0(pm_n_UX_rank,':',n_S,index_nS_in_Sbatch_,n_w_max,':');
+                    UX_CTF_S_sub_k_q_gpu_nSw___ = torch.reshape(UX_CTF_S_k_q_nSw___.ravel()[tmp_i8_index_rhs_].to(dtype=torch.complex64,device=device_use),mtr((pm_n_UX_rank,n_S_sub,n_w_max))); #%<-- move from cpu to gpu. ;
                     tmp_t = toc(tmp_t);
                     if (flag_verbose>1): disp(sprintf(' %% UX_CTF_S_sub_k_q_gpu_nSw___: %0.6fs',tmp_t)); #end;
                     parameter = parameter_timing_update(parameter,sprintf('%s: UX_CTF_S_sub_k_q_gpu_nSw___',str_thisfunction),tmp_t);
@@ -335,9 +335,9 @@ def tfpmh_Z_gpu_wSM___14(
                     #% Store results. ;
                     #%%%%;
                     if flag_dwSM:
-                        tmp_index_lhs_ = matlab_index_4d_0(n_delta_v,':',n_w_max,':',n_S,index_nS_in_Sbatch_,n_M,index_nM_in_Mbatch_);
-                        Z_dwSM____.ravel()[tmp_index_lhs_] = Z_sub_gpu_dwSM____.cpu().ravel();
-                        X_dwSM____.ravel()[tmp_index_lhs_] = X_sub_gpu_dwSM____.cpu().ravel();
+                        tmp_i8_index_lhs_ = matlab_index_4d_0(n_delta_v,':',n_w_max,':',n_S,index_nS_in_Sbatch_,n_M,index_nM_in_Mbatch_);
+                        Z_dwSM____.ravel()[tmp_i8_index_lhs_] = Z_sub_gpu_dwSM____.cpu().ravel();
+                        X_dwSM____.ravel()[tmp_i8_index_lhs_] = X_sub_gpu_dwSM____.cpu().ravel();
                     #%end;%if flag_dwSM;
                     #%%%%%%%%;
                     if flag_optimize_over_gamma_z==0:

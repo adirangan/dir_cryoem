@@ -790,15 +790,15 @@ for nk_p_r in range(n_k_p_r):
             na=na+1;
         #end;%for m_val=-l_val:+l_val;
     #end;%for l_val=0:l_max;
-    tmp_index_lhs_ = int(n_y_csum_[nk_p_r].item()) + torch.arange(int(n_y_[nk_p_r].item())).to(torch.int32);
-    Y_l_val_[tmp_index_lhs_] = tmp_l_val_;
-    Y_m_val_[tmp_index_lhs_] = tmp_m_val_;
-    Y_k_val_[tmp_index_lhs_] = k_p_r_[nk_p_r].item();
+    tmp_i8_index_lhs_ = int(n_y_csum_[nk_p_r].item()) + torch.arange(int(n_y_[nk_p_r].item())).to(torch.int32);
+    Y_l_val_[tmp_i8_index_lhs_] = tmp_l_val_;
+    Y_m_val_[tmp_i8_index_lhs_] = tmp_m_val_;
+    Y_k_val_[tmp_i8_index_lhs_] = k_p_r_[nk_p_r].item();
 #end;%for nk_p_r=0:n_k_p_r-1;
 weight_Y_ = torch.zeros(n_y_sum).to(torch.float32);
 for nk_p_r in range(n_k_p_r):
-    tmp_index_lhs_ = int(n_y_csum_[nk_p_r].item()) + torch.arange(int(n_y_[nk_p_r].item())).to(torch.int32);
-    weight_Y_[tmp_index_lhs_] = weight_3d_k_p_r_[nk_p_r].item();
+    tmp_i8_index_lhs_ = int(n_y_csum_[nk_p_r].item()) + torch.arange(int(n_y_[nk_p_r].item())).to(torch.int32);
+    weight_Y_[tmp_i8_index_lhs_] = weight_3d_k_p_r_[nk_p_r].item();
 #end;%for nk_p_r=0:n_k_p_r-1;
 
 r'''
@@ -1118,13 +1118,13 @@ for nk_p_r in range(n_k_p_r):
     for l_val in range(l_max+1):
         for m_val in range(-l_val,+l_val+1):
             assert(na==l_val*(l_val+1)+m_val);
-            tmp_index_lhs_ = matlab_index_2d_0(1+l_max_max,l_val,n_m_max,l_max_max+m_val);
-            tmp_a_k_Y_form_lm__.ravel()[tmp_index_lhs_] = tmp_a_k_Y_form_lm_[na].item();
+            tmp_i8_index_lhs_ = matlab_index_2d_0(1+l_max_max,l_val,n_m_max,l_max_max+m_val);
+            tmp_a_k_Y_form_lm__.ravel()[tmp_i8_index_lhs_] = tmp_a_k_Y_form_lm_[na].item();
             na=na+1;
         #end;%for m_val=-l_val:+l_val;
     #end;%for l_val=0:l_max;
-    tmp_index_lhs_ = matlab_index_3d_0(1+l_max_max,':',n_m_max,':',n_k_p_r,nk_p_r);
-    a_k_Y_form_yk___.ravel()[tmp_index_lhs_] = tmp_a_k_Y_form_lm__.ravel();
+    tmp_i8_index_lhs_ = matlab_index_3d_0(1+l_max_max,':',n_m_max,':',n_k_p_r,nk_p_r);
+    a_k_Y_form_yk___.ravel()[tmp_i8_index_lhs_] = tmp_a_k_Y_form_lm__.ravel();
 #end;%for nk_p_r=0:n_k_p_r-1;
 #%%%%;
 flag_check=1;
@@ -1134,17 +1134,17 @@ if flag_check:
         l_max=int(l_max_[nk_p_r].item());
         for l_val in range(l_max+1):
             for m_val in range(-l_val,+l_val+1):
-                tmp_index_rhs_ = matlab_index_2d_0(n_y_max,l_val*(l_val+1)+m_val,n_k_p_r,nk_p_r);
-                tmp_index_lhs_ = torch.tensor([int(n_y_csum_[nk_p_r].item()) + l_val*(l_val+1) + m_val ]).to(torch.int32);
-                tmp_lhs = a_k_Y_form_[tmp_index_lhs_].item();
-                tmp_rhs = a_k_Y_form_yk__.ravel()[tmp_index_rhs_].item();
+                tmp_i8_index_rhs_ = matlab_index_2d_0(n_y_max,l_val*(l_val+1)+m_val,n_k_p_r,nk_p_r);
+                tmp_i8_index_lhs_ = torch.tensor([int(n_y_csum_[nk_p_r].item()) + l_val*(l_val+1) + m_val ]).to(torch.int32);
+                tmp_lhs = a_k_Y_form_[tmp_i8_index_lhs_].item();
+                tmp_rhs = a_k_Y_form_yk__.ravel()[tmp_i8_index_rhs_].item();
                 if (flag_verbose>2):
                     print(f' %% nk_p_r {nk_p_r} l_val {l_val} m_val {m_val}');
                     print(f' %% %% tmp_rhs {tmp_rhs} tmp_lhs {tmp_lhs}');
                 #end;%if (flag_verbose>2):
                 assert(np.abs(tmp_lhs-tmp_rhs)<1e-3);
-                tmp_index_rhs_ = matlab_index_3d_0(1+l_max_max,l_val,n_m_max,l_max_max+m_val,n_k_p_r,nk_p_r);
-                tmp_rhs = a_k_Y_form_yk___.ravel()[tmp_index_rhs_].item();
+                tmp_i8_index_rhs_ = matlab_index_3d_0(1+l_max_max,l_val,n_m_max,l_max_max+m_val,n_k_p_r,nk_p_r);
+                tmp_rhs = a_k_Y_form_yk___.ravel()[tmp_i8_index_rhs_].item();
                 if (flag_verbose>2):
                     print(f' %% %% tmp_rhs {tmp_rhs} tmp_lhs {tmp_lhs}');
                 #end;%if (flag_verbose>2):
@@ -1603,8 +1603,8 @@ T_k_p_l2_quad_S_ = torch.zeros(n_S).to(dtype=torch.complex64);
 T_k_p_l2_form_S_ = torch.zeros(n_S).to(dtype=torch.complex64);
 T_k_p_wkS__ = torch.zeros(mtr((n_w_sum,n_S))).to(dtype=torch.complex64);
 for nS in range(n_S):
-    tmp_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_S,nS);
-    S_k_p_wk_ = S_k_p_wkS__.ravel()[tmp_index_rhs_];
+    tmp_i8_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_S,nS);
+    S_k_p_wk_ = S_k_p_wkS__.ravel()[tmp_i8_index_rhs_];
     tmp_azimu_b = viewing_azimu_b_S_[nS].item();
     tmp_polar_a = viewing_polar_a_S_[nS].item();
     tmp_gamma_z = 0.0;
@@ -1625,8 +1625,8 @@ for nS in range(n_S):
             T_k_p_l2_form_S_[nS] = T_k_p_l2_form_S_[nS].item() + tmp_h2d/(2*pi)**2 * (pi*k_p_r_max**2);
         #end;%for nsource1=0:n_source-1;
     #end;%for nsource0=0:n_source-1;
-    tmp_index_lhs_ = matlab_index_2d_0(n_w_sum,':',n_S,nS);
-    T_k_p_wkS__.ravel()[tmp_index_lhs_] = T_k_p_wk_;
+    tmp_i8_index_lhs_ = matlab_index_2d_0(n_w_sum,':',n_S,nS);
+    T_k_p_wkS__.ravel()[tmp_i8_index_lhs_] = T_k_p_wk_;
 #end;%for nS=0:n_S-1;
 fnorm_disp(flag_verbose,'T_k_p_wkS__',T_k_p_wkS__,'S_k_p_wkS__',S_k_p_wkS__,' %%<-- should be <1e-2');
 fnorm_disp(flag_verbose,'T_k_p_l2_form_S_',T_k_p_l2_form_S_,'T_k_p_l2_quad_S_',T_k_p_l2_quad_S_,' %%<-- should be <1e-2');
@@ -2053,13 +2053,13 @@ for nCTF in range(n_CTF):
     CTF_k_p_wk_ = CTF_k_p_wkC__[nCTF,:].ravel();
     if (flag_verbose>1): print(f' %% nCTF {nCTF}/{n_CTF}, CTF_k_p_wk_: {fnorm(CTF_k_p_wk_)}');
     index_M_sub_ = efind(index_nCTF_from_nM_==nCTF); n_M_sub = numel(index_M_sub_);
-    tmp_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_M,index_M_sub_);
-    M_sub_k_p_wkM__ = torch.reshape(M_k_p_wkM__.ravel()[tmp_index_rhs_],mtr((n_w_sum,numel(index_M_sub_))));
+    tmp_i8_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_M,index_M_sub_);
+    M_sub_k_p_wkM__ = torch.reshape(M_k_p_wkM__.ravel()[tmp_i8_index_rhs_],mtr((n_w_sum,numel(index_M_sub_))));
     if (flag_verbose>1): print(f' %% nCTF {nCTF}/{n_CTF}, M_sub_k_p_wkM__: {fnorm(M_sub_k_p_wkM__)}');
     M_sub_k_q_wkM__ = interp_p_to_q(n_k_p_r,n_w_,n_w_sum,M_sub_k_p_wkM__);
     if (flag_verbose>1): print(f' %% nCTF {nCTF}/{n_CTF}, M_sub_k_q_wkM__: {fnorm(M_sub_k_q_wkM__)}');
     #%%%%;
-    tmp_n = int(np.maximum(n_k_p_r,n_UX_rank)); UX_kn__ = torch.eye(tmp_n).to(dtype=torch.float32); tmp_index_rhs_ = matlab_index_2d_0(tmp_n,torch.arange(n_k_p_r),tmp_n,torch.arange(n_UX_rank)); UX_kn__ = torch.reshape(UX_kn__.ravel()[tmp_index_rhs_],mtr((n_k_p_r,n_UX_rank))).to(dtype=torch.float32);
+    tmp_n = int(np.maximum(n_k_p_r,n_UX_rank)); UX_kn__ = torch.eye(tmp_n).to(dtype=torch.float32); tmp_i8_index_rhs_ = matlab_index_2d_0(tmp_n,torch.arange(n_k_p_r),tmp_n,torch.arange(n_UX_rank)); UX_kn__ = torch.reshape(UX_kn__.ravel()[tmp_i8_index_rhs_],mtr((n_k_p_r,n_UX_rank))).to(dtype=torch.float32);
     X_weight_r_ = torch.sqrt(weight_2d_k_p_r_);
     if (flag_verbose>1): print(f' %% nCTF {nCTF}/{n_CTF}, X_weight_r_: {fnorm(X_weight_r_)}');
     if  flag_pm:
@@ -2102,8 +2102,8 @@ for nCTF in range(n_CTF):
     if (flag_verbose): print(f' %% tfpmh_UX_T_M_sub_l2_dm__1: {tmp_t:.2f}s');
     tmp_index_d0 = intersect_0(efind(torch.abs(FTK['r8_delta_x_'])< 1e-6),efind(torch.abs(FTK['r8_delta_y_'])< 1e-6))[0];
     assert(numel(tmp_index_d0)==1); #%<-- should be zero-displacement. ;
-    tmp_index_rhs_ = matlab_index_2d_0(FTK['n_delta_v'],tmp_index_d0,n_M_sub,':');
-    UX_M_sub_l2_M_ = UX_T_M_sub_l2_dM__.ravel()[tmp_index_rhs_].ravel(); assert(numel(UX_M_sub_l2_M_)==n_M_sub);
+    tmp_i8_index_rhs_ = matlab_index_2d_0(FTK['n_delta_v'],tmp_index_d0,n_M_sub,':');
+    UX_M_sub_l2_M_ = UX_T_M_sub_l2_dM__.ravel()[tmp_i8_index_rhs_].ravel(); assert(numel(UX_M_sub_l2_M_)==n_M_sub);
     if (flag_verbose>1): print(f' %% nCTF {nCTF}/{n_CTF}, UX_M_sub_l2_M_: {fnorm(UX_M_sub_l2_M_)}');
     #%%%%;
     tmp_t = tic();
@@ -2140,10 +2140,10 @@ for nCTF in range(n_CTF):
     if (flag_verbose): print(f' %% Z_sub_dwSM____: {tmp_t:.2f}s');
     #%%%%;
     UX_M_l2_M_[index_M_sub_] = UX_M_sub_l2_M_.ravel();
-    tmp_index_lhs_ = matlab_index_2d_0(FTK['n_delta_v'],':',n_M,index_M_sub_);
-    UX_T_M_l2_dM__.ravel()[tmp_index_lhs_] = UX_T_M_sub_l2_dM__.ravel();
-    tmp_index_lhs_ = matlab_index_4d_0(FTK['n_delta_v'],':',n_w_max,':',n_S,':',n_M,index_M_sub_);
-    Z_dwSM_ampm____.ravel()[tmp_index_lhs_] = svd_USESVUXCTFM_sub_dwSM____.ravel() ;
+    tmp_i8_index_lhs_ = matlab_index_2d_0(FTK['n_delta_v'],':',n_M,index_M_sub_);
+    UX_T_M_l2_dM__.ravel()[tmp_i8_index_lhs_] = UX_T_M_sub_l2_dM__.ravel();
+    tmp_i8_index_lhs_ = matlab_index_4d_0(FTK['n_delta_v'],':',n_w_max,':',n_S,':',n_M,index_M_sub_);
+    Z_dwSM_ampm____.ravel()[tmp_i8_index_lhs_] = svd_USESVUXCTFM_sub_dwSM____.ravel() ;
     #%%%%;
     del UX_kn__;del X_weight_r_;del CTF_k_p_wk_;del index_M_sub_;del UX_T_M_sub_l2_dM__;del UX_M_sub_l2_M_;
     del UX_S_k_q_wnS__;
@@ -2356,8 +2356,8 @@ delta_x_M = image_delta_x_true_M_[nM].item();
 delta_y_M = image_delta_y_true_M_[nM].item();
 R_M__ = mmmm( Rz(+gamma_z_M) , mmmm( Ry(-polar_a_M) , Rz(-azimu_b_M) ) );
 nw = int(np.maximum(0,np.minimum(n_w_max-1,matlab_scalar_round(n_w_max*3/5))));
-tmp_index_rhs_ = matlab_index_4d_0(FTK['n_delta_v'],':',n_w_max,nw,n_S,nS,n_M,nM);
-Z_d_ampm_ = Z_dwSM_ampm____.ravel()[tmp_index_rhs_];
+tmp_i8_index_rhs_ = matlab_index_4d_0(FTK['n_delta_v'],':',n_w_max,nw,n_S,nS,n_M,nM);
+Z_d_ampm_ = Z_dwSM_ampm____.ravel()[tmp_i8_index_rhs_];
 Z_d_quad_ = torch.zeros(n_delta_v).to(dtype=torch.complex64);
 Z_d_form_ = torch.zeros(n_delta_v).to(dtype=torch.complex64);
 S_k_p_wk_ = S_k_p_wkS__[nS,:].ravel();

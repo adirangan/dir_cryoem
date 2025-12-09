@@ -104,8 +104,8 @@ def convert_k_p_to_spharm_uniform_over_n_k_p_r_5(
 
     tmp_t = tic();
     d0y_lmj___ = torch.permute(d0y_jlm___,mtr(mts((1,2,0)))); #%<-- permutation before inflation is faster. ;
-    tmp_index_rhs_ = matlab_index_3d_0(1+l_max_max,':',1+l_max_max,torch.abs(torch.arange(-l_max_max,+l_max_max+1)).to(dtype=torch.int32),n_polar_a_unique,index_return_);
-    d0y_lmq___ = torch.reshape(d0y_lmj___.ravel()[tmp_index_rhs_],mtr((1+l_max_max,1+2*l_max_max,n_q)));
+    tmp_i8_index_rhs_ = matlab_index_3d_0(1+l_max_max,':',1+l_max_max,torch.abs(torch.arange(-l_max_max,+l_max_max+1)).to(dtype=torch.int32),n_polar_a_unique,index_return_);
+    d0y_lmq___ = torch.reshape(d0y_lmj___.ravel()[tmp_i8_index_rhs_],mtr((1+l_max_max,1+2*l_max_max,n_q)));
     tmp_t = toc(tmp_t);
     if (flag_verbose>0): disp(sprintf(' %% d0y_lmq___: %0.6fs',tmp_t)); #end;
 
@@ -130,9 +130,9 @@ def convert_k_p_to_spharm_uniform_over_n_k_p_r_5(
         l_max = int(l_max_[nl].item());
         for l_val in range(l_max+1):
             m_val_ = torch.arange(-l_val,+l_val+1).to(dtype=torch.int32);
-            tmp_index_lhs_ = matlab_index_2d_0(n_y_max,l_val**2+l_val+m_val_,n_k_p_r,':');
-            tmp_index_rhs_ = matlab_index_3d_0(1+l_max_max,l_val,1+2*l_max_max,l_max_max+m_val_,n_k_p_r,':');
-            a_k_Y_yk__.ravel()[tmp_index_lhs_] = a_k_Y_lmk___.ravel()[tmp_index_rhs_];
+            tmp_i8_index_lhs_ = matlab_index_2d_0(n_y_max,l_val**2+l_val+m_val_,n_k_p_r,':');
+            tmp_i8_index_rhs_ = matlab_index_3d_0(1+l_max_max,l_val,1+2*l_max_max,l_max_max+m_val_,n_k_p_r,':');
+            a_k_Y_yk__.ravel()[tmp_i8_index_lhs_] = a_k_Y_lmk___.ravel()[tmp_i8_index_rhs_];
         #end;%for l_val=0:l_max;
     #end;%for nl=0:numel(l_max_)-1;
     a_k_Y_yk_ = local_yk_from_yk__(n_k_p_r,l_max_,a_k_Y_yk__);
