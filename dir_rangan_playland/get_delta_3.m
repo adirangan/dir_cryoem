@@ -5,7 +5,7 @@ function ...
 ,delta_p_r_ ...
 ,weight_2d_p_r_ ...
 ,n_delta_p_w ...
-,delta_p_w_...
+,delta_p_w_ ...
 ,delta_p_0_wr__ ...
 ,delta_p_1_wr__ ...
 ,weight_2d_p_wr__ ...
@@ -13,11 +13,11 @@ function ...
 get_delta_3( ....
  parameter ....
 ,delta_r_max ...
-,n_delta_v_0in ...
+,n_delta_v_requested ...
 );
 % This function outputs an array of displacements delta_0_, delta_y_ ;
 % that are supported on a disc of radius delta_r_max. ;
-% The number of requested displacents n_delta_v_0in is a lower-bound on the actual number produced. ;
+% The number of requested displacents n_delta_v_requested is a lower-bound on the actual number produced. ;
 % In this case we return 
 
 str_thisfunction = 'get_delta_3';
@@ -53,19 +53,19 @@ end;%if nargin<1;
 na=0;
 if (nargin<1+na); parameter=[]; end; na=na+1;
 if (nargin<1+na); delta_r_max=[]; end; na=na+1;
-if (nargin<1+na); n_delta_v_0in=[]; end; na=na+1;
+if (nargin<1+na); n_delta_v_requested=[]; end; na=na+1;
 
 if isempty(parameter); parameter=struct('type','parameter'); end;
 
-if isempty(n_delta_v_0in);
+if isempty(n_delta_v_requested);
 n_delta_p_r = 1; delta_p_r_ = 0;
 n_delta_p_w = 1; delta_p_w_ = 0;
 delta_p_0_wr__ = 0; delta_p_1_wr__ = 0; 
-end;%if isempty(n_delta_v_0in);
+end;%if isempty(n_delta_v_requested);
 
 tolerance_margin = 1e-6;
-if n_delta_v_0in> 1;
-n_delta_p_r = 0 + ceil(sqrt(n_delta_v_0in/(2*pi))); n_delta_p_w = ceil(2*pi*n_delta_p_r);
+if n_delta_v_requested> 1;
+n_delta_p_r = 0 + ceil(sqrt(n_delta_v_requested/(2*pi))); n_delta_p_w = ceil(2*pi*n_delta_p_r);
 [a_jx_,a_jw_] = jacpts(n_delta_p_r,0,1); a_jw_=transpose(a_jw_);
 weight_2d_p_r_ = delta_r_max^2 * pi*a_jw_/2;
 delta_p_r_ = delta_r_max*(a_jx_ + 1)/2;
@@ -74,4 +74,4 @@ delta_p_w_ = linspace(0,2*pi,n_delta_p_w+1); delta_p_w_ = transpose(delta_p_w_(1
 delta_p_0_wr__ = delta_p_r_wr__.*cos(delta_p_w_wr__);
 delta_p_1_wr__ = delta_p_r_wr__.*sin(delta_p_w_wr__);
 weight_2d_p_wr__ = reshape(repmat(reshape(weight_2d_p_r_,[1,n_delta_p_r]),[n_delta_p_w,1]),[n_delta_p_w*n_delta_p_r,1])/n_delta_p_w/(2*pi)^2; %<-- to stay consistent with weight_2d_k_p_wk_. ;
-end;%if n_delta_v_0in> 1;
+end;%if n_delta_v_requested> 1;

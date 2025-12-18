@@ -1,5 +1,5 @@
 exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ;
-from tfh_FTK_2 import tfh_FTK_2 ;
+from tfh_FTK_4 import tfh_FTK_4 ;
 from tfpmh_Z_cluster_wrap_SM__14 import tfpmh_Z_cluster_wrap_SM__14 ;
 
 str_thisfunction = 'test_tfpmut_wrap_6_stage_9';
@@ -68,10 +68,16 @@ n_delta_v_requested = int(tmp_['n_delta_v_requested'].item());
 flag_precompute_UX_CTF_S_k_q_wnS__ = int(tmp_['flag_precompute_UX_CTF_S_k_q_wnS__'].item());
 flag_precompute_UX_CTF_S_l2_S_ = int(tmp_['flag_precompute_UX_CTF_S_l2_S_'].item());
 tmp_t = tic();
-FTK = tfh_FTK_2(n_k_p_r,k_p_r_,k_p_r_max,delta_r_max,svd_eps,n_delta_v_requested);
+r8_delta_r_max = float(delta_r_max);
+r8_svd_eps = float(svd_eps);
+parameter_FTK = parameter;
+parameter_FTK['r8_delta_r_max'] = r8_delta_r_max;
+parameter_FTK['r8_svd_eps'] = r8_svd_eps;
+parameter_FTK['n_delta_v_requested'] = n_delta_v_requested;
+parameter_FTK,FTK = tfh_FTK_4(parameter_FTK,n_k_p_r,k_p_r_,k_p_r_max);
 tmp_t = toc(tmp_t);
 if (flag_verbose>1): disp(sprintf(' %% FTK: %0.3fs',tmp_t)); #end;
-parameter = parameter_timing_update(parameter,sprintf('%s: tfh_FTK_2',str_thisfunction),tmp_t);
+parameter = parameter_timing_update(parameter,sprintf('%s: tfh_FTK_4',str_thisfunction),tmp_t);
 assert(FTK['r8_svd_d_max']>=delta_r_max);
 assert(FTK['n_delta_v']>=n_delta_v_requested);
 n_delta_v = FTK['n_delta_v'];
@@ -140,7 +146,7 @@ index_nS_to_update_ = torch.arange(n_S).to(dtype=torch.int32);
 if parameter['flag_precompute_UX_CTF_S_k_q_wnS__']==0 and parameter['flag_precompute_UX_CTF_S_l2_S_']==0: index_nS_to_update_ = torch.arange(0).to(dtype=torch.int32); #end;%if;
 #%%%%;
 index_nM_to_update_ = torch.randperm(n_M)[0:8];
-parameter['flag_verbose'] = 1;
+parameter['flag_verbose'] = 0;
 #%%%%;
 tmp_t = tic();
 (

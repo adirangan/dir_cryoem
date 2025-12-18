@@ -11,6 +11,14 @@ mts = lambda a : tuple(len(a) - x - 1 for x in a) ; #<-- for permute (i.e., tupl
 n_byte_per_float32 = 4;
 n_byte_per_complex64 = 8;
 
+#%%%%%%%%;
+#% Note that if delta_x and delta_y are given as arrays, ;
+#% then we expect n_S==n_delta_v. ;
+#% Thus, this 'per-template' translation is not appropriate ;
+#% for the construction of an array of the form M_wkdM___ ;
+#% (as might be required for the FTK). ;
+#%%%%%%%%;
+
 def transf_p_to_p(
         n_r=None,
         grid_p_=None,

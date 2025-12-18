@@ -1,5 +1,5 @@
 exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ;
-from tfh_FTK_2 import tfh_FTK_2 ;
+from tfh_FTK_4 import tfh_FTK_4 ;
 from transf_p_to_p import transf_p_to_p ;
 from qbp_uniform_over_n_k_p_r_10 import qbp_uniform_over_n_k_p_r_10 ;
 from spharm_normalize_1 import spharm_normalize_1 ;
@@ -134,10 +134,16 @@ def tfpmut_6(
 
     if isempty(FTK):
         tmp_t = tic();
-        FTK = tfh_FTK_2(n_k_p_r,k_p_r_,k_p_r_max,delta_r_max,svd_eps,n_delta_v_requested);
+        r8_delta_r_max = float(delta_r_max);
+        r8_svd_eps = float(svd_eps);
+        parameter_FTK = parameter;
+        parameter_FTK['r8_delta_r_max'] = r8_delta_r_max;
+        parameter_FTK['r8_svd_eps'] = r8_svd_eps;
+        parameter_FTK['n_delta_v_requested'] = n_delta_v_requested;
+        parameter_FTK,FTK = tfh_FTK_4(parameter_FTK,n_k_p_r,k_p_r_,k_p_r_max);
         tmp_t = toc(tmp_t);
         if (flag_verbose>1): disp(sprintf(' %% FTK: %0.3fs',tmp_t)); #end;
-        parameter = parameter_timing_update(parameter,sprintf('%s: tfh_FTK_2',str_thisfunction),tmp_t);
+        parameter = parameter_timing_update(parameter,sprintf('%s: tfh_FTK_4',str_thisfunction),tmp_t);
     #end;%if isempty(FTK);
     assert(FTK['r8_svd_d_max']>=delta_r_max);
     assert(FTK['n_delta_v']>=n_delta_v_requested);

@@ -232,7 +232,8 @@ def tfpmh_Z_wSM___12(
             tmp_t = toc(tmp_t); 
             if (flag_verbose>1): print(f' %% tfpmh_UX_T_M_sub_l2_dm__1: %0.2fs',tmp_t);
             tmp_index_d0 = intersect_0(efind(torch.abs(FTK['r8_delta_x_'])< 1e-6),efind(torch.abs(FTK['r8_delta_y_'])< 1e-6))[0];
-            assert(numel(tmp_index_d0)==1); #%<-- should be a single index corresponding to zero-displacement. ;
+            assert(numel(tmp_index_d0)>=1); #%<-- should be a single index corresponding to zero-displacement. ;
+            if numel(tmp_index_d0)> 1: tmp_index_d0 = tmp_index_d0[0]; #end;
             tmp_i8_index_rhs_ = matlab_index_2d_0(FTK['n_delta_v'],tmp_index_d0,n_M_sub,':');
             UX_M_sub_l2_M_ = UX_T_M_sub_l2_dM__.ravel()[tmp_i8_index_rhs_].ravel(); assert(numel(UX_M_sub_l2_M_)==n_M_sub);
             #%%%%;

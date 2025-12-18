@@ -1,4 +1,11 @@
 function M_p_ = transf_p_to_p(n_r,grid_p_,n_w_,n_w_sum,S_p_,delta_x,delta_y,flag_each);
+%%%%%%%%;
+% Note that if delta_x and delta_y are given as arrays, ;
+% then we expect n_S==n_delta_v. ;
+% Thus, this 'per-template' translation is not appropriate ;
+% for the construction of an array of the form M_wkdM___ ;
+% (as might be required for the FTK). ;
+%%%%%%%%;
 
 str_thisfunction = 'transf_p_to_p';
 

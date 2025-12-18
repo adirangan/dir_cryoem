@@ -4,7 +4,7 @@ function ...
 ,M_k_q_wkM__ ...
 ,UX_T_M_l2_dM__ ...
 ,UX_M_l2_M_ ...
-,svd_V_UX_M_lwnM____ ...
+,svd_V_UX_M_lwnM____ ... %<-- or UX_T_M_k_q_dwnM____ ;
 ,UX_CTF_S_k_q_wnS__ ...
 ,UX_CTF_S_l2_S_ ...
 ] = ...
@@ -29,7 +29,7 @@ tfpmhp_Z_wSM___14( ...
 ,M_k_q_wkM__ ...
 ,UX_T_M_l2_dM__ ...
 ,UX_M_l2_M_ ...
-,svd_V_UX_M_lwnM____ ...
+,svd_V_UX_M_lwnM____ ... %<-- or UX_T_M_k_q_dwnM____ ;
 ,index_nS_ ...
 ,UX_CTF_S_k_q_wnS__ ...
 ,UX_CTF_S_l2_S_ ...
@@ -108,7 +108,7 @@ if (n_w_sum~=n_w_max*n_k_p_r); disp(sprintf(' %% Warning, n_w_sum %d ~= n_w_max*
 if mod(n_w_max,2)~=0; disp(sprintf(' %% Warning, n_w_max %d in %s',n_w_max,str_thisfunction)); end;
 n_delta_v = FTK.n_delta_v;
 n_svd_l = FTK.n_svd_l;
-tmp_index_d0 = intersect(efind(FTK.delta_x_==0),efind(FTK.delta_y_==0)); assert(numel(tmp_index_d0)==1); %<-- should be a single index corresponding to zero-displacement. ;
+tmp_index_d0 = intersect(efind(FTK.delta_x_==0),efind(FTK.delta_y_==0)); assert(numel(tmp_index_d0)>=1); tmp_index_d0=tmp_index_d0(1+0); %<-- should be a single index corresponding to zero-displacement. ;
 pm_n_k_p_r = pm_n_UX_rank; pm_n_w_max = n_w_max;
 pm_n_w_ = pm_n_w_max*ones(pm_n_k_p_r,1);
 pm_n_w_sum = pm_n_k_p_r*pm_n_w_max;
@@ -122,7 +122,12 @@ if ~isempty(index_nM_);
 if flag_precompute_M_k_q_wkM__==1; if isempty(M_k_q_wkM__); M_k_q_wkM__ = zeros(n_w_sum,n_M); end; end;
 if flag_precompute_UX_T_M_l2_dM__==1; if isempty(UX_T_M_l2_dM__); UX_T_M_l2_dM__ = zeros(n_delta_v,n_M); end; end;
 if flag_precompute_UX_M_l2_M_==1; if isempty(UX_M_l2_M_); UX_M_l2_M_ = zeros(n_M,1); end; end;
-if flag_precompute_svd_V_UX_M_lwnM____==1; if isempty(svd_V_UX_M_lwnM____); svd_V_UX_M_lwnM____ = zeros(n_svd_l,n_w_max,pm_n_k_p_r,n_M); end; end;
+if flag_precompute_svd_V_UX_M_lwnM____==1;
+if isempty(svd_V_UX_M_lwnM____);
+if FTK.flag_tf_vs_bf==1; svd_V_UX_M_lwnM____ = zeros(n_svd_l,n_w_max,pm_n_k_p_r,n_M); end;
+if FTK.flag_tf_vs_bf==0; svd_V_UX_M_lwnM____ = zeros(n_delta_v,n_w_max,pm_n_k_p_r,n_M); end; %<-- UX_T_M_k_q_dwnM____. ;
+end;%if isempty(svd_V_UX_M_lwnM____);
+end;%if flag_precompute_svd_V_UX_M_lwnM____==1;
 end;%if ~isempty(index_nM_);
 %%%%%%%%;
 if ~isempty(index_nS_);
@@ -159,19 +164,35 @@ end;%if flag_precompute_M_k_q_wkM__==1;
 % Prepare quasi-images. ;
 %%%%;
 if flag_precompute_svd_V_UX_M_lwnM____==1;
+if FTK.flag_tf_vs_bf==1;
 tmp_t = tic();
 svd_V_UX_M_lwnM____(:,:,:,1+index_nM_) = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M_sub,M_k_q_wkM__(:,1+index_nM_),pm_n_UX_rank,pm_UX_kn__,pm_X_weight_r_);
 tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% svd_V_UX_M_lwnM____: %0.6fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,sprintf('%s: precompute svd_V_UX_M_lwnM____',str_thisfunction),tmp_t);
+end;%if FTK.flag_tf_vs_bf==1;
+if FTK.flag_tf_vs_bf==0;
+tmp_t = tic();
+svd_V_UX_M_lwnM____(:,:,:,1+index_nM_) = tpmh_UXTM_dwnM____0(FTK,n_k_p_r,k_p_r_,n_w_,n_M_sub,M_k_p_wkM__(:,1+index_nM_),pm_n_UX_rank,pm_UX_kn__,pm_X_weight_r_);
+tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% UX_T_M_k_q_dwnM____: %0.6fs',tmp_t)); end;
+parameter = parameter_timing_update(parameter,sprintf('%s: precompute UX_T_M_k_q_dwnM____',str_thisfunction),tmp_t);
+end;%if FTK.flag_tf_vs_bf==0;
 end;%if flag_precompute_svd_V_UX_M_lwnM____==1;
 %%%%;
 % Now calculate norms of the translated images. ;
 %%%%;
 if flag_precompute_UX_T_M_l2_dM__==1;
+if FTK.flag_tf_vs_bf==1;
 tmp_t = tic();
 UX_T_M_l2_dM__(:,1+index_nM_) = tfpmh_UX_T_M_l2_dM__1(FTK,n_w_,n_M_sub,pm_n_UX_rank,svd_V_UX_M_lwnM____(:,:,:,1+index_nM_));
-tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% tfpmh_UX_T_M_l2_dm__1: %0.6fs',tmp_t)); end;
-parameter = parameter_timing_update(parameter,sprintf('%s: precompute tfpmh_UX_T_M_l2_dm__1',str_thisfunction),tmp_t);
+tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% tfpmh_UX_T_M_l2_dM__1: %0.6fs',tmp_t)); end;
+parameter = parameter_timing_update(parameter,sprintf('%s: precompute tfpmh_UX_T_M_l2_dM__1',str_thisfunction),tmp_t);
+end;%if FTK.flag_tf_vs_bf==1;
+if FTK.flag_tf_vs_bf==0;
+tmp_t = tic();
+UX_T_M_l2_dM__(:,1+index_nM_) = tfpmh_UX_T_M_l2_dM__0(FTK,n_w_,n_M_sub,pm_n_UX_rank,svd_V_UX_M_lwnM____(:,:,:,1+index_nM_));
+tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% tfpmh_UX_T_M_l2_dM__0: %0.6fs',tmp_t)); end;
+parameter = parameter_timing_update(parameter,sprintf('%s: precompute tfpmh_UX_T_M_l2_dM__0',str_thisfunction),tmp_t);
+end;%if FTK.flag_tf_vs_bf==0;
 end;%if flag_precompute_UX_T_M_l2_dM__==1;
 if flag_precompute_UX_M_l2_M_==1;
 UX_M_l2_M_(1+index_nM_) = reshape(UX_T_M_l2_dM__(1+tmp_index_d0,1+index_nM_),[n_M_sub,1]);

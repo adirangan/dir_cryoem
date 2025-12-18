@@ -62,7 +62,7 @@ def interp_p_to_q(
     #%%%%%%%%%%%%%%%%;
     if numel_unique(n_w_)==1:
         n_w = int(n_w_[0].item());
-        S_q_ = torch.tensor(np.fft.fft(torch.reshape(S_p_,mtr((n_w,n_r,n_S))).numpy(),axis=2-0)/np.maximum(1,np.sqrt(n_w))).to(dtype=torch.complex64).ravel();
+        S_q_ = torch.fft.fft(torch.reshape(S_p_,mtr((n_w,n_r,n_S))),axis=2-0).to(dtype=torch.complex64).ravel() / np.maximum(1,np.sqrt(n_w));
         assert(numel(S_q_)==numel(S_p_));
     #end;%if (numel(unique(n_w_))==1);
     #%%%%%%%%%%%%%%%%;

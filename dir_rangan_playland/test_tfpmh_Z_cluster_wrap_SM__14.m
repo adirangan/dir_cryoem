@@ -1,5 +1,7 @@
 str_thisfunction = 'tfpmh_Z_cluster_wrap_SM__14';
 
+flag_tf_vs_bf=1;
+
 %%%%%%%%;
 % First define integral of <f,f>. ;
 %%%%%%%%;
@@ -233,8 +235,15 @@ delta_r_s = delta_r_max/max(1e-12,sqrt(2*log(1/max(1e-12,delta_r_p))));
 delta_r_N = delta_r_max * (2*pi*k_p_r_max) / (pi*sqrt(2));
 svd_eps = 1e-12;
 tmp_t=tic();
-FTK = tfh_FTK_2(n_k_p_r,k_p_r_,k_p_r_max,delta_r_max,svd_eps,n_delta_v_requested);
+parameter_FTK = struct('type','FTK');
+parameter_FTK.delta_r_max = delta_r_max;
+parameter_FTK.svd_eps = svd_eps;
+parameter_FTK.n_delta_v_requested = n_delta_v_requested;
+[parameter_FTK,FTK] = tfh_FTK_4(parameter_FTK,n_k_p_r,k_p_r_,k_p_r_max);
+FTK.flag_tf_vs_bf=flag_tf_vs_bf;
 tmp_t=toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% FTK: %0.3fs',tmp_t)); end;
+n_delta_v = FTK.n_delta_v;
+n_svd_l = FTK.n_svd_l;
 disp(sprintf(' %% p-val %0.4f delta_r_max %0.6f sigma %0.4f N_pixel %0.4f --> FTK.n_svd_l %d, n_delta_v_requested %d',delta_r_p,delta_r_max,delta_r_s,delta_r_N,FTK.n_svd_l,n_delta_v_requested));
 %%%%%%%%;
 % design index_nCTF_from_nM_. ;
@@ -517,6 +526,7 @@ tmp_t=toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% X_SM_tfpm__: %0.3fs',tm
 %%%%%%%%;
 X_SM_quad__ = zeros(n_S,n_M);
 Z_SM_quad__ = zeros(n_S,n_M);
+UX_T_M_l2_SM_quad__ = zeros(n_S,n_M);
 for nS=0:n_S-1;
 S_k_p_wk_ = S_k_p_wkS__(:,1+nS);
 for nM=0:n_M-1;
@@ -544,12 +554,14 @@ Z_quad = UX_CTF_RS_k_p_UX_TM_k_p;
 X_quad = Z_quad / max(1e-12,sqrt(UX_CTF_RS_l2)) / max(1e-12,sqrt(UX_TM_l2));
 Z_SM_quad__(1+nS,1+nM) = real(Z_quad);
 X_SM_quad__(1+nS,1+nM) = real(X_quad);
+UX_T_M_l2_SM_quad__(1+nS,1+nM) = UX_TM_l2;
 %%%%;
 end;%for nM=0:n_M-1;
 end;%for nS=0:n_S-1;
 %%%%%%%%;
 fnorm_disp(flag_verbose,'Z_SM_quad__',Z_SM_quad__,'Z_SM_tfpm__',Z_SM_tfpm__);
 fnorm_disp(flag_verbose,'X_SM_quad__',X_SM_quad__,'X_SM_tfpm__',X_SM_tfpm__);
+fnorm_disp(flag_verbose,'UX_T_M_l2_SM_quad__',UX_T_M_l2_SM_quad__,'UX_T_M_l2_SM_tfpm__',UX_T_M_l2_SM_tfpm__);
 %%%%%%%%;
 
 %%%%%%%%;

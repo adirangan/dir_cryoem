@@ -171,9 +171,13 @@ parameter = parameter_timing_update(parameter,sprintf('%s: CTF_k_p_r_xavg_kc__',
 
 if isempty(FTK);
 tmp_t = tic();
-FTK = tfh_FTK_2(n_k_p_r,k_p_r_,k_p_r_max,delta_r_max,svd_eps,n_delta_v_requested);
+parameter_FTK = parameter.
+parameter_FTK.delta_r_max = delta_r_max;
+parameter_FTK.svd_eps = svd_eps;
+parameter_FTK.n_delta_v_requested = n_delta_v_requested;
+[parameter_FTK,FTK] = tfh_FTK_4(parameter_FTK,n_k_p_r,k_p_r_,k_p_r_max);
 tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% FTK: %0.3fs',tmp_t)); end;
-parameter = parameter_timing_update(parameter,sprintf('%s: tfh_FTK_2',str_thisfunction),tmp_t);
+parameter = parameter_timing_update(parameter,sprintf('%s: tfh_FTK_4',str_thisfunction),tmp_t);
 end;%if isempty(FTK);
 assert(FTK.svd_d_max>=delta_r_max);
 assert(FTK.n_delta_v>=n_delta_v_requested);

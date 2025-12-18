@@ -89,7 +89,11 @@ delta_r_max = 0.5/max(1e-12,k_p_r_max);
 if flag_speed_vs_error==0; svd_eps = 1e-9; n_delta_v_requested =  9; end;
 if flag_speed_vs_error==1; svd_eps = 1e-2; n_delta_v_requested = 32; end;
 
-FTK = tfh_FTK_2(n_k_p_r,k_p_r_,k_p_r_max,delta_r_max,svd_eps,n_delta_v_requested);
+parameter_FTK = struct('type','FTK');
+parameter_FTK.delta_r_max = delta_r_max;
+parameter_FTK.svd_eps = svd_eps;
+parameter_FTK.n_delta_v_requested = n_delta_v_requested;
+[parameter_FTK,FTK] = tfh_FTK_4(parameter_FTK,n_k_p_r,k_p_r_,k_p_r_max);
 n_delta_v = FTK.n_delta_v;
 n_svd_l = FTK.n_svd_l;
 %%%%%%%%;
@@ -98,6 +102,7 @@ if (flag_verbose>0); disp(sprintf(' %% n_k_p_r %d n_w_max %d pm_n_UX_rank %d n_d
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 if flag_speed_vs_error==1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+for flag_tf_vs_bf=[0:1];
 tmp_t = tic();
 parameter=struct('type','parameter');
 parameter.flag_verbose = 1;
@@ -105,6 +110,7 @@ parameter.n_M_per_Mbatch = 24;
 parameter.n_S_per_Sbatch = 24;
 parameter.flag_dwSM = 0;
 parameter.flag_optimize_over_gamma_z = 1;
+FTK.flag_tf_vs_bf = flag_tf_vs_bf;
 [ ...
  parameter ...
 ,tfpmh_Z_wSM___ ...
@@ -137,8 +143,9 @@ tfpmh_Z_wSM___14( ...
 ,pm_X_weight_r_ ...
 ,FTK ...
 );
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% tfpmh_Z_wSM___14: %0.6f',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% tfpmh_Z_wSM___14: time %0.6fs',tmp_t)); end;
 parameter_timing_printf(parameter);
+end;%for flag_tf_vs_bf=[0:1];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 end;%if flag_speed_vs_error==1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
@@ -146,18 +153,18 @@ end;%if flag_speed_vs_error==1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 if flag_speed_vs_error==0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
-n_type = 2;
 %%%%%%%%%%%%%%%%;
-for ntype=0:n_type-1;
+for flag_tf_vs_bf=[0:1];
+for flag_optimize_over_gamma_z=[0:1];
 %%%%%%%%%%%%%%%%;
 parameter=struct('type','parameter');
 parameter.flag_verbose = 1;
-if ntype==0; parameter.flag_optimize_over_gamma_z = 0; end;
-if ntype==2; parameter.flag_optimize_over_gamma_z = 1; end;
+parameter.flag_optimize_over_gamma_z = flag_optimize_over_gamma_z;
 parameter.n_M_per_Mbatch = 3;
 parameter.n_S_per_Sbatch = 5;
 parameter.flag_dwSM = 1;
 parameter.flag_verbose = max(0,flag_verbose-1);
+FTK.flag_tf_vs_bf = flag_tf_vs_bf;
 [ ...
  parameter ...
 ,tfpmh_Z_wSM___ ...
@@ -194,7 +201,8 @@ tfpmh_Z_wSM___14( ...
 % compare to ../dir_rangan_python/dir_pymat/test_tfpmh_Z_wSM___14.mat. ;
 %%%%;
 dir_pymat = '../dir_rangan_python/dir_pymat';
-fname_pymat = sprintf('%s/test_tfpmh_Z_wSM___14.mat',dir_pymat);
+if parameter.flag_optimize_over_gamma_z==0; fname_pymat = sprintf('%s/test_tfpmh_Z_wSM___14.mat',dir_pymat); end;
+if parameter.flag_optimize_over_gamma_z==1; fname_pymat = sprintf('%s/test_tfpmh_Z_SM__14.mat',dir_pymat); end;
 if ~exist(fname_pymat,'file'); disp(sprintf(' %% Warning, %s not found',fname_pymat)); end;
 if  exist(fname_pymat,'file');
 disp(sprintf(' %% %s found, loading',fname_pymat));
@@ -274,7 +282,8 @@ end;%for nS=0:n_S-1;
 if (flag_verbose>0); disp(sprintf(' %% parameter.flag_optimize_over_gamma_z = %d; tmp_Z_errrel: %0.16f',parameter.flag_optimize_over_gamma_z,tmp_Z_errrel)); end;
 if (flag_verbose>0); disp(sprintf(' %% parameter.flag_optimize_over_gamma_z = %d; tmp_X_errrel: %0.16f',parameter.flag_optimize_over_gamma_z,tmp_X_errrel)); end;
 %%%%%%%%%%%%%%%%;
-end;%for ntype=0:n_type-1;
+end;%for flag_optimize_over_gamma_z=[0:1];
+end;%for flag_tf_vs_bf=[0:1];
 %%%%%%%%%%%%%%%%;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 end;%if flag_speed_vs_error==0;

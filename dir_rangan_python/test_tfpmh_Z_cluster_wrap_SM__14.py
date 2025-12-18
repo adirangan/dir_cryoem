@@ -10,9 +10,12 @@ from cg_rhs_2 import cg_rhs_2 ;
 from interp_p_to_q import interp_p_to_q ;
 from transf_p_to_p import transf_p_to_p ;
 from rotate_p_to_p_fftw import rotate_p_to_p_fftw ;
-from tfh_FTK_2 import tfh_FTK_2 ;
+from tfh_FTK_4 import tfh_FTK_4 ;
 from principled_marching_empirical_cost_matrix_1 import principled_marching_empirical_cost_matrix_1 ;
 from tfpmh_Z_cluster_wrap_SM__14 import tfpmh_Z_cluster_wrap_SM__14 ;
+
+flag_tf_vs_bf = 1;
+flag_gpu = 1;
 
 str_thisfunction = 'tfpmh_Z_cluster_wrap_SM__14';
 #%%%%%%%%;
@@ -228,9 +231,17 @@ delta_r_s = delta_r_max/np.maximum(1e-12,np.sqrt(2*np.log(1/np.maximum(1e-12,del
 delta_r_N = delta_r_max * (2*pi*k_p_r_max) / (pi*np.sqrt(2));
 svd_eps = 1e-12;
 tmp_t=tic();
-FTK = tfh_FTK_2(n_k_p_r,k_p_r_,k_p_r_max,delta_r_max,svd_eps,n_delta_v_requested);
+r8_delta_r_max = float(delta_r_max); r8_svd_eps = float(svd_eps);
+parameter_FTK = {'type':'FTK'};
+parameter_FTK['r8_delta_r_max'] = r8_delta_r_max;
+parameter_FTK['r8_svd_eps'] = r8_svd_eps;
+parameter_FTK['n_delta_v_requested'] = n_delta_v_requested;
+parameter_FTK,FTK = tfh_FTK_4(parameter_FTK,n_k_p_r,k_p_r_,k_p_r_max);
 tmp_t=toc(tmp_t);
 if (flag_verbose>0): disp(sprintf(' %% FTK: %0.3fs',tmp_t)); #end;
+FTK['flag_tf_vs_bf'] = flag_tf_vs_bf;
+n_delta_v = FTK['n_delta_v'];
+n_svd_l = FTK['n_svd_l'];
 disp(sprintf(' %% p-val %0.4f delta_r_max %0.6f sigma %0.4f N_pixel %0.4f --> FTK.n_svd_l %d, n_delta_v_requested %d',delta_r_p,delta_r_max,delta_r_s,delta_r_N,FTK['n_svd_l'],n_delta_v_requested));
 #%%%%%%%%;
 #% design index_nCTF_from_nM_. ;
@@ -316,6 +327,7 @@ if (flag_verbose>0): disp(sprintf(' %% pm_UX_knc___: %0.3fs',tmp_t)); #end;
 #%%%%%%%%;
 tmp_t=tic();
 parameter = {'type':'parameter'};
+parameter['flag_gpu'] = flag_gpu;
 (
     parameter,
     Z_SM_tfpm__,
@@ -481,6 +493,7 @@ if (flag_verbose>0): disp(sprintf(' %% pm_UX_knc___: %0.3fs',tmp_t)); #end;
 #%%%%%%%%;
 tmp_t=tic();
 parameter = {'type':'parameter'};
+parameter['flag_gpu'] = flag_gpu;
 (
     parameter,
     Z_SM_tfpm__,
@@ -522,6 +535,7 @@ if (flag_verbose>0): disp(sprintf(' %% X_SM_tfpm__: %0.3fs',tmp_t)); #end;
 #%%%%%%%%;
 X_SM_quad__ = torch.zeros(mtr((n_S,n_M))).to(dtype=torch.float32);
 Z_SM_quad__ = torch.zeros(mtr((n_S,n_M))).to(dtype=torch.float32);
+UX_T_M_l2_SM_quad__ = torch.zeros(mtr((n_S,n_M))).to(dtype=torch.float32);
 for nS in range(n_S):
     S_k_p_wk_ = S_k_p_wkS__[nS,:].ravel();
     for nM in range(n_M):
@@ -550,12 +564,14 @@ for nS in range(n_S):
         X_quad = Z_quad / np.maximum(1e-12,np.sqrt(UX_CTF_RS_l2)) / np.maximum(1e-12,np.sqrt(UX_TM_l2));
         Z_SM_quad__[nM,nS] = np.real(Z_quad);
         X_SM_quad__[nM,nS] = np.real(X_quad);
+        UX_T_M_l2_SM_quad__[nM,nS] = float(UX_TM_l2);
     #%%%%;
     #end;%for nM=0:n_M-1;
 #end;%for nS=0:n_S-1;
 #%%%%%%%%;
 fnorm_disp(flag_verbose,'Z_SM_quad__',Z_SM_quad__,'Z_SM_tfpm__',Z_SM_tfpm__);
 fnorm_disp(flag_verbose,'X_SM_quad__',X_SM_quad__,'X_SM_tfpm__',X_SM_tfpm__);
+fnorm_disp(flag_verbose,'UX_T_M_l2_SM_quad__',UX_T_M_l2_SM_quad__,'UX_T_M_l2_SM_tfpm__',UX_T_M_l2_SM_tfpm__);
 #%%%%%%%%;
 
 #%%%%%%%%;
@@ -573,6 +589,7 @@ if 'index_nS_to_update_' not in locals(): index_nS_to_update_=None; #end;
 if 'UX_CTF_S_k_q_wnS__' not in locals(): UX_CTF_S_k_q_wnS__=None; #end;
 if 'UX_CTF_S_l2_S_' not in locals(): UX_CTF_S_l2_S_=None; #end;
 parameter = {'type':'parameter'};
+parameter['flag_gpu'] = flag_gpu;
 index_nM_to_update_ = torch.arange(n_M).to(dtype=torch.int32);
 index_nS_to_update_ = torch.arange(n_S).to(dtype=torch.int32);
 parameter['flag_precompute_M_k_q_wkM__'] = int(1*1);
@@ -639,3 +656,5 @@ fnorm_disp(flag_verbose,'delta_x_SM_tfpm__',delta_x_SM_tfpm__,'tmp_delta_x_SM_tf
 fnorm_disp(flag_verbose,'delta_y_SM_tfpm__',delta_y_SM_tfpm__,'tmp_delta_y_SM_tfpm__',tmp_delta_y_SM_tfpm__,' %%<-- should be zero');
 fnorm_disp(flag_verbose,'gamma_z_SM_tfpm__',gamma_z_SM_tfpm__,'tmp_gamma_z_SM_tfpm__',tmp_gamma_z_SM_tfpm__,' %%<-- should be zero');
 fnorm_disp(flag_verbose,'index_sub_SM_tfpm__.to(dtype=torch.float32)',index_sub_SM_tfpm__.to(dtype=torch.float32),'tmp_index_sub_SM_tfpm__.to(dtype=torch.float32)',tmp_index_sub_SM_tfpm__.to(dtype=torch.float32),' %%<-- should be zero');
+#%%%%%%%%;
+parameter_timing_printf(parameter);

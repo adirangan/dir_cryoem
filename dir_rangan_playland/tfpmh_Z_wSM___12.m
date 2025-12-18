@@ -238,7 +238,7 @@ tmp_t = tic();
 UX_T_M_sub_l2_dM__ = tfpmh_UX_T_M_l2_dM__1(FTK,n_w_,n_M_sub,pm_n_UX_rank,svd_V_UX_M_sub_lwnM____);
 tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% tfpmh_UX_T_M_sub_l2_dm__1: %0.2fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,sprintf('%s: tfpmh_UX_T_M_sub_l2_dm__1',str_thisfunction),tmp_t);
-tmp_index_d0 = intersect(efind(FTK.delta_x_==0),efind(FTK.delta_y_==0)); assert(numel(tmp_index_d0)==1); %<-- should be a single index corresponding to zero-displacement. ;
+tmp_index_d0 = intersect(efind(FTK.delta_x_==0),efind(FTK.delta_y_==0)); assert(numel(tmp_index_d0)>=1); tmp_index_d0=tmp_index_d0(1+0); %<-- should be a single index corresponding to zero-displacement. ;
 UX_M_sub_l2_M_ = reshape(UX_T_M_sub_l2_dM__(1+tmp_index_d0,:),[n_M_sub,1]);
 %%%%;
 % Store results. ;
@@ -321,7 +321,7 @@ delta_x_wSM___(:,1+index_nS_in_Sbatch_,1+index_nM_in_Mbatch_) = reshape(tmp_delt
 delta_y_wSM___(:,1+index_nS_in_Sbatch_,1+index_nM_in_Mbatch_) = reshape(tmp_delta_y_wSM___,[n_w_max,n_S_sub,n_M_sub]);
 gamma_z_wSM___(:,1+index_nS_in_Sbatch_,1+index_nM_in_Mbatch_) = repmat(tmp_gamma_z_wSM___(:),[1,n_S_sub,n_M_sub]);
 index_sub_wSM___(:,1+index_nS_in_Sbatch_,1+index_nM_in_Mbatch_) = reshape(tmp_index_delta_wSM_,[n_w_max,n_S_sub,n_M_sub]);
-tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% X_wSM___: %0.6f',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% X_wSM___: time %0.6fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,sprintf('%s: X_wSM___',str_thisfunction),tmp_t);
 end;%if flag_optimize_over_gamma_z==0;
 %%%%%%%%;
@@ -351,7 +351,7 @@ delta_x_SM__(1+index_nS_in_Sbatch_,1+index_nM_in_Mbatch_) = reshape(tmp_delta_x_
 delta_y_SM__(1+index_nS_in_Sbatch_,1+index_nM_in_Mbatch_) = reshape(tmp_delta_y_SM__,[n_S_sub,n_M_sub]);
 gamma_z_SM__(1+index_nS_in_Sbatch_,1+index_nM_in_Mbatch_) = reshape(tmp_gamma_z_SM__,[n_S_sub,n_M_sub]);
 index_sub_SM__(1+index_nS_in_Sbatch_,1+index_nM_in_Mbatch_) = reshape(tmp_index_dw_SM_,[n_S_sub,n_M_sub]);
-tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% X_SM__: %0.6f',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% X_SM__: time %0.6fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,sprintf('%s: X_SM__',str_thisfunction),tmp_t);
 end;%if flag_optimize_over_gamma_z==1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;

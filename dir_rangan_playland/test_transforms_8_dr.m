@@ -1782,7 +1782,7 @@ if (flag_verbose>1); disp(sprintf(' %% nCTF %d/%d: svd_VUXM_sub_lwnM____: %0.16f
 tmp_t = tic();
 UX_T_M_sub_l2_dM__ = tfpmh_UX_T_M_l2_dM__1(FTK,n_w_,n_M_sub,pm_n_UX_rank,svd_VUXM_sub_lwnM____);
 tmp_t = toc(tmp_t); if (flag_verbose); disp(sprintf(' %% tfpmh_UX_T_M_sub_l2_dm__1: %0.2fs',tmp_t)); end;
-tmp_index_d0 = intersect(efind(FTK.delta_x_==0),efind(FTK.delta_y_==0)); assert(numel(tmp_index_d0)==1); %<-- should be zero-displacement. ;
+tmp_index_d0 = intersect(efind(FTK.delta_x_==0),efind(FTK.delta_y_==0)); assert(numel(tmp_index_d0)>=1); tmp_index_d0=tmp_index_d0(1+0); %<-- should be zero-displacement. ;
 UX_M_sub_l2_M_ = reshape(UX_T_M_sub_l2_dM__(1+tmp_index_d0,:),[n_M_sub,1]);
 if (flag_verbose>1); disp(sprintf(' %% nCTF %d/%d: UX_M_sub_l2_M_: %0.16f',nCTF,n_CTF,fnorm(UX_M_sub_l2_M_))); end;
 %%%%;

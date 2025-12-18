@@ -33,7 +33,7 @@ tfpmh_Z_wSM___14( ...
 ,M_k_q_wkM__ ...
 ,UX_T_M_l2_dM__ ...
 ,UX_M_l2_M_ ...
-,svd_V_UX_M_lwnM____ ...
+,svd_V_UX_M_lwnM____ ... %<-- or UX_T_M_k_q_dwnM____ ;
 ,UX_CTF_S_k_q_wnS__ ...
 ,UX_CTF_S_l2_S_ ...
 );
@@ -118,7 +118,7 @@ if (n_w_sum~=n_w_max*n_k_p_r); disp(sprintf(' %% Warning, n_w_sum %d ~= n_w_max*
 if mod(n_w_max,2)~=0; disp(sprintf(' %% Warning, n_w_max %d in %s',n_w_max,str_thisfunction)); end;
 n_delta_v = FTK.n_delta_v;
 n_svd_l = FTK.n_svd_l;
-tmp_index_d0 = intersect(efind(FTK.delta_x_==0),efind(FTK.delta_y_==0)); assert(numel(tmp_index_d0)==1); %<-- should be a single index corresponding to zero-displacement. ;
+tmp_index_d0 = intersect(efind(FTK.delta_x_==0),efind(FTK.delta_y_==0)); assert(numel(tmp_index_d0)>=1); tmp_index_d0=tmp_index_d0(1+0); %<-- should be a single index corresponding to zero-displacement. ;
 pm_n_k_p_r = pm_n_UX_rank; pm_n_w_max = n_w_max;
 pm_n_w_ = pm_n_w_max*ones(pm_n_k_p_r,1);
 pm_n_w_sum = pm_n_k_p_r*pm_n_w_max;
@@ -191,7 +191,14 @@ end;%if (flag_verbose>1);
 if isempty(M_k_q_wkM__); M_k_q_wkM__=zeros(n_w_sum,n_M); end;
 if isempty(UX_T_M_l2_dM__); UX_T_M_l2_dM__=zeros(n_delta_v,n_M); end;
 if isempty(UX_M_l2_M_); UX_M_l2_M_=zeros(n_M,1); end;
-if isempty(svd_V_UX_M_lwnM____); svd_V_UX_M_lwnM____=zeros(n_svd_l,n_w_max,pm_n_UX_rank,n_M); end;
+if isempty(svd_V_UX_M_lwnM____); 
+if FTK.flag_tf_vs_bf==1;
+svd_V_UX_M_lwnM____=zeros(n_svd_l,n_w_max,pm_n_UX_rank,n_M);
+end;%if FTK.flag_tf_vs_bf==1;
+if FTK.flag_tf_vs_bf==0;
+svd_V_UX_M_lwnM____=zeros(n_delta_v,n_w_max,pm_n_UX_rank,n_M); %<-- or UX_T_M_k_q_dwnM____ ;
+end;%if FTK.flag_tf_vs_bf==0;
+end;%if isempty(svd_V_UX_M_lwnM____); 
 if isempty(UX_CTF_S_k_q_wnS__); UX_CTF_S_k_q_wnS__=zeros(pm_n_w_sum,n_S); end;
 if isempty(UX_CTF_S_l2_S_); UX_CTF_S_l2_S_=zeros(n_S,1); end;
 
@@ -245,7 +252,7 @@ if (flag_verbose>0 & mod(nMbatch,1)==0); disp(sprintf(' %% nMbatch %d/%d index_n
 if (n_M_sub>0);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 tmp_t = tic();
-%M_sub_k_p_wkM__ = M_k_p_wkM__(:,1+index_nM_in_Mbatch_);
+M_sub_k_p_wkM__ = M_k_p_wkM__(:,1+index_nM_in_Mbatch_);
 M_sub_k_q_wkM__ = M_k_q_wkM__(:,1+index_nM_in_Mbatch_);
 tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% M_sub_k_q_wkM__: %0.6fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,sprintf('%s: M_sub_k_q_wkM__',str_thisfunction),tmp_t);
@@ -260,16 +267,32 @@ UX_T_M_sub_l2_dM__ = zeros(n_delta_v,n_M_sub);
 % Prepare quasi-images. ;
 %%%%;
 if flag_precompute_svd_V_UX_M_lwnM____==0;
+if FTK.flag_tf_vs_bf==1;
 tmp_t = tic();
 svd_V_UX_M_sub_lwnM____ = tpmh_VUXM_lwnM____3(FTK,n_k_p_r,n_w_,n_M_sub,M_sub_k_q_wkM__,pm_n_UX_rank,pm_UX_kn__,pm_X_weight_r_);
 tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% svd_V_UX_M_sub_lwnM____: %0.6fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,sprintf('%s: svd_V_UX_M_sub_lwnM____',str_thisfunction),tmp_t);
+end;%if FTK.flag_tf_vs_bf==1;
+if FTK.flag_tf_vs_bf==0;
+tmp_t = tic();
+svd_V_UX_M_sub_lwnM____ = tpmh_UXTM_dwnM____0(FTK,n_k_p_r,k_p_r_,n_w_,n_M_sub,M_sub_k_p_wkM__,pm_n_UX_rank,pm_UX_kn__,pm_X_weight_r_);
+tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% UX_T_M_k_q_sub_dwnM____: %0.6fs',tmp_t)); end;
+parameter = parameter_timing_update(parameter,sprintf('%s: UX_T_M_k_q_sub_dwnM____',str_thisfunction),tmp_t);
+end;%if FTK.flag_tf_vs_bf==0;
 end;%if flag_precompute_svd_V_UX_M_lwnM____==0;
 if flag_precompute_svd_V_UX_M_lwnM____==1;
+if FTK.flag_tf_vs_bf==1;
 tmp_t = tic();
-svd_V_UX_M_sub_lwnM____ = svd_V_UX_M_lwnM____(:,:,1:pm_n_UX_rank,1+index_nM_in_Mbatch_);
+svd_V_UX_M_sub_lwnM____ = svd_V_UX_M_lwnM____(1:n_svd_l,:,1:pm_n_UX_rank,1+index_nM_in_Mbatch_);
 tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% loading svd_V_UX_M_sub_lwnM____: %0.6fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,sprintf('%s: loading svd_V_UX_M_sub_lwnM____',str_thisfunction),tmp_t);
+end;%if FTK.flag_tf_vs_bf==1;
+if FTK.flag_tf_vs_bf==0;
+tmp_t = tic();
+svd_V_UX_M_sub_lwnM____ = svd_V_UX_M_lwnM____(1:n_delta_v,:,1:pm_n_UX_rank,1+index_nM_in_Mbatch_);
+tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% loading UX_T_M_k_q_sub_dwnM____: %0.6fs',tmp_t)); end;
+parameter = parameter_timing_update(parameter,sprintf('%s: loading UX_T_M_k_q_sub_dwnM____',str_thisfunction),tmp_t);
+end;%if FTK.flag_tf_vs_bf==0;
 end;%if flag_precompute_svd_V_UX_M_lwnM____==1;
 tmp_t = tic();
 svd_V_UX_M_sub_nMwl____ = permute(svd_V_UX_M_sub_lwnM____,1+[2,3,1,0]);
@@ -279,10 +302,18 @@ parameter = parameter_timing_update(parameter,sprintf('%s: svd_V_UX_M_sub_nMwl__
 % Now calculate norms of the translated images. ;
 %%%%;
 if flag_precompute_UX_T_M_l2_dM__==0;
+if FTK.flag_tf_vs_bf==1;
 tmp_t = tic();
 UX_T_M_sub_l2_dM__ = tfpmh_UX_T_M_l2_dM__1(FTK,n_w_,n_M_sub,pm_n_UX_rank,svd_V_UX_M_sub_lwnM____);
-tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% tfpmh_UX_T_M_sub_l2_dm__1: %0.6fs',tmp_t)); end;
-parameter = parameter_timing_update(parameter,sprintf('%s: tfpmh_UX_T_M_sub_l2_dm__1',str_thisfunction),tmp_t);
+tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% tfpmh_UX_T_M_sub_l2_dM__1: %0.6fs',tmp_t)); end;
+parameter = parameter_timing_update(parameter,sprintf('%s: tfpmh_UX_T_M_sub_l2_dM__1',str_thisfunction),tmp_t);
+end;%if FTK.flag_tf_vs_bf==1;
+if FTK.flag_tf_vs_bf==0;
+tmp_t = tic();
+UX_T_M_sub_l2_dM__ = tfpmh_UX_T_M_l2_dM__0(FTK,n_w_,n_M_sub,pm_n_UX_rank,svd_V_UX_M_sub_lwnM____);
+tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% tfpmh_UX_T_M_sub_l2_dM__0: %0.6fs',tmp_t)); end;
+parameter = parameter_timing_update(parameter,sprintf('%s: tfpmh_UX_T_M_sub_l2_dM__0',str_thisfunction),tmp_t);
+end;%if FTK.flag_tf_vs_bf==1;
 UX_T_M_l2_dM__(:,1+index_nM_in_Mbatch_) = UX_T_M_sub_l2_dM__; %<-- store results. ;
 end;%if flag_precompute_UX_T_M_l2_dM__==0;
 if flag_precompute_UX_T_M_l2_dM__==1;
@@ -325,14 +356,19 @@ svd_CTF_S_sub_V_UX_M_sub_SMwl____ = pagemtimes(UX_CTF_S_sub_k_q_nSw___,'ctranspo
 tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% svd_CTF_S_sub_V_UX_M_sub_SMwl____: %0.6fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,sprintf('%s: svd_CTF_S_sub_V_UX_M_sub_SMwl____',str_thisfunction),tmp_t);
 tmp_t = tic();
-svd_CTF_S_sub_V_UX_M_sub_lwSM____ = ifft(permute(svd_CTF_S_sub_V_UX_M_sub_SMwl____,1+[3,2,0,1]),[],1+1)*n_w_max; %<-- faster on cpu. ;
-%svd_CTF_S_sub_V_UX_M_sub_lwSM____ = permute(ifft(permute(svd_CTF_S_sub_V_UX_M_sub_SMwl____,1+[2,3,0,1]),[],1+0)*n_w_max,1+[1,0,2,3]); %<-- faster on gpu. ;
+svd_CTF_S_sub_V_UX_M_sub_lwSM____ = ifft(permute(svd_CTF_S_sub_V_UX_M_sub_SMwl____,1+[3,2,0,1]),[],1+1); %<-- faster on cpu. ;
+%svd_CTF_S_sub_V_UX_M_sub_lwSM____ = permute(ifft(permute(svd_CTF_S_sub_V_UX_M_sub_SMwl____,1+[2,3,0,1]),[],1+0),1+[1,0,2,3]); %<-- faster on gpu. ;
 tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% svd_CTF_S_sub_V_UX_M_sub_lwSM____: %0.6fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,sprintf('%s: svd_CTF_S_sub_V_UX_M_sub_lwSM____',str_thisfunction),tmp_t);
+if FTK.flag_tf_vs_bf==1;
 tmp_t = tic();
-svd_UES_CTF_S_sub_V_UX_M_sub_dwSM____ = reshape(pagemtimes(FTK.svd_U_d_expiw_s__,svd_CTF_S_sub_V_UX_M_sub_lwSM____),[n_delta_v,n_w_max,n_S_sub,n_M_sub]);
+svd_UES_CTF_S_sub_V_UX_M_sub_dwSM____ = reshape(pagemtimes(FTK.svd_U_d_expiw_s__,svd_CTF_S_sub_V_UX_M_sub_lwSM____*n_w_max),[n_delta_v,n_w_max,n_S_sub,n_M_sub]);
 tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% svd_UES_CTF_S_sub_V_UX_M_sub_dwSM____: %0.6fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,sprintf('%s: svd_UES_CTF_S_sub_V_UX_M_sub_dwSM____',str_thisfunction),tmp_t);
+end;%if FTK.flag_tf_vs_bf==1;
+if FTK.flag_tf_vs_bf==0;
+svd_UES_CTF_S_sub_V_UX_M_sub_dwSM____ = svd_CTF_S_sub_V_UX_M_sub_lwSM____; %<-- actually CTF_S_sub_UX_T_M_sub_dwSM____. ;
+end;%if FTK.flag_tf_vs_bf==0;
 Z_sub_dwSM____  = real(svd_UES_CTF_S_sub_V_UX_M_sub_dwSM____);
 %%%%;
 % Calculate correlation. ;
@@ -370,7 +406,7 @@ delta_y_wSM___(:,1+index_nS_in_Sbatch_,1+index_nM_in_Mbatch_) = reshape(tmp_delt
 gamma_z_wSM___(:,1+index_nS_in_Sbatch_,1+index_nM_in_Mbatch_) = repmat(tmp_gamma_z_wSM___(:),[1,n_S_sub,n_M_sub]);
 index_sub_wSM___(:,1+index_nS_in_Sbatch_,1+index_nM_in_Mbatch_) = reshape(tmp_index_delta_wSM_,[n_w_max,n_S_sub,n_M_sub]);
 UX_CTF_S_l2_S_(1+index_nS_in_Sbatch_) = reshape(UX_CTF_S_sub_l2_S_,[n_S_sub,1]);
-tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% X_wSM___: %0.6f',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% X_wSM___: time %0.6fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,sprintf('%s: X_wSM___',str_thisfunction),tmp_t);
 end;%if flag_optimize_over_gamma_z==0;
 %%%%%%%%;
@@ -401,7 +437,7 @@ delta_y_SM__(1+index_nS_in_Sbatch_,1+index_nM_in_Mbatch_) = reshape(tmp_delta_y_
 gamma_z_SM__(1+index_nS_in_Sbatch_,1+index_nM_in_Mbatch_) = reshape(tmp_gamma_z_SM__,[n_S_sub,n_M_sub]);
 index_sub_SM__(1+index_nS_in_Sbatch_,1+index_nM_in_Mbatch_) = reshape(tmp_index_dw_SM_,[n_S_sub,n_M_sub]);
 UX_CTF_S_l2_S_(1+index_nS_in_Sbatch_) = reshape(UX_CTF_S_sub_l2_S_,[n_S_sub,1]);
-tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% X_SM__: %0.6f',tmp_t)); end;
+tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% X_SM__: time %0.6fs',tmp_t)); end;
 parameter = parameter_timing_update(parameter,sprintf('%s: X_SM__',str_thisfunction),tmp_t);
 end;%if flag_optimize_over_gamma_z==1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;

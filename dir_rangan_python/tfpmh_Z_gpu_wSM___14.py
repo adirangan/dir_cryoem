@@ -1,7 +1,9 @@
 exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ;
 from interp_p_to_q import interp_p_to_q ;
 from tpmh_VUXM_gpu_lwnM____4 import tpmh_VUXM_gpu_lwnM____4 ;
+from tpmh_UXTM_gpu_dwnM____0 import tpmh_UXTM_gpu_dwnM____0 ;
 from tfpmh_UX_T_M_l2_gpu_dM__1 import tfpmh_UX_T_M_l2_gpu_dM__1 ;
+from tfpmh_UX_T_M_l2_gpu_dM__0 import tfpmh_UX_T_M_l2_gpu_dM__0 ;
 from tfpmhh_pm_wUX_0 import tfpmhh_pm_wUX_0 ;
 
 def tfpmh_Z_gpu_wSM___14(
@@ -24,7 +26,7 @@ def tfpmh_Z_gpu_wSM___14(
         M_k_q_wkM__=None,
         UX_T_M_l2_dM__=None,
         UX_M_l2_M_=None,
-        svd_V_UX_M_lwnM____=None,
+        svd_V_UX_M_lwnM____=None, #%<-- or UX_T_M_k_q_dwnM____ ;
         UX_CTF_S_k_q_wnS__=None,
         UX_CTF_S_l2_S_=None,
 ):
@@ -72,7 +74,9 @@ def tfpmh_Z_gpu_wSM___14(
     tolerance_machine_1_ = torch.tensor(tolerance_machine).to(dtype=torch.float32,device=device_use);
 
     r8_delta_gpu_x_ = FTK['r8_delta_x_'].to(dtype=torch.float64,device=device_use); r8_delta_gpu_y_ = FTK['r8_delta_y_'].to(dtype=torch.float64,device=device_use);
-    c16_svd_U_d_expiw_s_gpu__ = FTK['c16_svd_U_d_expiw_s__'].to(dtype=torch.complex128,device=device_use);
+    if FTK['flag_tf_vs_bf']==1:
+        c16_svd_U_d_expiw_s_gpu__ = FTK['c16_svd_U_d_expiw_s__'].to(dtype=torch.complex128,device=device_use);
+    #end;%if FTK.flag_tf_vs_bf==1;
 
     n_w_ = n_w_.ravel();
     n_w_max = int(torch.max(n_w_).item());
@@ -84,6 +88,7 @@ def tfpmh_Z_gpu_wSM___14(
     n_svd_l = FTK['n_svd_l'];
     #tmp_index_d0 = intersect_0(efind(FTK['r8_delta_x_']==0),efind(FTK['r8_delta_y_']==0))[0]; assert(numel(tmp_index_d0)==1); #%<-- should be a single index corresponding to zero-displacement. ;
     tmp_index_d0 = intersect_0(efind(torch.abs(FTK['r8_delta_x_'])<tolerance_machine),efind(torch.abs(FTK['r8_delta_y_'])<tolerance_machine))[0]; assert(numel(tmp_index_d0)==1);
+    if numel(tmp_index_d0)> 1: tmp_index_d0 = tmp_index_d0[0]; #end;
     pm_n_k_p_r = pm_n_UX_rank; pm_n_w_max = n_w_max;
     pm_n_w_ = (pm_n_w_max*torch.ones(pm_n_k_p_r)).to(dtype=torch.int32);
     pm_n_w_sum = int(pm_n_k_p_r*pm_n_w_max);
@@ -170,7 +175,14 @@ def tfpmh_Z_gpu_wSM___14(
     if isempty(M_k_q_wkM__): M_k_q_wkM__=torch.zeros(mtr((n_w_sum,n_M))).to(dtype=torch.complex64); #end;
     if isempty(UX_T_M_l2_dM__): UX_T_M_l2_dM__=torch.zeros(mtr((n_delta_v,n_M))).to(dtype=torch.float32); #end;
     if isempty(UX_M_l2_M_): UX_M_l2_M_=torch.zeros(n_M).to(dtype=torch.float32); #end;
-    if isempty(svd_V_UX_M_lwnM____): svd_V_UX_M_lwnM____=torch.zeros(mtr((n_svd_l,n_w_max,pm_n_UX_rank,n_M))).to(dtype=torch.complex64); #end;
+    if isempty(svd_V_UX_M_lwnM____):
+        if FTK['flag_tf_vs_bf']==1:
+            svd_V_UX_M_lwnM____=torch.zeros(mtr((n_svd_l,n_w_max,pm_n_UX_rank,n_M))).to(dtype=torch.complex64);
+        #end;%if FTK.flag_tf_vs_bf==1;
+        if FTK['flag_tf_vs_bf']==0:
+            svd_V_UX_M_lwnM____=torch.zeros(mtr((n_delta_v,n_w_max,pm_n_UX_rank,n_M))).to(dtype=torch.complex64);
+        #end;%if FTK.flag_tf_vs_bf==0;
+        #end;%if isempty(svd_V_UX_M_lwnM____);
     if isempty(UX_CTF_S_k_q_wnS__): UX_CTF_S_k_q_wnS__=torch.zeros(mtr((pm_n_w_sum,n_S))).to(dtype=torch.complex64); #end;
     if isempty(UX_CTF_S_l2_S_): UX_CTF_S_l2_S_=torch.zeros(n_S).to(dtype=torch.float32); #end;
 
@@ -228,7 +240,7 @@ def tfpmh_Z_gpu_wSM___14(
         #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
             tmp_t = tic();
             tmp_i8_index_rhs_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_in_Mbatch_);
-            #M_sub_k_p_gpu_wkM__ = torch.reshape(M_k_p_wkM__.ravel()[tmp_i8_index_rhs_],mtr((n_w_sum,n_M_sub))).to(dtype=torch.complex64,device=device_use);
+            M_sub_k_p_gpu_wkM__ = torch.reshape(M_k_p_wkM__.ravel()[tmp_i8_index_rhs_],mtr((n_w_sum,n_M_sub))).to(dtype=torch.complex64,device=device_use);
             M_sub_k_q_gpu_wkM__ = torch.reshape(M_k_q_wkM__.ravel()[tmp_i8_index_rhs_],mtr((n_w_sum,n_M_sub))).to(dtype=torch.complex64,device=device_use);
             tmp_t = toc(tmp_t); 
             if (flag_verbose>1): print(f' %% M_sub_k_q_gpu_wkM__: %0.2fs',tmp_t);
@@ -239,19 +251,38 @@ def tfpmh_Z_gpu_wSM___14(
             #% Prepare quasi-images. ;
             #%%%%;
             if flag_precompute_svd_V_UX_M_lwnM____==0:
-                tmp_t = tic();
-                svd_V_UX_M_sub_gpu_lwnM____ = tpmh_VUXM_gpu_lwnM____4(device_use,FTK,n_k_p_r,n_w_,n_M_sub,M_sub_k_q_gpu_wkM__,pm_n_UX_rank,pm_UX_gpu_kn__,pm_X_weight_gpu_r_).to(dtype=torch.complex64,device=device_use);
-                tmp_t = toc(tmp_t);
-                if (flag_verbose>1): disp(sprintf(' %% svd_V_UX_M_sub_gpu_lwnM____: %0.6fs',tmp_t)); #end;
-                parameter = parameter_timing_update(parameter,sprintf('%s: svd_V_UX_M_sub_gpu_lwnM____',str_thisfunction),tmp_t);
+                if FTK['flag_tf_vs_bf']==1:
+                    tmp_t = tic();
+                    svd_V_UX_M_sub_gpu_lwnM____ = tpmh_VUXM_gpu_lwnM____4(device_use,FTK,n_k_p_r,n_w_,n_M_sub,M_sub_k_q_gpu_wkM__,pm_n_UX_rank,pm_UX_gpu_kn__,pm_X_weight_gpu_r_).to(dtype=torch.complex64,device=device_use);
+                    tmp_t = toc(tmp_t);
+                    if (flag_verbose>1): disp(sprintf(' %% svd_V_UX_M_sub_gpu_lwnM____: %0.6fs',tmp_t)); #end;
+                    parameter = parameter_timing_update(parameter,sprintf('%s: svd_V_UX_M_sub_gpu_lwnM____',str_thisfunction),tmp_t);
+                #end;%if FTK.flag_tf_vs_bf==1;
+                if FTK['flag_tf_vs_bf']==0:
+                    tmp_t = tic();
+                    svd_V_UX_M_sub_gpu_lwnM____ = tpmh_UXTM_gpu_dwnM____0(device_use,FTK,n_k_p_r,k_p_r_,n_w_,n_M_sub,M_sub_k_p_gpu_wkM__,pm_n_UX_rank,pm_UX_gpu_kn__,pm_X_weight_gpu_r_).to(dtype=torch.complex64,device=device_use);
+                    tmp_t = toc(tmp_t);
+                    if (flag_verbose>1): disp(sprintf(' %% UX_T_M_sub_k_q_gpu_dwnM____: %0.6fs',tmp_t)); #end;
+                    parameter = parameter_timing_update(parameter,sprintf('%s: UX_T_M_sub_k_q_gpu_dwnM____',str_thisfunction),tmp_t);
+                #end;%if FTK.flag_tf_vs_bf==0;
             #end;%if flag_precompute_svd_V_UX_M_lwnM____==0;
             if flag_precompute_svd_V_UX_M_lwnM____==1:
-                tmp_t = tic();
-                tmp_i8_index_rhs_ = matlab_index_4d_0(n_svd_l,':',n_w_max,':',size(svd_V_UX_M_lwnM____,2),torch.arange(pm_n_UX_rank),n_M,index_nM_in_Mbatch_);
-                svd_V_UX_M_sub_gpu_lwnM____ = torch.reshape(svd_V_UX_M_lwnM____.ravel()[tmp_i8_index_rhs_],mtr((n_svd_l,n_w_max,pm_n_UX_rank,n_M_sub))).to(dtype=torch.complex64,device=device_use);
-                tmp_t = toc(tmp_t);
-                if (flag_verbose>1): disp(sprintf(' %% loading svd_V_UX_M_sub_gpu_lwnM____: %0.6fs',tmp_t)); #end;
-                parameter = parameter_timing_update(parameter,sprintf('%s: loading svd_V_UX_M_sub_gpu_lwnM____',str_thisfunction),tmp_t);
+                if FTK['flag_tf_vs_bf']==1:
+                    tmp_t = tic();
+                    tmp_i8_index_rhs_ = matlab_index_4d_0(n_svd_l,':',n_w_max,':',size(svd_V_UX_M_lwnM____,2),torch.arange(pm_n_UX_rank),n_M,index_nM_in_Mbatch_);
+                    svd_V_UX_M_sub_gpu_lwnM____ = torch.reshape(svd_V_UX_M_lwnM____.ravel()[tmp_i8_index_rhs_],mtr((n_svd_l,n_w_max,pm_n_UX_rank,n_M_sub))).to(dtype=torch.complex64,device=device_use);
+                    tmp_t = toc(tmp_t);
+                    if (flag_verbose>1): disp(sprintf(' %% loading svd_V_UX_M_sub_gpu_lwnM____: %0.6fs',tmp_t)); #end;
+                    parameter = parameter_timing_update(parameter,sprintf('%s: loading svd_V_UX_M_sub_gpu_lwnM____',str_thisfunction),tmp_t);
+                #end;%if FTK.flag_tf_vs_bf==1;
+                if FTK['flag_tf_vs_bf']==0:
+                    tmp_t = tic();
+                    tmp_i8_index_rhs_ = matlab_index_4d_0(n_delta_v,':',n_w_max,':',size(svd_V_UX_M_lwnM____,2),torch.arange(pm_n_UX_rank),n_M,index_nM_in_Mbatch_);
+                    svd_V_UX_M_sub_gpu_lwnM____ = torch.reshape(svd_V_UX_M_lwnM____.ravel()[tmp_i8_index_rhs_],mtr((n_delta_v,n_w_max,pm_n_UX_rank,n_M_sub))).to(dtype=torch.complex64,device=device_use);
+                    tmp_t = toc(tmp_t);
+                    if (flag_verbose>1): disp(sprintf(' %% loading UX_T_M_sub_k_q_gpu_dwnM____: %0.6fs',tmp_t)); #end;
+                    parameter = parameter_timing_update(parameter,sprintf('%s: loading UX_T_M_sub_k_q_gpu_dwnM____',str_thisfunction),tmp_t);
+                #end;%if FTK.flag_tf_vs_bf==0;
             #end;%if flag_precompute_svd_V_UX_M_lwnM____==1;
             tmp_t = tic();
             svd_V_UX_M_sub_gpu_nMwl____ = torch.permute(svd_V_UX_M_sub_gpu_lwnM____,mtr(mts((2,3,1,0)))).to(dtype=torch.complex64,device=device_use);
@@ -262,11 +293,20 @@ def tfpmh_Z_gpu_wSM___14(
             #% Now calculate norms of the translated images. ;
             #%%%%;
             if flag_precompute_UX_T_M_l2_dM__==0:
-                tmp_t = tic();
-                UX_T_M_sub_l2_gpu_dM__ = tfpmh_UX_T_M_l2_gpu_dM__1(device_use,n_delta_v,n_svd_l,c16_svd_U_d_expiw_s_gpu__,n_w_max,n_M_sub,pm_n_UX_rank,svd_V_UX_M_sub_gpu_lwnM____).to(dtype=torch.float32,device=device_use);
-                tmp_t = toc(tmp_t);
-                if (flag_verbose>1): disp(sprintf(' %% tfpmh_UX_T_M_sub_l2_gpu_dM__1: %0.6fs',tmp_t)); #end;
-                parameter = parameter_timing_update(parameter,sprintf('%s: tfpmh_UX_T_M_sub_l2_gpu_dM__1',str_thisfunction),tmp_t);
+                if FTK['flag_tf_vs_bf']==1:
+                    tmp_t = tic();
+                    UX_T_M_sub_l2_gpu_dM__ = tfpmh_UX_T_M_l2_gpu_dM__1(device_use,n_delta_v,n_svd_l,c16_svd_U_d_expiw_s_gpu__,n_w_max,n_M_sub,pm_n_UX_rank,svd_V_UX_M_sub_gpu_lwnM____).to(dtype=torch.float32,device=device_use);
+                    tmp_t = toc(tmp_t);
+                    if (flag_verbose>1): disp(sprintf(' %% tfpmh_UX_T_M_sub_l2_gpu_dM__1: %0.6fs',tmp_t)); #end;
+                    parameter = parameter_timing_update(parameter,sprintf('%s: tfpmh_UX_T_M_sub_l2_gpu_dM__1',str_thisfunction),tmp_t);
+                #end;%if FTK.flag_tf_vs_bf==1;
+                if FTK['flag_tf_vs_bf']==0:
+                    tmp_t = tic();
+                    UX_T_M_sub_l2_gpu_dM__ = tfpmh_UX_T_M_l2_gpu_dM__0(device_use,n_delta_v,n_k_p_r,n_w_max,n_M_sub,pm_n_UX_rank,svd_V_UX_M_sub_gpu_lwnM____).to(dtype=torch.float32,device=device_use);
+                    tmp_t = toc(tmp_t);
+                    if (flag_verbose>1): disp(sprintf(' %% tfpmh_UX_T_M_sub_l2_gpu_dM__0: %0.6fs',tmp_t)); #end;
+                    parameter = parameter_timing_update(parameter,sprintf('%s: tfpmh_UX_T_M_sub_l2_gpu_dM__0',str_thisfunction),tmp_t);
+                #end;%if FTK.flag_tf_vs_bf==0;
                 tmp_index_gpu_lhs_ = matlab_index_2d_gpu_0(device_use,n_delta_v,':',n_M,index_nM_in_Mbatch_);
                 UX_T_M_l2_gpu_dM__.ravel()[tmp_index_gpu_lhs_] = UX_T_M_sub_l2_gpu_dM__.ravel(); #%<-- store results. ;
             #end;%if flag_precompute_UX_T_M_l2_dM__==0;
@@ -313,15 +353,20 @@ def tfpmh_Z_gpu_wSM___14(
                     if (flag_verbose>1): disp(sprintf(' %% svd_CTF_S_sub_V_UX_M_sub_gpu_SMwl____: %0.6fs',tmp_t)); #end;
                     parameter = parameter_timing_update(parameter,sprintf('%s: svd_CTF_S_sub_V_UX_M_sub_gpu_SMwl____',str_thisfunction),tmp_t);
                     tmp_t = tic();
-                    svd_CTF_S_sub_V_UX_M_sub_gpu_lwSM____ = torch.fft.ifft(torch.permute(svd_CTF_S_sub_V_UX_M_sub_gpu_SMwl____.to(dtype=torch.complex64,device=device_use),mtr(mts((3,2,0,1)))),dim=3-1).to(dtype=torch.complex64,device=device_use)*n_w_max;
+                    svd_CTF_S_sub_V_UX_M_sub_gpu_lwSM____ = torch.fft.ifft(torch.permute(svd_CTF_S_sub_V_UX_M_sub_gpu_SMwl____.to(dtype=torch.complex64,device=device_use),mtr(mts((3,2,0,1)))),dim=3-1).to(dtype=torch.complex64,device=device_use);
                     tmp_t = toc(tmp_t); 
                     if (flag_verbose>1): disp(sprintf(' %% svd_CTF_S_sub_V_UX_M_sub_gpu_lwSM____: %0.6fs',tmp_t)); #end;
                     parameter = parameter_timing_update(parameter,sprintf('%s: svd_CTF_S_sub_V_UX_M_sub_gpu_lwSM____',str_thisfunction),tmp_t);
-                    tmp_t = tic();
-                    svd_UES_CTF_S_sub_V_UX_M_sub_gpu_dwSM____ = torch.reshape( mmmm( torch.reshape(c16_svd_U_d_expiw_s_gpu__.to(dtype=torch.complex64,device=device_use),mtr((n_delta_v,n_svd_l))) , torch.reshape(svd_CTF_S_sub_V_UX_M_sub_gpu_lwSM____.to(dtype=torch.complex64,device=device_use),mtr((n_svd_l,n_w_max*n_S_sub*n_M_sub))) ),mtr((n_delta_v,n_w_max,n_S_sub,n_M_sub))).to(dtype=torch.complex64,device=device_use);
-                    tmp_t = toc(tmp_t); 
-                    if (flag_verbose>1): disp(sprintf(' %% svd_UES_CTF_S_sub_V_UX_M_sub_gpu_dwSM____: %0.6fs',tmp_t)); #end;
-                    parameter = parameter_timing_update(parameter,sprintf('%s: svd_UES_CTF_S_sub_V_UX_M_sub_gpu_dwSM____',str_thisfunction),tmp_t);
+                    if FTK['flag_tf_vs_bf']==1:
+                        tmp_t = tic();
+                        svd_UES_CTF_S_sub_V_UX_M_sub_gpu_dwSM____ = torch.reshape( mmmm( torch.reshape(c16_svd_U_d_expiw_s_gpu__.to(dtype=torch.complex64,device=device_use),mtr((n_delta_v,n_svd_l))) , torch.reshape(svd_CTF_S_sub_V_UX_M_sub_gpu_lwSM____.to(dtype=torch.complex64,device=device_use)*n_w_max,mtr((n_svd_l,n_w_max*n_S_sub*n_M_sub))) ),mtr((n_delta_v,n_w_max,n_S_sub,n_M_sub))).to(dtype=torch.complex64,device=device_use);
+                        tmp_t = toc(tmp_t); 
+                        if (flag_verbose>1): disp(sprintf(' %% svd_UES_CTF_S_sub_V_UX_M_sub_gpu_dwSM____: %0.6fs',tmp_t)); #end;
+                        parameter = parameter_timing_update(parameter,sprintf('%s: svd_UES_CTF_S_sub_V_UX_M_sub_gpu_dwSM____',str_thisfunction),tmp_t);
+                    #end;%if FTK.flag_tf_vs_bf==1;
+                    if FTK['flag_tf_vs_bf']==0:
+                        svd_UES_CTF_S_sub_V_UX_M_sub_gpu_dwSM____ = svd_CTF_S_sub_V_UX_M_sub_gpu_lwSM____; #%<-- actually CTF_S_sub_UX_T_M_sub_dwSM____. ;
+                    #end;%if FTK.flag_tf_vs_bf==0;
                     Z_sub_gpu_dwSM____  = torch.real(svd_UES_CTF_S_sub_V_UX_M_sub_gpu_dwSM____).to(dtype=torch.float32,device=device_use);
                     #%%%%;
                     #% Calculate correlation. ;

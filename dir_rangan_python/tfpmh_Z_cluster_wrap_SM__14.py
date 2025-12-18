@@ -28,7 +28,7 @@ def tfpmh_Z_cluster_wrap_SM__14(
         M_k_q_wkM__=None,
         UX_T_M_l2_dM__=None,
         UX_M_l2_M_=None,
-        svd_V_UX_M_lwnM____=None,
+        svd_V_UX_M_lwnM____=None, #%<-- or UX_T_M_k_q_dwnM____ ;
         index_nS_to_update_=torch.tensor([]).to(dtype=torch.int32),
         UX_CTF_S_k_q_wnS__=None,
         UX_CTF_S_l2_S_=None,
@@ -105,7 +105,12 @@ def tfpmh_Z_cluster_wrap_SM__14(
     if isempty(M_k_q_wkM__): M_k_q_wkM__=torch.zeros(mtr((n_w_sum,n_M))).to(dtype=torch.complex64); #end;
     if isempty(UX_T_M_l2_dM__): UX_T_M_l2_dM__=torch.zeros(mtr((n_delta_v,n_M))).to(dtype=torch.float32); #end;
     if isempty(UX_M_l2_M_): UX_M_l2_M_=torch.zeros(n_M).to(dtype=torch.float32); #end;
-    if isempty(svd_V_UX_M_lwnM____): svd_V_UX_M_lwnM____=torch.zeros(mtr((n_svd_l,n_w_max,pm_n_UX_rank_max,n_M))).to(dtype=torch.complex64); #end;
+    n_svd_l_vs_n_delta_v = n_svd_l;
+    if FTK['flag_tf_vs_bf']==1: n_svd_l_vs_n_delta_v = n_svd_l; #end;
+    if FTK['flag_tf_vs_bf']==0: n_svd_l_vs_n_delta_v = n_delta_v; #end;
+    if isempty(svd_V_UX_M_lwnM____):
+        svd_V_UX_M_lwnM____=torch.zeros(mtr((n_svd_l_vs_n_delta_v,n_w_max,pm_n_UX_rank_max,n_M))).to(dtype=torch.complex64); 
+    #end;%if isempty(svd_V_UX_M_lwnM____);
     if isempty(UX_CTF_S_k_q_wnS__): UX_CTF_S_k_q_wnS__=torch.zeros(mtr((pm_n_w_sum_max,n_S))).to(dtype=torch.complex64); #end;
     if isempty(UX_CTF_S_l2_S_): UX_CTF_S_l2_S_=torch.zeros(n_S).to(dtype=torch.float32); #end;
 
@@ -150,13 +155,13 @@ def tfpmh_Z_cluster_wrap_SM__14(
             tmp_i8_index_lhs_wkM_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_from_ncluster_);
             tmp_i8_index_lhs_dM_ = matlab_index_2d_0(n_delta_v,':',n_M,index_nM_from_ncluster_);
             tmp_i8_index_lhs_M_ = index_nM_from_ncluster_;
-            tmp_i8_index_lhs_lwnM_ = matlab_index_4d_0(n_svd_l,':',n_w_max,':',pm_n_UX_rank_max,torch.arange(pm_n_UX_rank),n_M,index_nM_from_ncluster_);
+            tmp_i8_index_lhs_lwnM_ = matlab_index_4d_0(n_svd_l_vs_n_delta_v,':',n_w_max,':',pm_n_UX_rank_max,torch.arange(pm_n_UX_rank),n_M,index_nM_from_ncluster_);
             tmp_i8_index_lhs_wnS_ = matlab_index_2d_0(pm_n_w_sum_max,torch.arange(pm_n_w_sum),n_S,':');
             tmp_i8_index_lhs_S_ = torch.arange(n_S);
             tmp_i8_index_rhs_wkM_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_from_ncluster_);
             tmp_i8_index_rhs_dM_ = matlab_index_2d_0(n_delta_v,':',n_M,index_nM_from_ncluster_);
             tmp_i8_index_rhs_M_ = index_nM_from_ncluster_;
-            tmp_i8_index_rhs_lwnM_ = matlab_index_4d_0(n_svd_l,':',n_w_max,':',pm_n_UX_rank_max,torch.arange(pm_n_UX_rank),n_M,index_nM_from_ncluster_);
+            tmp_i8_index_rhs_lwnM_ = matlab_index_4d_0(n_svd_l_vs_n_delta_v,':',n_w_max,':',pm_n_UX_rank_max,torch.arange(pm_n_UX_rank),n_M,index_nM_from_ncluster_);
             tmp_i8_index_rhs_wnS_ = matlab_index_2d_0(pm_n_w_sum_max,torch.arange(pm_n_w_sum),n_S,':');
             tmp_i8_index_rhs_S_ = torch.arange(n_S);
             parameter['flag_output_ravel'] = 1;
@@ -189,7 +194,7 @@ def tfpmh_Z_cluster_wrap_SM__14(
                 torch.reshape(M_k_q_wkM__.ravel()[tmp_i8_index_rhs_wkM_],mtr((n_w_sum,n_M_from_ncluster))),
                 torch.reshape(UX_T_M_l2_dM__.ravel()[tmp_i8_index_rhs_dM_],mtr((n_delta_v,n_M_from_ncluster))),
                 UX_M_l2_M_.ravel()[tmp_i8_index_rhs_M_],
-                torch.reshape(svd_V_UX_M_lwnM____.ravel()[tmp_i8_index_rhs_lwnM_],mtr((n_svd_l,n_w_max,pm_n_UX_rank,n_M_from_ncluster))),
+                torch.reshape(svd_V_UX_M_lwnM____.ravel()[tmp_i8_index_rhs_lwnM_],mtr((n_svd_l_vs_n_delta_v,n_w_max,pm_n_UX_rank,n_M_from_ncluster))),
                 index_nS_to_update_,
                 torch.reshape(UX_CTF_S_k_q_wnS__.ravel()[tmp_i8_index_rhs_wnS_],mtr((pm_n_w_sum,n_S))),
                 UX_CTF_S_l2_S_.ravel()[tmp_i8_index_rhs_S_],
@@ -213,7 +218,7 @@ def tfpmh_Z_cluster_wrap_SM__14(
                 tmp_i8_index_rhs_wkM_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_from_ncluster_);
                 tmp_i8_index_rhs_dM_ = matlab_index_2d_0(n_delta_v,':',n_M,index_nM_from_ncluster_);
                 tmp_i8_index_rhs_M_ = index_nM_from_ncluster_;
-                tmp_i8_index_rhs_lwnM_ = matlab_index_4d_0(n_svd_l,':',n_w_max,':',pm_n_UX_rank_max,torch.arange(pm_n_UX_rank),n_M,index_nM_from_ncluster_);
+                tmp_i8_index_rhs_lwnM_ = matlab_index_4d_0(n_svd_l_vs_n_delta_v,':',n_w_max,':',pm_n_UX_rank_max,torch.arange(pm_n_UX_rank),n_M,index_nM_from_ncluster_);
                 tmp_i8_index_rhs_wnS_ = matlab_index_2d_0(pm_n_w_sum_max,torch.arange(pm_n_w_sum),n_S,':');
                 tmp_i8_index_rhs_S_ = torch.arange(n_S);
                 (
@@ -247,7 +252,7 @@ def tfpmh_Z_cluster_wrap_SM__14(
                     torch.reshape(M_k_q_wkM__.ravel()[tmp_i8_index_rhs_wkM_],mtr((n_w_sum,n_M_from_ncluster))),
                     torch.reshape(UX_T_M_l2_dM__.ravel()[tmp_i8_index_rhs_dM_],mtr((n_delta_v,n_M_from_ncluster))),
                     UX_M_l2_M_.ravel()[tmp_i8_index_rhs_M_],
-                    torch.reshape(svd_V_UX_M_lwnM____.ravel()[tmp_i8_index_rhs_lwnM_],mtr((n_svd_l,n_w_max,pm_n_UX_rank,n_M_from_ncluster))),
+                    torch.reshape(svd_V_UX_M_lwnM____.ravel()[tmp_i8_index_rhs_lwnM_],mtr((n_svd_l_vs_n_delta_v,n_w_max,pm_n_UX_rank,n_M_from_ncluster))),
                     torch.reshape(UX_CTF_S_k_q_wnS__.ravel()[tmp_i8_index_rhs_wnS_],mtr((pm_n_w_sum,n_S))),
                     UX_CTF_S_l2_S_.ravel()[tmp_i8_index_rhs_S_],
                 )[:10];
@@ -265,7 +270,7 @@ def tfpmh_Z_cluster_wrap_SM__14(
                 tmp_i8_index_rhs_wkM_ = matlab_index_2d_0(n_w_sum,':',n_M,index_nM_from_ncluster_);
                 tmp_i8_index_rhs_dM_ = matlab_index_2d_0(n_delta_v,':',n_M,index_nM_from_ncluster_);
                 tmp_i8_index_rhs_M_ = index_nM_from_ncluster_;
-                tmp_i8_index_rhs_lwnM_ = matlab_index_4d_0(n_svd_l,':',n_w_max,':',pm_n_UX_rank_max,torch.arange(pm_n_UX_rank),n_M,index_nM_from_ncluster_);
+                tmp_i8_index_rhs_lwnM_ = matlab_index_4d_0(n_svd_l_vs_n_delta_v,':',n_w_max,':',pm_n_UX_rank_max,torch.arange(pm_n_UX_rank),n_M,index_nM_from_ncluster_);
                 tmp_i8_index_rhs_wnS_ = matlab_index_2d_0(pm_n_w_sum_max,torch.arange(pm_n_w_sum),n_S,':');
                 tmp_i8_index_rhs_S_ = torch.arange(n_S);
                 (
@@ -299,7 +304,7 @@ def tfpmh_Z_cluster_wrap_SM__14(
                     torch.reshape(M_k_q_wkM__.ravel()[tmp_i8_index_rhs_wkM_],mtr((n_w_sum,n_M_from_ncluster))),
                     torch.reshape(UX_T_M_l2_dM__.ravel()[tmp_i8_index_rhs_dM_],mtr((n_delta_v,n_M_from_ncluster))),
                     UX_M_l2_M_.ravel()[tmp_i8_index_rhs_M_],
-                    torch.reshape(svd_V_UX_M_lwnM____.ravel()[tmp_i8_index_rhs_lwnM_],mtr((n_svd_l,n_w_max,pm_n_UX_rank,n_M_from_ncluster))),
+                    torch.reshape(svd_V_UX_M_lwnM____.ravel()[tmp_i8_index_rhs_lwnM_],mtr((n_svd_l_vs_n_delta_v,n_w_max,pm_n_UX_rank,n_M_from_ncluster))),
                     torch.reshape(UX_CTF_S_k_q_wnS__.ravel()[tmp_i8_index_rhs_wnS_],mtr((pm_n_w_sum,n_S))),
                     UX_CTF_S_l2_S_.ravel()[tmp_i8_index_rhs_S_],
                 )[:10];
@@ -328,21 +333,39 @@ def tfpmh_Z_cluster_wrap_SM__14(
             #end;%if flag_gpu==1;
             #%%%%;
             #%%%%%%%%;
-            tmp_t=tic();
-            for nM_from_ncluster in range(n_M_from_ncluster):
-                nM = int(index_nM_from_ncluster_[nM_from_ncluster].item());
-                for nS in range(n_S):
-                    tmp_delta_x = delta_x_SM__[nM,nS].item(); tmp_delta_y = delta_y_SM__[nM,nS].item();
-                    tmp_nd = int(torch.min(efind(torch.logical_and(torch.abs(FTK['r8_delta_x_']-tmp_delta_x)<tolerance_machine,torch.abs(FTK['r8_delta_y_']-tmp_delta_y)<tolerance_machine))).item());
-                    UX_T_M_l2_SM__[nM,nS] = UX_T_M_l2_dM__[nM,tmp_nd].item();
-                #end;%for nS=0:n_S-1;
-            #end;%for nM_from_ncluster=0:n_M_from_ncluster-1;
-            tmp_t=toc(tmp_t);
-            if (flag_verbose>0): disp(sprintf(' %% UX_M_l2_SM__: %0.3fs',tmp_t)); #end;
-            parameter = parameter_timing_update(parameter,sprintf('%s: UX_M_l2_SM__',str_thisfunction),tmp_t);
+            flag_check=0;
+            if flag_check:
+                tmp_t=tic();
+                for nM_from_ncluster in range(n_M_from_ncluster):
+                    nM = int(index_nM_from_ncluster_[nM_from_ncluster].item());
+                    for nS in range(n_S):
+                        tmp_delta_x = delta_x_SM__[nM,nS].item(); tmp_delta_y = delta_y_SM__[nM,nS].item();
+                        tmp_nd = int(torch.min(efind(torch.logical_and(torch.abs(FTK['r8_delta_x_']-tmp_delta_x)<tolerance_machine,torch.abs(FTK['r8_delta_y_']-tmp_delta_y)<tolerance_machine))).item());
+                        assert(tmp_nd==np.mod(int(index_sub_SM__[nM,nS].item()),n_delta_v));
+                        UX_T_M_l2_SM__[nM,nS] = UX_T_M_l2_dM__[nM,tmp_nd].item();
+                    #end;%for nS=0:n_S-1;
+                #end;%for nM_from_ncluster=0:n_M_from_ncluster-1;
+                tmp_t=toc(tmp_t);
+                if (flag_verbose>0): disp(sprintf(' %% UX_T_M_l2_SM__: %0.3fs',tmp_t)); #end;
+                parameter = parameter_timing_update(parameter,sprintf('%s: UX_T_M_l2_SM__',str_thisfunction),tmp_t);
+            #end;%if flag_check;
             #%%%%%%%%;
         #end;%if (n_M_from_ncluster>0);
     #end;%for ncluster=0:n_cluster-1;
+
+    #%%%%%%%%;
+    tmp_t=tic();
+    for nM in range(n_M):
+        tmp_index_rhs_SM_ = matlab_index_2d_0(n_S,':',n_M,nM);
+        tmp_index_sub_ = torch.fmod(index_sub_SM__.ravel()[tmp_index_rhs_SM_],n_delta_v).to(dtype=torch.int32);
+        tmp_index_rhs_dM_ = matlab_index_2d_0(n_delta_v,tmp_index_sub_,n_M,nM);
+        tmp_index_lhs_SM_ = matlab_index_2d_0(n_S,':',n_M,nM);
+        UX_T_M_l2_SM__.ravel()[tmp_index_lhs_SM_] = UX_T_M_l2_dM__.ravel()[tmp_index_rhs_dM_];
+    #end;%for nM=0:n_M-1;
+    tmp_t=toc(tmp_t);
+    if (flag_verbose>0): disp(sprintf(' %% UX_T_M_l2_SM__: %0.3fs',tmp_t)); #end;
+    parameter = parameter_timing_update(parameter,sprintf('%s: UX_T_M_l2_SM__',str_thisfunction),tmp_t);
+    #%%%%%%%%;
 
     #%%%%%%%%;
     if (flag_verbose): print(f' %% [finished {str_thisfunction}]');
@@ -362,7 +385,7 @@ def tfpmh_Z_cluster_wrap_SM__14(
         M_k_q_wkM__,
         UX_T_M_l2_dM__,
         UX_M_l2_M_,
-        svd_V_UX_M_lwnM____,
+        svd_V_UX_M_lwnM____, #%<-- or UX_T_M_k_q_dwnM____ ;
         UX_CTF_S_k_q_wnS__,
     );
 
