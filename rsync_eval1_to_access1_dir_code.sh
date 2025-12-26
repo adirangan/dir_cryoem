@@ -13,6 +13,7 @@ rsync \
     avr209@access1.cims.nyu.edu:/data/rangan/dir_cryoem/ \
     --exclude "EMPM/" \
     --include "/*" \
+    --include "*.org" \
     --include "*.py" \
     --include "*.m" \
     --include "*.c" \
@@ -32,6 +33,7 @@ rsync \
     avr209@access1.cims.nyu.edu:/data/rangan/dir_cryoem/dir_rangan_playroom/ \
     --exclude "EMPM/" \
     --include "/*" \
+    --include "*.org" \
     --include "*.py" \
     --include "*.m" \
     --include "*.c" \

@@ -10,3 +10,12 @@ df = 0.5d0*(df1+df2+ccos*(df1-df2));
 chi=c1*df+c2;
 ctfv=-w1*dsin(chi)-w2*dcos(chi);
 output = ctfv;
+
+function output = dsqrt(input); 
+output = sqrt(input);
+function output = datan2(input1,input2); 
+output = atan2(input1,input2);
+function output = dcos(input); 
+output = cos(input);
+function output = dsin(input); 
+output = sin(input);

@@ -31,10 +31,10 @@ parameter = struct('type','parameter');
 parameter.flag_deterministic = 1;
 parameter.f_rand = 0.5;
 n_w_max=8;
-n_S=13;
+n_S=113;
 viewing_azimu_b_S_=transpose(linspace(0,2*pi,n_S));
 viewing_polar_a_S_=transpose(linspace(0,1*pi,n_S));
-n_M=17;
+n_M=117;
 %%%%;
 n_wSM = n_w_max*n_S*n_M;
 X_wSM___ = reshape(mod([0:n_wSM-1],19),[n_w_max,n_S,n_M]);
@@ -42,6 +42,7 @@ delta_x_wSM___ = reshape(mod([0:n_wSM-1],23),[n_w_max,n_S,n_M]);
 delta_y_wSM___ = reshape(mod([0:n_wSM-1],29),[n_w_max,n_S,n_M]);
 gamma_z_wSM___ = reshape(mod([0:n_wSM-1],31),[n_w_max,n_S,n_M]);
 I_value_wSM___ = reshape(mod([0:n_wSM-1],37),[n_w_max,n_S,n_M]);
+tmp_t=tic();
 [ ...
  parameter ...
 ,euler_polar_a_M_ ...
@@ -66,6 +67,7 @@ tfpmh_SM_uniform_2( ...
 ,gamma_z_wSM___ ...
 ,I_value_wSM___ ...
 );
+tmp_t=toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% tfpmh_SM_uniform_2: time %0.6fs',tmp_t)); end;
 %%%%;
 dir_pymat = '/data/rangan/dir_cryoem/dir_rangan_python/dir_pymat' ;
 fname_pymat = sprintf('%s/test_tfpmh_SM_uniform_2_wSM.mat',dir_pymat);
@@ -88,6 +90,7 @@ delta_x_SM__ = reshape(mod([0:n_SM-1],23),[n_S,n_M]);
 delta_y_SM__ = reshape(mod([0:n_SM-1],29),[n_S,n_M]);
 gamma_z_SM__ = reshape(mod([0:n_SM-1],31),[n_S,n_M]);
 I_value_SM__ = reshape(mod([0:n_SM-1],37),[n_S,n_M]);
+tmp_t=tic();
 [ ...
  parameter ...
 ,euler_polar_a_M_ ...
@@ -112,6 +115,7 @@ tfpmh_SM_uniform_2( ...
 ,gamma_z_SM__ ...
 ,I_value_SM__ ...
 );
+tmp_t=toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% tfpmh_SM_uniform_2: time %0.6fs',tmp_t)); end;
 %%%%;
 dir_pymat = '/data/rangan/dir_cryoem/dir_rangan_python/dir_pymat' ;
 fname_pymat = sprintf('%s/test_tfpmh_SM_uniform_2_SM.mat',dir_pymat);

@@ -1,0 +1,344 @@
+* Dimensions and Units:
+
+We adopt dimensionless units where the real-space particle is enclosed in a box of side-length 2.
+We also refer to the (non-angular) wave-number as k.
+With these definitions a fourier-mode with wavenumber k takes the form: exp(i*2*pi*k*x),
+with an angular-wavenumber corresponding to 2*pi*k.
+
+Relevant global parameters involving these dimensionless units are:
+
+| name              | type  | description                                                          | typical value |
+|-------------------+-------+----------------------------------------------------------------------+---------------|
+| diameter_x_c      | float | side-length of the real-space box                                    | 2.0           |
+| half_diameter_x_c | float | half-side-length of the real-space box                               | 1.0           |
+| k_eq_d            | float | typical spacing of quadrature-points in 3d and 2d k-space            | ~ 1.0/(2*pi)  |
+| k_p_r_max         | float | maximum wavenumber for calculation                                   | ~ 48.0/(2*pi) |
+| l_max_max         | int   | maximum spherical-harmonic-degree used to resolve volume             | ~ 48          |
+| n_w_max           | int   | maximum number of angular-quadrature-points in 2d k-space polar-grid | ~ 98          |
+| n_x_u_load        | int   | number of pixels on a side for loaded object                         | ~ 256-320     |
+| n_x_u_pack        | int   | number of pixels on a side for downsampled object                    | ~ 64          |
+| Pixel_Spacing     | float | number of angstroms associated with pixel from loaded object         | ~ 1.1         |
+
+* Data types:
+
+On the cpu and gpu we assume (unless stated otherwise) that non-indexing integers are stored as int32.
+Similarly, floats are stored as float32, and complex numbers are stored as complex64.
+
+Some rare exceptions include the factorized-translation-kernel (FTK).
+This (dictionary) structure includes fields such as 'r8_delta_r_max', 
+which stores 'delta_r_max' (i.e., the maximum translation-magnitude) as a float64 (as indicated by the 'r8' prefix).
+Similarly, the field 'c16_svd_U_d_expiw_s__' stores 'svd_U_d_expiw_s__' as a complex128 (indicated by the 'c16' prefix).
+
+* Array organization:
+
+Generically, we assume that all arrays are defined using pytorch.
+exceptions (i.e., numpy-arrays used in gen_Jsvd_FTK_8 and pm_template_3)
+will be indicated by an 'np_' prefix.
+
+We denote a typical 1d-array as 'array_a_'.
+The trailing underscore indicates that the array is one-dimensional.
+The suffix 'a' indicates that the array-dimension is denoted by index na ranging from [0,n_a-1].
+When the context and indexing are clear, we refer to this as simply 'array_'.
+
+We assume that all arrays are (by default) on the cpu.
+Arrays expected to be on the gpu will be denoted by an infix (i.e., 'array_gpu_a_').
+
+** Array indexing
+ We typically store small array-indices as int32.
+ Note that (signed) int32 can only be used to index arrays up to ~ 2GB in size.
+ Thus, for general arrays we store array-indices as int64 (see matlab_index_?d_0.py).
+
+** Uniform tensors
+ As a higher-dimensional example, we denote a typical 3d-array as: 'array_abc___'.
+ The three trailing underscores indicate that the array can be addressed using three dimensions, 
+ with dimension 'a' varying most quickly, and 'c' varying most slowly.
+ The dimensions themselves are assumed to be of size n_a, n_b and n_c, respectively.
+ The array-indices are denoted by na, nb and nc, respectively.
+ Thus, we expect array_abc___[nc,nb,na] to correspond to the linear index na + (nb + nc*n_b)*n_a.
+ An unrolled version of the same array would be denoted 'array_abc_'.
+
+** Nonuniform polar-grid
+ The above array-organization is a special-case of a more general organization we use for certain polar-grids.
+ To explain this organization, consider the array 'data_wk_', along with indexing variables n_k and n_w_.
+ In this context, n_k is the number of radial locations in the polar-grid, 
+ and n_w_ is an int32-array of size n_k storing the number of angular-points per radius.
+ Thus, n_w = n_w_[nk] is the number of angular-points for the ring corresponding to radial-index nk.
+ We assume that n_w_csum_ = cumsum_0(n_w_) = [0,n_w_[0],n_w_[0]+n_w_[1],n_w_[0]+n_w_[1]+n_w_[2],...]
+ is the cumulative-sum of the n_w_.
+ The total number of points in the polar-grid is n_w_sum = sum(n_w_) = n_w_csum_[n_k].
+ The data in data_wk_ corresponds to data on the polar-grid stored in an unrolled format.
+ Thus, data_wk_[nw + n_w_csum_[nk]] corresponds to the datum associated with angular-index nw on radial-index nk.
+
+ Note that, if n_w_ is uniform (i.e., if the same number of angular-points is used at every radius), 
+ then n_w_csum_[nk] = nk*n_w_max, and nw + n_w_csum_[nk] = n_w + nk*n_w_max, 
+ corresponding to the unraveled version of data_wk__.
+ 
+ Finally, we use the same polar-grid for fourier-bessel-coefficients,
+ referring to the fourier-bessel-mode as either nw or nq, depending on the context.
+
+** Nonuniform spherical-grid
+ A similar organization is used for spherical-grids.
+ In this case 'data_bak_' is interpreted along with indexing variables n_k, n_a_k_ (i.e., n_a_) and n_b_ak_.
+ The number of spherical-shells is n_k.
+ The number of polar_a values in spherical-shell nk is given by n_a = n_a_[nk].
+ The number of azimu_b values on latitude na in shell nk is given by n_b = n_b_ak_[na + n_a_csum_[nk]].
+ Thus, data_bak_[nb + n_b_ak_[na + n_a_csum_[nk]]] corresponds to the datum associated with
+ longitude-index nb and latitude-index na on radial-index nk.
+
+ An alternative storage scheme for n_b_ak_ is used in sample_sphere_?.py.
+ In this function n_b_ak_ is stored as a cell-array (denoted, in abuse of notation, via n_b_ka__).
+ The cell-array n_b_ka__[nk] is an array of length n_a_k_[nk] storing the n_b for each na at that nk.
+ For a particular nk the unrolled multi-index involving nb and na is referred to as nq
+ (referring to quadrature-points on the shell).
+
+** Nonuniform spherical-harmonic grid
+ A similar organization is used for spherical harmonics.
+ In this case 'data_yk_' is interpreted along with indexing variables n_k and l_max_k_ (i.e., l_max_).
+ The number of spherical-shells is n_k.
+ The maximum spherical-harmonic degree on spherical-shell nk is given by l_max = l_max_[nk].
+ The multi-index ny corresponds to the degree l_val and order m_val (the latter ranging from -l_val to +l_val).
+ Thus, ny = (l_val)^2 + l_val + m_val.
+ So, in summary, data_yk_[m_val + l_val + (l_val)^2 + (1+l_max_[nk])^2] corresponds to the datum associated with
+ order m_val and degree l_val on radial-index nk.
+ 
+* Glossary:
+
+Several of the functions re-use the same variable-names.
+Here is a list of commonly-used variable-names.
+
+| <24>                      | <8>  | <64>                                                                                                 | <32>                                                                                                                                                                                                                                                                                                                                                                   |
+| name                      | type | description                                                                                          | Notes                                                                                                                                                                                                                                                                                                                                                                  |
+|---------------------------+------+------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| a_k_Y_base_yk_            | c8   | estimated volume in spherical-harmonic coordinates                                                   | a_k_Y_base_yk_[ny + n_y_csum_[nk]] = spherical-harmonic-coefficient ny for radial-index nk.                                                                                                                                                                                                                                                                            |
+| a_k_Y_reco_yki__          | c8   | synthesized volume at each iteration of tfpmut_wrap_?.py                                             | a_k_Y_reco_yki__[ni,nyk] corresponds to the volume-coefficient nyk at iteration ni.                                                                                                                                                                                                                                                                                    |
+| CTF_k_p_r_k_              | r4   | isotropic CTF-function stored on polar-grid                                                          | CTF_k_p_r_k_[nk] = datum for radius nk.                                                                                                                                                                                                                                                                                                                                |
+| CTF_k_p_wkC__             | r4   | (anisotropic) CTF-functions stored on polar-grid                                                     | CTF_k_p_wkC__[nCTF,nw+n_w_csum_[nk]] = datum for angle nw radius nk CTF-function nCTF.                                                                                                                                                                                                                                                                                 |
+| delta_sigma_base          | r4   | maximum 2d-displacement when estimating volumetric radial-principal-modes in empm phase-2            | only used in second phase of empm (i.e., when prior volume is used to estimate radial-principal-modes).                                                                                                                                                                                                                                                                |
+| delta_x_SM__              | r4   | the delta_x_0 value associated with X_SM__                                                           |                                                                                                                                                                                                                                                                                                                                                                        |
+| delta_x_wSM___            | r4   | the delta_x_0 value associated with X_wSM___                                                         |                                                                                                                                                                                                                                                                                                                                                                        |
+| delta_y_SM__              | r4   | the delta_x_1 value associated with X_SM__                                                           |                                                                                                                                                                                                                                                                                                                                                                        |
+| delta_y_wSM___            | r4   | the delta_x_1 value associated with X_wSM___                                                         |                                                                                                                                                                                                                                                                                                                                                                        |
+| euler_azimu_b_ini_M_      | r4   | estimated azimu_b (euler angle) for images (used for initialization of empm phase-2)                 | euler_azimu_b_ini_M_[nM] = estimated azimu_b for image nM.                                                                                                                                                                                                                                                                                                             |
+| euler_azimu_b_M_          | r4   | estimated azimu_b (euler angle) for images                                                           | euler_azimu_b_M_[nM] = estimated azimu_b for image nM.                                                                                                                                                                                                                                                                                                                 |
+| euler_azimu_b_Mi__        | r4   | estimated azimu_b (euler angle) for images at each iteration of tfpmut_wrap_?.py                     | euler_azimu_b_Mi__[ni,nM] = estimated azimu_b for image nM at iteration ni.                                                                                                                                                                                                                                                                                            |
+| euler_gamma_z_ini_M_      | r4   | estimated gamma_z (euler angle) for images (used for initialization of empm phase-2)                 | euler_gamma_z_ini_M_[nM] = estimated gamma_z for image nM.                                                                                                                                                                                                                                                                                                             |
+| euler_gamma_z_M_          | r4   | estimated gamma_z (euler angle) for images                                                           | euler_gamma_z_M_[nM] = estimated gamma_z for image nM.                                                                                                                                                                                                                                                                                                                 |
+| euler_gamma_z_Mi__        | r4   | estimated gamma_z (euler angle) for images at each iteration of tfpmut_wrap_?.py                     | euler_gamma_z_Mi__[ni,nM] = estimated gamma_z for image nM at iteration ni.                                                                                                                                                                                                                                                                                            |
+| euler_polar_a_ini_M_      | r4   | estimated polar_a (euler angle) for images (used for initialization of empm phase-2)                 | euler_polar_a_ini_M_[nM] = estimated polar_a for image nM.                                                                                                                                                                                                                                                                                                             |
+| euler_polar_a_M_          | r4   | estimated polar_a (euler angle) for images                                                           | euler_polar_a_M_[nM] = estimated polar_a for image nM.                                                                                                                                                                                                                                                                                                                 |
+| euler_polar_a_Mi__        | r4   | estimated polar_a (euler angle) for images at each iteration of tfpmut_wrap_?.py                     | euler_polar_a_Mi__[ni,nM] = estimated polar_a for image nM at iteration ni.                                                                                                                                                                                                                                                                                            |
+| flag_image_delta_upd_Mi__ | i4   | flag indicating whether or not image nM needs to be recentered at each iteration of tfmput_wrap_?.py | flag_image_delta_upd_Mi__[ni,nM] = 1 if image nM needs to be recentered at iteration ni.                                                                                                                                                                                                                                                                               |
+| FTK                       | dict | factorized-translation-kernel                                                                        | analogous to matlab 'struct'. Formed via tfh_FTK_?.py.                                                                                                                                                                                                                                                                                                                 |
+| gamma_z_SM__              | r4   | the gamma_z value associated with X_SM__                                                             |                                                                                                                                                                                                                                                                                                                                                                        |
+| gamma_z_wSM___            | r4   | the gamma_z value associated with X_wSM___                                                           |                                                                                                                                                                                                                                                                                                                                                                        |
+| image_delta_x_acc_ini_M_  | r4   | estimated accumulated delta_x (translation) for images (used for initialization of empm phase-2)     | image_delta_x_acc_ini_M_[nM] = estimated accumulated translation delta_x (i.e., delta_x_c_0) for image nM.                                                                                                                                                                                                                                                             |
+| image_delta_x_acc_M_      | r4   | estimated accumulated delta_x (translation) for images                                               | image_delta_x_acc_M_[nM] = estimated accumulated translation delta_x (i.e., delta_x_c_0) for image nM.                                                                                                                                                                                                                                                                 |
+| image_delta_x_acc_Mi__    | r4   | estimated accumulated delta_x (translation) for images at each iteration of tfmput_wrap_?.py         | image_delta_x_acc_Mi__[ni,nM] = estimated accumulated translation delta_x (i.e., delta_x_c_0) for image nM at iteration ni.                                                                                                                                                                                                                                            |
+| image_delta_x_upd_Mi__    | r4   | estimated temporary update to delta_x (translation) for images at each iteration of tfmput_wrap_?.py | image_delta_x_upd_Mi__[ni,nM] = estimated temporary update to translation delta_x (i.e., delta_x_c_0) for image nM at iteration ni.                                                                                                                                                                                                                                    |
+| image_delta_y_acc_ini_M_  | r4   | estimated accumulated delta_y (translation) for images (used for initialization of empm phase-2)     | image_delta_y_acc_ini_M_[nM] = estimated accumulated translation delta_y (i.e., delta_x_c_1) for image nM.                                                                                                                                                                                                                                                             |
+| image_delta_y_acc_M_      | r4   | estimated accumulated delta_y (translation) for images                                               | image_delta_y_acc_M_[nM] = estimated accumulated translation delta_y (i.e., delta_x_c_1) for image nM.                                                                                                                                                                                                                                                                 |
+| image_delta_y_acc_Mi__    | r4   | estimated accumulated delta_y (translation) for images at each iteration of tfmput_wrap_?.py         | image_delta_y_acc_Mi__[ni,nM] = estimated accumulated translation delta_y (i.e., delta_x_c_1) for image nM at iteration ni.                                                                                                                                                                                                                                            |
+| image_delta_y_upd_Mi__    | r4   | estimated temporary update to delta_y (translation) for images at each iteration of tfmput_wrap_?.py | image_delta_y_upd_Mi__[ni,nM] = estimated temporary update to translation delta_y (i.e., delta_x_c_1) for image nM at iteration ni.                                                                                                                                                                                                                                    |
+| image_I_value_Mi__        | r4   | I-value associated with each image at each iteration of tfpmut_wrap_?.py                             | image_I_value_Mi__[ni,nM] = I-value for image nM at iteration ni. Typically set to 1.0.                                                                                                                                                                                                                                                                                |
+| image_S_index_Mi__        | i4   | nS associated with each image at each iteration of tfpmut_wrap_?.py                                  | image_S_index_Mi__[ni,nM] = nS (i.e., associated template-index) for image nM at iteration ni.                                                                                                                                                                                                                                                                         |
+| image_X_value_Mi__        | r4   | X-value associated with each image at each iteration of tfpmut_wrap_?.py                             | image_X_value_Mi__[ni,nM] = X-value for image nM (associated with assigned template) at iteration ni.                                                                                                                                                                                                                                                                  |
+| index_ncluster_from_nCTF_ | i4   | indexing cross-reference from nCTF to ncluster                                                       | index_ncluster_from_nCTF_[nCTF] = ncluster corresponding to CTF-function nCTF.                                                                                                                                                                                                                                                                                         |
+| index_nCTF_from_nM_       | i4   | indexing cross-reference from nM to nCTF                                                             | index_nCTF_from_nM_[nM] = nCTF corresponding to image nM.                                                                                                                                                                                                                                                                                                              |
+| index_sub_SM__            | r4   | the ndelta_v + nw*n_delta_v value associated with X_SM__                                             |                                                                                                                                                                                                                                                                                                                                                                        |
+| index_sub_wSM___          | r4   | the ndelta_v value associated with X_wSM___                                                          |                                                                                                                                                                                                                                                                                                                                                                        |
+| k_p_r_                    | r4   | k-value for shell-index nk_p_r                                                                       |                                                                                                                                                                                                                                                                                                                                                                        |
+| k_p_r_max                 | r4   | maximum k-value                                                                                      |                                                                                                                                                                                                                                                                                                                                                                        |
+| l_max_                    | i4   | maximum spherical-harmonic-degree associated with shell-index nk_p_r                                 | i.e., l_max_k_                                                                                                                                                                                                                                                                                                                                                         |
+| M_k_p_wkM__               | c8   | images stored on k-space polar-grid                                                                  | M_k_p_wkM__[nM,nw+n_w_csum_[nk]] = datum for angle nw radius nk image nM.                                                                                                                                                                                                                                                                                              |
+| M_k_q_wkM__               | c8   | images stored in k-space fourier-bessel coordinates                                                  | M_k_q_wkM__[nM,nq+n_w_csum_[nk]] = datum for fourier-bessel-mode nq radius nk image nM.                                                                                                                                                                                                                                                                                |
+| n_cluster                 | i4   | number of distinct CTF-clusters                                                                      |                                                                                                                                                                                                                                                                                                                                                                        |
+| n_CTF                     | i4   | number of distinct CTF-functions                                                                     |                                                                                                                                                                                                                                                                                                                                                                        |
+| n_k_p_r                   | i4   | number of radial rings/shells in k-space                                                             | i.e., n_k                                                                                                                                                                                                                                                                                                                                                              |
+| n_M                       | i4   | number of images in image-stack                                                                      |                                                                                                                                                                                                                                                                                                                                                                        |
+| n_S                       | i4   | number of templates in template-stack                                                                |                                                                                                                                                                                                                                                                                                                                                                        |
+| n_w_                      | i4   | number of angles for shell-index nk_p_r                                                              | i.e., n_w_k_                                                                                                                                                                                                                                                                                                                                                           |
+| parameter                 | dict | list of internal parameters passed to subordinate functions                                          | analogous to matlab 'struct'.                                                                                                                                                                                                                                                                                                                                          |
+| pm_n_UX_rank              | i4   | number of radial-principal-modes for a particular isotropic CTF                                      |                                                                                                                                                                                                                                                                                                                                                                        |
+| pm_n_UX_rank_c_           | i4   | number of radial-principal-modes for each CTF-cluster                                                | pm_n_UX_rank_c_[ncluster] = number of radial-principal-modes to use for CTF-cluster ncluster.                                                                                                                                                                                                                                                                          |
+| pm_UX_kn__                | r4   | radial-principal-modes for a particular isotropic CTF                                                | UX_kn__[nn,nk] = radial-principal-mode vector for radial-index nk radial-mode nn.                                                                                                                                                                                                                                                                                      |
+| pm_UX_knc___              | r4   | radial-principal-modes for each CTF-cluster                                                          | UX_knc___[nc,nn,nk] = radial-principal-mode vector for radial-index nk radial-mode nn CTF-cluster nc.                                                                                                                                                                                                                                                                  |
+| pm_X_weight_r_            | r4   | radial-principal-mode weighting for a particular isotropic CTF                                       | pm_X_weight_r_[nk] = weight for radius nk. Typically sqrt(weight_2d_k_p_r_).                                                                                                                                                                                                                                                                                           |
+| pm_X_weight_rc__          | r4   | radial-principal-mode weighting for each CTF-cluster                                                 | pm_X_weight_rc__[nc,nk] = weight for radius nk CTF-cluster nc. Typically sqrt(weight_2d_k_p_r_).                                                                                                                                                                                                                                                                       |
+| qbp_eps                   | r4   | tolerance for local-least-squares in quadrature-back-projection                                      | not actually used (hard-coded to tolerance_machine, which is typically 1e-6).                                                                                                                                                                                                                                                                                          |
+| S_k_p_wkS__               | c8   | templates stored on k-space polar-grid                                                               | S_k_p_wkS__[nS,nw+n_w_csum_[nk]] = datum for angle nw radius nk template nS.                                                                                                                                                                                                                                                                                           |
+| svd_V_UX_M_lwnM____       | c8   | quasi-images in fourier-bessel-coordinates                                                           | Formed via tpmh_VUXM_lwnM____?.py.                                                                                                                                                                                                                                                                                                                                     |
+| UX_CTF_S_k_q_wnS__        | c8   | radially-compressed product of isotropic CTF-function and templates in fourier-bessel-coordinates    | UX_CTF_S_k_q_wnS__[nS,nq + nn*n_w_max] = datum for fourier-bessel-mode nq radial-mode nn template nS.                                                                                                                                                                                                                                                                  |
+| UX_CTF_S_l2_S_            | r4   | l2-norm-squared for radially-compressed product of isotropic CTF-function and templates              | UX_CTF_S_l2_S_[nS] = datum for template nS.                                                                                                                                                                                                                                                                                                                            |
+| UX_M_l2_M_                | r4   | l2-norm-squared for radially-compressed images                                                       | UX_M_l2_M_[nM] = l2-norm for image nM.                                                                                                                                                                                                                                                                                                                                 |
+| UX_T_M_k_q_dwnM____       | c8   | radially-compressed translated-images in fourier-bessel-coordinates                                  | Formed via tpmh_UXTM_dwnM____?.py.                                                                                                                                                                                                                                                                                                                                     |
+| UX_T_M_l2_dM__            | r4   | l2-norm-squared for radially-compressed images after translation                                     | UX_T_M_l2_dM__[nM,ndelta_v] = l2-norm for translation-index ndelta_v image nM.                                                                                                                                                                                                                                                                                         |
+| weight_2d_k_p_r_          | r4   | quadrature-weight for each nk_p_r on 2d-polar-grid                                                   | sums to pi*k_p_r_max^2.                                                                                                                                                                                                                                                                                                                                                |
+| weight_2d_k_p_wk_         | r4   | quadrature-weight for each nw,nk_p_r on 2d-polar-grid                                                | sums to pi*k_p_r_max^2 / (2*pi)^2.                                                                                                                                                                                                                                                                                                                                     |
+| weight_3d_k_p_r_          | r4   | quadrature-weight for eacn nk_p_r on 3d-spherical-grid                                               | sums to (4/3)*pi*k_p_r_max^3 / (4*pi).                                                                                                                                                                                                                                                                                                                                 |
+| X_dwSM____                | r4   | the full cross-correlation tensor including all ndelta_v, nw, nS and nM                              | This is typically suppressed (unless flag_dwSM is set to 1).                                                                                                                                                                                                                                                                                                           |
+| X_SM__                    | r4   | cross-correlation tensor maximized across displacement-index ndelta_v and angle-index nw             | X_SM__[nM,nS] = Z_SM__[nM,nW] / max(1e-12,sqrt(UX_CTF_S_l2_S_[nS])) / max(1e-12,sqrt(UX_T_M_l2_dM__[ndelta_v,nM])), where ndelta_v is chosen to maximize X_SM__[nM,nS,nw] (see index_sub_SM__[nM,nS] for definition of ndelta_v and nw).                                                                                                                               |
+| X_wSM___                  | r4   | cross-correlation tensor maximized across displacement-index ndelta_v                                | X_wSM___[nM,nS,nw] = Z_wSM___[nM,nW,nw] / max(1e-12,sqrt(UX_CTF_S_l2_S_[nS])) / max(1e-12,sqrt(UX_T_M_l2_dM__[ndelta_v,nM])), where ndelta_v is chosen to maximize X_wSM___[nM,nS,nw] (see index_sub_wSM___[nM,nS,nw]).                                                                                                                                                |
+| Z_dwSM____                | r4   | the full inner-product tensor including all ndelta_v, nw, nS and nM                                  | This is typically suppressed (unless flag_dwSM is set to 1).                                                                                                                                                                                                                                                                                                           |
+| Z_SM__                    | r4   | inner-product tensor maximized across displacement-index ndelta_v and angle-index nw                 | Z_SM__[nM,nS] = bandlimited innerproduct <UX_CTF_RS,UX_TM> between the radially-compressed CTF_RS and TM. In this expression S corresponds to template nS and M corresponds to image nM. The rotation R corresponds to rotation by +gamma_z=2*pi*nw/max(1,n_w_max). The translation T corresponds to translation by +r8_delta_x_[ndelta_v],+r8_delta_y_[delta_v].      |
+| Z_wSM___                  | r4   | inner-product tensor maximized across displacement-index ndelta_v                                    | Z_wSM___[nM,nS,nw] = bandlimited innerproduct <UX_CTF_RS,UX_TM> between the radially-compressed CTF_RS and TM. In this expression S corresponds to template nS and M corresponds to image nM. The rotation R corresponds to rotation by +gamma_z=2*pi*nw/max(1,n_w_max). The translation T corresponds to translation by +r8_delta_x_[ndelta_v],+r8_delta_y_[delta_v]. |
+
+Several of the functions pass the same list of 'parameters' to their subordinates.
+Common parameters are as follows.
+
+| <24>                                | <8>  | <64>                                                                             |                     <32> |
+| name                                | type | description                                                                      |                  Default |
+|-------------------------------------+------+----------------------------------------------------------------------------------+--------------------------|
+| delta_r_max                         | r4   | maximum local translation considered during alignment.                           |                      0.1 |
+| delta_r_upb                         | r4   | maximum accumulated (i.e., global) translation allowed during alignment.         |            2*delta_r_max |
+| device_use                          | str  | set to either 'cuda' or 'cpu' when flag_gpu==1.                                  |                    'cpu' |
+| flag_alternate_MS_vs_SM             | i4   | set to 1 to alternate between alignment strategies in empm .                     |                        1 |
+| flag_clump_vs_cluster               | i4   | set to 1 to clump (rather than cluster) CTF-functions during empm .              |                        0 |
+| flag_d                              | i4   | set to 1 to calculate first-derivatives of associated legendre-functions.        |                        1 |
+| flag_dd                             | i4   | set to 1 to calculate second-derivatives of associated legendre-functions.       |                        1 |
+| flag_deterministic                  | i4   | set to 1 to force nonrandom alignment in empm (for testing).                     |                        0 |
+| flag_dwSM                           | i4   | set to 1 to force storage of tensors Z_dwSM____ and X_dwSM____ during alignment. |                        0 |
+| flag_gpu                            | i4   | set to 1 to use gpu alignment in empm (also set device_use to 'cuda').           |                        0 |
+| flag_MS_vs_SM                       | i4   | used in each iteration empm to indicate alignment strategy.                      |               alternates |
+| flag_optimize_over_gamma_z          | i4   | set to 1 to force optimization over in-plane rotation gamma_z in alignment.      |                        0 |
+| flag_output_ravel                   | i4   | set to 1 to force output-arrays to be stored linearly in alignment.              |                        0 |
+| flag_precompute_M_k_q_wkM__         | i4   | set to 1 to attempt precomputation of M_k_q_wkM__ in alignment.                  |                        0 |
+| flag_precompute_svd_V_UX_M_lwnM____ | i4   | set to 1 to attempt precomputation of svd_V_UX_M_lwnM____ in alignment.          |                        0 |
+| flag_precompute_UX_CTF_S_k_q_wnS__  | i4   | set to 1 to attempt precomputation of UX_CTF_S_k_q_wnS__ in alignment.           |                        0 |
+| flag_precompute_UX_CTF_S_l2_S_      | i4   | set to 1 to attempt precomputation of UX_CTF_S_l2_S_ in alignment.               |                        0 |
+| flag_precompute_UX_M_l2_M_          | i4   | set to 1 to attempt precomputation of UX_M_l2_M in alignment.                    |                        0 |
+| flag_precompute_UX_T_M_l2_dM__      | i4   | set to 1 to attempt precomputation of UX_T_M_l2_dM__ in alignment.               |                        0 |
+| flag_p_vs_c                         | i4   | set to 1 to force polar-grid of displacements in tfh_FTK_?.py .                  |                        0 |
+| flag_rank_vs_tolerance              | i4   | set to 1 to force fixed pm_n_UX_rank across CTF-clusters in empm .               |                        0 |
+| flag_save_stage                     | i4   | set to 1 to save internal states to disk in empm (used for debugging).           |                        0 |
+| flag_tf_vs_bf                       | i4   | set to 1 to apply translation-factorization (rather than brute-force).           |                        1 |
+| flag_verbose                        | i4   | set to 1 or higher to increase verbosity level.                                  |                        0 |
+| fname_pre                           | str  | filename-prefix used when saving output in empm.                                 |              must be set |
+| f_rand                              | r4   | percentile to sample from when assigning templates to images.                    |                     0.05 |
+| l_max                               | i4   | maximum spherical-harmonic-degree calculated in tfh_FTK_?.py.                    |                       24 |
+| memory_limit_GB                     | r4   | memory limit for local storage (in GB) for alignment.                            |                        4 |
+| n_a_degree                          | i4   | maximum degree for polynomial interpolation of k-variable in tfh_FTK_?.py        |                       64 |
+| n_b_degree                          | i4   | maximum degree for polynomial interpolation of k-variable in tfh_FTK_?.py        |                       65 |
+| n_delta_v_requested                 | i4   | number of displacements requested in tfh_FTK_?.py                                |                        0 |
+| n_iteration                         | i4   | number of iterations per stage in empm.                                          |                       32 |
+| n_M_per_Mbatch                      | i4   | number of images per image-batch in alignment.                                   |   24 for cpu, 96 for gpu |
+| n_S_per_Sbatch                      | i4   | number of templates per template-batch in alignment.                             |   24 for cpu, 96 for gpu |
+| r8_delta_r_max                      | r8   | r8 precision delta_r_max, used by tfh_FTK_?.py.                                  |                      0.0 |
+| r8_delta_x_requested_               | r8   | r8 array of delta_x_0_ that can be loaded into tfh_FTK_?.py.                     |                     None |
+| r8_delta_y_requested_               | r8   | r8 array of delta_x_1_ that can be loaded into tfh_FTK_?.py.                     |                     None |
+| r8_svd_eps                          | r8   | r8 value for truncating svd, used by tfh_FTK_?.py.                               |                     1e-4 |
+| rseed                               | i8   | random seed used for initialization                                              |                        0 |
+| template_viewing_k_eq_d             | r4   | typical spacing of viewing-angles used for templates in empm.                    | 1.0/max(1e-12,k_p_r_max) |
+| tolerance_cluster                   | r4   | threshold used to cluster CTF-functions in empm.                                 |         tolerance_master |
+| tolerance_master                    | r4   | master tolerance used as default (when other values are not given).              |                     1e-2 |
+| tolerance_pm                        | r4   | threshold used to truncate svd for radial-principal-modes.                       |         tolerance_master |
+
+* Additional Notes:
+** Alignment
+ The function tfpmh_Z_wSM___14.py is used for aligning a stack of
+ images with a single isotropic CTF-function to a stack of templates.
+ The relevant inputs and outputs are:
+*** Inputs:
+ | parameter           |
+ | n_k_p_r             |
+ | k_p_r_              |
+ | k_p_r_max           |
+ | n_w_                |
+ | weight_2d_k_p_r_    |
+ | weight_2d_k_p_wk_   |
+ | n_M                 |
+ | M_k_p_wkM__         |
+ | CTF_k_p_r_k_        |
+ | n_S                 |
+ | S_k_p_wkS__         |
+ | pm_n_UX_rank        |
+ | pm_UX_kn__          |
+ | pm_X_weight_r_      |
+ | FTK                 |
+ | M_k_q_wkM__         |
+ | UX_T_M_l2_dM__      |
+ | UX_M_l2_M_          |
+ | svd_V_UX_M_lwnM____ |
+ | UX_CTF_S_k_q_wnS__  |
+ | UX_CTF_S_l2_S_      |
+*** Outputs:
+ | parameter        |
+ | Z_wSM___         |
+ | UX_T_M_l2_dM__   |
+ | UX_M_l2_M_       |
+ | UX_CTF_S_l2_S_   |
+ | X_wSM___         |
+ | delta_x_wSM___   |
+ | delta_y_wSM___   |
+ | gamma_z_wSM___   |
+ | index_sub_wSM___ |
+ | Z_dwSM____       |
+ | X_dwSM____       |
+** Synthesis
+ The function qbp_uniform_over_n_k_p_r_10.py is used for synthesizing a volume
+ from an image-stack, a collection of (potentially anisotropic) CTF-functions,
+ and a collection of image-poses.
+ The relevant inputs and outputs are:
+*** Inputs:
+ | qbp_eps             |
+ | n_k_p_r             |
+ | k_p_r_              |
+ | l_max_              |
+ | n_w_                |
+ | n_M                 |
+ | M_k_p_wkM__         |
+ | index_nCTF_from_nM_ |
+ | CTF_k_p_wkC__       |
+ | euler_polar_a_M_    |
+ | euler_azimu_b_M_    |
+ | euler_gamma_z_M_    |
+ | image_delta_x_M_    |
+ | image_delta_y_M_    |
+ | image_I_value_M_    |
+*** Outputs:
+ | a_k_Y_yk_           |
+ | n_quad_from_data_q_ |
+ | a_k_p_qk__          |
+** Ab-initio reconstruction
+ The function tfpmut_wrap_6.py performs a phase of ab-initio reconstruction.
+ The relevant inputs and outputs are:
+*** Inputs:
+ | parameter                |
+ | n_k_p_r                  |
+ | k_p_r_                   |
+ | k_p_r_max                |
+ | weight_3d_k_p_r_         |
+ | weight_2d_k_p_r_         |
+ | n_w_                     |
+ | weight_2d_k_p_wk_        |
+ | l_max_                   |
+ | n_CTF                    |
+ | CTF_k_p_wkC__            |
+ | index_nCTF_from_nM_      |
+ | n_M                      |
+ | M_k_p_wkM__              |
+ | euler_polar_a_ini_M_     |
+ | euler_azimu_b_ini_M_     |
+ | euler_gamma_z_ini_M_     |
+ | image_delta_x_acc_ini_M_ |
+ | image_delta_y_acc_ini_M_ |
+ | a_k_Y_base_yk_           |
+ | delta_sigma_base         |
+*** Outputs:
+ | parameter                 |
+ | a_k_Y_reco_yki__          |
+ | euler_polar_a_Mi__        |
+ | euler_azimu_b_Mi__        |
+ | euler_gamma_z_Mi__        |
+ | image_delta_x_acc_Mi__    |
+ | image_delta_y_acc_Mi__    |
+ | image_delta_x_upd_Mi__    |
+ | image_delta_y_upd_Mi__    |
+ | flag_image_delta_upd_Mi__ |
+ | image_I_value_Mi__        |
+ | image_X_value_Mi__        |
+ | image_S_index_Mi__        |
+
+
+
+
+

@@ -5,6 +5,7 @@ rsync -avum \
       --include="*.f" \
       --include="*.c" \
       --include="*.make" \
+      --include "*.org" \
       --include="*.py" \
       --include="*.m" \
       --include="*.sh" \

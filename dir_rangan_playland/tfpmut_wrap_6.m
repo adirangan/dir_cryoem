@@ -29,11 +29,11 @@ tfpmut_wrap_6( ...
 ,index_nCTF_from_nM_ ...
 ,n_M ...
 ,M_k_p_wkM__ ...
-,ini_euler_polar_a_M_ ...
-,ini_euler_azimu_b_M_ ...
-,ini_euler_gamma_z_M_ ...
-,ini_image_delta_x_acc_M_ ...
-,ini_image_delta_y_acc_M_ ...
+,euler_polar_a_ini_M_ ...
+,euler_azimu_b_ini_M_ ...
+,euler_gamma_z_ini_M_ ...
+,image_delta_x_acc_ini_M_ ...
+,image_delta_y_acc_ini_M_ ...
 ,a_k_Y_base_yk_ ...
 ,delta_sigma_base ...
 );
@@ -55,11 +55,11 @@ if (nargin<1+na); CTF_k_p_wkC__=[]; end; na=na+1;
 if (nargin<1+na); index_nCTF_from_nM_=[]; end; na=na+1;
 if (nargin<1+na); n_M=[]; end; na=na+1;
 if (nargin<1+na); M_k_p_wkM__=[]; end; na=na+1;
-if (nargin<1+na); ini_euler_polar_a_M_=[]; end; na=na+1;
-if (nargin<1+na); ini_euler_azimu_b_M_=[]; end; na=na+1;
-if (nargin<1+na); ini_euler_gamma_z_M_=[]; end; na=na+1;
-if (nargin<1+na); ini_image_delta_x_acc_M_=[]; end; na=na+1;
-if (nargin<1+na); ini_image_delta_y_acc_M_=[]; end; na=na+1;
+if (nargin<1+na); euler_polar_a_ini_M_=[]; end; na=na+1;
+if (nargin<1+na); euler_azimu_b_ini_M_=[]; end; na=na+1;
+if (nargin<1+na); euler_gamma_z_ini_M_=[]; end; na=na+1;
+if (nargin<1+na); image_delta_x_acc_ini_M_=[]; end; na=na+1;
+if (nargin<1+na); image_delta_y_acc_ini_M_=[]; end; na=na+1;
 if (nargin<1+na); a_k_Y_base_yk_=[]; end; na=na+1;
 if (nargin<1+na); delta_sigma_base=[]; end; na=na+1;
 
@@ -118,6 +118,7 @@ n_y_sum = sum(n_y_);
 n_y_csum_ = cumsum([0;n_y_]);
 
 %%%%%%%%;
+if (flag_save_stage>1);
 if ( isfield(parameter,'fname_pre'));
 fname_mat = sprintf('%s_stage_0.mat',parameter.fname_pre);
 disp(sprintf(' %% writing %s',fname_mat));
@@ -146,6 +147,7 @@ save(fname_mat ...
 ,'n_y_csum_' ...
 );
 end;%if ( isfield(parameter,'fname_pre'));
+end;%if (flag_save_stage>1);
 %%%%%%%%;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
@@ -182,7 +184,7 @@ tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% knn_cluster_CTF_k_p_r
 parameter = parameter_timing_update(parameter,sprintf('%s: knn_cluster_CTF_k_p_r_kC__1',str_thisfunction),tmp_t);
 
 %%%%%%%%;
-if flag_save_stage;
+if (flag_save_stage>1);
 if ( isfield(parameter,'fname_pre'));
 fname_mat = sprintf('%s_stage_1.mat',parameter.fname_pre);
 disp(sprintf(' %% writing %s',fname_mat));
@@ -197,7 +199,7 @@ save(fname_mat ...
 ,'n_index_nM_from_ncluster_' ...
 );
 end;%if ( isfield(parameter,'fname_pre'));
-end;%if flag_save_stage;
+end;%if (flag_save_stage>1);
 %%%%%%%%;
 
 %%%%%%%%;
@@ -289,7 +291,7 @@ tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% pm_UX_knc___: %0.3fs'
 parameter = parameter_timing_update(parameter,sprintf('%s: tmp_X_kk__',str_thisfunction),tmp_t);
 
 %%%%%%%%;
-if flag_save_stage;
+if (flag_save_stage>1);
 if ( isfield(parameter,'fname_pre'));
 fname_mat = sprintf('%s_stage_2.mat',parameter.fname_pre);
 disp(sprintf(' %% writing %s',fname_mat));
@@ -300,7 +302,7 @@ save(fname_mat ...
 ,'pm_n_UX_rank_c_' ...
 );
 end;%if ( isfield(parameter,'fname_pre'));
-end;%if flag_save_stage;
+end;%if (flag_save_stage>1);
 %%%%%%%%;
 
 %%%%%%%%;
@@ -363,17 +365,17 @@ end;%if ( isfield(parameter,'fname_pre'));
 a_k_Y_reco_yki__ = [];
 FTK=[];
 rng(rseed);
-if ~isempty(ini_euler_polar_a_M_); euler_polar_a_M_ = ini_euler_polar_a_M_; else euler_polar_a_M_= 1*pi*rand(n_M,1); end;
-if ~isempty(ini_euler_azimu_b_M_); euler_azimu_b_M_ = ini_euler_azimu_b_M_; else euler_azimu_b_M_= 2*pi*rand(n_M,1); end;
-if ~isempty(ini_euler_gamma_z_M_); euler_gamma_z_M_ = ini_euler_gamma_z_M_; else euler_gamma_z_M_= 2*pi*rand(n_M,1); end;
-if ~isempty(ini_image_delta_x_acc_M_); image_delta_x_acc_M_ = ini_image_delta_x_acc_M_; else image_delta_x_acc_M_= zeros(n_M,1); end;
-if ~isempty(ini_image_delta_y_acc_M_); image_delta_y_acc_M_ = ini_image_delta_y_acc_M_; else image_delta_y_acc_M_= zeros(n_M,1); end;
+if ~isempty(euler_polar_a_ini_M_); euler_polar_a_M_ = euler_polar_a_ini_M_; else euler_polar_a_M_= 1*pi*rand(n_M,1); end;
+if ~isempty(euler_azimu_b_ini_M_); euler_azimu_b_M_ = euler_azimu_b_ini_M_; else euler_azimu_b_M_= 2*pi*rand(n_M,1); end;
+if ~isempty(euler_gamma_z_ini_M_); euler_gamma_z_M_ = euler_gamma_z_ini_M_; else euler_gamma_z_M_= 2*pi*rand(n_M,1); end;
+if ~isempty(image_delta_x_acc_ini_M_); image_delta_x_acc_M_ = image_delta_x_acc_ini_M_; else image_delta_x_acc_M_= zeros(n_M,1); end;
+if ~isempty(image_delta_y_acc_ini_M_); image_delta_y_acc_M_ = image_delta_y_acc_ini_M_; else image_delta_y_acc_M_= zeros(n_M,1); end;
 image_delta_x_upd_M_ = [];
 image_delta_y_upd_M_ = [];
 flag_image_delta_upd_M_ = [];
 image_I_value_M_ = [];
 %%%%%%%%;
-if flag_save_stage;
+if (flag_save_stage>1);
 if ( isfield(parameter,'fname_pre'));
 fname_mat = sprintf('%s_stage_3.mat',parameter.fname_pre);
 disp(sprintf(' %% writing %s',fname_mat));
@@ -403,7 +405,7 @@ save(fname_mat ...
 ,'image_delta_y_acc_M_' ...
 );
 end;%if ( isfield(parameter,'fname_pre'));
-end;%if flag_save_stage;
+end;%if (flag_save_stage>1);
 %%%%%%%%;
 %%%%;
 tmp_t = tic;

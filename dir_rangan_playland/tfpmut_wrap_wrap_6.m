@@ -65,8 +65,8 @@ if (~isfield(parameter,'rank_pm')); parameter.rank_pm = 10; end; %<-- parameter_
 rank_pm = parameter.rank_pm;
 if (~isfield(parameter,'rank_CTF')); parameter.rank_CTF=[]; end; %<-- parameter_bookmark. ;
 rank_CTF = parameter.rank_CTF;
-if (~isfield(parameter,'dir_pm')); parameter.dir_pm = pwd; end; %<-- parameter_bookmark. ;
-dir_pm = parameter.dir_pm;
+if (~isfield(parameter,'dir_tfpm')); parameter.dir_tfpm = pwd; end; %<-- parameter_bookmark. ;
+dir_tfpm = parameter.dir_tfpm;
 if (~isfield(parameter,'rseed')); parameter.rseed = 0; end; %<-- parameter_bookmark. ;
 rseed = parameter.rseed;
 if (~isfield(parameter,'k_p_r_max')); parameter.k_p_r_max = k_p_r_max; end; %<-- parameter_bookmark. ;
@@ -99,8 +99,14 @@ if (~isfield(parameter,'str_strategy_prefix')); parameter.str_strategy_prefix = 
 str_strategy = parameter.str_strategy_prefix;
 if (~isfield(parameter,'n_complete_calculation')); parameter.n_complete_calculation = 0; end; %<-- parameter_bookmark. ;
 %%%%%%%%;
-if (flag_alternate_MS_vs_SM); str_strategy = sprintf('%sa1',str_strategy); end;
-string_root = dir_pm(2:strfind(dir_pm,'rangan')-2);
+if (flag_alternate_MS_vs_SM==0); str_strategy = sprintf('%sa0',str_strategy); end;
+if (flag_alternate_MS_vs_SM==1); str_strategy = sprintf('%sa1',str_strategy); end;
+string_root = dir_tfpm(2:strfind(dir_tfpm,'rangan')-2);
+%%%%%%%%;
+if (~isfield(parameter,'flag_compare_image_rank')); parameter.flag_compare_image_rank = 0; end; %<-- parameter_bookmark. ;
+flag_compare_image_rank = parameter.flag_compare_image_rank;
+if (~isfield(parameter,'flag_save_stage')); parameter.flag_save_stage = 0; end; %<-- parameter_bookmark. ;
+flag_save_stage = parameter.flag_save_stage;
 
 str_delta_r_max = sprintf('t%.4d',floor(1000*delta_r_max));
 str_tolerance_pm = sprintf('p%.2d',floor(10*-log10(tolerance_pm)));
@@ -109,31 +115,43 @@ str_rseed = sprintf('r%d',rseed);
 if (flag_rank_vs_tolerance==0); str_xfix = sprintf('%s%s%s%s',str_strategy,str_delta_r_max,str_tolerance_pm,str_rseed); end;
 if (flag_rank_vs_tolerance==1); str_xfix = sprintf('%s%s%s%s',str_strategy,str_delta_r_max,str_rank_pm,str_rseed); end;
 
-XA_fname_mat = sprintf('%s_mat/X_2d_Memp_d1_%s.mat',dir_pm,str_xfix);
-XA_fname_align_a_k_Y_pre = sprintf('%s_mat/X_2d_Memp_d1_%s_align_a_k_Y_',dir_pm,str_xfix);
+XA_fname_mat = sprintf('%s_mat/X_2d_Memp_d1_%s.mat',dir_tfpm,str_xfix);
+XA_fname_align_a_k_Y_pre = sprintf('%s_mat/X_2d_Memp_d1_%s_align_a_k_Y_',dir_tfpm,str_xfix);
 XA_fname_align_a_k_Y_jpg = sprintf('%s.jpg',XA_fname_align_a_k_Y_pre);
-XA_fname_snapshot_pre = sprintf('%s_mat/X_2d_Memp_d1_%s_snapshot',dir_pm,str_xfix);
+XA_fname_snapshot_pre = sprintf('%s_mat/X_2d_Memp_d1_%s_snapshot',dir_tfpm,str_xfix);
 XA_fname_snapshot_jpg = sprintf('%s.jpg',XA_fname_snapshot_pre);
-XA_fname_compare_image_rank_pre = sprintf('%s_mat/X_2d_Memp_d1_%s_compare_image_rank',dir_pm,str_xfix);
+XA_fname_compare_image_rank_pre = sprintf('%s_mat/X_2d_Memp_d1_%s_compare_image_rank',dir_tfpm,str_xfix);
 XA_fname_compare_image_rank_jpg = sprintf('%s.jpg',XA_fname_compare_image_rank_pre);
-XB_fname_mat = sprintf('%s_mat/X_2d_xcor_d0_%s.mat',dir_pm,str_xfix);
-XB_fname_align_a_k_Y_pre = sprintf('%s_mat/X_2d_xcor_d0_%s_align_a_k_Y_',dir_pm,str_xfix);
+XB_fname_mat = sprintf('%s_mat/X_2d_xcor_d0_%s.mat',dir_tfpm,str_xfix);
+XB_fname_align_a_k_Y_pre = sprintf('%s_mat/X_2d_xcor_d0_%s_align_a_k_Y_',dir_tfpm,str_xfix);
 XB_fname_align_a_k_Y_jpg = sprintf('%s.jpg',XB_fname_align_a_k_Y_pre);
-XB_fname_snapshot_pre = sprintf('%s_mat/X_2d_xcor_d0_%s_snapshot',dir_pm,str_xfix);
+XB_fname_snapshot_pre = sprintf('%s_mat/X_2d_xcor_d0_%s_snapshot',dir_tfpm,str_xfix);
 XB_fname_snapshot_jpg = sprintf('%s.jpg',XB_fname_snapshot_pre);
-XB_fname_compare_image_rank_pre = sprintf('%s_mat/X_2d_xcor_d0_%s_compare_image_rank',dir_pm,str_xfix);
+XB_fname_compare_image_rank_pre = sprintf('%s_mat/X_2d_xcor_d0_%s_compare_image_rank',dir_tfpm,str_xfix);
 XB_fname_compare_image_rank_jpg = sprintf('%s.jpg',XB_fname_compare_image_rank_pre);
 flag_skip_all = 0;
+if flag_compare_image_rank==0;
 if ( ...
         exist(XA_fname_mat,'file') ...
      &  exist(XA_fname_align_a_k_Y_jpg,'file') ...
      &  exist(XA_fname_snapshot_jpg,'file') ...
-     &  exist(XA_fname_compare_image_rank_jpg,'file') ...
      &  exist(XB_fname_mat,'file') ...
      &  exist(XB_fname_align_a_k_Y_jpg,'file') ...
      &  exist(XB_fname_snapshot_jpg,'file') ...
+   ); flag_skip_all = 1; end;
+end;%if flag_compare_image_rank==0;
+if flag_compare_image_rank==1;
+if ( ...
+        exist(XA_fname_mat,'file') ...
+     &  exist(XA_fname_align_a_k_Y_jpg,'file') ...
+     &  exist(XA_fname_snapshot_jpg,'file') ...
+     &  exist(XB_fname_mat,'file') ...
+     &  exist(XB_fname_align_a_k_Y_jpg,'file') ...
+     &  exist(XB_fname_snapshot_jpg,'file') ...
+     &  exist(XA_fname_compare_image_rank_jpg,'file') ...
      &  exist(XB_fname_compare_image_rank_jpg,'file') ...
    ); flag_skip_all = 1; end;
+end;%if flag_compare_image_rank==1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 if ~flag_skip_all;
@@ -165,7 +183,7 @@ end;%if isempty(rank_CTF);
 %%%%%%%%;
 % Now run the basic tfpmut using the empirical-principal-modes. ;
 %%%%%%%%;
-XA_fname_pre = sprintf('%s_mat/X_2d_Memp_d1_%s',dir_pm,str_xfix);
+XA_fname_pre = sprintf('%s_mat/X_2d_Memp_d1_%s',dir_tfpm,str_xfix);
 [XA_flag_skip,XA_fname_mat] = open_fname_tmp(XA_fname_pre,date_diff_threshold,flag_force_create_mat,flag_force_create_tmp);
 if ~XA_flag_skip;
 %%%%%%%%;
@@ -300,10 +318,11 @@ if ( exist(fname_XA_k_Y_mat,'file'));
 %%%%%%%%;
 tmp_ = load(fname_XA_k_Y_mat); tmp_XA_a_k_Y_reco_yk_ = tmp_.a_k_Y_reco_yk_; clear tmp_;
 
+if (flag_save_stage>0);
 %%%%%%%%;
 % save temp file for python. ;
 %%%%%%%%;
-tmp_fname_mat = sprintf('%s_mat/test_tfpmut_wrap_6_%s.mat',dir_pm,str_xfix);
+tmp_fname_mat = sprintf('%s_mat/test_tfpmut_wrap_6_%s.mat',dir_tfpm,str_xfix);
 if ~exist(tmp_fname_mat,'file');
 disp(sprintf(' %% %s not found, creating',tmp_fname_mat));
 save(tmp_fname_mat ...
@@ -312,7 +331,7 @@ save(tmp_fname_mat ...
      ,'tolerance_pm' ...
      ,'rank_pm' ...
      ,'rank_CTF' ...
-     ,'dir_pm' ...
+     ,'dir_tfpm' ...
      ,'rseed' ...
      ,'sample_sphere_k_eq_d' ...
      ,'half_diameter_x_c' ...
@@ -350,11 +369,12 @@ if  exist(tmp_fname_mat,'file');
 disp(sprintf(' %% %s found, not creating',tmp_fname_mat));
 end;%if  exist(tmp_fname_mat,'file');
 %%%%%%%%;
+end;%if (flag_save_stage>0);
 
 %%%%%%%%;
 % Now run tfpmut once again, this time using the updated-principal-modes. ;
 %%%%%%%%;
-XB_fname_pre = sprintf('%s_mat/X_2d_xcor_d0_%s',dir_pm,str_xfix);
+XB_fname_pre = sprintf('%s_mat/X_2d_xcor_d0_%s',dir_tfpm,str_xfix);
 [XB_flag_skip,XB_fname_mat] = open_fname_tmp(XB_fname_pre,date_diff_threshold,flag_force_create_mat,flag_force_create_tmp);
 if ~XB_flag_skip;
 %%%%%%%%;
@@ -573,8 +593,9 @@ spharm_register_and_rotate_2( ...
 [ ... 
   tmp_b_x_u_reco_xxx_ ...
 ] = ...
-convert_spharm_to_x_c_3( ...
- sample_sphere_k_eq_d ...
+convert_spharm_to_x_c_uniform_over_n_k_p_r_5( ...
+ max(0,flag_verbose-1) ...
+,sample_sphere_k_eq_d ...
 ,n_k_p_r ...
 ,k_p_r_ ...
 ,k_p_r_max ...
@@ -592,7 +613,7 @@ title(sprintf('tmp_b_x_u_: corr %0.4f',tmp_X_best),'Interpreter','none');
 subplot(1,2,2);
 isosurface_f_x_u_1(struct('percent_threshold_',[98.5]),tmp_b_x_u_reco_xxx_);
 title(sprintf('tmp_b_x_u_: corr %0.4f',tmp_X_best),'Interpreter','none');
-sgtitle(XA_fname_snapshot_jpg,'Interpreter','none');
+sgtitle(XA_fname_snapshot_jpg,'Interpreter','none'); drawnow();
 disp(sprintf(' %% writing %s',XA_fname_snapshot_jpg));
 print('-djpeg',XA_fname_snapshot_jpg);
 close(gcf);
@@ -674,8 +695,9 @@ spharm_register_and_rotate_2( ...
 [ ... 
   tmp_b_x_u_reco_xxx_ ...
 ] = ...
-convert_spharm_to_x_c_3( ...
- sample_sphere_k_eq_d ...
+convert_spharm_to_x_c_uniform_over_n_k_p_r_5( ...
+ max(0,flag_verbose-1) ...
+,sample_sphere_k_eq_d ...
 ,n_k_p_r ...
 ,k_p_r_ ...
 ,k_p_r_max ...
@@ -693,7 +715,7 @@ title(sprintf('tmp_b_x_u_: corr %0.4f',tmp_X_best),'Interpreter','none');
 subplot(1,2,2);
 isosurface_f_x_u_1(struct('percent_threshold_',[98.5]),tmp_b_x_u_reco_xxx_);
 title(sprintf('tmp_b_x_u_: corr %0.4f',tmp_X_best),'Interpreter','none');
-sgtitle(XB_fname_snapshot_jpg,'Interpreter','none');
+sgtitle(XB_fname_snapshot_jpg,'Interpreter','none'); drawnow();
 disp(sprintf(' %% writing %s',XB_fname_snapshot_jpg));
 print('-djpeg',XB_fname_snapshot_jpg);
 close(gcf);
@@ -705,6 +727,13 @@ end;%if ~XB_fname_snapshot_flag_skip;
 end;%if ( exist(XB_fname_mat,'file') & ~exist(XB_fname_snapshot_jpg) );
 %%%%%%%%;
 
+%%%%%%%%%%%%%%%%;
+if flag_compare_image_rank==0;
+if (flag_verbose>0); disp(sprintf(' %% flag_compare_image_rank %d, skipping',flag_compare_image_rank)); end;
+end;%if flag_compare_image_rank==0;
+%%%%%%%%%%%%%%%%;
+if flag_compare_image_rank==1;
+%%%%%%%%%%%%%%%%;
 %%%%%%%%;
 if ( exist(XA_fname_mat,'file') & ~exist(XA_fname_compare_image_rank_jpg) );
 [XA_fname_compare_image_rank_flag_skip,XA_fname_compare_image_rank_jpg] = open_fname_tmp(XA_fname_compare_image_rank_pre,date_diff_threshold,flag_force_create_mat,flag_force_create_tmp,'jpg');
@@ -745,7 +774,7 @@ close_fname_tmp(XA_fname_compare_image_rank_pre);
 end;%if ~XA_fname_compare_image_rank_flag_skip;
 end;%if ( exist(XA_fname_mat,'file') & ~exist(XA_fname_compare_image_rank_jpg) );
 %%%%%%%%;
-
+%%%%%%%%%%%%%%%%;
 %%%%%%%%;
 if ( exist(XB_fname_mat,'file') & ~exist(XB_fname_compare_image_rank_jpg) );
 [XB_fname_compare_image_rank_flag_skip,XB_fname_compare_image_rank_jpg] = open_fname_tmp(XB_fname_compare_image_rank_pre,date_diff_threshold,flag_force_create_mat,flag_force_create_tmp,'jpg');
@@ -786,6 +815,9 @@ close_fname_tmp(XB_fname_compare_image_rank_pre);
 end;%if ~XB_fname_compare_image_rank_flag_skip;
 end;%if ( exist(XB_fname_mat,'file') & ~exist(XB_fname_compare_image_rank_jpg) );
 %%%%%%%%;
+%%%%%%%%%%%%%%%%;
+end;%if flag_compare_image_rank==1;
+%%%%%%%%%%%%%%%%;
 
 if (flag_verbose>0); disp(sprintf(' %% [finished %s]',str_thisfunction)); end;
 

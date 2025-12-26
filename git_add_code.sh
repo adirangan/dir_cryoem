@@ -1,4 +1,6 @@
 git add \
+*.org \
+dir_*/*.org \
 *.sh \
 dir_*/*.sh \
 dir_*/dir_*/*.sh \

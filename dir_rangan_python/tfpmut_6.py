@@ -58,8 +58,8 @@ def tfpmut_6(
     rseed = parameter['rseed'];
     if 'n_iteration' not in parameter: parameter['n_iteration'] = 1; #end; %<-- parameter_bookmark. ;
     n_iteration = parameter['n_iteration'];
-    if 'n_delta_v_requested' not in parameter: parameter['n_delta_v_requested'] = 0; #end; %<-- parameter_bookmark. ;
-    n_delta_v_requested = parameter['n_delta_v_requested'];
+    if 'flag_alternate_MS_vs_SM' not in parameter: parameter['flag_alternate_MS_vs_SM'] = 1; #end; %<-- parameter_bookmark. ;
+    flag_alternate_MS_vs_SM = parameter['flag_alternate_MS_vs_SM'];
     if 'flag_MS_vs_SM' not in parameter: parameter['flag_MS_vs_SM'] = 1; #end; %<-- parameter_bookmark. ;
     flag_MS_vs_SM = parameter['flag_MS_vs_SM'];
     if 'order_limit_MS' not in parameter: parameter['order_limit_MS'] = -1; #end; %<-- parameter_bookmark. ;
@@ -68,10 +68,10 @@ def tfpmut_6(
     delta_r_max = parameter['delta_r_max'];
     if 'delta_r_upb' not in parameter: parameter['delta_r_upb'] = 2*delta_r_max; #end; %<-- parameter_bookmark. ;
     delta_r_upb = parameter['delta_r_upb'];
+    if 'n_delta_v_requested' not in parameter: parameter['n_delta_v_requested'] = 0; #end; %<-- parameter_bookmark. ;
+    n_delta_v_requested = parameter['n_delta_v_requested'];
     if 'template_viewing_k_eq_d' not in parameter: parameter['template_viewing_k_eq_d'] = 1.0/np.maximum(1e-12,k_p_r_max); #end; %<-- parameter_bookmark. ;
     template_viewing_k_eq_d = parameter['template_viewing_k_eq_d'];
-    if 'flag_alternate_MS_vs_SM' not in parameter: parameter['flag_alternate_MS_vs_SM'] = 1; #end; %<-- parameter_bookmark. ;
-    flag_alternate_MS_vs_SM = parameter['flag_alternate_MS_vs_SM'];
     if 'flag_save_stage' not in parameter: parameter['flag_save_stage'] = 0; #end; %<-- parameter_bookmark. ;
     flag_save_stage = parameter['flag_save_stage'];
     #%%%%%%%%;
@@ -185,7 +185,7 @@ def tfpmut_6(
     flag_precompute_UX_CTF_S_l2_S_ = 1;
 
     #%%%%%%%%;
-    if flag_save_stage and ('fname_pre' in parameter):
+    if (flag_save_stage>2) and ('fname_pre' in parameter):
         fname_mat = sprintf('%s_stage_4.mat',parameter['fname_pre']);
         disp(sprintf(' %% writing %s',fname_mat));
         matlab_save(
@@ -304,7 +304,7 @@ def tfpmut_6(
         parameter = parameter_timing_update(parameter,sprintf('%s: M_pert_k_p_wkM__',str_thisfunction),tmp_t);
 
         #%%%%%%%%;
-        if flag_save_stage and ('fname_pre' in parameter):
+        if (flag_save_stage>2) and ('fname_pre' in parameter):
             fname_mat = sprintf('%s_stage_5_%d.mat',parameter['fname_pre'],niteration);
             disp(sprintf(' %% writing %s',fname_mat));
             matlab_save(
@@ -348,7 +348,7 @@ def tfpmut_6(
         parameter = parameter_timing_update(parameter,sprintf('%s: qbp_uniform_over_n_k_p_r_10',str_thisfunction),tmp_t);
 
         #%%%%%%%%;
-        if flag_save_stage and ('fname_pre' in parameter):
+        if (flag_save_stage>2) and ('fname_pre' in parameter):
             fname_mat = sprintf('%s_stage_6_%d.mat',parameter['fname_pre'],niteration);
             disp(sprintf(' %% writing %s',fname_mat));
             matlab_save(
@@ -367,7 +367,7 @@ def tfpmut_6(
         a_k_Y_reco_yk_ = spharm_normalize_1(n_k_p_r,k_p_r_,weight_3d_k_p_r_,l_max_,a_k_Y_reco_yk_)[0];
 
         #%%%%%%%%;
-        if flag_save_stage and ('fname_pre' in parameter):
+        if (flag_save_stage>2) and ('fname_pre' in parameter):
             fname_mat = sprintf('%s_stage_7_%d.mat',parameter['fname_pre'],niteration);
             disp(sprintf(' %% writing %s',fname_mat));
             matlab_save(
@@ -415,7 +415,7 @@ def tfpmut_6(
         if (flag_verbose>0): disp(sprintf(' %% %% pm_template_3 (n_S %d): %0.3fs',n_S,tmp_t)); #end;
 
         #%%%%%%%%;
-        if flag_save_stage and ('fname_pre' in parameter):
+        if (flag_save_stage>2) and ('fname_pre' in parameter):
             fname_mat = sprintf('%s_stage_8_%d.mat',parameter['fname_pre'],niteration);
             disp(sprintf(' %% writing %s',fname_mat));
             matlab_save(
@@ -508,7 +508,7 @@ def tfpmut_6(
         parameter = parameter_timing_update(parameter,sprintf('%s: tfpmh_Z_cluster_wrap_SM__14',str_thisfunction),tmp_t);
 
         #%%%%%%%%;
-        if flag_save_stage and ('fname_pre' in parameter):
+        if (flag_save_stage>2) and ('fname_pre' in parameter):
             fname_mat = sprintf('%s_stage_9_%d.mat',parameter['fname_pre'],niteration);
             disp(sprintf(' %% writing %s',fname_mat));
             matlab_save(
@@ -588,7 +588,7 @@ def tfpmut_6(
         parameter = parameter_timing_update(parameter,sprintf('%s: tfpmh_MS_vs_SM_2',str_thisfunction),tmp_t);
 
         #%%%%%%%%;
-        if flag_save_stage and ('fname_pre' in parameter):
+        if (flag_save_stage>2) and ('fname_pre' in parameter):
             fname_mat = sprintf('%s_stage_10_%d.mat',parameter['fname_pre'],niteration);
             disp(sprintf(' %% writing %s',fname_mat));
             matlab_save(
@@ -646,7 +646,7 @@ def tfpmut_6(
         #end;%if (numel(tmp_index_)> 0);
 
         #%%%%%%%%;
-        if flag_save_stage and ('fname_pre' in parameter):
+        if (flag_save_stage>2) and ('fname_pre' in parameter):
             fname_mat = sprintf('%s_stage_11_%d.mat',parameter['fname_pre'],niteration);
             disp(sprintf(' %% writing %s',fname_mat));
             matlab_save(

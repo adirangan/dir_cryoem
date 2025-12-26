@@ -14,6 +14,7 @@ rsync \
     /home/rangan/dir_cryoem/ \
     --exclude "EMPM/" \
     --include "/*" \
+    --include "*.org" \
     --include "*.py" \
     --include "*.m" \
     --include "*.c" \
@@ -33,6 +34,7 @@ rsync \
     /home/rangan/dir_cryoem/dir_rangan_playroom/ \
     --exclude "EMPM/" \
     --include "/*" \
+    --include "*.org" \
     --include "*.py" \
     --include "*.m" \
     --include "*.c" \

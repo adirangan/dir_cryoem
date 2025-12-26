@@ -1,6 +1,7 @@
 exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ; #<-- warning, avoid recursion. ;
 from tfpmh_MS_uniform_2 import tfpmh_MS_uniform_2 ;
 from tfpmh_SM_uniform_2 import tfpmh_SM_uniform_2 ;
+from tfpmh_SM_uniform_3 import tfpmh_SM_uniform_3 ;
 
 def tfpmh_MS_vs_SM_2(
         parameter =None,
@@ -71,9 +72,8 @@ def tfpmh_MS_vs_SM_2(
             image_I_value_M_,
             image_X_value_M_,
             image_S_index_M_,
-        ) = tfpmh_SM_uniform_2(
+        ) = tfpmh_SM_uniform_3(
             parameter,
-            n_w_max,
             n_S,
             viewing_azimu_b_S_,
             viewing_polar_a_S_,

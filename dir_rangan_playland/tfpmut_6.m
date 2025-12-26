@@ -98,8 +98,8 @@ if (~isfield(parameter,'rseed')); parameter.rseed = 0; end; %<-- parameter_bookm
 rseed = parameter.rseed;
 if (~isfield(parameter,'n_iteration')); parameter.n_iteration = 1; end; %<-- parameter_bookmark. ;
 n_iteration = parameter.n_iteration;
-if (~isfield(parameter,'n_delta_v_requested')); parameter.n_delta_v_requested = 0; end; %<-- parameter_bookmark. ;
-n_delta_v_requested = parameter.n_delta_v_requested;
+if (~isfield(parameter,'flag_alternate_MS_vs_SM')); parameter.flag_alternate_MS_vs_SM = 1; end; %<-- parameter_bookmark. ;
+flag_alternate_MS_vs_SM = parameter.flag_alternate_MS_vs_SM;
 if (~isfield(parameter,'flag_MS_vs_SM')); parameter.flag_MS_vs_SM = 1; end; %<-- parameter_bookmark. ;
 flag_MS_vs_SM = parameter.flag_MS_vs_SM;
 if (~isfield(parameter,'order_limit_MS')); parameter.order_limit_MS = -1; end; %<-- parameter_bookmark. ;
@@ -108,10 +108,10 @@ if (~isfield(parameter,'delta_r_max')); parameter.delta_r_max = 0.1; end; %<-- p
 delta_r_max = parameter.delta_r_max;
 if (~isfield(parameter,'delta_r_upb')); parameter.delta_r_upb = 2*delta_r_max; end; %<-- parameter_bookmark. ;
 delta_r_upb = parameter.delta_r_upb;
+if (~isfield(parameter,'n_delta_v_requested')); parameter.n_delta_v_requested = 0; end; %<-- parameter_bookmark. ;
+n_delta_v_requested = parameter.n_delta_v_requested;
 if (~isfield(parameter,'template_viewing_k_eq_d')); parameter.template_viewing_k_eq_d = 1.0/max(1e-12,k_p_r_max); end; %<-- parameter_bookmark. ;
 template_viewing_k_eq_d = parameter.template_viewing_k_eq_d;
-if (~isfield(parameter,'flag_alternate_MS_vs_SM')); parameter.flag_alternate_MS_vs_SM = 1; end; %<-- parameter_bookmark. ;
-flag_alternate_MS_vs_SM = parameter.flag_alternate_MS_vs_SM;
 if (~isfield(parameter,'flag_save_stage')); parameter.flag_save_stage = 0; end; %<-- parameter_bookmark. ;
 flag_save_stage = parameter.flag_save_stage;
 %%%%%%%%;
@@ -171,7 +171,7 @@ parameter = parameter_timing_update(parameter,sprintf('%s: CTF_k_p_r_xavg_kc__',
 
 if isempty(FTK);
 tmp_t = tic();
-parameter_FTK = parameter.
+parameter_FTK = parameter;
 parameter_FTK.delta_r_max = delta_r_max;
 parameter_FTK.svd_eps = svd_eps;
 parameter_FTK.n_delta_v_requested = n_delta_v_requested;
@@ -220,7 +220,7 @@ flag_precompute_UX_CTF_S_k_q_wnS__ = 1;
 flag_precompute_UX_CTF_S_l2_S_ = 1;
 
 %%%%%%%%;
-if flag_save_stage;
+if (flag_save_stage>2);
 if ( isfield(parameter,'fname_pre'));
 fname_mat = sprintf('%s_stage_4.mat',parameter.fname_pre);
 disp(sprintf(' %% writing %s',fname_mat));
@@ -287,7 +287,7 @@ save(fname_mat ...
 ,'flag_precompute_UX_CTF_S_l2_S_' ...
 );
 end;%if ( isfield(parameter,'fname_pre'));
-end;%if flag_save_stage;
+end;%if (flag_save_stage>2);
 %%%%%%%%;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
@@ -321,7 +321,7 @@ tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% %% M_pert_k_q_wkM__: 
 parameter = parameter_timing_update(parameter,sprintf('%s: M_pert_k_p_wkM__',str_thisfunction),tmp_t);
 
 %%%%%%%%;
-if flag_save_stage;
+if (flag_save_stage>2);
 if ( isfield(parameter,'fname_pre'));
 fname_mat = sprintf('%s_stage_5_%d.mat',parameter.fname_pre,niteration);
 disp(sprintf(' %% writing %s',fname_mat));
@@ -335,7 +335,7 @@ save(fname_mat ...
 ,'image_delta_y_acc_M_' ...
 );
 end;%if ( isfield(parameter,'fname_pre'));
-end;%if flag_save_stage;
+end;%if (flag_save_stage>2);
 %%%%%%%%;
 
 %%%%%%%%;
@@ -365,7 +365,7 @@ tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% %% a_k_Y_reco_yk_: %0
 parameter = parameter_timing_update(parameter,sprintf('%s: qbp_uniform_over_n_k_p_r_10',str_thisfunction),tmp_t);
 
 %%%%%%%%;
-if flag_save_stage;
+if (flag_save_stage>2);
 if ( isfield(parameter,'fname_pre'));
 fname_mat = sprintf('%s_stage_6_%d.mat',parameter.fname_pre,niteration);
 disp(sprintf(' %% writing %s',fname_mat));
@@ -373,7 +373,7 @@ save(fname_mat ...
 ,'a_k_Y_reco_yk_' ...
 );
 end;%if ( isfield(parameter,'fname_pre'));
-end;%if flag_save_stage;
+end;%if (flag_save_stage>2);
 %%%%%%%%;
 
 %%%%%%%%;
@@ -384,7 +384,7 @@ a_k_Y_reco_yk_ = spharm_normalize_1(n_k_p_r,k_p_r_,weight_3d_k_p_r_,l_max_,a_k_Y
 
 
 %%%%%%%%;
-if flag_save_stage;
+if (flag_save_stage>2);
 if ( isfield(parameter,'fname_pre'));
 fname_mat = sprintf('%s_stage_7_%d.mat',parameter.fname_pre,niteration);
 disp(sprintf(' %% writing %s',fname_mat));
@@ -392,7 +392,7 @@ save(fname_mat ...
 ,'a_k_Y_reco_yk_' ...
 );
 end;%if ( isfield(parameter,'fname_pre'));
-end;%if flag_save_stage;
+end;%if (flag_save_stage>2);
 %%%%%%%%;
 
 %%%%%%%%;
@@ -433,7 +433,7 @@ S_k_p_wkS__ = reshape(S_k_p_wkS__,[n_w_max*n_k_p_r,n_S]);
 tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% %% pm_template_3 (n_S %d): %0.3fs',n_S,tmp_t)); end;
 
 %%%%%%%%;
-if flag_save_stage;
+if (flag_save_stage>2);
 if ( isfield(parameter,'fname_pre'));
 fname_mat = sprintf('%s_stage_8_%d.mat',parameter.fname_pre,niteration);
 disp(sprintf(' %% writing %s',fname_mat));
@@ -444,7 +444,7 @@ save(fname_mat ...
 ,'viewing_polar_a_S_' ...
 );
 end;%if ( isfield(parameter,'fname_pre'));
-end;%if flag_save_stage;
+end;%if (flag_save_stage>2);
 %%%%%%%%;
 
 %%%%%%%%;
@@ -528,7 +528,7 @@ tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% %% X_SM__: %0.3fs',tm
 parameter = parameter_timing_update(parameter,sprintf('%s: tfpmh_Z_cluster_wrap_SM__14',str_thisfunction),tmp_t);
 
 %%%%%%%%;
-if flag_save_stage;
+if (flag_save_stage>2);
 if ( isfield(parameter,'fname_pre'));
 fname_mat = sprintf('%s_stage_9_%d.mat',parameter.fname_pre,niteration);
 disp(sprintf(' %% writing %s',fname_mat));
@@ -569,7 +569,7 @@ save(fname_mat ...
 ,'UX_CTF_S_k_q_wnS__' ...
 );
 end;%if ( isfield(parameter,'fname_pre'));
-end;%if flag_save_stage;
+end;%if (flag_save_stage>2);
 %%%%%%%%;
 
 %%%%%%%%;
@@ -606,7 +606,7 @@ tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% %% %s: update euler_p
 parameter = parameter_timing_update(parameter,sprintf('%s: tfpmh_MS_vs_SM_2',str_thisfunction),tmp_t);
 
 %%%%%%%%;
-if flag_save_stage;
+if (flag_save_stage>2);
 if ( isfield(parameter,'fname_pre'));
 fname_mat = sprintf('%s_stage_10_%d.mat',parameter.fname_pre,niteration);
 disp(sprintf(' %% writing %s',fname_mat));
@@ -621,7 +621,7 @@ save(fname_mat ...
 ,'image_S_index_M_' ...
 );
 end;%if ( isfield(parameter,'fname_pre'));
-end;%if flag_save_stage;
+end;%if (flag_save_stage>2);
 %%%%%%%%;
 
 %%%%%%%%;
@@ -663,7 +663,7 @@ image_delta_y_upd_M_(1+tmp_index_) = 0;
 end;%if (numel(tmp_index_)> 0);
 
 %%%%%%%%;
-if flag_save_stage;
+if (flag_save_stage>2);
 if ( isfield(parameter,'fname_pre'));
 fname_mat = sprintf('%s_stage_11_%d.mat',parameter.fname_pre,niteration);
 disp(sprintf(' %% writing %s',fname_mat));
@@ -684,7 +684,7 @@ save(fname_mat ...
 ,'image_delta_y_upd_M_' ...
 );
 end;%if ( isfield(parameter,'fname_pre'));
-end;%if flag_save_stage;
+end;%if (flag_save_stage>2);
 %%%%%%%%;
 
 %%%%%%%%;

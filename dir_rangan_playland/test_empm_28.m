@@ -1,175 +1,118 @@
-%%%%%%%%;
-clear;
+function ...
+[ ...
+ global_parameter ...
+] = ...
+test_empm_28( ...
+ global_parameter ...
+,fname_prefix ...
+,dir_nopath_data_star ...
+,Pixel_Spacing ...
+,fname_nopath_volume ...
+,fname_nopath_star ...
+);
 
+if (nargin<1);
+table_data__ = { ...
+'ISWINCP_x0' , 'ISWINCP' , 1.07 , 'emd_9718.map' , 'ADPBeF.star' ; ...
+%'p28hRPT1_x0' , 'p28hRP' , 0.98 , 'emd_8674.map' , 'T1.star' ; ...
+'trpv1_x0' , 'trpv1' , 1.2156 , 'emd_5778.mrc' , 'tv1_relion_data.star' ; ...
+'rib80s_x0' , 'rib80s' , 1.34 , 'emd_2660.mrc' , 'shiny_2sets.star' ; ...
+'MlaFEDB_x0' , 'MlaFEDB' , 0.832 , 'emd_22116.map' , 'Empiar_10536_00_to_23.star' ; ...
+'LetB1_x0' , 'LetB1' , 1.31 , 'emd_20993.map' , 'job_569_model_1.star' ; ...
+'TMEM16F_x0' , 'TMEM16F' , 1.059 , 'emd_20244.map' , 'All_8192.star' ; ...
+'LSUbl17dep_x0' , 'LSUbl17dep' , 1.31 , 'emd_8434.map' , 'Parameters_negated.star' ; ...
+'ps1_x0' , 'precatalytic_spliceosome' , 1.699 , 'consensus_half1_class001.mrc' , 'consensus_data.star' ; ...
+%'LetB1_x0' , 'LetB1' , 1.31 , 'emd_20993.map' , 'job_569_model_1_350MB.star' ; ...
+'LSUbl17depE_x0' , 'LSUbl17dep' , 1.31 , 'emd_8450.map' , 'Parameters_negated.star' ; ...
+};
+n_experiment = size(table_data__,1);
+%%%%%%%%;
+tmp_ = clock;rng(tmp_(end));
+for nexperiment=1;%for nexperiment=(randperm(n_experiment)-1);
+na=0;
+fname_prefix = table_data__{1+nexperiment,1+na}; na=na+1;
+dir_nopath_data_star = table_data__{1+nexperiment,1+na}; na=na+1;
+Pixel_Spacing = table_data__{1+nexperiment,1+na}; na=na+1;
+fname_nopath_volume = table_data__{1+nexperiment,1+na}; na=na+1;
+fname_nopath_star = table_data__{1+nexperiment,1+na}; na=na+1;
+disp(sprintf(' %% nexperiment %d/%d: %16s %16s %0.3f %16s %32s' ...
+	     ,nexperiment,n_experiment ...
+	     ,fname_prefix,dir_nopath_data_star,Pixel_Spacing,fname_nopath_volume,fname_nopath_star ...
+	     ));
+global_parameter = struct('type','parameter');
+if (strcmp(dir_nopath_data_star,'LSUbl17dep')); global_parameter.flag_invert = 0; end;
+if (strcmp(dir_nopath_data_star,'LSUbl17dep')); global_parameter.flag_center_image = 1; end;
+if (strcmp(dir_nopath_data_star,'precatalytic_spliceosome')); global_parameter.flag_center_image = 1; end;
+global_parameter = ...
+test_empm_28( ...
+ global_parameter ...
+,fname_prefix ...
+,dir_nopath_data_star ...
+,Pixel_Spacing ...
+,fname_nopath_volume ...
+,fname_nopath_star ...
+);
+end;%for nexperiment=0:n_experiment-1;
+%%%%%%%%;
+disp('returning');return;
+end;%if (nargin<1);
+
+% try: ;
+% global_parameter=[];fname_prefix='rib80s_x0';dir_nopath_data_star='rib80s';Pixel_Spacing=1.34;fname_nopath_volume='emd_2660.mrc';fname_nopath_star='shiny_2sets.star';
+% global_parameter=[];fname_prefix='LetB1_x0';dir_nopath_data_star='LetB1';Pixel_Spacing=1.31;fname_nopath_volume='emd_20993.map';fname_nopath_star='job_569_model_1_350MB.star';
+% global_parameter=[];fname_prefix='trpv1_x0';dir_nopath_data_star='trpv1';Pixel_Spacing=1.2156;fname_nopath_volume='emd_5778.mrc';fname_nopath_star='tv1_relion_data.star';
+
+flag_verbose=1;
+if (flag_verbose); disp(sprintf(' %% [entering test_empm_28]')); end;
+
+%%%%%%%%;
 platform = 'rusty';
 if (exist('platform.type','file')); fp=fopen('platform.type'); platform = fscanf(fp,'%s'); fclose(fp); end;
 if (strcmp(platform,'access1')); setup_access1; string_root = 'data'; end;
 if (strcmp(platform,'OptiPlex')); setup_OptiPlex; string_root = 'home'; end;
 if (strcmp(platform,'eval1')); setup_eval1; string_root = 'home'; end;
 if (strcmp(platform,'rusty')); setup_rusty; string_root = 'mnt/home'; end;
+%%%%%%%%;
 
-flag_recalc = 0;
-flag_replot = 0;
-flag_center_volume = 1;
-flag_center_image = 1;
-flag_invert = 0;
-tolerance_master = 1e-2;
+if isempty(global_parameter); global_parameter = struct('type','parameter'); end;
+if (~isfield(global_parameter,'flag_recalc')); global_parameter.flag_recalc = 0; end; %<-- parameter_bookmark. ;
+flag_recalc = global_parameter.flag_recalc;
+if (~isfield(global_parameter,'flag_replot')); global_parameter.flag_replot = 0; end; %<-- parameter_bookmark. ;
+flag_replot = global_parameter.flag_replot;
+if (~isfield(global_parameter,'flag_center_volume')); global_parameter.flag_center_volume = 0; end; %<-- parameter_bookmark. ;
+flag_center_volume = global_parameter.flag_center_volume;
+if (~isfield(global_parameter,'flag_center_image')); global_parameter.flag_center_image = 0; end; %<-- parameter_bookmark. ;
+flag_center_image = global_parameter.flag_center_image;
+if (~isfield(global_parameter,'flag_invert')); global_parameter.flag_invert = 0; end; %<-- parameter_bookmark. ;
+flag_invert = global_parameter.flag_invert;
+if (~isfield(global_parameter,'tolerance_master')); global_parameter.tolerance_master = 1e-2; end; %<-- parameter_bookmark. ;
+tolerance_master = global_parameter.tolerance_master;
 nf=0;
 
 %%%%%%%%;
-% parameters for synthetic data. ;
-%%%%%%%%;
-n_x_u_0in = 64; %<-- increase to increase number of pixels (also decrease Pixel_A_0in). ;
-delta_sigma_true_0in = 0.05; %<-- increase to increase translation-spread of images. ;
-snr_per_AA_0in = 0.015; %<-- decrease to increase noise. ;
-n_M_0in = 1024; %<-- number of images. ;
-n_CTF_0in = 4; %<-- number of distinct CTFs. ;
-Pixel_A_0in = 4.0; %<-- Pixel_Spacing in Angstroms, if n_x_u increases, this should decrease. ;
-Voltage_0in = 300; %<-- no need to change. ;
-Defocus_0in = 2.5e4; %<-- increase to increase number of CTF zero-crossings. ;
-Defocus_relative_spread_0in = 0.50; %<-- increase to increase n_CTF_rank. ;
-Amplitude_Contrast_0in  = 0.1; %<-- no need to change. ;
-%%%%%%%%;
-parameter = struct('type','parameter');
-[ ...
- parameter ...
-,fname_xfix ...
-] = ...
-spharm_to_mrcs_xfix_0( ...
- parameter ...
-,n_x_u_0in ...
-,delta_sigma_true_0in ...
-,snr_per_AA_0in ...
-,n_M_0in ...
-,n_CTF_0in ...
-,Pixel_A_0in ...
-,Voltage_0in ...
-,Defocus_0in ...
-,Defocus_relative_spread_0in ...
-,Amplitude_Contrast_0in ...
-);
-%%%%%%%%;
-fname_prefix = 'FINYU';
-fname_prefix_xfix = sprintf('%s_%s',fname_prefix,fname_xfix);
-
+fname_prefix_xfix = sprintf('%s',fname_prefix);
 dir_tfpm = sprintf('/%s/rangan/dir_cryoem/dir_%s/dir_tfpm',string_root,fname_prefix_xfix);
 if (~exist(sprintf('%s_mat',dir_tfpm),'dir')); disp(sprintf(' %% mkdir %s_mat',dir_tfpm)); mkdir(sprintf('%s_mat',dir_tfpm)); end;
 if (~exist(sprintf('%s_jpg',dir_tfpm),'dir')); disp(sprintf(' %% mkdir %s_jpg',dir_tfpm)); mkdir(sprintf('%s_jpg',dir_tfpm)); end;
-dir_data_star = sprintf('/%s/rangan/dir_cryoem/dir_%s',string_root,fname_prefix_xfix);
-Pixel_Spacing = Pixel_A_0in; %<-- in angstroms, just an estimation. ;
-fname_nopath_volume = sprintf('%s.mat',fname_prefix_xfix); %<-- synthetic. ;
+dir_data_star = sprintf('/%s/rangan/dir_cryoem/dir_%s',string_root,dir_nopath_data_star);
 %%%%%%%%;
 % all classes and subclasses. ;
 %%%%%%%%;
 fname_nopath_volume_ = ...
 { ...
-  sprintf('%s.mat',fname_prefix_xfix) ... %<-- class 0. ;
+ fname_nopath_volume ... %<-- class 0. ;
 };
 n_volume = numel(fname_nopath_volume_);
 flag_het = 0; if (n_volume> 1); flag_het = 1; end;
-fname_nopath_star = sprintf('%s.star',fname_prefix_xfix);
-
-fname_mat = sprintf('%s/%s',dir_data_star,fname_nopath_volume);
-if (~exist(fname_mat,'file'));
-disp(sprintf(' %% %s not found, creating',fname_mat));
-%%%%%%%%;
-
-n_x_u = n_x_u_0in;
-half_diameter_x_c = 1.0d0;
-diameter_x_c = 2.0d0*half_diameter_x_c;
-x_p_r_max = 1.0;
-x_u_0_ = linspace(-x_p_r_max,+x_p_r_max,n_x_u);
-x_u_1_ = linspace(-x_p_r_max,+x_p_r_max,n_x_u);
-x_u_2_ = linspace(-x_p_r_max,+x_p_r_max,n_x_u);
-[x_u_0___,x_u_1___,x_u_2___] = ndgrid(x_u_0_,x_u_1_,x_u_2_); n_xxx_u = n_x_u^3;
-a_x_u___ = zeros(n_x_u,n_x_u,n_x_u);
-scale_blockletter_ = [3,3,3];
-tmp_blockletter___ = blockletter_0('',scale_blockletter_);
-size_blockletter_ = size(tmp_blockletter___);
-z_gap = size_blockletter_(1+2);
-y_gap = floor(size_blockletter_(1+1)/4);
-x_gap = floor(size_blockletter_(1+0)/8);
-nz = floor(n_x_u/2 - size_blockletter_(1+2)*2.5 - z_gap*2);
-ny = floor(n_x_u/2 - size_blockletter_(1+1)*0.5 - y_gap*2.5);
-nx = floor(n_x_u/2 - size_blockletter_(1+0)*0.5 - x_gap*2.5);
-a_x_u___( ...
- 1+nx+[0:size_blockletter_(1+0)-1] ...
-,1+ny+[0:size_blockletter_(1+1)-1] ...
-,1+nz+[0:size_blockletter_(1+2)-1] ...
-	  ) = ...
-blockletter_0('F',scale_blockletter_);
-nz = nz + z_gap + size_blockletter_(1+2);
-ny = ny + y_gap;
-nx = nx + x_gap;
-a_x_u___( ...
- 1+nx+[0:size_blockletter_(1+0)-1] ...
-,1+ny+[0:size_blockletter_(1+1)-1] ...
-,1+nz+[0:size_blockletter_(1+2)-1] ...
-	  ) = ...
-blockletter_0('I',scale_blockletter_);
-nz = nz + z_gap + size_blockletter_(1+2);
-ny = ny + y_gap;
-nx = nx + x_gap;
-a_x_u___( ...
- 1+nx+[0:size_blockletter_(1+0)-1] ...
-,1+ny+[0:size_blockletter_(1+1)-1] ...
-,1+nz+[0:size_blockletter_(1+2)-1] ...
-	  ) = ...
-blockletter_0('N',scale_blockletter_);
-nz = nz + z_gap + size_blockletter_(1+2);
-ny = ny + y_gap;
-nx = nx + x_gap;
-a_x_u___( ...
- 1+nx+[0:size_blockletter_(1+0)-1] ...
-,1+ny+[0:size_blockletter_(1+1)-1] ...
-,1+nz+[0:size_blockletter_(1+2)-1] ...
-	  ) = ...
-blockletter_0('Y',scale_blockletter_);
-nz = nz + z_gap + size_blockletter_(1+2);
-ny = ny + y_gap;
-nx = nx + x_gap;
-a_x_u___( ...
- 1+nx+[0:size_blockletter_(1+0)-1] ...
-,1+ny+[0:size_blockletter_(1+1)-1] ...
-,1+nz+[0:size_blockletter_(1+2)-1] ...
-	  ) = ...
-blockletter_0('U',scale_blockletter_);
-nz = nz + z_gap + size_blockletter_(1+2);
-ny = ny + y_gap;
-nx = nx + x_gap;
-%a_x_u___ = flip(flip(permute(a_x_u___,[2,3,1]),3),1);
-a_x_u___ = flip(flip(permute(a_x_u___,[3,2,1]),3),2);
-a_x_u_load_ = a_x_u___;
-%%%%%%%%;
-fname_fig_pre = sprintf('%s_jpg/a_x_u_load_',dir_tfpm);
-fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
-if (flag_replot | ~exist(fname_fig_jpg,'file'));
-disp(sprintf(' %% %s not found, creating',fname_fig_pre));
-figure(1+nf);nf=nf+1;clf;figsml;
-isosurface_f_x_u_1([],a_x_u_load_); title('a load');
-disp(sprintf(' %% writing %s',fname_fig_pre));
-print('-djpeg',fname_fig_jpg);
-close(gcf);
-end;%if (~exist(fname_fig_jpg,'file'));
-if ( exist(fname_fig_jpg,'file'));
-disp(sprintf(' %% %s found, not creating',fname_fig_pre));
-end;%if ( exist(fname_fig_jpg,'file'));
-%%%%%%%%;
-save(fname_mat,'a_x_u_load_');
-%%%%%%%%;
-end;%if (~exist(fname_mat,'file'));
-if ( exist(fname_mat,'file'));
-disp(sprintf(' %% %s found, not creating',fname_mat));
-end;%if ( exist(fname_mat,'file'));
 
 %%%%%%%%;
 % First create consensus volume. ;
 %%%%%%%%;
-fname_mat = sprintf('%s_mat/a_x_u_pack_.mat',dir_tfpm);
+fname_mat = sprintf('%s_mat/a_x_u_base_.mat',dir_tfpm);
 if (flag_recalc | ~exist(fname_mat,'file'));
 disp(sprintf(' %% %s not found, creating',fname_mat));
-%fname_emd = sprintf('%s/%s',dir_data_star,fname_nopath_volume); a_x_u_load_ = cast(ReadMRC(fname_emd),'double');
-load(sprintf('%s/%s',dir_data_star,fname_nopath_volume),'a_x_u_load_');
+fname_emd = sprintf('%s/%s',dir_data_star,fname_nopath_volume);
+a_x_u_load_ = cast(ReadMRC(fname_emd),'double');
 n_x_u_load = size(a_x_u_load_,1);
 %%%%%%%%;
 half_diameter_x_c = 1.0d0;
@@ -239,13 +182,14 @@ disp(sprintf(' %% centering volume'));
 a_x_u_base_ = b_rho_x_u_pack_;
 end;%if flag_center_volume;
 %%%%%%%%;
-fname_fig_pre = sprintf('%s_jpg/a_x_u_pack_',dir_tfpm);
+fname_fig_pre = sprintf('%s_jpg/a_x_u_base_',dir_tfpm);
 fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
 if (flag_replot | ~exist(fname_fig_jpg,'file'));
 disp(sprintf(' %% %s not found, creating',fname_fig_pre));
 figure(1+nf);nf=nf+1;clf;figbig;
 subplot(1,2,1); isosurface_f_x_u_1([],a_x_u_pack_); title('a packed');
 subplot(1,2,2); isosurface_f_x_u_1([],b_rho_x_u_pack_); title('b packed');
+drawnow();
 disp(sprintf(' %% writing %s',fname_fig_pre));
 print('-djpeg',fname_fig_jpg);
 close(gcf);
@@ -256,7 +200,7 @@ end;%if ( exist(fname_fig_jpg,'file'));
 %%%%%%%%;
 save(fname_mat ...
      ,'half_diameter_x_c','diameter_x_c','x_p_r_max','n_x_u_pack','n_pack','pack_row_ij_','pack_col_ij_','pack_val_ij_','x_u_pack_' ...
-     ,'x_u_0_','x_u_1_','x_u_2_','x_u_0___','x_u_1___','x_u_2___','n_x_u_load','n_xxx_u','weight_3d_x_u_xxx_','a_x_u_pack_','b_rho_x_u_pack_','a_x_u_base_' ...
+     ,'x_u_0_','x_u_1_','x_u_2_','x_u_0___','x_u_1___','x_u_2___','n_x_u_load','n_xxx_u','weight_3d_x_u_xxx_','a_x_u_base_' ...
      );
 end;%if (flag_recalc | ~exist(fname_mat,'file'));
 %%%%%%%%;
@@ -264,6 +208,34 @@ if ( exist(fname_mat,'file'));
 disp(sprintf(' %% %s found, not creating',fname_mat));
 load(fname_mat);
 end;%if ( exist(fname_mat,'file'));
+
+%%%%%%%%;
+% simple visualization of a_base. ;
+%%%%%%%%
+flag_plot=0;
+if flag_plot;
+fname_fig_pre = sprintf('%s_jpg/a_x_u_base_prct_',dir_tfpm);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+if (flag_replot | ~exist(fname_fig_jpg,'file'));
+disp(sprintf(' %% %s not found, creating',fname_fig_pre));
+figure(1+nf);nf=nf+1;clf;figbig;
+prctile_ = [94.0:0.5:99.5]; n_prctile = numel(prctile_);
+p_row = 3; p_col = 4; ns=0;
+for nprctile=0:n_prctile-1;
+subplot(p_row,p_col,1+ns); ns=ns+1;
+tmp_p = prctile_(1+nprctile);
+isosurface_f_x_u_1(struct('percent_threshold_',tmp_p),a_x_u_base_);
+title(sprintf('a base %.1f',tmp_p));
+drawnow();
+end;%for nprctile=0:n_prctile-1;
+disp(sprintf(' %% writing %s',fname_fig_pre));
+print('-djpeg',fname_fig_jpg);
+close(gcf);
+end;%if (~exist(fname_fig_jpg,'file'));
+if ( exist(fname_fig_jpg,'file'));
+disp(sprintf(' %% %s found, not creating',fname_fig_pre));
+end;%if ( exist(fname_fig_jpg,'file'));
+end;%if flag_plot;
 
 %%%%%%%%;
 % Now convert to a_k_p_ ;
@@ -621,74 +593,6 @@ end;%if ( exist(fname_fig_jpg,'file'));
 %%%%%%%%;
 
 %%%%%%%%;
-% Now generate mrcs- and star-file if they do not exist. ;
-%%%%%%%%;
-fname_mrcs = sprintf('%s/%s.mrcs',dir_data_star,fname_prefix_xfix);
-fname_star = sprintf('%s/%s.star',dir_data_star,fname_prefix_xfix);
-fname_mat = sprintf('%s_mat/euler_form.mat',dir_tfpm);
-flag_exist = exist(fname_mrcs,'file') & exist(fname_star,'file') & exist(fname_mat,'file');
-if flag_recalc | ~flag_exist;
-disp(sprintf(' %% %s not found, creating',fname_mrcs));
-disp(sprintf(' %% %s not found, creating',fname_star));
-disp(sprintf(' %% %s not found, creating',fname_mat));
-%%%%%%%%;
-parameter = struct('type','parameter');
-parameter.flag_verbose = 1;
-parameter.flag_disp = 1;
-parameter.flag_uniform_over_n_k_p_r = 1;
-parameter.rseed = 0;
-[ ...
- parameter ...
-,fname_mrcs_nopath ...
-,fname_star_nopath ...
-,fname_xfix ...
-,M_x_c___ ...
-,euler_polar_a_form_ ...
-,euler_azimu_b_form_ ...
-,euler_gamma_z_form_ ...
-,image_delta_x_form_ ...
-,image_delta_y_form_ ...
-] = ...
-spharm_to_mrcs_1( ...
- parameter ...
-,k_p_r_max ...
-,n_k_p_r ...
-,k_p_r_ ...
-,weight_3d_k_p_r_ ...
-,l_max_ ...
-,a_k_Y_quad_ ...
-,half_diameter_x_c ...
-,n_x_u_0in ...
-,delta_sigma_true_0in ...
-,snr_per_AA_0in ...
-,n_M_0in ...
-,n_CTF_0in ...
-,Pixel_A_0in ...
-,Voltage_0in ...
-,Defocus_0in ...
-,Defocus_relative_spread_0in ...
-,Amplitude_Contrast_0in ...
-,dir_data_star ...
-,fname_prefix ...
-);
-save(fname_mat ...
-     ,'parameter' ...
-     ,'euler_polar_a_form_' ...
-     ,'euler_azimu_b_form_' ...
-     ,'euler_gamma_z_form_' ...
-     ,'image_delta_x_form_' ...
-     ,'image_delta_y_form_' ...
-     );
-end;%if ~flag_exist;
-%%%%%%%%;
-if flag_exist;
-disp(sprintf(' %% %s found, not creating',fname_mrcs));
-disp(sprintf(' %% %s found, not creating',fname_star));
-disp(sprintf(' %% %s found, not creating',fname_mat));
-load(fname_mat);
-end;%if flag_exist;
-
-%%%%%%%%;
 % Now load images and CTF parameters from the star-file. ;
 %%%%%%%%;
 fname_mat = sprintf('%s_mat/M_k_p_wkM__.mat',dir_tfpm);
@@ -881,6 +785,7 @@ end;%if (~exist(fname_fig_jpg,'file'));
 if ( exist(fname_fig_jpg,'file'));
 disp(sprintf(' %% %s found, not creating',fname_fig_pre));
 end;%if ( exist(fname_fig_jpg,'file'));
+%%%%%%%%;
 
 %%%%%%%%;
 % Now convert images to M_k_q_wkM__. ;
@@ -1001,6 +906,34 @@ end;%if ( exist(fname_fig_jpg,'file'));
 
 %%%%%%%%;
 % Now calculate CTF functions. ;
+%{
+Compare niko_ctf with section 28 from ; ;
+https://link.springer.com/book/10.1007/978-0-387-76501-3 ;
+The relevant formulae are 28.3 and 28.4
+(which define the spatial-frequency 'u' in terms of inverse-angstroms -- without a 2*pi built in) ;
+and then later on in 28.33 and 28.34,
+where the magnitude of the spatial-frequency 'u' is multiplied by lambda to provide a non-dimensional 'angle' (see 28.32). ;
+With this definition it seems as though 'u' is the wavenumber -- i.e., the number of full wavelengths per unit-length. ;
+So, in the matlab-code below, a wave-number of k_p_r_max = 48/(2*pi) then corresponds to a wave-number of 48, ;
+with the correction that -- since our box is of length 2 -- 
+there are actually k_p_r_max*2 = 96 full waves in the box when k_p_r = 48/(2*pi). ;
+ ;
+Now when we call niko_ctf below, ;
+we set tmp_k_c_1 and tmp_k_c_2 to equal (2*pi)*k_p_r*cos(tmp_theta) and (2*pi)*k_p_r*sin(tmp_theta), respectively. ;
+This corresponds to passing in essentially (2*pi)*k_p_r; ;
+i.e., when k_p_r = k_p_r_max we pass in the number 48. ;
+Now within niko_ctf this (2*pi)*k_p_r gets multiplied by 'thetatr': ;
+thetatr = ' CTF_lambda / Box_size_in_angstroms / pi ' (see line 941 and 949) ;
+ultimately producing: ;
+(2*pi) * k_p_r * thetatr = 2 * k_p_r * CTF_lambda / Box_size_in_angstroms . ;
+Now CTF_Lambda is the electron-wavelength in angstroms (see line 931) . ;
+Thus, within niko_ctf, the product ;
+angle = rad*thetatr = u*lambda, where ;
+lambda = electron-wavelength in angstroms ;
+u = 2 * k_p_r / Box_size_in_angstroms = wavenumber in inverse-angstroms ;
+Where, as we discussed above, ;
+the extra factor of 2 is because we define our wavenumbers assuming that the box is side-length 2 (rather than 1). ;
+%}
 %%%%%%%%;
 fname_mat = sprintf('%s_mat/CTF_k_p_wkC__.mat',dir_tfpm);
 if (flag_recalc | ~exist(fname_mat,'file'));
@@ -1345,13 +1278,9 @@ for flag_N_vs_M = 0:1;
 %%%%%%%%;
 if flag_N_vs_M==0; 
 tmp_N_k_p_wkM__ = M_k_p_wkM__; tmp_str = 'M';
-tmp_image_delta_x_form_ = image_delta_x_form_;
-tmp_image_delta_y_form_ = image_delta_y_form_;
 end;%if flag_N_vs_M==0; 
 if flag_N_vs_M==1;
 tmp_N_k_p_wkM__ = N_k_p_wkM__; tmp_str = 'N';
-tmp_image_delta_x_form_ = image_delta_x_form_ + image_center_delta_x_c_0_M_;
-tmp_image_delta_y_form_ = image_delta_y_form_ + image_center_delta_x_c_1_M_;
 end;%if flag_N_vs_M==1;
 tfpm_fname_mat = sprintf('%s_mat/tfpm_a_k_Y_reco_from_%s__.mat',dir_tfpm,tmp_str);
 if (flag_recalc | ~exist(tfpm_fname_mat,'file'));
@@ -1400,11 +1329,6 @@ tfpm_align_M_k_p_to_a_k_Y_4( ...
 ,CTF_k_p_r_kC__ ...
 ,l_max_ ...
 ,a_k_Y_quad_ ...
-,euler_polar_a_form_ ...
-,euler_azimu_b_form_ ...
-,euler_gamma_z_form_ ...
-,tmp_image_delta_x_form_ ...
-,tmp_image_delta_y_form_ ...
 );
 clear tmp_N_k_p_wkM__;
 end;%if (~exist(tfpm_fname_mat,'file'));
@@ -1485,13 +1409,9 @@ end;%for flag_N_vs_M = 0:1;
 flag_N_vs_M = flag_center_image;
 if flag_N_vs_M==0; 
 tmp_N_k_p_wkM__ = M_k_p_wkM__; tmp_str = 'M';
-tmp_image_delta_x_form_ = image_delta_x_form_;
-tmp_image_delta_y_form_ = image_delta_y_form_;
 end;%if flag_N_vs_M==0; 
 if flag_N_vs_M==1;
 tmp_N_k_p_wkM__ = N_k_p_wkM__; tmp_str = 'N';
-tmp_image_delta_x_form_ = image_delta_x_form_ + image_center_delta_x_c_0_M_;
-tmp_image_delta_y_form_ = image_delta_y_form_ + image_center_delta_x_c_1_M_;
 end;%if flag_N_vs_M==1;
 tfpm_fname_mat = sprintf('%s_mat/tfpm_a_k_Y_reco_from_%s__.mat',dir_tfpm,tmp_str);
 if ( exist(tfpm_fname_mat,'file'));
@@ -1509,98 +1429,6 @@ end;%if ( exist(tfpm_fname_mat,'file'));
 %%%%%%%%;
 
 %%%%%%%%;
-% test volumetric change-of-basis transformations under flag_uniform_over_n_k_p_r==1. ;
-%%%%%%%%;
-%{
-%%%%%%%%;
-tmp_t=tic();
-qbp_eps = 1e-6;
-[ ...
- a_k_Y_reco_yk_ ...
-] = ...
-qbp_6( ...
- qbp_eps ...
-,n_k_p_r ...
-,k_p_r_ ...
-,l_max_ ...
-,n_w_ ...
-,n_M ...
-,M_k_p_wkM__ ...
-,index_nCTF_from_nM_ ...
-,CTF_k_p_wkC__ ...
-,euler_polar_a_true_M_ ...
-,euler_azimu_b_true_M_ ...
-,euler_gamma_z_true_M_ ...
-,image_delta_x_true_M_ ...
-,image_delta_y_true_M_ ...
-);
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% qbp_6 time %0.2fs',tmp_t)); end;
-%%%%;
-tmp_t=tic();
-[ ...
- b_k_Y_reco_yk_ ...
-] = ...
-qbp_uniform_over_n_k_p_r_10( ...
- qbp_eps ...
-,n_k_p_r ...
-,k_p_r_ ...
-,l_max_ ...
-,n_w_ ...
-,n_M ...
-,M_k_p_wkM__ ...
-,index_nCTF_from_nM_ ...
-,CTF_k_p_wkC__ ...
-,euler_polar_a_true_M_ ...
-,euler_azimu_b_true_M_ ...
-,euler_gamma_z_true_M_ ...
-,image_delta_x_true_M_ ...
-,image_delta_y_true_M_ ...
-);
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% qbp_uniform_over_n_k_p_r_10 time %0.2fs',tmp_t)); end;
-%%%%%%%%;
-tmp_t=tic();
-[ ... 
- a_x_u_reco_xxx_ ...
-] = ...
-convert_spharm_to_x_c_4( ...
- k_eq_d ...
-,n_k_p_r ...
-,k_p_r_ ...
-,k_p_r_max ...
-,weight_3d_k_p_r_ ...
-,l_max_ ...
-,a_k_Y_reco_yk_ ...
-,half_diameter_x_c ...
-,n_x_u_pack ...
-);
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% convert_spharm_to_x_c_4 time %0.2fs',tmp_t)); end;
-%%%%;
-tmp_t=tic();
-[ ... 
- b_x_u_reco_xxx_ ...
-] = ...
-convert_spharm_to_x_c_uniform_over_n_k_p_r_5( ...
- 0*flag_verbose ...
-,k_eq_d ...
-,n_k_p_r ...
-,k_p_r_ ...
-,k_p_r_max ...
-,weight_3d_k_p_r_ ...
-,l_max_ ...
-,b_k_Y_reco_yk_ ...
-,half_diameter_x_c ...
-,n_x_u_pack ...
-);
-tmp_t = toc(tmp_t); if (flag_verbose>0); disp(sprintf(' %% convert_spharm_to_x_c_uniform_over_n_k_p_r_5 time %0.2fs',tmp_t)); end;
-%%%%%%%%;
-figure(1+nf);nf=nf+1;clf;figmed;
-subplot(1,2,1); isosurface_f_x_u_1([],a_x_u_reco_xxx_); axisnotick3d; title('a_x_u_reco_xxx_','Interpreter','none');
-subplot(1,2,2); isosurface_f_x_u_1([],b_x_u_reco_xxx_); axisnotick3d; title('b_x_u_reco_xxx_','Interpreter','none');
-close(gcf);
-%%%%%%%%;
-%}
-
-%%%%%%%%;
 % Check to see if M_k_p_wkM__ or N_k_p_wkM__ aligns more accurately with the consensus volume. ;
 %%%%%%%%;
 fname_fig_pre = sprintf('%s_jpg/M_vs_N_corr_FIGA',dir_tfpm);
@@ -1611,18 +1439,24 @@ tmp_fname_mat = sprintf('%s_mat/tfpm_a_k_Y_reco_from_%s__.mat',dir_tfpm,'M');
 tmp_M_ = load(tmp_fname_mat);
 tmp_fname_mat = sprintf('%s_mat/tfpm_a_k_Y_reco_from_%s__.mat',dir_tfpm,'N');
 tmp_N_ = load(tmp_fname_mat);
-figure(1+nf);nf=nf+1;figsml;
+figure(1+nf);nf=nf+1;figmed;figbeach();
 clf;ns=0;
-subplot(1,2,1+ns);ns=ns+1;
+subplot(1,3,1+ns);ns=ns+1;
 plot(real(tmp_M_.corr_a_k_Y_i_),real(tmp_N_.corr_a_k_Y_i_),'o-',[0,1],[0,1],'k-'); 
 xlim([0,1]);ylim([0,1]);
 axis square; xlabel('M corr'); ylabel('N corr'); title('corr_a_k_Y_i_','Interpreter','none');
-subplot(1,2,1+ns);ns=ns+1;
+subplot(1,3,1+ns);ns=ns+1;
 plot(tmp_M_.image_X_value_Mi__(:,end-1),tmp_N_.image_X_value_Mi__(:,end-1),'o',[0,1],[0,1],'k-');
 xlim([0,1]);ylim([0,1]);
 axis square; xlabel('M X_value','Interpreter','none'); ylabel('N X_value','Interpreter','none');
 title('X_value','Interpreter','none');
-% Note that image 1+nM=1+525 has a particularly high correlation (0.7). ;
+subplot(1,3,1+ns);ns=ns+1;
+imagesc(log2(1+hist2d_0(tmp_M_.image_X_value_Mi__(:,end-1),tmp_N_.image_X_value_Mi__(:,end-1),32,32,[0,1],[0,1])));
+hold on; plot([1,32],[1,32],'k-','LineWidth',2); hold off;
+set(gca,'Ydir','normal');
+axisnotick;
+axis image; xlabel('M X_value','Interpreter','none'); ylabel('N X_value','Interpreter','none');
+title('X_value','Interpreter','none');
 clear tmp_M_ tmp_N_;
 sgtitle(sprintf('M vs N for consensus volume'),'Interpreter','none');
 disp(sprintf(' %% writing %s',fname_fig_pre));
@@ -2045,7 +1879,7 @@ delta_sigma_use = delta_sigma;
 dat_rseed_ = [0:2]; n_dat_rseed = numel(dat_rseed_);
 tolerance_pm_ = 0.1.^[1:0.5:3];
 n_tolerance_pm = numel(tolerance_pm_);
-delta_r_max_factor_ = [0.00,0.25,0.50];
+delta_r_max_factor_ = [0.00,0.125,0.25,0.50];
 n_delta_r_max_factor = numel(delta_r_max_factor_);
 %%%%%%%%;
 flag_compute = 1 & ( 1*strcmp(platform,'access1') | 0*strcmp(platform,'rusty') | 0*strcmp(platform,'eval1') );
@@ -2072,8 +1906,7 @@ for ntolerance_pm=0:n_tolerance_pm-1;
 tolerance_pm = tolerance_pm_(1+ntolerance_pm);
 for flag_alternate_MS_vs_SM = [0:1];
 % test with: ;
-% ndat_rseed=1; dat_rseed = dat_rseed_(1+ndat_rseed); ndelta_r_max_factor = 1; delta_r_max_factor = delta_r_max_factor_(1+ndelta_r_max_factor); delta_r_max_use = delta_r_max_factor * delta_sigma_use*sqrt(log(20^2)); delta_r_max_upb = 2.0 * delta_sigma_use*sqrt(log(20^2)); ntolerance_pm=0; tolerance_pm = tolerance_pm_(1+ntolerance_pm); flag_alternate_MS_vs_SM=1;
-
+% ndat_rseed=1; dat_rseed = dat_rseed_(1+ndat_rseed); ndelta_r_max_factor = 1; delta_r_max_factor = delta_r_max_factor_(1+ndelta_r_max_factor); delta_r_max_use = delta_r_max_factor * delta_sigma_use*sqrt(log(20^2)); delta_r_max_upb = 2.0 * delta_sigma_use*sqrt(log(20^2)); ntolerance_pm=1; tolerance_pm = tolerance_pm_(1+ntolerance_pm); flag_alternate_MS_vs_SM=1;
 parameter = struct('type','parameter');
 parameter.flag_verbose = flag_verbose;
 parameter.rseed = dat_rseed;
@@ -2108,7 +1941,6 @@ tfpmut_wrap_wrap_6( ...
 ,image_delta_x_true_M_ ...
 ,image_delta_y_true_M_ ...
 );
-
 %%%%;
 end;%for flag_alternate_MS_vs_SM = [0:1];
 end;%for ntolerance_pm=0:n_tolerance_pm-1;
@@ -2118,6 +1950,85 @@ end;%for ndat_rseed=0:n_dat_rseed-1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 end;%if flag_compute;
+
+flag_collate=0;
+if flag_collate;
+%%%%%%%%;
+figure(1+nf);nf=nf+1;clf;figbig;
+p_row = n_delta_r_max_factor; p_col = n_tolerance_pm;
+c_use__ = colormap_beach(); n_c_use = size(c_use__,1);
+xlim_ = [0,64+1];
+ylim_ = [0,1.0];
+markersize_use = 8;
+linewidth_use = 2;
+for ndelta_r_max_factor=0:n_delta_r_max_factor-1;
+delta_r_max_factor = delta_r_max_factor_(1+ndelta_r_max_factor);
+delta_r_max_use = delta_r_max_factor * delta_sigma_use*sqrt(log(20^2));
+delta_r_max_upb = 2.0 * delta_sigma_use*sqrt(log(20^2)); %<-- allow large accumulated translations. ;
+for ntolerance_pm=0:n_tolerance_pm-1;
+tolerance_pm = tolerance_pm_(1+ntolerance_pm);
+subplot_t(p_row,p_col,1+ndelta_r_max_factor + ntolerance_pm*n_delta_r_max_factor);
+hold on;
+title(sprintf('t %0.3f pm %0.3f',delta_r_max_use,tolerance_pm),'Interpreter','none');
+for flag_alternate_MS_vs_SM = [0:1];
+nc_use = (n_c_use-1)*flag_alternate_MS_vs_SM;
+str_strategy = '';
+if (flag_alternate_MS_vs_SM==0); str_strategy = sprintf('%sa0',str_strategy); end;
+if (flag_alternate_MS_vs_SM==1); str_strategy = sprintf('%sa1',str_strategy); end;
+for ndat_rseed=0:n_dat_rseed-1;
+dat_rseed = dat_rseed_(1+ndat_rseed);
+string_root = dir_tfpm(2:strfind(dir_tfpm,'rangan')-2);
+delta_r_max = delta_r_max_use;
+str_delta_r_max = sprintf('t%.4d',floor(1000*delta_r_max));
+str_tolerance_pm = sprintf('p%.2d',floor(10*-log10(tolerance_pm)));
+rseed = dat_rseed;
+str_rseed = sprintf('r%d',rseed);
+flag_rank_vs_tolerance = 0;
+if (flag_rank_vs_tolerance==0); str_xfix = sprintf('%s%s%s%s',str_strategy,str_delta_r_max,str_tolerance_pm,str_rseed); end;
+if (flag_rank_vs_tolerance==1); disp(sprintf(' %% Warning, flag_rank_vs_tolerance==1 not implemented')); end;
+XA_fname_mat = sprintf('%s_mat/X_2d_Memp_d1_%s.mat',dir_tfpm,str_xfix);
+XA_fname_align_mat = sprintf('%s_mat/X_2d_Memp_d1_%s_align_a_k_Y_.mat',dir_tfpm,str_xfix);
+XB_fname_mat = sprintf('%s_mat/X_2d_xcor_d0_%s.mat',dir_tfpm,str_xfix);
+XB_fname_align_mat = sprintf('%s_mat/X_2d_xcor_d0_%s_align_a_k_Y_.mat',dir_tfpm,str_xfix);
+if exist(XA_fname_align_mat,'file');
+tmp_XA_align_ = load(XA_fname_align_mat); tmp_XA_align_.X_best_i_ = real(tmp_XA_align_.X_best_i_);
+n_iteration_XA = numel(tmp_XA_align_.X_best_i_);
+tmp_ni_ = [0:n_iteration_XA-1];
+plot(tmp_ni_,tmp_XA_align_.X_best_i_,'ko-','LineWidth',linewidth_use,'MarkerSize',markersize_use,'MarkerFaceColor',c_use__(1+nc_use,:));
+end;%if exist(XA_fname_align_mat,'file');
+tmp_XB_align_ = load(XB_fname_align_mat);
+if exist(XB_fname_align_mat,'file');
+tmp_XB_align_ = load(XB_fname_align_mat); tmp_XB_align_.X_best_i_ = real(tmp_XB_align_.X_best_i_);
+n_iteration_XB = numel(tmp_XB_align_.X_best_i_);
+tmp_ni_ = n_iteration_XA + [0:n_iteration_XB-1];
+plot(tmp_ni_,tmp_XB_align_.X_best_i_,'ko-','LineWidth',linewidth_use,'MarkerSize',markersize_use,'MarkerFaceColor',c_use__(1+nc_use,:));
+end;%if exist(XB_fname_align_mat,'file');
+xlim(xlim_); set(gca,'XTick',[0,15,31,47,63]);
+ylim(ylim_); set(gca,'YTick',[0.00,0.25,0.50,0.75,1.00]);
+grid on;
+drawnow();
+end;%for ndat_rseed=0:n_dat_rseed-1;
+end;%for flag_alternate_MS_vs_SM = [0:1];
+end;%for ntolerance_pm=0:n_tolerance_pm-1;
+end;%for ndelta_r_max_factor=0:n_delta_r_max_factor-1;
+%%%%;
+fname_fig_pre = sprintf('%s_jpg/tfpm_collate_FIGA',dir_tfpm);
+fname_fig_jpg = sprintf('%s.jpg',fname_fig_pre);
+if (flag_replot | ~exist(fname_fig_jpg,'file'));
+disp(sprintf(' %% %s not found, creating',fname_fig_pre));
+sgtitle(fname_fig_pre,'Interpreter','none');
+disp(sprintf(' %% writing %s',fname_fig_pre));
+print('-djpeg',fname_fig_jpg);
+%close(gcf);
+end;%if (~exist(fname_fig_jpg,'file'));
+if ( exist(fname_fig_jpg,'file'));
+disp(sprintf(' %% %s found, not creating',fname_fig_pre));
+end;%if ( exist(fname_fig_jpg,'file'));
+%%%%%%%%;
+end;%if flag_collate;
+
+flag_verbose=1;
+if (flag_verbose); disp(sprintf(' %% [finished test_empm_28]')); end;
 
 disp('returning'); return;
 

@@ -19,11 +19,11 @@ def tfpmut_wrap_6(
         index_nCTF_from_nM_=None,
         n_M=None,
         M_k_p_wkM__=None,
-        ini_euler_polar_a_M_=None,
-        ini_euler_azimu_b_M_=None,
-        ini_euler_gamma_z_M_=None,
-        ini_image_delta_x_acc_M_=None,
-        ini_image_delta_y_acc_M_=None,
+        euler_polar_a_ini_M_=None,
+        euler_azimu_b_ini_M_=None,
+        euler_gamma_z_ini_M_=None,
+        image_delta_x_acc_ini_M_=None,
+        image_delta_y_acc_ini_M_=None,
         a_k_Y_base_yk_=None,
         delta_sigma_base=None,
 ):
@@ -90,7 +90,7 @@ def tfpmut_wrap_6(
     n_y_csum_ = cumsum_0(n_y_);
 
     #%%%%%%%%;
-    if flag_save_stage and ('fname_pre' in parameter):
+    if (flag_save_stage>1) and ('fname_pre' in parameter):
         fname_mat = sprintf('%s_stage_0.mat',parameter['fname_pre']);
         disp(sprintf(' %% writing %s',fname_mat));
         matlab_save(
@@ -157,7 +157,7 @@ def tfpmut_wrap_6(
         parameter = parameter_timing_update(parameter,sprintf('%s: knn_cluster_CTF_k_p_r_kC__1',str_thisfunction),tmp_t);
 
         #%%%%%%%%;
-        if flag_save_stage and ('fname_pre' in parameter):
+        if (flag_save_stage>1) and ('fname_pre' in parameter):
             fname_mat = sprintf('%s_stage_1.mat',parameter['fname_pre']);
             disp(sprintf(' %% writing %s',fname_mat));
             matlab_save(
@@ -270,7 +270,7 @@ def tfpmut_wrap_6(
         #%%%%%%%%;
 
         #%%%%%%%%;
-        if flag_save_stage and ('fname_pre' in parameter):
+        if (flag_save_stage>1) and ('fname_pre' in parameter):
             fname_mat = sprintf('%s_stage_2.mat',parameter['fname_pre']);
             disp(sprintf(' %% writing %s',fname_mat));
             matlab_save(
@@ -291,22 +291,22 @@ def tfpmut_wrap_6(
         a_k_Y_reco_yki__ = None;
         FTK=None;
         rng(rseed);
-        if not isempty(ini_euler_polar_a_M_): euler_polar_a_M_ = ini_euler_polar_a_M_; 
+        if not isempty(euler_polar_a_ini_M_): euler_polar_a_M_ = euler_polar_a_ini_M_; 
         else: euler_polar_a_M_= 1*pi*torch.rand(n_M).to(dtype=torch.float32); #end;
-        if not isempty(ini_euler_azimu_b_M_): euler_azimu_b_M_ = ini_euler_azimu_b_M_; 
+        if not isempty(euler_azimu_b_ini_M_): euler_azimu_b_M_ = euler_azimu_b_ini_M_; 
         else: euler_azimu_b_M_= 2*pi*torch.rand(n_M).to(dtype=torch.float32); #end;
-        if not isempty(ini_euler_gamma_z_M_): euler_gamma_z_M_ = ini_euler_gamma_z_M_; 
+        if not isempty(euler_gamma_z_ini_M_): euler_gamma_z_M_ = euler_gamma_z_ini_M_; 
         else: euler_gamma_z_M_= 2*pi*torch.rand(n_M).to(dtype=torch.float32); #end;
-        if not isempty(ini_image_delta_x_acc_M_): image_delta_x_acc_M_ = ini_image_delta_x_acc_M_; 
+        if not isempty(image_delta_x_acc_ini_M_): image_delta_x_acc_M_ = image_delta_x_acc_ini_M_; 
         else: image_delta_x_acc_M_= torch.zeros(n_M).to(dtype=torch.float32); #end;
-        if not isempty(ini_image_delta_y_acc_M_): image_delta_y_acc_M_ = ini_image_delta_y_acc_M_; 
+        if not isempty(image_delta_y_acc_ini_M_): image_delta_y_acc_M_ = image_delta_y_acc_ini_M_; 
         else: image_delta_y_acc_M_= torch.zeros(n_M).to(dtype=torch.float32); #end;
         image_delta_x_upd_M_ = None;
         image_delta_y_upd_M_ = None;
         flag_image_delta_upd_M_ = None;
         image_I_value_M_ = None;
         #%%%%%%%%;
-        if flag_save_stage and ('fname_pre' in parameter):
+        if (flag_save_stage>1) and ('fname_pre' in parameter):
             fname_mat = sprintf('%s_stage_3.mat',parameter['fname_pre']);
             disp(sprintf(' %% writing %s',fname_mat));
             matlab_save(

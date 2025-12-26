@@ -24,7 +24,7 @@ def knn_cluster_CTF_k_p_r_kC__1(
     flag_verbose = parameter['flag_verbose'];
     if 'tolerance_master' not in parameter: parameter['tolerance_master'] = 1e-2; #end; %<-- parameter_bookmark. ;
     tolerance_master = parameter['tolerance_master'];
-    if 'tolerance_cluster' not in parameter: parameter['tolerance_cluster'] = 1e-2; #end; %<-- parameter_bookmark. ;
+    if 'tolerance_cluster' not in parameter: parameter['tolerance_cluster'] = tolerance_master; #end; %<-- parameter_bookmark. ;
     tolerance_cluster = parameter['tolerance_cluster'];
 
     if (flag_verbose>0): disp(sprintf(' %% [entering %s]',str_thisfunction)); #end;
