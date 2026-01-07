@@ -23,8 +23,10 @@ Relevant global parameters involving these dimensionless units are:
 
 On the cpu and gpu we assume (unless stated otherwise) that non-indexing integers are stored as int32.
 Similarly, floats are stored as float32, and complex numbers are stored as complex64.
+Exceptions to this rule are indicated with an appropriate prefix.
+For example, i8_index would be an int64.
 
-Some rare exceptions include the factorized-translation-kernel (FTK).
+Some other exceptions are included in the factorized-translation-kernel (FTK).
 This (dictionary) structure includes fields such as 'r8_delta_r_max', 
 which stores 'delta_r_max' (i.e., the maximum translation-magnitude) as a float64 (as indicated by the 'r8' prefix).
 Similarly, the field 'c16_svd_U_d_expiw_s__' stores 'svd_U_d_expiw_s__' as a complex128 (indicated by the 'c16' prefix).
@@ -72,6 +74,7 @@ Arrays expected to be on the gpu will be denoted by an infix (i.e., 'array_gpu_a
  Note that, if n_w_ is uniform (i.e., if the same number of angular-points is used at every radius), 
  then n_w_csum_[nk] = nk*n_w_max, and nw + n_w_csum_[nk] = n_w + nk*n_w_max, 
  corresponding to the unraveled version of data_wk__.
+ The uniformity of n_w_ is typically assumed for many of our functions.
  
  Finally, we use the same polar-grid for fourier-bessel-coefficients,
  referring to the fourier-bessel-mode as either nw or nq, depending on the context.

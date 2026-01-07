@@ -4,8 +4,8 @@ from tfpmut_wrap_6 import tfpmut_wrap_6 ;
 #%%%%;
 flag_verbose=1;
 tmp_dir_base = '/data/rangan/dir_cryoem';
-tmp_dir_pm_mat = sprintf('%s/dir_trpv1_x0/dir_tfpm_mat',tmp_dir_base);
-tmp_fname_mat = sprintf('%s/test_tfpmut_wrap_6_a1t0014p15r1.mat',tmp_dir_pm_mat);
+tmp_dir_tfpm_mat = sprintf('%s/dir_trpv1_x0/dir_tfpm_mat',tmp_dir_base);
+tmp_fname_mat = sprintf('%s/test_tfpmut_wrap_6_a1t0014p15r1.mat',tmp_dir_tfpm_mat);
 #%%%%;
 tmp_ = matlab_load(fname_mat = tmp_fname_mat);
 n_k_p_r = int(tmp_['n_k_p_r'].item());
@@ -58,7 +58,7 @@ parameter['n_iteration']=32;
 #%%%%%%%%;
 XA_parameter = parameter;
 XA_parameter['flag_gpu']=1;
-XA_parameter['fname_pre']='/data/rangan/dir_cryoem/dir_trpv1_x0/dir_tfpm_mat/dir_pm_mat/test_tfpmut_wrap_6_XA_from_python';
+XA_parameter['fname_pre']='/data/rangan/dir_cryoem/dir_trpv1_x0/dir_tfpm_mat/test_tfpmut_wrap_6_XA_from_python';
 tmp_t=tic();
 XA_parameter = tfpmut_wrap_6(
     XA_parameter,
@@ -82,7 +82,7 @@ if (flag_verbose>1): disp(sprintf(' %% tfpmut_wrap_6: time %0.2fs',tmp_t)); end;
 #%%%%%%%%;
 XB_parameter = parameter;
 XB_parameter['flag_gpu']=1;
-XB_parameter['fname_pre']='/data/rangan/dir_cryoem/dir_trpv1_x0/dir_tfpm_mat/dir_pm_mat/test_tfpmut_wrap_6_XB_from_python';
+XB_parameter['fname_pre']='/data/rangan/dir_cryoem/dir_trpv1_x0/dir_tfpm_mat/test_tfpmut_wrap_6_XB_from_python';
 tmp_t=tic();
 XB_parameter = tfpmut_wrap_6(
     XB_parameter,
