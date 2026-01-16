@@ -85,7 +85,7 @@ tmp_t = toc(tmp_t); if (flag_verbose>1); disp(sprintf(' %% tfpmut_wrap_6: time %
 parameter_timing_printf(XB_parameter);
 %%%%%%%%;
 
-return;
+disp(sprintf(' %% returning')); return;
 
 flag_disp=1; nf=0;
 %%%%%%%%;

@@ -617,8 +617,8 @@ def tfpmut_6(
         #%%%%%%%%;
         if 'delta_r_upd_threshold' not in parameter: parameter['delta_r_upd_threshold'] = 0.0*delta_r_max; #end; %<-- parameter_bookmark. ;
         delta_r_upd_threshold = parameter['delta_r_upd_threshold'];
-        image_delta_x_upd_M_ = image_delta_x_upd_M_ + image_delta_x_bit_M_;
-        image_delta_y_upd_M_ = image_delta_y_upd_M_ + image_delta_y_bit_M_;
+        image_delta_x_upd_M_ = 0*image_delta_x_upd_M_ + 1*image_delta_x_bit_M_;
+        image_delta_y_upd_M_ = 0*image_delta_y_upd_M_ + 1*image_delta_y_bit_M_;
         image_delta_r_upd_prenorm_M_ = torch.sqrt(image_delta_x_upd_M_**2 + image_delta_y_upd_M_**2);
         image_delta_x_tot_M_ = image_delta_x_acc_M_ + image_delta_x_upd_M_;
         image_delta_y_tot_M_ = image_delta_y_acc_M_ + image_delta_y_upd_M_;

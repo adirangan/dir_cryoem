@@ -1882,7 +1882,7 @@ n_tolerance_pm = numel(tolerance_pm_);
 delta_r_max_factor_ = [0.00,0.125,0.25,0.50];
 n_delta_r_max_factor = numel(delta_r_max_factor_);
 %%%%%%%%;
-flag_compute = 1 & ( 1*strcmp(platform,'access1') | 0*strcmp(platform,'rusty') | 0*strcmp(platform,'eval1') );
+flag_compute = 0 & ( 1*strcmp(platform,'access1') | 0*strcmp(platform,'rusty') | 0*strcmp(platform,'eval1') );
 if flag_compute;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 
