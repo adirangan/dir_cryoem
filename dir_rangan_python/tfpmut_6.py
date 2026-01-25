@@ -458,7 +458,7 @@ def tfpmut_6(
         (
             parameter,
             Z_SM__,
-            UX_CTF_S_l2_S_,
+            UX_CTF_S_l2_SM__,
             UX_T_M_l2_SM__,
             X_SM__,
             delta_x_SM__,
@@ -533,7 +533,7 @@ def tfpmut_6(
                     "pm_UX_knc___":pm_UX_knc___,
                     "pm_X_weight_rc__":pm_X_weight_rc__,
                     "Z_SM__":Z_SM__,
-                    "UX_CTF_S_l2_S_":UX_CTF_S_l2_S_,
+                    "UX_CTF_S_l2_SM__":UX_CTF_S_l2_SM__,
                     "UX_T_M_l2_SM__":UX_T_M_l2_SM__,
                     "X_SM__":X_SM__,
                     "delta_x_SM__":delta_x_SM__,

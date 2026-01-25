@@ -28,12 +28,19 @@ map_ab__ = mean(map_ab__,3);
 [n_a,n_b] = size(map_ab__);
 n_10 = 10; %<-- downsample by 10. ;
 assert(mod(n_a,n_10)==0);
-map_ab__ = reshape(mean(reshape(map_ab__,[n_10,n_a*n_b/n_10]),1),[n_a/n_10,n_b]);
+map1_ab__ = reshape(mean(reshape(map_ab__,[n_10,n_a*n_b/n_10]),1),[n_a/n_10,n_b]);
 assert(mod(n_b,n_10)==0);
-map_ba__ = transpose(reshape(mean(reshape(transpose(map_ab__),[n_10,n_b*n_a/n_10/n_10]),1),[n_b/n_10,n_a/n_10]));
-map_ab__ = cast(map_ab__,'double'); 
+map1_ab__ = transpose(reshape(mean(reshape(transpose(map1_ab__),[n_10,n_b*n_a/n_10/n_10]),1),[n_b/n_10,n_a/n_10]));
+map1_ab__ = cast(map1_ab__,'double'); 
 
-[n_a,n_b] = size(map_ab__);
+n_100 = 100; %<-- downsample by 100. ;
+assert(mod(n_a,n_100)==0);
+map2_ab__ = reshape(mean(reshape(map_ab__,[n_100,n_a*n_b/n_100]),1),[n_a/n_100,n_b]);
+assert(mod(n_b,n_100)==0);
+map2_ab__ = transpose(reshape(mean(reshape(transpose(map2_ab__),[n_100,n_b*n_a/n_100/n_100]),1),[n_b/n_100,n_a/n_100]));
+map2_ab__ = cast(map2_ab__,'double'); 
+
+[n_a,n_b] = size(map1_ab__);
 a_ = transpose(linspace(0,1*pi,n_a));
 b_ = transpose(linspace(0,2*pi,n_b+1)); b_ = b_(1:n_b);
 [a__,b__] = meshgrid(a_,b_); %<-- for later use in fixed.interp2. ;
@@ -57,8 +64,8 @@ sample_shell_6( ...
 ,flag_uniform_over_polar_a ...
 ) ;
 %%%%%%%%;
-%map_qk_ = interp2(b_,a_,flipud(map_ab__),k_p_azimu_b_qk_,k_p_polar_a_qk_);
-map_qk_ = interp2(b_,a_,map_ab__,k_p_azimu_b_qk_,k_p_polar_a_qk_);
+%map1_qk_ = interp2(b_,a_,flipud(map1_ab__),k_p_azimu_b_qk_,k_p_polar_a_qk_);
+map1_qk_ = interp2(b_,a_,map1_ab__,k_p_azimu_b_qk_,k_p_polar_a_qk_);
 
 %%%%%%%%;
 n_k_p_r = 1;
@@ -110,9 +117,9 @@ if (flag_verbose); disp(sprintf(' %% n_qk %d, l_max_max %d',n_qk,l_max_max)); en
 %%%%%%%%;
 
 %%%%%%%%;
-% set a_k_p_true_ to be map_qk_ and then project onto spherical-harmonic subspace. ;
+% set a_k_p_true_ to be map1_qk_ and then project onto spherical-harmonic subspace. ;
 %%%%%%%%;
-a_k_p_true_ = map_qk_;
+a_k_p_true_ = map1_qk_;
 tmp_t = tic;
 [a_k_Y_true_] = convert_k_p_to_spharm_1(flag_verbose,n_qk,n_qk_csum_,k_p_r_qk_,k_p_azimu_b_qk_,k_p_polar_a_qk_,weight_3d_k_p_qk_,weight_shell_k_,n_k_p_r,k_p_r_,weight_3d_k_p_r_,l_max_,a_k_p_true_);
 tmp_t = toc(tmp_t); disp(sprintf(' %% a_k_Y_true_ time %0.2fs',tmp_t));

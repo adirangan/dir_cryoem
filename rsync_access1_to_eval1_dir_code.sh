@@ -9,6 +9,7 @@ rsync \
     avr209@access.cims.nyu.edu:/data/rangan/dir_cryoem/dir_rangan_playland \
     avr209@access.cims.nyu.edu:/data/rangan/dir_cryoem/dir_rangan_gpu \
     avr209@access.cims.nyu.edu:/data/rangan/dir_cryoem/dir_rangan_python \
+    avr209@access.cims.nyu.edu:/data/rangan/dir_cryoem/dir_rangan_besselbeam \
     avr209@access.cims.nyu.edu:/data/rangan/dir_cryoem/dir_presentations \
     avr209@access.cims.nyu.edu:/data/rangan/dir_cryoem/dir_fig_xfig \
     /home/rangan/dir_cryoem/ \

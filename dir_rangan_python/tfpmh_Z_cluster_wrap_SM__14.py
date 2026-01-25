@@ -115,7 +115,7 @@ def tfpmh_Z_cluster_wrap_SM__14(
     if isempty(UX_CTF_S_l2_S_): UX_CTF_S_l2_S_=torch.zeros(n_S).to(dtype=torch.float32); #end;
 
     if 'Z_SM__' not in locals(): Z_SM__ = torch.zeros(mtr((n_S,n_M))).to(dtype=torch.float32); #end;
-    if 'UX_CTF_S_l2_S_' not in locals(): UX_CTF_S_l2_S_ = torch.zeros(n_S).to(dtype=torch.float32); #end;
+    if 'UX_CTF_S_l2_SM__' not in locals(): UX_CTF_S_l2_SM__ = torch.zeros(mtr((n_S,n_M))).to(dtype=torch.float32); #end;
     if 'UX_T_M_l2_SM__' not in locals(): UX_T_M_l2_SM__ = torch.zeros(mtr((n_S,n_M))).to(dtype=torch.float32); #end;
     if 'X_SM__' not in locals(): X_SM__ = torch.zeros(mtr((n_S,n_M))).to(dtype=torch.float32); #end;
     if 'delta_x_SM__' not in locals(): delta_x_SM__ = torch.zeros(mtr((n_S,n_M))).to(dtype=torch.float32); #end;
@@ -350,6 +350,8 @@ def tfpmh_Z_cluster_wrap_SM__14(
                 parameter = parameter_timing_update(parameter,sprintf('%s: UX_T_M_l2_SM__',str_thisfunction),tmp_t);
             #end;%if flag_check;
             #%%%%%%%%;
+            tmp_index_lhs_ = matlab_index_2d_0(n_S,':',n_M,index_nM_from_ncluster_);
+            UX_CTF_S_l2_SM__.ravel()[tmp_index_lhs_] = torch.tile(UX_CTF_S_l2_S_,mtr((1,n_M_from_ncluster))).ravel();
         #end;%if (n_M_from_ncluster>0);
     #end;%for ncluster=0:n_cluster-1;
 
@@ -373,7 +375,7 @@ def tfpmh_Z_cluster_wrap_SM__14(
     return(
         parameter,
         Z_SM__,
-        UX_CTF_S_l2_S_,
+        UX_CTF_S_l2_SM__,
         UX_T_M_l2_SM__,
         X_SM__,
         delta_x_SM__,

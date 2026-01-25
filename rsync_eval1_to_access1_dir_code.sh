@@ -6,8 +6,10 @@ rsync \
     /home/rangan/dir_cryoem/dir_rangan_playroom \
     /home/rangan/dir_cryoem/dir_rangan_playhouse \
     /home/rangan/dir_cryoem/dir_rangan_playground \
+    /home/rangan/dir_cryoem/dir_rangan_playland \
     /home/rangan/dir_cryoem/dir_rangan_gpu \
     /home/rangan/dir_cryoem/dir_rangan_python \
+    /home/rangan/dir_cryoem/dir_rangan_besselbeam \
     /home/rangan/dir_cryoem/dir_presentations \
     /home/rangan/dir_cryoem/dir_fig_xfig \
     avr209@access1.cims.nyu.edu:/data/rangan/dir_cryoem/ \

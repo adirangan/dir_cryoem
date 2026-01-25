@@ -331,7 +331,7 @@ parameter['flag_gpu'] = flag_gpu;
 (
     parameter,
     Z_SM_tfpm__,
-    UX_CTF_S_l2_S_tfpm_,
+    UX_CTF_S_l2_SM_tfpm__,
     UX_T_M_l2_SM_tfpm__,
     X_SM_tfpm__,
     delta_x_SM_tfpm__,
@@ -367,6 +367,8 @@ if (flag_verbose>0): disp(sprintf(' %% X_SM_tfpm__: %0.3fs',tmp_t)); #end;
 #%%%%%%%%;
 #% Calculate true landscape of innerproducts for the same set of translations. ;
 #%%%%%%%%;
+UX_CTF_S_l2_SM_quad__ = torch.zeros(mtr((n_S,n_M))).to(dtype=torch.float32);
+UX_T_M_l2_SM_quad__ = torch.zeros(mtr((n_S,n_M))).to(dtype=torch.float32);
 X_SM_form__ = torch.zeros(mtr((n_S,n_M))).to(dtype=torch.float32);
 X_SM_quad__ = torch.zeros(mtr((n_S,n_M))).to(dtype=torch.float32);
 for nS in range(n_S):
@@ -410,12 +412,16 @@ for nS in range(n_S):
         #%%%%;
         X_quad = torch.sum(mmvm( torch.reshape(torch.conj(S_k_p_temp_)*M_k_p_temp_,mtr((n_w_max,n_k_p_r))) , weight_2d_k_p_r_.to(dtype=torch.complex64) )).item()/np.maximum(1,n_w_max);
         X_SM_quad__[nM,nS] = np.real(X_quad) / np.maximum(1e-12,S_l2_quad*M_l2_quad) ;
+        UX_CTF_S_l2_SM_quad__[nM,nS] = S_l2_quad**2;
+        UX_T_M_l2_SM_quad__[nM,nS] = M_l2_quad**2;
         #%%%%;
     #end;%for nM=0:n_M-1;
 #end;%for nS=0:n_S-1;
 #%%%%%%%%;
 fnorm_disp(flag_verbose,'X_SM_form__',X_SM_form__,'X_SM_tfpm__',X_SM_tfpm__);
 fnorm_disp(flag_verbose,'X_SM_quad__',X_SM_quad__,'X_SM_tfpm__',X_SM_tfpm__);
+fnorm_disp(flag_verbose,'UX_CTF_S_l2_SM_quad__',UX_CTF_S_l2_SM_quad__,'UX_CTF_S_l2_SM_tfpm__',UX_CTF_S_l2_SM_tfpm__);
+fnorm_disp(flag_verbose,'UX_T_M_l2_SM_quad__',UX_T_M_l2_SM_quad__,'UX_T_M_l2_SM_tfpm__',UX_T_M_l2_SM_tfpm__);
 #%%%%%%%%;
 
 #%%%%%%%%;
@@ -497,7 +503,7 @@ parameter['flag_gpu'] = flag_gpu;
 (
     parameter,
     Z_SM_tfpm__,
-    UX_CTF_S_l2_S_tfpm_,
+    UX_CTF_S_l2_SM_tfpm__,
     UX_T_M_l2_SM_tfpm__,
     X_SM_tfpm__,
     delta_x_SM_tfpm__,
@@ -533,6 +539,8 @@ if (flag_verbose>0): disp(sprintf(' %% X_SM_tfpm__: %0.3fs',tmp_t)); #end;
 #%%%%%%%%;
 #% Calculate true landscape of innerproducts for the same set of translations. ;
 #%%%%%%%%;
+UX_CTF_S_l2_SM_quad__ = torch.zeros(mtr((n_S,n_M))).to(dtype=torch.float32);
+UX_T_M_l2_SM_quad__ = torch.zeros(mtr((n_S,n_M))).to(dtype=torch.float32);
 X_SM_quad__ = torch.zeros(mtr((n_S,n_M))).to(dtype=torch.float32);
 Z_SM_quad__ = torch.zeros(mtr((n_S,n_M))).to(dtype=torch.float32);
 UX_T_M_l2_SM_quad__ = torch.zeros(mtr((n_S,n_M))).to(dtype=torch.float32);
@@ -564,6 +572,7 @@ for nS in range(n_S):
         X_quad = Z_quad / np.maximum(1e-12,np.sqrt(UX_CTF_RS_l2)) / np.maximum(1e-12,np.sqrt(UX_TM_l2));
         Z_SM_quad__[nM,nS] = np.real(Z_quad);
         X_SM_quad__[nM,nS] = np.real(X_quad);
+        UX_CTF_S_l2_SM_quad__[nM,nS] = float(UX_CTF_RS_l2);
         UX_T_M_l2_SM_quad__[nM,nS] = float(UX_TM_l2);
     #%%%%;
     #end;%for nM=0:n_M-1;
@@ -571,6 +580,7 @@ for nS in range(n_S):
 #%%%%%%%%;
 fnorm_disp(flag_verbose,'Z_SM_quad__',Z_SM_quad__,'Z_SM_tfpm__',Z_SM_tfpm__);
 fnorm_disp(flag_verbose,'X_SM_quad__',X_SM_quad__,'X_SM_tfpm__',X_SM_tfpm__);
+fnorm_disp(flag_verbose,'UX_CTF_S_l2_SM_quad__',UX_CTF_S_l2_SM_quad__,'UX_CTF_S_l2_SM_tfpm__',UX_CTF_S_l2_SM_tfpm__);
 fnorm_disp(flag_verbose,'UX_T_M_l2_SM_quad__',UX_T_M_l2_SM_quad__,'UX_T_M_l2_SM_tfpm__',UX_T_M_l2_SM_tfpm__);
 #%%%%%%%%;
 
@@ -601,7 +611,7 @@ parameter['flag_precompute_UX_CTF_S_l2_S_'] = int(1*1);
 (
     parameter,
     tmp_Z_SM_tfpm__,
-    tmp_UX_CTF_S_l2_S_tfpm_,
+    tmp_UX_CTF_S_l2_SM_tfpm__,
     tmp_UX_T_M_l2_SM_tfpm__,
     tmp_X_SM_tfpm__,
     tmp_delta_x_SM_tfpm__,
@@ -649,7 +659,7 @@ tmp_t=toc(tmp_t);
 if (flag_verbose>0): disp(sprintf(' %% X_SM_tfpm__: %0.3fs',tmp_t)); #end;
 #%%%%%%%%;
 fnorm_disp(flag_verbose,'Z_SM_tfpm__',Z_SM_tfpm__,'tmp_Z_SM_tfpm__',tmp_Z_SM_tfpm__,' %%<-- should be zero');
-fnorm_disp(flag_verbose,'UX_CTF_S_l2_S_tfpm_',UX_CTF_S_l2_S_tfpm_,'tmp_UX_CTF_S_l2_S_tfpm_',tmp_UX_CTF_S_l2_S_tfpm_,' %%<-- should be zero');
+fnorm_disp(flag_verbose,'UX_CTF_S_l2_SM_tfpm__',UX_CTF_S_l2_SM_tfpm__,'tmp_UX_CTF_S_l2_SM_tfpm__',tmp_UX_CTF_S_l2_SM_tfpm__,' %%<-- should be zero');
 fnorm_disp(flag_verbose,'UX_T_M_l2_SM_tfpm__',UX_T_M_l2_SM_tfpm__,'tmp_UX_T_M_l2_SM_tfpm__',tmp_UX_T_M_l2_SM_tfpm__,' %%<-- should be zero');
 fnorm_disp(flag_verbose,'X_SM_tfpm__',X_SM_tfpm__,'tmp_X_SM_tfpm__',tmp_X_SM_tfpm__,' %%<-- should be zero');
 fnorm_disp(flag_verbose,'delta_x_SM_tfpm__',delta_x_SM_tfpm__,'tmp_delta_x_SM_tfpm__',tmp_delta_x_SM_tfpm__,' %%<-- should be zero');
