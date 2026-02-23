@@ -14,6 +14,7 @@ rsync \
     /home/rangan/dir_cryoem/dir_fig_xfig \
     avr209@access1.cims.nyu.edu:/data/rangan/dir_cryoem/ \
     --exclude "EMPM/" \
+    --exclude "dir_rangan_python/venv/" \
     --include "/*" \
     --include "*.org" \
     --include "*.py" \
@@ -26,6 +27,24 @@ rsync \
     --include "*.fig" \
     --include "*.tex" \
     --include "*.bib" \
+    --exclude "*" \
+    ;
+
+rsync \
+    -avum \
+    /home/rangan/dir_cryoem/dir_rangan_python/dir_matla_macros \
+    avr209@access1.cims.nyu.edu:/data/rangan/dir_cryoem/dir_rangan_playroom/ \
+    --exclude "EMPM/" \
+    --include "/*" \
+    --include "*.org" \
+    --include "*.py" \
+    --include "*.m" \
+    --include "*.c" \
+    --include "*.h" \
+    --include "*.f" \
+    --include "*.txt" \
+    --include "*.sh" \
+    --include "*.fig" \
     --exclude "*" \
     ;
 

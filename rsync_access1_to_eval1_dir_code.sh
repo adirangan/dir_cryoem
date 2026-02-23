@@ -32,6 +32,26 @@ rsync \
 
 rsync \
     -avum \
+    avr209@access.cims.nyu.edu:/data/rangan/dir_cryoem/dir_rangan_python/dir_matlab_macros \
+    /home/rangan/dir_cryoem/dir_rangan_playroom/ \
+    --exclude "EMPM/" \
+    --include "/*" \
+    --include "*.org" \
+    --include "*.py" \
+    --include "*.m" \
+    --include "*.c" \
+    --include "*.h" \
+    --include "*.f" \
+    --include "*.txt" \
+    --include "*.sh" \
+    --include "*.fig" \
+    --include "*.tex" \
+    --include "*.bib" \
+    --exclude "*" \
+    ;
+
+rsync \
+    -avum \
     avr209@access.cims.nyu.edu:/data/rangan/dir_cryoem/dir_rangan_playroom/dir_eig_ddssnll_lanczos_local \
     /home/rangan/dir_cryoem/dir_rangan_playroom/ \
     --exclude "EMPM/" \
