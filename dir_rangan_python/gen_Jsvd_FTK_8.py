@@ -1,4 +1,4 @@
-exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ; #<-- warning, avoid recursion. ;
+from dir_matlab_macros import * ;
 from r8_Jp_chebcoef_0 import r8_Jp_chebcoef_0 ;
 from r8_chebval_0 import r8_chebval_0 ;
 from scipy.special import roots_jacobi ;

@@ -1,4 +1,4 @@
-exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ;
+from dir_matlab_macros import * ;
 
 def knn_cluster_CTF_k_p_r_kC__1(
         parameter=None,

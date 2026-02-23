@@ -1,4 +1,4 @@
-import numpy as np ; import torch ;
+from dir_matlab_macros import * ;
 
 '''
 function output = colormap_pm(n_c);

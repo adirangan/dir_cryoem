@@ -1,18 +1,6 @@
-import numpy as np ; pi = np.pi ; i = 1j ; import torch ; import timeit ;
-from matlab_index_2d_0 import matlab_index_2d_0 ;
-from matlab_index_3d_0 import matlab_index_3d_0 ;
-from matlab_index_4d_0 import matlab_index_4d_0 ;
-from matlab_scalar_round import matlab_scalar_round ;
+from dir_matlab_macros import * ;
 from sample_shell_6 import sample_shell_6 ;
 from ylgndr_2 import ylgndr_2 ;
-numel = lambda a : int(a.numel()) ;
-cumsum_0 = lambda a : torch.cumsum(torch.concatenate((torch.tensor([0]),a)) , 0).to(torch.int32) ;
-mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
-msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
-mts = lambda a : tuple(len(a) - x - 1 for x in a) ; #<-- for permute (i.e., tuple subtract (...)). ;
-efind = lambda a : torch.where(a)[0] ;
-n_byte_per_float32 = 4;
-n_byte_per_complex64 = 8;
 
 def pm_template_2(
         flag_verbose=None,

@@ -1,16 +1,7 @@
-import numpy as np ; pi = np.pi ; i = 1j ; import torch ; import timeit ;
-from matlab_index_2d_0 import matlab_index_2d_0 ;
-from matlab_index_3d_0 import matlab_index_3d_0 ;
-from matlab_index_4d_0 import matlab_index_4d_0 ;
-from matlab_scalar_round import matlab_scalar_round ;
+from dir_matlab_macros import * ;
 from i4_torch_arange import i4_torch_arange ;
-from fnorm_disp import fnorm_disp ;
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
-mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
-msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
-mts = lambda a : tuple(len(a) - x - 1 for x in a) ; #<-- for permute (i.e., tuple subtract (...)). ;
-n_1 = 1; n_2 = 2; n_3 = 3;
 
 '''
 function imagesc_c(n_x_0,x_0_,n_x_1,x_1_,S_c__,clim,cra_);

@@ -1,14 +1,10 @@
-#import os; os.chdir('/data/rangan/dir_cryoem/dir_rangan_python');
-exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ; #<-- warning, avoid recursion. ;
+from dir_matlab_macros import * ;
 from cg_rhs_2 import cg_rhs_2 ;
 from sample_sphere_7 import sample_sphere_7 ;
 from sample_shell_6 import sample_shell_6 ;
 from get_weight_2d_2 import get_weight_2d_2 ;
 from rotate_p_to_p_fftw import rotate_p_to_p_fftw ;
-from scipy.sparse import csr_matrix ;
 from xxnufft3d3 import xxnufft3d3 ;
-from h2d import h2d ;
-from h3d import h3d ;
 from interp_k_p_to_x_c_xxnufft import interp_k_p_to_x_c_xxnufft ;
 from tfh_FTK_2 import tfh_FTK_2 ;
 from transf_p_to_p import transf_p_to_p ;
@@ -21,6 +17,8 @@ from convert_spharm_to_k_p_uniform_over_n_k_p_r_5 import convert_spharm_to_k_p_u
 from local_yk__from_yk_ import local_yk__from_yk_ ;
 from local_yk_from_yk__ import local_yk_from_yk__ ;
 from pm_template_2 import pm_template_2 ;
+from h2d import h2d ;
+from h3d import h3d ;
 from interp_p_to_q import interp_p_to_q ;
 from I_xPPx_0 import I_xPPx_0 ;
 from principled_marching_empirical_cost_matrix_1 import principled_marching_empirical_cost_matrix_1 ;

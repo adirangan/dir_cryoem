@@ -1,4 +1,4 @@
-exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ; #<-- warning, avoid recursion. ;
+from dir_matlab_macros import * ;
 from gen_Jsvd_FTK_8 import gen_Jsvd_FTK_8 ;
 from get_r8_delta_2 import get_r8_delta_2 ;
 from get_r8_svd_chebval_U_d_0 import get_r8_svd_chebval_U_d_0 ;

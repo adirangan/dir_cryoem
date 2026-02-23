@@ -1,4 +1,4 @@
-exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ;
+from dir_matlab_macros import * ;
 from tfpmut_wrap_6 import tfpmut_wrap_6 ;
 
 #%%%%;

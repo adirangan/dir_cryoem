@@ -1,15 +1,5 @@
-import numpy as np ; pi = np.pi ; i = 1j ; import torch ; import timeit ;
-from matlab_index_2d_0 import matlab_index_2d_0 ;
-from matlab_index_3d_0 import matlab_index_3d_0 ;
-from matlab_index_4d_0 import matlab_index_4d_0 ;
-from matlab_scalar_round import matlab_scalar_round ;
+from dir_matlab_macros import * ;
 from get_r8_delta_2 import get_r8_delta_2 ;
-mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
-msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
-mts = lambda a : tuple(len(a) - x - 1 for x in a) ; #<-- for permute (i.e., tuple subtract (...)). ;
-efind = lambda a : torch.where(a)[0] ;
-n_byte_per_float32 = 4;
-n_byte_per_complex64 = 8;
 
 str_thisfunction = 'get_delta_2';
 flag_verbose=1;

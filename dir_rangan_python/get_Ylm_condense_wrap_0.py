@@ -1,4 +1,4 @@
-exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ;
+from dir_matlab_macros import * ;
 from ylgndr_2 import ylgndr_2 ;
 from get_Ylm__2 import get_Ylm__2 ;
 

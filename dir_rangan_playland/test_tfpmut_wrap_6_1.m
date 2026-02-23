@@ -88,6 +88,7 @@ parameter_timing_printf(XB_parameter);
 disp(sprintf(' %% returning')); return;
 
 flag_disp=1; nf=0;
+
 %%%%%%%%;
 tmp_fname_XA_from_matlab = '/data/rangan/dir_cryoem/dir_trpv1_x0/dir_tfpm_mat/test_tfpmut_wrap_6_XA_from_matlab.mat';
 if  exist(tmp_fname_XA_from_matlab,'file');
@@ -115,7 +116,7 @@ convert_spharm_to_x_c_uniform_over_n_k_p_r_5( ...
 %%%%%%%%;
 if flag_disp;
 figure(1+nf);nf=nf+1;clf;figsml;isosurface_f_x_u_1([],a_x_u_reco_xxx_);
-title('XA','Interpreter','none');
+title('XA_from_matlab','Interpreter','none');
 end;%if flag_disp;
 %%%%%%%%;
 end;%if  exist(tmp_fname_XA_from_matlab,'file');
@@ -146,13 +147,12 @@ convert_spharm_to_x_c_uniform_over_n_k_p_r_5( ...
 %%%%%%%%;
 if flag_disp;
 figure(1+nf);nf=nf+1;clf;figsml;isosurface_f_x_u_1([],a_x_u_reco_xxx_);
-title('XB','Interpreter','none');
+title('XB_from_matlab','Interpreter','none');
 end;%if flag_disp;
 %%%%%%%%;
 end;%if  exist(tmp_fname_XB_from_matlab,'file');
 %%%%%%%%;
 
-flag_disp=1; nf=0;
 %%%%%%%%;
 tmp_fname_XA_from_python = '/data/rangan/dir_cryoem/dir_trpv1_x0/dir_tfpm_mat/test_tfpmut_wrap_6_XA_from_python.mat';
 if  exist(tmp_fname_XA_from_python,'file');
@@ -180,7 +180,7 @@ convert_spharm_to_x_c_uniform_over_n_k_p_r_5( ...
 %%%%%%%%;
 if flag_disp;
 figure(1+nf);nf=nf+1;clf;figsml;isosurface_f_x_u_1([],a_x_u_reco_xxx_);
-title('XA','Interpreter','none');
+title('XA_from_python','Interpreter','none');
 end;%if flag_disp;
 %%%%%%%%;
 end;%if  exist(tmp_fname_XA_from_python,'file');
@@ -211,7 +211,7 @@ convert_spharm_to_x_c_uniform_over_n_k_p_r_5( ...
 %%%%%%%%;
 if flag_disp;
 figure(1+nf);nf=nf+1;clf;figsml;isosurface_f_x_u_1([],a_x_u_reco_xxx_);
-title('XB','Interpreter','none');
+title('XB_from_python','Interpreter','none');
 end;%if flag_disp;
 %%%%%%%%;
 end;%if  exist(tmp_fname_XB_from_python,'file');

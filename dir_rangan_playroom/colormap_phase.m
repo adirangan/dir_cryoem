@@ -12,7 +12,8 @@ axisnotick;
 disp('returning'); return;
 end;%if n_c<0;
 
-phase_0_ = 0.5*(1 + cos(2*pi*[0:n_c-1]/n_c));
+phi = 0*pi/2 ;
+phase_0_ = 0.5*(1 + cos(phi + 2*pi*[0:n_c-1]/n_c));
 phase_1_ = circshift(phase_0_,floor(1*n_c/3));
 phase_2_ = circshift(phase_0_,floor(2*n_c/3));
 

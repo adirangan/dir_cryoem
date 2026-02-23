@@ -1,4 +1,4 @@
-exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ;
+from dir_matlab_macros import * ;
 from scipy.special import roots_jacobi
 from scipy.special import eval_jacobi
 from sample_shell_6 import sample_shell_6

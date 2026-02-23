@@ -1,4 +1,4 @@
-exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ;
+from dir_matlab_macros import * ;
 from interp_p_to_q import interp_p_to_q ;
 from tpmh_VUXM_gpu_lwnM____4 import tpmh_VUXM_gpu_lwnM____4 ;
 from tpmh_UXTM_gpu_dwnM____0 import tpmh_UXTM_gpu_dwnM____0 ;

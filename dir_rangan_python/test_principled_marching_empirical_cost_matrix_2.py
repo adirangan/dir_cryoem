@@ -1,4 +1,4 @@
-exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ; #<-- warning, avoid recursion. ;
+from dir_matlab_macros import * ;
 from interp_p_to_q import interp_p_to_q ;
 from get_weight_3d_1 import get_weight_3d_1 ;
 from get_weight_2d_2 import get_weight_2d_2 ;

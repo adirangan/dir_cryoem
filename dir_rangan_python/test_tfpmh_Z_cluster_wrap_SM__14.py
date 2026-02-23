@@ -1,4 +1,4 @@
-exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ;
+from dir_matlab_macros import * ;
 from h2d import h2d ;
 from sample_sphere_7 import sample_sphere_7 ;
 from get_weight_2d_2 import get_weight_2d_2 ;

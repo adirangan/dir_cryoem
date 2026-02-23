@@ -3,12 +3,8 @@
 # (\([^(),]*\),\([^(),]*\),\([^(),]*\)) ;
 # [\3,\2,\1] ;
 
-import numpy as np ; pi = np.pi ; import torch ;
+from dir_matlab_macros import * ;
 from ylgndr_2 import ylgndr_2 ;
-from fnorm_disp import fnorm_disp ;
-numel = lambda a : int(a.numel()) ;
-from matlab_save import matlab_save ;
-from matlab_load import matlab_load ;
 
 flag_verbose=2; flag_disp=0; nf=0;
 print(' %% testing ylgndr_2')

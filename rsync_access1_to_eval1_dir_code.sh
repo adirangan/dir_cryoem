@@ -14,6 +14,7 @@ rsync \
     avr209@access.cims.nyu.edu:/data/rangan/dir_cryoem/dir_fig_xfig \
     /home/rangan/dir_cryoem/ \
     --exclude "EMPM/" \
+    --exclude "dir_rangan_python/venv/" \
     --include "/*" \
     --include "*.org" \
     --include "*.py" \

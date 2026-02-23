@@ -1,4 +1,4 @@
-import numpy as np
+from dir_matlab_macros import * ;
 
 '''
 function M_p_ = rotate_p_to_p_fftw(n_r,n_w_,n_A,S_p_,gamma);

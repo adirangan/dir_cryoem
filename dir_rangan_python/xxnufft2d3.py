@@ -1,4 +1,4 @@
-import numpy as np ; import torch
+from dir_matlab_macros import * ;
 from finufft import nufft2d3 as nufft2d3_cpu
 
 def xxnufft2d3(

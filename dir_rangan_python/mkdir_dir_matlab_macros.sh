@@ -1,0 +1,23 @@
+mkdir dir_matlab_macros ;
+
+git mv disp_sprintf.py* dir_matlab_macros/ ;
+git mv fnorm_disp.py* dir_matlab_macros/ ;
+git mv intersect_0.py* dir_matlab_macros/ ;
+git mv matlab_index_2d_0.py* dir_matlab_macros/ ;
+git mv matlab_index_2d_gpu_0.py* dir_matlab_macros/ ;
+git mv matlab_index_3d_0.py* dir_matlab_macros/ ;
+git mv matlab_index_3d_gpu_0.py* dir_matlab_macros/ ;
+git mv matlab_index_4d_0.py* dir_matlab_macros/ ;
+git mv matlab_index_4d_gpu_0.py* dir_matlab_macros/ ;
+git mv matlab_index_5d_0.py* dir_matlab_macros/ ;
+git mv matlab_load.py* dir_matlab_macros/ ;
+git mv matlab_macros.py* dir_matlab_macros/ ;
+git mv matlab_save.py* dir_matlab_macros/ ;
+git mv matlab_scalar_round.py* dir_matlab_macros/ ;
+git mv matlab_svds.py* dir_matlab_macros/ ;
+git mv parameter_timing_printf.py* dir_matlab_macros/ ;
+git mv parameter_timing_update.py* dir_matlab_macros/ ;
+git mv periodize.py* dir_matlab_macros/ ;
+git mv setdiff_0.py* dir_matlab_macros/ ;
+git mv union_0.py* dir_matlab_macros/ ;
+git mv unique_0.py* dir_matlab_macros/ ;

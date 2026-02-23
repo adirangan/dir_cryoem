@@ -1,4 +1,4 @@
-exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ; #<-- warning, avoid recursion. ;
+from dir_matlab_macros import * ;
 from interp_p_to_q import interp_p_to_q ;
 
 def principled_marching_empirical_cost_matrix_2(

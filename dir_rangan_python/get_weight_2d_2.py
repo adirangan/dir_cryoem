@@ -1,11 +1,4 @@
-import numpy as np ; pi = np.pi ; import torch ; import timeit ;
-from matlab_index_2d_0 import matlab_index_2d_0 ;
-from matlab_index_3d_0 import matlab_index_3d_0 ;
-from matlab_index_4d_0 import matlab_index_4d_0 ;
-from matlab_scalar_round import matlab_scalar_round
-numel = lambda a : int(a.numel()) ;
-cumsum_0 = lambda a : torch.cumsum(torch.concatenate((torch.tensor([0]),a)) , 0).to(torch.int32) ;
-mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
+from dir_matlab_macros import * ;
 
 '''
 function ...

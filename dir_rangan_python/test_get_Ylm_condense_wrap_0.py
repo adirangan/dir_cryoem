@@ -3,13 +3,10 @@
 # (\([^(),]*\),\([^(),]*\),\([^(),]*\)) ;
 # [\3,\2,\1] ;
 
-import numpy as np ; pi = np.pi ; import torch ; import timeit ;
-from matlab_scalar_round import matlab_scalar_round ;
+from dir_matlab_macros import * ;
 from sample_sphere_7 import sample_sphere_7 ;
 from get_Ylm__2 import get_Ylm__2 ;
 from get_Ylm_condense_wrap_0 import get_Ylm_condense_wrap_0 ;
-from fnorm_disp import fnorm_disp ;
-numel = lambda a : int(a.numel()) ;
 
 flag_verbose=1;
 print(' %% testing get_Ylm_condense_wrap_0');

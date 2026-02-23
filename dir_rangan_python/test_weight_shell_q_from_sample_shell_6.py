@@ -1,10 +1,6 @@
-import numpy as np ; pi = np.pi ; i = 1j ; import torch ; import timeit ;
-from matlab_index_2d_0 import matlab_index_2d_0 ;
-from matlab_index_3d_0 import matlab_index_3d_0 ;
-from matlab_index_4d_0 import matlab_index_4d_0 ;
+from dir_matlab_macros import * ;
 from hshell import hshell ;
 from sample_shell_6 import sample_shell_6 ;
-mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
 
 def test_weight_shell_q_from_sample_shell_6(
         k_int: int = 48, #<-- highest frequency (2*pi*k_p_r_max), watch out for aliasing! 

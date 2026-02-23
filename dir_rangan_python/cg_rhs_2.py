@@ -1,20 +1,4 @@
-import numpy as np ; pi = np.pi ; i = 1j ; import torch ; import timeit ;
-from matlab_index_2d_0 import matlab_index_2d_0 ;
-from matlab_index_3d_0 import matlab_index_3d_0 ;
-from matlab_index_4d_0 import matlab_index_4d_0 ;
-from matlab_scalar_round import matlab_scalar_round ;
-from fnorm_disp import fnorm_disp
-from periodize import periodize
-numel = lambda a : int(a.numel()) ;
-fnorm = lambda a : torch.linalg.norm(a).item() ;
-mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
-msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
-mts = lambda a : tuple(len(a) - x - 1 for x in a) ; #<-- for permute (i.e., tuple subtract (...)). ;
-mmmm = lambda A , B : torch.einsum( msr('ab') + ',' + msr('bc') + '->' + msr('ac') , A , B ) ; #<-- matlab matrix matrix multiplication. ;
-mmvm = lambda A , B : torch.einsum( msr('ab') + ',' +  msr('b') + '->' +  msr('a') , A , B ) ; #<-- matlab matrix vector multiplication. ;
-mvmm = lambda A , B : torch.einsum(  msr('b') + ',' + msr('bc') + '->' +  msr('c') , A , B ) ; #<-- matlab vector matrix multiplication. ;
-mvvm = lambda A , B : torch.einsum(  msr('b') + ',' +  msr('b') + '->' +   msr('') , A , B ) ; #<-- matlab vector vector multiplication. ;
-efind = lambda a : torch.where(a)[0] ;
+from dir_matlab_macros import * ;
 
 def cg_rhs_2(
         n_M = None,

@@ -1,5 +1,4 @@
-#import os; os.chdir('/data/rangan/dir_cryoem/dir_rangan_python');
-exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ;
+from dir_matlab_macros import * ;
 from transf_p_to_p_uniform_over_n_k_p_r_gpu_0 import transf_p_to_p_uniform_over_n_k_p_r_gpu_0 ;
 from interp_p_to_q import interp_p_to_q ; #<-- should apply on device_use=='cuda'. ;
 

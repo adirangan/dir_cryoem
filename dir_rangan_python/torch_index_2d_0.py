@@ -1,4 +1,4 @@
-import numpy as np ; pi = np.pi ; import torch ; import timeit ;
+from dir_matlab_macros import * ;
 
 print(' %% test_torch_index_0:');
 n_x = 4; n_y = 5; n_xy = n_x*n_y;

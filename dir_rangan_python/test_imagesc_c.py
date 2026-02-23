@@ -1,4 +1,4 @@
-import numpy as np ; pi = np.pi ; i = 1j ; import torch ; import timeit ;
+from dir_matlab_macros import * ;
 
 '''
 n_x = 24+1; x_ = transpose(linspace(-1,+1,n_x));

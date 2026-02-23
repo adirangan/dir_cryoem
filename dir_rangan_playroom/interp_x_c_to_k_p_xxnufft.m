@@ -245,11 +245,13 @@ disp(sprintf(' %% tmp_M_x_c_reco_l2 = %0.16f',tmp_M_x_c_reco_l2));
 disp(sprintf(' %% tmp_M_x_c_ vs tmp_M_x_c_reco: %0.16f',fnorm(tmp_M_x_c_ - tmp_M_x_c_reco_)/fnorm(tmp_M_x_c_)));
 figure(1);figbig;fig80s;
 p_row = 2; p_col = 3; np=0;
-subplot(p_row,p_col,1+np);np=np+1;imagesc_c(n_x_M_u,x_c_0_,n_x_M_u,x_c_1_,tmp_M_x_c_);axis image;axisnotick; title('tmp_M_x_c_','Interpreter','none');
-subplot(p_row,p_col,1+np);np=np+1;imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(tmp_M_k_p_));axis image;axisnotick; title('tmp_M_k_p_','Interpreter','none');
-subplot(p_row,p_col,1+np);np=np+1;imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(tmp_M_k_p_form_));axis image;axisnotick; title('tmp_M_k_p_form_','Interpreter','none');
-subplot(p_row,p_col,1+np);np=np+1;imagesc_c(n_x_M_u,x_c_0_,n_x_M_u,x_c_1_,real(tmp_M_x_c_reco_));axis image;axisnotick; title('tmp_M_x_c_reco_','Interpreter','none');
-subplot(p_row,p_col,1+np);np=np+1;imagesc_c(n_x_M_u,x_c_0_,n_x_M_u,x_c_1_,real(tmp_M_x_c_reco_-tmp_M_x_c_));axis image;axisnotick; title('difference','Interpreter','none');
+tmp_M_x_c_lim_ = reshape(prctile(real(tmp_M_x_c_),[  0,100],'all'),[1,2]);
+tmp_M_k_p_lim_ = reshape(prctile(real(tmp_M_k_p_form_),[  0,100],'all'),[1,2]);
+subplot(p_row,p_col,1+np);np=np+1;imagesc_c(n_x_M_u,x_c_0_,n_x_M_u,x_c_1_,tmp_M_x_c_,tmp_M_x_c_lim_);axis image;axisnotick; title('tmp_M_x_c_','Interpreter','none');
+subplot(p_row,p_col,1+np);np=np+1;imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(tmp_M_k_p_),tmp_M_k_p_lim_);axis image;axisnotick; title('tmp_M_k_p_','Interpreter','none');
+subplot(p_row,p_col,1+np);np=np+1;imagesc_p(n_k_p_r,k_p_r_,n_w_,n_w_sum,real(tmp_M_k_p_form_),tmp_M_k_p_lim_);axis image;axisnotick; title('tmp_M_k_p_form_','Interpreter','none');
+subplot(p_row,p_col,1+np);np=np+1;imagesc_c(n_x_M_u,x_c_0_,n_x_M_u,x_c_1_,real(tmp_M_x_c_reco_),tmp_M_x_c_lim_);axis image;axisnotick; title('tmp_M_x_c_reco_','Interpreter','none');
+subplot(p_row,p_col,1+np);np=np+1;imagesc_c(n_x_M_u,x_c_0_,n_x_M_u,x_c_1_,real(tmp_M_x_c_reco_-tmp_M_x_c_),tmp_M_x_c_lim_);axis image;axisnotick; title('difference','Interpreter','none');
 disp('returning'); return;
 end;%if (nargin<1);
 

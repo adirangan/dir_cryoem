@@ -1,26 +1,9 @@
-import numpy as np ; pi = np.pi ; i = 1j ; import torch ; import timeit ;
-from matlab_index_2d_0 import matlab_index_2d_0 ;
-from matlab_index_3d_0 import matlab_index_3d_0 ;
-from matlab_index_4d_0 import matlab_index_4d_0 ;
-from matlab_scalar_round import matlab_scalar_round ;
+from dir_matlab_macros import * ;
 from get_weight_3d_1 import get_weight_3d_1 ;
 from get_weight_2d_2 import get_weight_2d_2 ;
 from interp_p_to_q import interp_p_to_q ;
 from rotate_p_to_p_fftw import rotate_p_to_p_fftw ;
 from transf_p_to_p import transf_p_to_p ;
-numel_unique = lambda a : np.unique(a.numpy().ravel()).size ;
-cumsum_0 = lambda a : torch.cumsum(torch.concatenate((torch.tensor([0]),a)) , 0).to(torch.int32) ;
-fnorm = lambda a : torch.linalg.norm(a).item() ;
-mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
-msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
-mts = lambda a : tuple(len(a) - x - 1 for x in a) ; #<-- for permute (i.e., tuple subtract (...)). ;
-tic = lambda : timeit.default_timer() ;
-toc = lambda a : tic() - a ;
-mmmm = lambda A , B : torch.einsum( msr('ab') + ',' + msr('bc') + '->' + msr('ac') , A , B ) ; #<-- matlab matrix matrix multiplication. ;
-mmvm = lambda A , B : torch.einsum( msr('ab') + ',' +  msr('b') + '->' +  msr('a') , A , B ) ; #<-- matlab matrix vector multiplication. ;
-mvmm = lambda A , B : torch.einsum(  msr('b') + ',' + msr('bc') + '->' +  msr('c') , A , B ) ; #<-- matlab vector matrix multiplication. ;
-mvvm = lambda A , B : torch.einsum(  msr('b') + ',' +  msr('b') + '->' +   msr('') , A , B ) ; #<-- matlab vector vector multiplication. ;
-n_1 = int(1); n_2 = int(2); n_3 = int(3);
 
 flag_verbose=1; flag_disp=0;nf=0;
 print(f' %% testing rotate_to_p_fftw');

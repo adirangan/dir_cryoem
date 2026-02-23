@@ -1,4 +1,4 @@
-exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ;
+from dir_matlab_macros import * ;
 from knn_cluster_CTF_k_p_r_kC__1 import knn_cluster_CTF_k_p_r_kC__1 ;
 from principled_marching_empirical_cost_matrix_2 import principled_marching_empirical_cost_matrix_2 ;
 from principled_marching_cost_matrix_7 import principled_marching_cost_matrix_7 ;

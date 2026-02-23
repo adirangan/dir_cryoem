@@ -1,4 +1,4 @@
-exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ;
+from dir_matlab_macros import * ;
 from tfh_FTK_4 import tfh_FTK_4 ;
 from transf_p_to_p import transf_p_to_p ;
 from qbp_uniform_over_n_k_p_r_10 import qbp_uniform_over_n_k_p_r_10 ;

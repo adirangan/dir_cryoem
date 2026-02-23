@@ -1,7 +1,7 @@
 rsync \
     -avum \
     /home/rangan/dir_cryoem/dir_spurious_heterogeneity_manuscript \
-    rangan@access1.cims.nyu.edu:/data/rangan/dir_cryoem/ \
+    avr209@access1.cims.nyu.edu:/data/rangan/dir_cryoem/ \
     --include "*/" \
     --include "*.tex" \
     --include "*.bib" \

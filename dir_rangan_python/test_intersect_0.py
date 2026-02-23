@@ -1,6 +1,4 @@
-import torch;
-efind = lambda a : torch.where(a)[0] ;
-from intersect_0 import intersect_0 ;
+from dir_matlab_macros import * ;
 
 a_ = torch.zeros(12).to(dtype=torch.float32);
 na=0;

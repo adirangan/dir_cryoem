@@ -8,6 +8,9 @@ addpath('/home/rangan/dir_cryoem/dir_rangan_playroom/dir_eig_ddssnll_lanczos_loc
 addpath('/home/rangan/dir_cryoem/dir_rangan_playhouse');
 addpath('/home/rangan/dir_cryoem/dir_rangan_playground');
 addpath('/home/rangan/dir_cryoem/dir_rangan_playland');
+addpath('/home/rangan/dir_bcc/dir_ukb/dir_m');
+addpath('/home/rangan/dir_bcc/dir_jamison/dir_m');
+addpath('/home/rangan/dir_bcc/dir_dolphin/dir_m');
 addpath('/home/rangan/dir_multiprod');
 set(groot,'defaultFigureCreateFcn',@(fig,~)addToolbarExplorationButtons(fig));
 set(groot,'defaultAxesCreateFcn',@(ax,~)set(ax.Toolbar,'Visible','off'));

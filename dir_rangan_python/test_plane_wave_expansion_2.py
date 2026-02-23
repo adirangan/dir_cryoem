@@ -1,4 +1,4 @@
-exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ; #<-- warning, avoid recursion. ;
+from dir_matlab_macros import * ;
 from plane_wave_expansion_1 import plane_wave_expansion_1 ;
 from plane_wave_expansion_2 import plane_wave_expansion_2 ;
 

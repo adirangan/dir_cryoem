@@ -1,5 +1,4 @@
-import numpy as np ; import torch ;
-numel = lambda a : int(a.numel()) ;
+from dir_matlab_macros import * ;
 
 '''
 function output = colormap_81s(n_c,gamma1,gamma2,gamma3);

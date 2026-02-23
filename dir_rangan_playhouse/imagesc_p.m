@@ -1,4 +1,4 @@
-function clim = imagesc_p(n_r,grid_p_,n_w_,n_A,S_p_,clim,c__);
+function clim_ = imagesc_p(n_r,grid_p_,n_w_,n_A,S_p_,clim_,c__);
 % polar imagesc;
 
 if (nargin<1);
@@ -29,12 +29,12 @@ if (nargin<1+na); n_A=[]; end; na=na+1;
 if (nargin<1+na); S_p_=[]; end; na=na+1;
 if (nargin<1+na); clim_=[]; end; na=na+1;
 if (nargin<1+na); c__=[]; end; na=na+1;
-if isempty(clim); 
-clim = mean(S_p_) + std(S_p_)*2.5*[-1,1]; 
-end;%if isempty(clim);
+if isempty(clim_); 
+clim_ = mean(S_p_) + std(S_p_)*2.5*[-1,1]; 
+end;%if isempty(clim_);
 if isempty(c__); 
 c__ = colormap_beach();
-end;%if isempty(clim);
+end;%if isempty(c__);
 
 r0_ = zeros(1,n_A); r1_ = zeros(1,n_A);
 w0_ = zeros(1,n_A); w1_ = zeros(1,n_A);
@@ -53,7 +53,7 @@ w_pre = nw*dw - 0.5*dw;
 w_pos = nw*dw + 0.5*dw;
 r0_(1+ic) = r_pre; r1_(1+ic) = r_pos;
 w0_(1+ic) = w_pre; w1_(1+ic) = w_pos;
-nc = max(1,min(ncra,floor(ncra*(S_p_(1+ic) - min(clim))/diff(clim))));
+nc = max(1,min(ncra,floor(ncra*(S_p_(1+ic) - min(clim_))/diff(clim_))));
 C_(1,1+ic,1:3) = c__(nc,:);
 ic=ic+1;
 end;%for nw=0:n_w_(1+nr)-1;

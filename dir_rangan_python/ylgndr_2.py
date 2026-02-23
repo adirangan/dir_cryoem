@@ -1,9 +1,4 @@
-import numpy as np ; pi = np.pi ; import torch ;
-from matlab_index_2d_0 import matlab_index_2d_0 ;
-from matlab_index_3d_0 import matlab_index_3d_0 ;
-from matlab_index_4d_0 import matlab_index_4d_0 ;
-numel = lambda a : int(a.numel()) ;
-mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
+from dir_matlab_macros import * ;
 
 def ylgndr_2(
   parameter=None,

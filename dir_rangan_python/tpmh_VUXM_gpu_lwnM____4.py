@@ -1,5 +1,4 @@
-#import os; os.chdir('/data/rangan/dir_cryoem/dir_rangan_python');
-exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ;
+from dir_matlab_macros import * ;
 import sys ;
 from i4_torch_arange import i4_torch_arange ;
 

@@ -1,7 +1,5 @@
-import numpy as np ; pi = np.pi ; import torch ; import timeit ; import sys ;
-from matlab_index_2d_0 import matlab_index_2d_0 ;
-from matlab_index_3d_0 import matlab_index_3d_0 ;
-from matlab_index_4d_0 import matlab_index_4d_0 ;
+from dir_matlab_macros import * ;
+import sys ;
 
 print(' %% %% %% %% %% %% %% %% %% ');
 print(' %% test_torch_index_0 (2d): ');

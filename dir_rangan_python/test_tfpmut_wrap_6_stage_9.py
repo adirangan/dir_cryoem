@@ -1,4 +1,4 @@
-exec(open("/data/rangan/dir_cryoem/dir_rangan_python/matlab_macros.py").read(), globals()) ;
+from dir_matlab_macros import * ;
 from tfh_FTK_4 import tfh_FTK_4 ;
 from tfpmh_Z_cluster_wrap_SM__14 import tfpmh_Z_cluster_wrap_SM__14 ;
 

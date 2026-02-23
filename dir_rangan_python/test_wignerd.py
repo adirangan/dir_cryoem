@@ -1,16 +1,7 @@
-import numpy as np ; pi = np.pi ; i = 1j ; import torch ; import timeit ;
-from matlab_index_2d_0 import matlab_index_2d_0 ;
-from matlab_index_3d_0 import matlab_index_3d_0 ;
-from matlab_index_4d_0 import matlab_index_4d_0 ;
+from dir_matlab_macros import * ;
 from wignerd_b import wignerd_b ;
 from wignerd_lsq_b import wignerd_lsq_b ;
 from wignerd_c import wignerd_c ;
-fnorm = lambda a : torch.linalg.norm(a).item() ;
-mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
-msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
-mts = lambda a : tuple(len(a) - x - 1 for x in a) ; #<-- for permute (i.e., tuple subtract (...)). ;
-tic = lambda : timeit.default_timer() ;
-toc = lambda a : tic() - a ;
 
 flag_verbose=1;
 if (flag_verbose>0): print(f' %% testing wignerd_b, wignerd_lsq_b and wignerd_c');

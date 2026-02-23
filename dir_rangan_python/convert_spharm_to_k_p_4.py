@@ -1,13 +1,6 @@
-import numpy as np ; pi = np.pi ; import torch ; import timeit ;
-from matlab_index_2d_0 import matlab_index_2d_0 ;
-from matlab_index_3d_0 import matlab_index_3d_0 ;
-from matlab_index_4d_0 import matlab_index_4d_0 ;
-from matlab_scalar_round import matlab_scalar_round ;
+from dir_matlab_macros import * ;
 from get_Ylm__2 import get_Ylm__2 ;
 from get_Ylm_condense_wrap_0 import get_Ylm_condense_wrap_0 ;
-fnorm = lambda a : torch.linalg.norm(a).item() ;
-mtr = lambda a : tuple(reversed(a)) ; #<-- matlab-arranged size (i.e., tuple(reversed(...))). ;
-msr = lambda str : str[::-1] ; #<-- for einsum (i.e., string reversed (...)). ;
 
 def convert_spharm_to_k_p_4(
         flag_verbose=None,

@@ -3,9 +3,8 @@
 # (\([^(),]*\),\([^(),]*\),\([^(),]*\)) ;
 # [\3,\2,\1] ;
 
-import numpy as np ; pi = np.pi ; import torch ; import timeit ;
+from dir_matlab_macros import * ;
 from get_Ylm__2 import get_Ylm__2 ;
-from fnorm_disp import fnorm_disp ;
 
 flag_verbose=2; flag_disp=0; nf=0;
 print(' %% testing get_Ylm__2');

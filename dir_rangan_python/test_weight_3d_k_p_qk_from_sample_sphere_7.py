@@ -1,7 +1,4 @@
-import numpy as np ; pi = np.pi ; i = 1j ; import torch ; import timeit ;
-from matlab_index_2d_0 import matlab_index_2d_0 ;
-from matlab_index_3d_0 import matlab_index_3d_0 ;
-from matlab_index_4d_0 import matlab_index_4d_0 ;
+from dir_matlab_macros import * ;
 from sample_shell_6 import sample_shell_6
 from h2d import h2d ; from h3d import h3d ;
 from sample_sphere_7 import sample_sphere_7
