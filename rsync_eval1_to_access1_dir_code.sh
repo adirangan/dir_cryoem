@@ -33,7 +33,7 @@ rsync \
 rsync \
     -avum \
     /home/rangan/dir_cryoem/dir_rangan_python/dir_matla_macros \
-    avr209@access1.cims.nyu.edu:/data/rangan/dir_cryoem/dir_rangan_playroom/ \
+    avr209@access1.cims.nyu.edu:/data/rangan/dir_cryoem/dir_rangan_python/ \
     --exclude "EMPM/" \
     --include "/*" \
     --include "*.org" \

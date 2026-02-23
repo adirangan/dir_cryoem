@@ -33,7 +33,7 @@ rsync \
 rsync \
     -avum \
     avr209@access.cims.nyu.edu:/data/rangan/dir_cryoem/dir_rangan_python/dir_matlab_macros \
-    /home/rangan/dir_cryoem/dir_rangan_playroom/ \
+    /home/rangan/dir_cryoem/dir_rangan_python/ \
     --exclude "EMPM/" \
     --include "/*" \
     --include "*.org" \
